@@ -67,10 +67,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logic\GameManager.cs" />
-    <Compile Include="Logic\GameObject.cs" />
-    <Compile Include="Logic\GameScraper.cs" />
-    <Compile Include="Logic\XML.cs" />
+    <Compile Include="Shared logic\GameManager.cs" />
+    <Compile Include="Shared logic\GameObject.cs" />
+    <Compile Include="Shared logic\GameScraper.cs" />
+    <Compile Include="Shared logic\XML.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
