@@ -1,4 +1,4 @@
-﻿using GameLauncherDock.Logic;
+﻿using Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,12 +21,21 @@ namespace GameLauncher_Console
 		private enum ConsoleState
 		{
 			cState_Unknown	= -1,
-			cState_Browse	= 0,
-			cState_Type		= 1,
+			cState_Navigate	= 0,
+			cState_Insert	= 1,
 		};
 
 		private ConsoleState m_consoleState = ConsoleState.cState_Unknown;
-		private CGameManager m_gameManager;
+		private readonly string[] m_MainMenuOptions =
+		{
+			"Steam",
+			"Gog",
+			"Origin",
+			"Uplay",
+			"Epic store",
+			"Bethesda.NET",
+			"Battlenet"
+		};
 
 		/// <summary>
 		/// Main console loop.
@@ -35,25 +44,116 @@ namespace GameLauncher_Console
 		/// </summary>
 		public void ConsoleStart()
 		{
-			m_consoleState = ConsoleState.cState_Type;
-
-
+			CLogger.LogDebug("Console starting");
+			m_consoleState = ConsoleState.cState_Navigate;
+			ShowMainMenu();
+			Console.ReadLine();
 		}
 
-		/// <summary>
-		/// Await and handle input from the 'type' state
-		/// </summary>
-		private void HandleTypeInput()
+		private void ShowMainMenu()
 		{
+			CLogger.LogDebug("Calling main menu");
+			Console.Clear();
+			int nSelection = 0;
 
+			do
+			{
+				CLogger.LogDebug("Main menu loop running");
+
+				string strMainMenuText = "Game Launcher Dock (Console Edition)\nMake your selection (press ESC to close program)";
+
+				nSelection = HandleNavigation(strMainMenuText, true, m_MainMenuOptions);
+				CLogger.LogDebug("Current Selection = {0}", nSelection);
+
+			} while(nSelection > -1);
+
+			CLogger.LogDebug("Main menu closing");
+			Console.WriteLine("Goodbye");
 		}
 
 		/// <summary>
 		/// Await and handle input from the 'browse' state
 		/// </summary>
-		private void HandleBrowseInput()
+		private int HandleNavigation(string strTitleText, bool bCanCancel, params string[] options)
 		{
+			const int nStartX = 15;
+			const int nStartY = 8;
+			const int nOptionsPerLine = 3;
+			const int nSpacingPerLine = 14;
 
+			int nCurrentSelection = 0;
+
+			ConsoleKey key;
+
+			Console.CursorVisible = false;
+
+			do
+			{
+				Console.Clear();
+				Console.WriteLine(strTitleText);
+
+				for(int i = 0; i < options.Length; i++)
+				{
+					Console.SetCursorPosition(nStartX + (i % nOptionsPerLine) * nSpacingPerLine, nStartY + i / nOptionsPerLine);
+
+					if(i == nCurrentSelection)
+						Console.ForegroundColor = ConsoleColor.Red;
+
+					Console.WriteLine(options[i]);
+					Console.ResetColor();
+				}
+
+				key = Console.ReadKey(true).Key;
+
+				switch(key)
+				{
+					case ConsoleKey.LeftArrow:
+						if(nCurrentSelection > 0 && nCurrentSelection % nOptionsPerLine > 0)
+						{
+							nCurrentSelection--;
+							CLogger.LogDebug("Key press registered: {0}", key);
+							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						}
+						break;
+
+					case ConsoleKey.RightArrow:
+						if(nCurrentSelection + 1 < options.Length && nCurrentSelection % nOptionsPerLine < nOptionsPerLine - 1)
+						{
+							nCurrentSelection++;
+							CLogger.LogDebug("Key press registered: {0}", key);
+							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						}
+						break;
+
+					case ConsoleKey.UpArrow:
+						if(nCurrentSelection >= nOptionsPerLine)
+						{
+							nCurrentSelection -= nOptionsPerLine;
+							CLogger.LogDebug("Key press registered: {0}", key);
+							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						}
+						break;
+
+					case ConsoleKey.DownArrow:
+						if(nCurrentSelection + nOptionsPerLine < options.Length)
+						{ 
+							nCurrentSelection += nOptionsPerLine;
+							CLogger.LogDebug("Key press registered: {0}", key);
+							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						}
+						break;
+
+					case ConsoleKey.Escape:
+						CLogger.LogDebug("ESC key registered");
+						if(bCanCancel)
+							return -1;
+						break;
+				}
+
+			} while(key != ConsoleKey.Enter);
+
+			Console.CursorVisible = true;
+			return nCurrentSelection;
 		}
 
 		/// <summary>
@@ -61,14 +161,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private void SwitchState()
 		{
-			if(m_consoleState == ConsoleState.cState_Type)
-			{
-				m_consoleState = ConsoleState.cState_Browse;
-			}
-			else
-			{
-				m_consoleState = ConsoleState.cState_Type;
-			}
+			m_consoleState = (ConsoleState)((int)m_consoleState % 2);
 		}
 	}
 }

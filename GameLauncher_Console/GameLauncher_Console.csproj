@@ -46,10 +46,6 @@
     <Compile Include="Console.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shared logic\GameManager.cs" />
-    <Compile Include="Shared logic\GameObject.cs" />
-    <Compile Include="Shared logic\GameScraper.cs" />
-    <Compile Include="Shared logic\XML.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

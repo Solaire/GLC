@@ -14,7 +14,8 @@ namespace GameLauncher_Console
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(Logger.CLogger.ExceptionHandleEvent);
 			Logger.CLogger.Configure("GameLauncherConsole.log"); // Create a log file
 
-
+			CConsole console = new CConsole();
+			console.ConsoleStart();
 		}
 	}
 }
