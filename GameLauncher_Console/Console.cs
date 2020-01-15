@@ -1,9 +1,5 @@
 ﻿using Logger;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameLauncher_Console
 {
@@ -18,15 +14,62 @@ namespace GameLauncher_Console
 		/// * Type	: User can type out commands
 		/// * Browse: User can use the WASD keys to browse the items and enter/space to select item (early stage gui)
 		/// </summary>
-		private enum ConsoleState
+		public enum ConsoleState
 		{
 			cState_Unknown	= -1,
 			cState_Navigate	= 0,
 			cState_Insert	= 1,
 		};
 
-		private ConsoleState m_consoleState = ConsoleState.cState_Unknown;
-		private readonly string[] m_MainMenuOptions =
+		/// <summary>
+		/// Menu type enum.
+		/// Menu elements can be displayed as either:
+		/// * Grid: Print the elements across X columns (column number is controlled by m_OptionsPerLine)
+		/// * List: Print the elements in a signle list (m_nOptionsPerLine should be set to 1 to support arrow selection)
+		/// </summary>
+		public enum MenuType
+		{
+			cType_Unknown	= -1,
+			cType_Grid		= 0,
+			cType_List		= 1,
+		}
+
+		protected ConsoleState m_consoleState	= ConsoleState.cState_Unknown;
+		protected MenuType m_MenuType			= MenuType.cType_Unknown;
+
+		protected int m_nOptionsPerLine; // Control the number of columns
+		protected int m_nSpacingPerLine; // Control the space between the columns
+
+		/// <summary>
+		/// Default constructor:
+		/// Set the console state to insert mode
+		/// Set the menu type to list (1 column)
+		/// Set the line spacing to 10
+		/// </summary>
+		public CConsole()
+		{
+			m_consoleState	= ConsoleState.cState_Insert;
+			m_MenuType		= MenuType.cType_List;
+			m_nOptionsPerLine = 1;
+			m_nSpacingPerLine = 10;
+		}
+
+		/// <summary>
+		/// Constructor overload:
+		/// Set the member variables to argument parameters
+		/// </summary>
+		/// <param name="nColumnCount">Number or columns (set to 1 if argument is 0 or less)</param>
+		/// <param name="nSpacing">Spacing between lines (set to 5 if argument is less than 5) </param>
+		/// <param name="state">Console state (set to insert mode if argument is -1)</param>
+		public CConsole(int nColumnCount, int nSpacing, ConsoleState state)
+		{
+			m_nSpacingPerLine = Math.Max(5, nSpacing);
+			m_nOptionsPerLine = Math.Max(1, nColumnCount);
+			m_consoleState = (state == ConsoleState.cState_Unknown) ? ConsoleState.cState_Insert : state;
+			m_MenuType = (nColumnCount > 1) ? MenuType.cType_Grid : MenuType.cType_List;
+		}
+
+		protected readonly string[] m_MainMenuOptions =
 		{
 			"Steam",
 			"Gog",
@@ -50,7 +93,7 @@ namespace GameLauncher_Console
 			Console.ReadLine();
 		}
 
-		private void ShowMainMenu()
+		protected void ShowMainMenu()
 		{
 			CLogger.LogDebug("Calling main menu");
 			Console.Clear();
@@ -74,73 +117,51 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Await and handle input from the 'browse' state
 		/// </summary>
-		private int HandleNavigation(string strTitleText, bool bCanCancel, params string[] options)
+		protected int HandleNavigation(string strTitleText, bool bCanCancel, params string[] options)
 		{
-			const int nStartX = 15;
-			const int nStartY = 8;
-			const int nOptionsPerLine = 3;
-			const int nSpacingPerLine = 14;
-
 			int nCurrentSelection = 0;
-
 			ConsoleKey key;
-
 			Console.CursorVisible = false;
 
 			do
 			{
 				Console.Clear();
 				Console.WriteLine(strTitleText);
+				int nStartX = Console.CursorTop;
+				nStartX += (nStartX / 2);
 
-				for(int i = 0; i < options.Length; i++)
-				{
-					Console.SetCursorPosition(nStartX + (i % nOptionsPerLine) * nSpacingPerLine, nStartY + i / nOptionsPerLine);
+				if(m_MenuType == MenuType.cType_Grid)
+					DrawGridMenu(nCurrentSelection, nStartX, options);
 
-					if(i == nCurrentSelection)
-						Console.ForegroundColor = ConsoleColor.Red;
-
-					Console.WriteLine(options[i]);
-					Console.ResetColor();
-				}
+				else if (m_MenuType == MenuType.cType_List)
+					DrawListMenu(nCurrentSelection, nStartX, options);
 
 				key = Console.ReadKey(true).Key;
 
 				switch(key)
 				{
 					case ConsoleKey.LeftArrow:
-						if(nCurrentSelection > 0 && nCurrentSelection % nOptionsPerLine > 0)
-						{
-							nCurrentSelection--;
-							CLogger.LogDebug("Key press registered: {0}", key);
-							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
-						}
+						CLogger.LogDebug("Key press registered: {0}", key);
+						CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						HandleSelectionLeft(ref nCurrentSelection);
 						break;
 
 					case ConsoleKey.RightArrow:
-						if(nCurrentSelection + 1 < options.Length && nCurrentSelection % nOptionsPerLine < nOptionsPerLine - 1)
-						{
-							nCurrentSelection++;
-							CLogger.LogDebug("Key press registered: {0}", key);
-							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
-						}
+						CLogger.LogDebug("Key press registered: {0}", key);
+						CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						HandleSelectionRight(ref nCurrentSelection, options.Length);
 						break;
 
 					case ConsoleKey.UpArrow:
-						if(nCurrentSelection >= nOptionsPerLine)
-						{
-							nCurrentSelection -= nOptionsPerLine;
-							CLogger.LogDebug("Key press registered: {0}", key);
-							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
-						}
+						CLogger.LogDebug("Key press registered: {0}", key);
+						CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						HandleSelectionUp(ref nCurrentSelection);
 						break;
 
 					case ConsoleKey.DownArrow:
-						if(nCurrentSelection + nOptionsPerLine < options.Length)
-						{ 
-							nCurrentSelection += nOptionsPerLine;
-							CLogger.LogDebug("Key press registered: {0}", key);
-							CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
-						}
+						CLogger.LogDebug("Key press registered: {0}", key);
+						CLogger.LogDebug("Curosr on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
+						HandleSelectionDown(ref nCurrentSelection, options.Length);
 						break;
 
 					case ConsoleKey.Escape:
@@ -157,9 +178,123 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Draw the list options in a grid layout.
+		/// </summary>
+		/// <param name="nCursorPosition">Current position, which will be printed in a red colour</param>
+		/// <param name="nStartTop">Offset from the top of the window</param>
+		/// <param name="itemList">List of items to be displayed</param>
+		protected void DrawGridMenu(int nCursorPosition, int nStartTop, params string[] itemList)
+		{
+			for(int i = 0; i < itemList.Length; i++)
+			{
+				Console.SetCursorPosition((i % m_nOptionsPerLine) * m_nSpacingPerLine, nStartTop + i / m_nOptionsPerLine);
+
+				if(i == nCursorPosition)
+					Console.ForegroundColor = ConsoleColor.Red;
+
+				Console.WriteLine(itemList[i]);
+				Console.ResetColor();
+			}
+		}
+
+		/// <summary>
+		/// Draw a list of options as a list
+		/// </summary>
+		/// <param name="nCursorPosition">Current position, which will be printed in a red colour</param>
+		/// <param name="nStartTop">Offset from the top of the window</param>
+		/// <param name="itemList">List of items to be displayed</param>
+		protected void DrawListMenu(int nCursorPosition, int nStartTop, params string[] itemList)
+		{
+			for(int i = 0; i < itemList.Length; i++)
+			{
+				Console.SetCursorPosition(1, nStartTop + i);
+
+				if(i == nCursorPosition)
+					Console.ForegroundColor = ConsoleColor.Red;
+
+				Console.WriteLine(itemList[i]);
+				Console.ResetColor();
+			}
+		}
+
+		/// <summary>
+		/// Handle selection calculation when 'up' is selected
+		/// </summary>
+		/// <param name="nCurrentSelection">Reference to the current selection</param>
+		protected virtual void HandleSelectionUp(ref int nCurrentSelection)
+		{
+			if(m_MenuType == MenuType.cType_Grid &&
+				nCurrentSelection >= m_nOptionsPerLine)
+			{
+				nCurrentSelection -= m_nOptionsPerLine;
+			}
+			else if(m_MenuType == MenuType.cType_List &&
+				nCurrentSelection >= 1)
+			{
+				nCurrentSelection--;
+			}
+		}
+
+		/// <summary>
+		/// Handle selection calculation when 'down' is selected
+		/// </summary>
+		/// <param name="nCurrentSelection">Reference to the current selection</param>
+		/// <param name="nOptionCount">Number of items in the list</param>
+		protected virtual void HandleSelectionDown(ref int nCurrentSelection, int nOptionCount)
+		{
+			if(m_MenuType == MenuType.cType_Grid &&
+				nCurrentSelection + m_nOptionsPerLine < nOptionCount)
+			{
+				nCurrentSelection += m_nOptionsPerLine;
+			}
+			else if(m_MenuType == MenuType.cType_List &&
+				nCurrentSelection + 1 < nOptionCount)
+			{
+				nCurrentSelection++;
+			}
+		}
+
+		/// <summary>
+		/// Handle selection calculation when 'left' is selected
+		/// </summary>
+		/// <param name="nCurrentSelection">Reference to the current selection</param>
+		protected virtual void HandleSelectionLeft(ref int nCurrentSelection)
+		{
+			if(m_MenuType == MenuType.cType_Grid &&
+			   nCurrentSelection > 0 && nCurrentSelection % m_nOptionsPerLine > 0)
+			{
+				nCurrentSelection--;
+			}
+			else if(m_MenuType == MenuType.cType_List &&
+			   nCurrentSelection > 0)
+			{
+				nCurrentSelection--;
+			}
+		}
+
+		/// <summary>
+		/// Handle selection calculation when 'right' is selected
+		/// </summary>
+		/// <param name="nCurrentSelection">Reference to the current selection</param>
+		/// <param name="nOptionCount">Numbers of items in the list</param>
+		protected virtual void HandleSelectionRight(ref int nCurrentSelection, int nOptionCount)
+		{
+			if(m_MenuType == MenuType.cType_Grid &&
+				nCurrentSelection + 1 < nOptionCount && nCurrentSelection % m_nOptionsPerLine < m_nOptionsPerLine - 1)
+			{
+				nCurrentSelection++;
+			}
+			else if(m_MenuType == MenuType.cType_List &&
+				nCurrentSelection + 1 < nOptionCount && nCurrentSelection < 0)
+			{
+				nCurrentSelection++;
+			}
+		}
+
+		/// <summary>
 		/// Switch the console state
 		/// </summary>
-		private void SwitchState()
+		protected void SwitchState()
 		{
 			m_consoleState = (ConsoleState)((int)m_consoleState % 2);
 		}
