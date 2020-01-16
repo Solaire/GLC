@@ -4,9 +4,10 @@ using System;
 namespace GameLauncher_Console
 {
 	/// <summary>
-	/// Application console-based frontend
+	/// Console helper class which can handle typing and navigation. 
+	/// In the most basic form, the class will print a list of options and handle user selection.
 	/// </summary>
-	public class CConsole
+	public class CConsoleHelper
 	{
 		/// <summary>
 		/// Console state enum.
@@ -46,7 +47,7 @@ namespace GameLauncher_Console
 		/// Set the menu type to list (1 column)
 		/// Set the line spacing to 10
 		/// </summary>
-		public CConsole()
+		public CConsoleHelper()
 		{
 			m_consoleState	= ConsoleState.cState_Insert;
 			m_MenuType		= MenuType.cType_List;
@@ -61,7 +62,7 @@ namespace GameLauncher_Console
 		/// <param name="nColumnCount">Number or columns (set to 1 if argument is 0 or less)</param>
 		/// <param name="nSpacing">Spacing between lines (set to 5 if argument is less than 5) </param>
 		/// <param name="state">Console state (set to insert mode if argument is -1)</param>
-		public CConsole(int nColumnCount, int nSpacing, ConsoleState state)
+		public CConsoleHelper(int nColumnCount, int nSpacing, ConsoleState state)
 		{
 			m_nSpacingPerLine = Math.Max(5, nSpacing);
 			m_nOptionsPerLine = Math.Max(1, nColumnCount);
