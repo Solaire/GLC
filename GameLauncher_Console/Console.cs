@@ -93,7 +93,7 @@ namespace GameLauncher_Console
 			Console.ReadLine();
 		}
 
-		protected void ShowMainMenu()
+		protected void ShowMainMenu() // TODO: Remove later and put in a child class
 		{
 			CLogger.LogDebug("Calling main menu");
 			Console.Clear();
@@ -105,7 +105,8 @@ namespace GameLauncher_Console
 
 				string strMainMenuText = "Game Launcher Dock (Console Edition)\nMake your selection (press ESC to close program)";
 
-				nSelection = HandleNavigation(strMainMenuText, true, m_MainMenuOptions);
+				//nSelection = HandleNavigation(strMainMenuText, true, m_MainMenuOptions);
+				nSelection = HandleInsertMenu(strMainMenuText, m_MainMenuOptions);
 				CLogger.LogDebug("Current Selection = {0}", nSelection);
 
 			} while(nSelection > -1);
@@ -115,26 +116,31 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Await and handle input from the 'browse' state
+		/// Selection handler in the 'browse' state
 		/// </summary>
-		protected int HandleNavigation(string strTitleText, bool bCanCancel, params string[] options)
+		/// <param name="strTitleText">Text which will appear at the top of the menu</param>
+		/// <param name="bCanCancel">If true, pressing ESC will return -1, otherwise nothing will happen</param>
+		/// <param name="options">Menu selection</param>
+		/// <returns>Index of the selected item from the options parameter</returns>
+		protected int HandleNavigationMenu(string strTitleText, bool bCanCancel, params string[] options)
 		{
+			// Setup
 			int nCurrentSelection = 0;
 			ConsoleKey key;
 			Console.CursorVisible = false;
 
 			do
 			{
+				// Refresh console before redraw, print the title and set the menu start position
 				Console.Clear();
 				Console.WriteLine(strTitleText);
-				int nStartX = Console.CursorTop;
-				nStartX += (nStartX / 2);
+				int nStartY = Console.CursorTop + 1;
 
 				if(m_MenuType == MenuType.cType_Grid)
-					DrawGridMenu(nCurrentSelection, nStartX, options);
+					DrawGridMenu(nCurrentSelection, nStartY, options);
 
 				else if (m_MenuType == MenuType.cType_List)
-					DrawListMenu(nCurrentSelection, nStartX, options);
+					DrawListMenu(nCurrentSelection, nStartY, options);
 
 				key = Console.ReadKey(true).Key;
 
@@ -174,6 +180,62 @@ namespace GameLauncher_Console
 			} while(key != ConsoleKey.Enter);
 
 			Console.CursorVisible = true;
+			return nCurrentSelection;
+		}
+
+		/// <summary>
+		/// Selection handler in the 'insert' mode
+		/// </summary>
+		/// <param name="strTitleText">Text which will appear at the top of the menu.</param>
+		/// <param name="options">List of menu items</param>
+		/// <returns>Index of the selected item from the options parameter</returns>
+		protected int HandleInsertMenu(string strTitleText, params string[] options)
+		{
+			// Setup
+			int nCurrentSelection = 0;
+			Console.CursorVisible = true;
+			bool bIsValidSelection = false;
+
+			do
+			{
+				// Refresh console before redraw, print the title and set the menu start position
+				Console.Clear();
+				Console.WriteLine(strTitleText);
+				int nStartY = Console.CursorTop + 1;
+
+				if(m_MenuType == MenuType.cType_Grid)
+					DrawGridMenu(nCurrentSelection, nStartY, options);
+
+				else if(m_MenuType == MenuType.cType_List)
+					DrawListMenu(nCurrentSelection, nStartY, options);
+
+				// Set the cursor to the bottom of the console
+				Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - 2);
+				Console.Write(">>> ");
+				string strInput = Console.ReadLine();
+
+				if(strInput.Length < 1) // Empty strings are invalid
+					continue;
+				
+				for(int i = 0; i < options.Length; i++) // Loop over the menu items and see if anything is a match
+				{
+					if(strInput.ToLower().Contains(options[i].ToLower()))
+					{
+						bIsValidSelection = true;
+						nCurrentSelection = i;
+						break;
+					}
+				}
+
+				// No match - check if we entered the exit command
+				if(!bIsValidSelection && strInput.ToLower() == "wq") //TODO: Change to a list of supported commands (configurable)
+				{
+					bIsValidSelection = true;
+					nCurrentSelection = -1;
+				}
+
+			} while(!bIsValidSelection);
+
 			return nCurrentSelection;
 		}
 
