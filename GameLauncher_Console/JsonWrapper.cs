@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GameLauncher_Console
 {
@@ -9,13 +11,28 @@ namespace GameLauncher_Console
 	/// </summary>
 	class CJsonWrapper
 	{
-		class TestObject
+		public class TestObject
 		{
 			public int		intItem { get; set; }
 			public string	strItem { get; set; }
 			public bool		boolItem { get; set; }
 		}
-		
+
+		public void start(string strPath)
+		{
+			var options = new JsonDocumentOptions
+			{
+				AllowTrailingCommas = true
+			};
+
+			string strDoc = File.ReadAllText(strPath);
+
+			using(JsonDocument document = JsonDocument.Parse(strDoc, options))
+			{
+				int x = 0;
+			}
+		}
+
 		/* TO IMPLEMENT:
 		 *  Load JSON file;
 		 *  Save File to a JSON format;

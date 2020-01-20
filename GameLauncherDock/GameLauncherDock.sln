@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IconExtractor", "IconExtrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameLauncher_Console", "..\GameLauncher_Console\GameLauncher_Console.csproj", "{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "..\..\DevTools\Logger\Logger.csproj", "{0122B147-8C10-49BB-ACFD-AE04491EA9EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "..\..\Code-and-tools\Logger\Logger.csproj", "{0122B147-8C10-49BB-ACFD-AE04491EA9EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
