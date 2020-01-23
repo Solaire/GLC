@@ -69,6 +69,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleHelper.cs" />
+    <Compile Include="Dock.cs" />
+    <Compile Include="DockConsole.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="JsonWrapper.cs" />
     <Compile Include="Program.cs" />

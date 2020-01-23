@@ -70,31 +70,8 @@ namespace GameLauncher_Console
 			m_MenuType = (nColumnCount > 1) ? MenuType.cType_Grid : MenuType.cType_List;
 		}
 
-		protected readonly string[] m_MainMenuOptions =
-		{
-			"Steam",
-			"Gog",
-			"Origin",
-			"Uplay",
-			"Epic store",
-			"Bethesda.NET",
-			"Battlenet"
-		};
 
-		/// <summary>
-		/// Main console loop.
-		/// Load and read the XML file and present the user with a list of items to pick.
-		/// Process and handle console input
-		/// </summary>
-		public void ConsoleStart()
-		{
-			CLogger.LogDebug("Console starting");
-			m_consoleState = ConsoleState.cState_Navigate;
-			ShowMainMenu();
-			Console.ReadLine();
-		}
-
-		protected void ShowMainMenu() // TODO: Remove later and put in a child class
+		protected int ShowMainMenu(string strMenuTitle, params string[] options) // TODO: Remove later and put in a child class
 		{
 			CLogger.LogDebug("Calling main menu");
 			Console.Clear();
@@ -104,16 +81,17 @@ namespace GameLauncher_Console
 			{
 				CLogger.LogDebug("Main menu loop running");
 
-				string strMainMenuText = "Game Launcher Dock (Console Edition)\nMake your selection (press ESC to close program)";
+				if(m_consoleState == ConsoleState.cState_Navigate)
+					nSelection = HandleNavigationMenu(strMenuTitle, true, options);
+				else if(m_consoleState == ConsoleState.cState_Insert)
+					nSelection = HandleInsertMenu(strMenuTitle, options);
 
-				//nSelection = HandleNavigation(strMainMenuText, true, m_MainMenuOptions);
-				nSelection = HandleInsertMenu(strMainMenuText, m_MainMenuOptions);
 				CLogger.LogDebug("Current Selection = {0}", nSelection);
 
 			} while(nSelection > -1);
 
 			CLogger.LogDebug("Main menu closing");
-			Console.WriteLine("Goodbye");
+			return nSelection;
 		}
 
 		/// <summary>
