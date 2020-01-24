@@ -13,6 +13,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		public enum GamePlatform
 		{
+			All			= -2,
 			Custom		= -1,
 			Steam		= 0,
 			GOG			= 1,
@@ -23,6 +24,21 @@ namespace GameLauncher_Console
 			Battlenet	= 6,
 			Rockstar	= 7,
 		}
+
+		private static readonly string[] m_strings =
+		{
+			"All",
+			"Custom",
+			"Steam",
+			"GOG",
+			"Uplay",
+			"Origin",
+			"Epic",
+			"Bethesda",
+			"Battlenet",
+			"Rockstar"
+		};
+
 
 		/// <summary>
 		/// Contains information about a game
@@ -142,6 +158,62 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Return titles of all games
+		/// </summary>
+		/// <returns>List of strings</returns>
+		public static List<string> GetAllTitles()
+		{
+			List<string> allTitles = new List<string>();
+
+			foreach(KeyValuePair<GamePlatform, List<CGame>> keyValuePair in m_games)
+			{
+				for(int i = 0; i < keyValuePair.Value.Count; i++)
+				{
+					allTitles.Add(keyValuePair.Value[i].Title);
+				}
+			}
+
+			return allTitles;
+		}
+
+		/// <summary>
+		/// Return all platform with at least 1 game along with the number of games per platform
+		/// </summary>
+		/// <returns>List of strings</returns>
+		public static List<string> GetPlatformNames()
+		{
+			List<string> platforms = new List<string>();
+			int nTotalCount = 0;
+
+			foreach(KeyValuePair<GamePlatform, List<CGame>> keyValuePair in m_games)
+			{
+				string strPlatform = m_strings[(int)keyValuePair.Key + 2] + ": " + keyValuePair.Value.Count;
+				platforms.Add(strPlatform);
+				nTotalCount += keyValuePair.Value.Count;
+			}
+			string strAll = "All: " + nTotalCount;
+			platforms.Add(strAll);
+			return platforms;
+		}
+
+		/// <summary>
+		/// Return titles of games for specified platform
+		/// </summary>
+		/// <param name="enumPlatform">Platform enumerator</param>
+		/// <returns>List of strings</returns>
+		public static List<string> GetPlatformTitles(GamePlatform enumPlatform)
+		{
+			List<string> platformTitles = new List<string>();
+
+			for(int i = 0; i < m_games[enumPlatform].Count; i++)
+			{
+				platformTitles.Add(m_games[enumPlatform][i].Title);
+			}
+
+			return platformTitles;
+		}
+
+		/// <summary>
 		/// Add game to the dictionary
 		/// </summary>
 		/// <param name="strTitle">Title of the game</param>
@@ -158,7 +230,7 @@ namespace GameLauncher_Console
 			}
 
 			// If this is the first entry in the key, we need to initialise the list
-			if(m_games[enumPlatform] == null)
+			if(!m_games.ContainsKey(enumPlatform))
 			{
 				m_games[enumPlatform] = new List<CGame>();
 			}

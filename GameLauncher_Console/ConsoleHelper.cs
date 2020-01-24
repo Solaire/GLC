@@ -70,30 +70,6 @@ namespace GameLauncher_Console
 			m_MenuType = (nColumnCount > 1) ? MenuType.cType_Grid : MenuType.cType_List;
 		}
 
-
-		protected int ShowMainMenu(string strMenuTitle, params string[] options) // TODO: Remove later and put in a child class
-		{
-			CLogger.LogDebug("Calling main menu");
-			Console.Clear();
-			int nSelection = 0;
-
-			do
-			{
-				CLogger.LogDebug("Main menu loop running");
-
-				if(m_consoleState == ConsoleState.cState_Navigate)
-					nSelection = HandleNavigationMenu(strMenuTitle, true, options);
-				else if(m_consoleState == ConsoleState.cState_Insert)
-					nSelection = HandleInsertMenu(strMenuTitle, options);
-
-				CLogger.LogDebug("Current Selection = {0}", nSelection);
-
-			} while(nSelection > -1);
-
-			CLogger.LogDebug("Main menu closing");
-			return nSelection;
-		}
-
 		/// <summary>
 		/// Selection handler in the 'browse' state
 		/// </summary>
