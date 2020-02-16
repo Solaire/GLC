@@ -14,15 +14,9 @@ namespace GameLauncher_Console
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(Logger.CLogger.ExceptionHandleEvent);
 			Logger.CLogger.Configure("GameLauncherConsole.log"); // Create a log file
 
+			// Entry 
 			CDock gameDock = new CDock();
-			gameDock.Run();
-			/*
-			//CConsole console = new CConsole(3, 15, CConsole.ConsoleState.cState_Navigate);
-			//console.ConsoleStart();
-
-			CJsonWrapper json = new CJsonWrapper();
-			json.start("test.json");
-			*/
+			gameDock.Run();			
 		}
 	}
 }

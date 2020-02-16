@@ -109,11 +109,19 @@ namespace GameLauncher_Console
 					return m_platfrom;
 				}
 			}
+
+			public string PlatformString
+			{
+				get
+				{
+					return m_strings[(int)m_platfrom + 2];
+				}
+			}
 		}
 		
 		/// <summary>
 		/// Wrapper class for the Game class
-		/// The goal is to make the Game class visible to the rest of the client, but make it impossible to create new instances
+		/// The goal is to make the Game class visible to the rest of the client, but make it impossible to create new instances outside of the AddGame() function
 		/// </summary>
 		private class CGameInstance : CGame
 		{
@@ -133,13 +141,13 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Create a new instance of Game class
+		/// Create a new CGame instance
 		/// </summary>
 		/// <param name="strTitle">Title of the game</param>
 		/// <param name="strLaunchCommand">Game's launch command</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 		/// <param name="enumPlatform">Game's platform enumerator</param>
-		/// <returns>Instance of Game</returns>
+		/// <returns>Instance of CGame</returns>
 		private static CGame CreateGameInstance(string strTitle, string strLaunchCommand, bool bIsFavourite, GamePlatform enumPlatform)
 		{
 			return new CGameInstance(strTitle, strLaunchCommand, bIsFavourite, enumPlatform);
@@ -155,6 +163,21 @@ namespace GameLauncher_Console
 		public static List<CGame> GetGames(GamePlatform enumPlatform)
 		{
 			return m_games[enumPlatform];
+		}
+
+		/// <summary>
+		/// Return all games in memory
+		/// </summary>
+		/// <returns>List of Game objects</returns>
+		public static List<CGame> GetAllGames()
+		{
+			List<CGame> allGameList = new List<CGame>();
+
+			foreach(KeyValuePair<GamePlatform, List<CGame>> platform in m_games)
+			{
+				allGameList.AddRange(platform.Value);
+			}
+			return allGameList;
 		}
 
 		/// <summary>
@@ -204,10 +227,18 @@ namespace GameLauncher_Console
 		public static List<string> GetPlatformTitles(GamePlatform enumPlatform)
 		{
 			List<string> platformTitles = new List<string>();
-
-			for(int i = 0; i < m_games[enumPlatform].Count; i++)
+			
+			if(enumPlatform == GamePlatform.All)
 			{
-				platformTitles.Add(m_games[enumPlatform][i].Title);
+				return GetAllTitles();
+			}
+
+			if(m_games.ContainsKey(enumPlatform))
+			{
+				for(int i = 0; i < m_games[enumPlatform].Count; i++)
+				{
+					platformTitles.Add(m_games[enumPlatform][i].Title);
+				}
 			}
 
 			return platformTitles;
@@ -215,6 +246,7 @@ namespace GameLauncher_Console
 
 		/// <summary>
 		/// Add game to the dictionary
+		/// TODO: Check for duplicates when adding. (Consider using a set<CGame> instead of List<CGame>
 		/// </summary>
 		/// <param name="strTitle">Title of the game</param>
 		/// <param name="strLaunchCommand">Game's launch command</param>
@@ -236,6 +268,37 @@ namespace GameLauncher_Console
 			}
 
 			m_games[enumPlatform].Add(CreateGameInstance(strTitle, strLaunchCommand, bIsFavourite, enumPlatform));
+		}
+
+		/// <summary>
+		/// Resolve platform enum from a string
+		/// </summary>
+		/// <param name="strPlatformName">Platform as a string input</param>
+		/// <returns>GamePlatform enumerator, cast to int type. -1 on failed resolution</returns>
+		public static int GetPlatformEnum(string strPlatformName)
+		{
+			GamePlatform enumPlatform;
+			if(!Enum.TryParse(strPlatformName, true, out enumPlatform))
+			{
+				return -1;
+			}
+
+			return (int)enumPlatform;
+		}
+
+		/// <summary>
+		/// Get selected platform as a string
+		/// </summary>
+		/// <param name="enumPlatform">GamePlatform enumerator</param>
+		/// <returns>String value of the platform</returns>
+		public static string GetPlatformString(int enumPlatform)
+		{
+			if(enumPlatform > m_strings.Length)
+			{
+				return "";
+			}
+
+			return m_strings[enumPlatform];
 		}
 	}
 }

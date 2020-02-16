@@ -8,8 +8,154 @@ namespace GameLauncher_Console
 	/// Console helper class which can handle typing and navigation. 
 	/// In the most basic form, the class will print a list of options and handle user selection.
 	/// </summary>
-	public class CConsoleHelper
+	public class CConsoleTester
 	{
+		/// <summary>
+		/// Contains information used by the parent class to split the console into multiple sub-consoles.
+		/// Inspired by Vim's support for multiple files
+		/// </summary>
+		public class CConsoleBuffer
+		{
+			private int m_nHeight;
+			private int m_nWidth;
+			private int m_nPosX;
+			private int m_nPosY;
+			private bool m_bIsVertical;
+
+			private CConsoleBuffer m_previous;
+
+			/// <summary>
+			/// Constructor:
+			/// Set up the buffer
+			/// <paramref name="previous"/>Previous buffer</param>
+			/// </summary>
+			public CConsoleBuffer(CConsoleBuffer previous)
+			{
+				m_previous = previous;
+
+				InitializeBufferSpace();
+			}
+
+			/// <summary>
+			/// Constructor: Overload
+			/// Set up the size and position of the buffer.
+			/// </summary>
+			/// <param name="nHeight">Specified buffer height, in lines</param>
+			/// <param name="nWidth">Specified buffer width, in lines</param>
+			/// <param name="nPosX">Specified buffer X position</param>
+			/// <param name="nPosY">Specified buffer Y position</param>
+			/// <param name="previous">Previous buffer</param>
+			public CConsoleBuffer(int nHeight, int nWidth, int nPosX, int nPosY, CConsoleBuffer previous)
+			{
+				m_nHeight = nHeight;
+				m_nWidth = nWidth;
+				m_nPosX = nPosX;
+				m_nPosY = nPosY;
+				m_previous = previous;
+
+				InitializeBufferSpace();
+			}
+
+			/// <summary>
+			/// Finalizer:
+			/// Reallocate space between adjacent buffers
+			/// </summary>
+			~CConsoleBuffer()
+			{
+				ReallocateBufferSpace();
+			}
+
+			/// <summary>
+			/// Set up buffer size and position.
+			/// Set up links between adjacent buffer instances.
+			/// Draw a buffer separator
+			/// </summary>
+			private void InitializeBufferSpace()
+			{
+				if(m_nHeight == 0)
+				{
+					if(m_previous == null)
+					{
+						m_nHeight = Console.WindowHeight;
+					}
+					else
+					{
+						m_nHeight = Console.WindowHeight;
+					}
+				}
+
+				if(m_nWidth == 0)
+				{
+					if(m_previous == null)
+					{
+						m_nWidth = Console.WindowWidth;
+					}
+					else
+					{
+						m_nWidth = m_previous.m_nWidth / 2;
+						m_previous.m_nWidth /= 2;
+					}
+				}
+
+				if(m_nPosX == 0)
+				{
+					if(m_previous == null)
+					{
+						m_nPosX = 0;
+					}
+					else
+					{
+						m_nPosX = m_previous.m_nWidth + 1;
+					}
+				}
+
+				if(m_nPosY == 0)
+				{
+					if(m_previous == null)
+					{
+						m_nPosY = 0;
+					}
+					else
+					{
+						m_nPosY = 0;
+					}
+				}
+
+				if(m_previous != null)
+				{
+					m_bIsVertical = true; //!m_previous.m_bIsVertical;
+					DrawBufferSeparator();
+				}
+			}
+
+			/// <summary>
+			/// Called upon destruction of the instance
+			/// Remove buffer separator.
+			/// Redistribute the buffer space between the closest neighbours
+			/// </summary>
+			private void ReallocateBufferSpace()
+			{
+
+			}
+
+			/// <summary>
+			/// Draw the separator between the two buffers
+			/// </summary>
+			private void DrawBufferSeparator()
+			{
+				if(m_bIsVertical)
+				{
+					for(int i = 0; i < m_nHeight; i++)
+					{
+						Console.SetCursorPosition(m_nPosX, m_nPosY + i);
+						Console.BackgroundColor = ConsoleColor.White;
+						Console.ForegroundColor = ConsoleColor.Black;
+						Console.Write("#");
+					}
+				}
+			}
+		}
+
 		/// <summary>
 		/// Console state enum.
 		/// The console supports two states:
@@ -18,9 +164,9 @@ namespace GameLauncher_Console
 		/// </summary>
 		public enum ConsoleState
 		{
-			cState_Unknown	= -1,
-			cState_Navigate	= 0,
-			cState_Insert	= 1,
+			cState_Unknown = -1,
+			cState_Navigate = 0,
+			cState_Insert = 1,
 		};
 
 		/// <summary>
@@ -31,29 +177,38 @@ namespace GameLauncher_Console
 		/// </summary>
 		public enum MenuType
 		{
-			cType_Unknown	= -1,
-			cType_Grid		= 0,
-			cType_List		= 1,
+			cType_Unknown = -1,
+			cType_Grid = 0,
+			cType_List = 1,
 		}
 
-		protected ConsoleState m_consoleState	= ConsoleState.cState_Unknown;
-		protected MenuType m_MenuType			= MenuType.cType_Unknown;
+		public ConsoleState m_consoleState = ConsoleState.cState_Unknown;
+		public MenuType m_MenuType = MenuType.cType_Unknown;
 
-		protected int m_nOptionsPerLine; // Control the number of columns
-		protected int m_nSpacingPerLine; // Control the space between the columns
-		
+		public int m_nOptionsPerLine; // Control the number of columns
+		public int m_nSpacingPerLine; // Control the space between the columns
+		public int m_nBufferCount;
+		public int m_nCursorPosX;
+		public int m_nCursorPosY;
+
+		public LinkedList<CConsoleBuffer> m_buffers;
+		public LinkedListNode<CConsoleBuffer> m_currentBuffer;
+
 		/// <summary>
 		/// Default constructor:
 		/// Set the console state to insert mode
 		/// Set the menu type to list (1 column)
 		/// Set the line spacing to 10
 		/// </summary>
-		public CConsoleHelper()
+		public CConsoleTester()
 		{
-			m_consoleState	= ConsoleState.cState_Insert;
-			m_MenuType		= MenuType.cType_List;
+			m_consoleState = ConsoleState.cState_Insert;
+			m_MenuType = MenuType.cType_List;
 			m_nOptionsPerLine = 1;
 			m_nSpacingPerLine = 10;
+			m_buffers = new LinkedList<CConsoleBuffer>();
+			m_buffers.AddLast(new CConsoleBuffer(null));
+			setActiveBuffer(m_buffers.Last);
 		}
 
 		/// <summary>
@@ -63,12 +218,15 @@ namespace GameLauncher_Console
 		/// <param name="nColumnCount">Number or columns (set to 1 if argument is 0 or less)</param>
 		/// <param name="nSpacing">Spacing between lines (set to 5 if argument is less than 5) </param>
 		/// <param name="state">Console state (set to insert mode if argument is -1)</param>
-		public CConsoleHelper(int nColumnCount, int nSpacing, ConsoleState state)
+		public CConsoleTester(int nColumnCount, int nSpacing, ConsoleState state)
 		{
 			m_nSpacingPerLine = Math.Max(5, nSpacing);
 			m_nOptionsPerLine = Math.Max(1, nColumnCount);
 			m_consoleState = (state == ConsoleState.cState_Unknown) ? ConsoleState.cState_Insert : state;
 			m_MenuType = (nColumnCount > 1) ? MenuType.cType_Grid : MenuType.cType_List;
+			m_buffers = new LinkedList<CConsoleBuffer>();
+			m_buffers.AddLast(new CConsoleBuffer(null));
+			setActiveBuffer(m_buffers.Last);
 		}
 
 		/// <summary>
@@ -78,7 +236,7 @@ namespace GameLauncher_Console
 		/// <param name="bCanCancel">If true, pressing ESC will return -1, otherwise nothing will happen</param>
 		/// <param name="options">Menu selection</param>
 		/// <returns>Index of the selected item from the options parameter</returns>
-		protected int HandleNavigationMenu(string strTitleText, bool bCanCancel, params string[] options)
+		public int HandleNavigationMenu(string strTitleText, bool bCanCancel, params string[] options)
 		{
 			// Setup
 			int nCurrentSelection = 0;
@@ -95,7 +253,7 @@ namespace GameLauncher_Console
 				if(m_MenuType == MenuType.cType_Grid)
 					DrawGridMenu(nCurrentSelection, nStartY, options);
 
-				else if (m_MenuType == MenuType.cType_List)
+				else if(m_MenuType == MenuType.cType_List)
 					DrawListMenu(nCurrentSelection, nStartY, options);
 
 				key = Console.ReadKey(true).Key;
@@ -145,7 +303,7 @@ namespace GameLauncher_Console
 		/// <param name="strTitleText">Text which will appear at the top of the menu.</param>
 		/// <param name="options">List of menu items</param>
 		/// <returns>Index of the selected item from the options parameter</returns>
-		protected int HandleInsertMenu(string strTitleText, params string[] options)
+		public int HandleInsertMenu(string strTitleText, params string[] options)
 		{
 			// Setup
 			int nCurrentSelection = 0;
@@ -172,7 +330,7 @@ namespace GameLauncher_Console
 
 				if(strInput.Length < 1) // Empty strings are invalid
 					continue;
-				
+
 				for(int i = 0; i < options.Length; i++) // Loop over the menu items and see if anything is a match
 				{
 					if(strInput.ToLower().Contains(options[i].ToLower()))
@@ -201,7 +359,7 @@ namespace GameLauncher_Console
 		/// <param name="nCursorPosition">Current position, which will be printed in a red colour</param>
 		/// <param name="nStartTop">Offset from the top of the window</param>
 		/// <param name="itemList">List of items to be displayed</param>
-		protected void DrawGridMenu(int nCursorPosition, int nStartTop, params string[] itemList)
+		public void DrawGridMenu(int nCursorPosition, int nStartTop, params string[] itemList)
 		{
 			for(int i = 0; i < itemList.Length; i++)
 			{
@@ -221,7 +379,7 @@ namespace GameLauncher_Console
 		/// <param name="nCursorPosition">Current position, which will be printed in a red colour</param>
 		/// <param name="nStartTop">Offset from the top of the window</param>
 		/// <param name="itemList">List of items to be displayed</param>
-		protected void DrawListMenu(int nCursorPosition, int nStartTop, params string[] itemList)
+		public void DrawListMenu(int nCursorPosition, int nStartTop, params string[] itemList)
 		{
 			for(int i = 0; i < itemList.Length; i++)
 			{
@@ -239,7 +397,7 @@ namespace GameLauncher_Console
 		/// Handle selection calculation when 'up' is selected
 		/// </summary>
 		/// <param name="nCurrentSelection">Reference to the current selection</param>
-		protected virtual void HandleSelectionUp(ref int nCurrentSelection)
+		public virtual void HandleSelectionUp(ref int nCurrentSelection)
 		{
 			if(m_MenuType == MenuType.cType_Grid &&
 				nCurrentSelection >= m_nOptionsPerLine)
@@ -258,7 +416,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="nCurrentSelection">Reference to the current selection</param>
 		/// <param name="nOptionCount">Number of items in the list</param>
-		protected virtual void HandleSelectionDown(ref int nCurrentSelection, int nOptionCount)
+		public virtual void HandleSelectionDown(ref int nCurrentSelection, int nOptionCount)
 		{
 			if(m_MenuType == MenuType.cType_Grid &&
 				nCurrentSelection + m_nOptionsPerLine < nOptionCount)
@@ -276,7 +434,7 @@ namespace GameLauncher_Console
 		/// Handle selection calculation when 'left' is selected
 		/// </summary>
 		/// <param name="nCurrentSelection">Reference to the current selection</param>
-		protected virtual void HandleSelectionLeft(ref int nCurrentSelection)
+		public virtual void HandleSelectionLeft(ref int nCurrentSelection)
 		{
 			if(m_MenuType == MenuType.cType_Grid &&
 			   nCurrentSelection > 0 && nCurrentSelection % m_nOptionsPerLine > 0)
@@ -295,7 +453,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="nCurrentSelection">Reference to the current selection</param>
 		/// <param name="nOptionCount">Numbers of items in the list</param>
-		protected virtual void HandleSelectionRight(ref int nCurrentSelection, int nOptionCount)
+		public virtual void HandleSelectionRight(ref int nCurrentSelection, int nOptionCount)
 		{
 			if(m_MenuType == MenuType.cType_Grid &&
 				nCurrentSelection + 1 < nOptionCount && nCurrentSelection % m_nOptionsPerLine < m_nOptionsPerLine - 1)
@@ -312,9 +470,32 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Switch the console state
 		/// </summary>
-		protected void SwitchState()
+		public void SwitchState()
 		{
 			m_consoleState = (ConsoleState)((int)m_consoleState % 2);
+		}
+
+		public void AddBuffer()
+		{
+			m_buffers.AddLast(new CConsoleBuffer(m_buffers.Last.Value));
+			setActiveBuffer(m_buffers.Last);
+			CLogger.LogDebug("Adding buffer. Current buffer count: {0}", m_buffers.Count);
+		}
+
+		public void RemoveBuffer()
+		{
+			if(m_buffers.Count == 1)
+				return;
+
+			setActiveBuffer(m_currentBuffer.Previous);
+			m_buffers.RemoveLast();
+			CLogger.LogDebug("Adding buffer. Current buffer count: {0}", m_buffers.Count);
+		}
+
+		public void setActiveBuffer(LinkedListNode<CConsoleBuffer> buffer)
+		{
+			m_currentBuffer = buffer;
+			CLogger.LogDebug("Active buffer has been set to: {0}", m_currentBuffer);
 		}
 	}
 }
