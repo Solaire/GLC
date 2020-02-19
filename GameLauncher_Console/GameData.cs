@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GameLauncher_Console
 {
@@ -67,6 +68,27 @@ namespace GameLauncher_Console
 			}
 
 			/// <summary>
+			/// Equals override for HashSet comparison.
+			/// </summary>
+			/// <param name="other">Object to compare against</param>
+			/// <returns>True is other is not null and the titles are matching</returns>
+			public override bool Equals(object other)
+			{
+				// We're only interested in comparing the titles
+				CGame game = other as CGame;
+				return(game != null && this.m_strTitle == game.m_strTitle);
+			}
+
+			/// <summary>
+			/// Return the hash code of this object's title variable
+			/// </summary>
+			/// <returns>Hash code</returns>
+			public override int GetHashCode()
+			{
+				return this.m_strTitle.GetHashCode();
+			}
+
+			/// <summary>
 			/// Title getter
 			/// </summary>
 			public string Title
@@ -100,7 +122,7 @@ namespace GameLauncher_Console
 			}
 
 			/// <summary>
-			/// Platform getter
+			/// Platform enumerator getter
 			/// </summary>
 			public GamePlatform Platform
 			{
@@ -110,6 +132,9 @@ namespace GameLauncher_Console
 				}
 			}
 
+			/// <summary>
+			/// Platform string getter
+			/// </summary>
 			public string PlatformString
 			{
 				get
@@ -153,31 +178,32 @@ namespace GameLauncher_Console
 			return new CGameInstance(strTitle, strLaunchCommand, bIsFavourite, enumPlatform);
 		}
 
-		private static Dictionary<GamePlatform, List<CGame>> m_games = new Dictionary<GamePlatform, List<CGame>>();
+		private static Dictionary<GamePlatform, HashSet<CGame>> m_games = new Dictionary<GamePlatform, HashSet<CGame>>();
 
 		/// <summary>
 		/// Return the list of Game objects with specified platform
 		/// </summary>
 		/// <param name="enumPlatform">Platform enumerator</param>
 		/// <returns>List of Game objects</returns>
-		public static List<CGame> GetGames(GamePlatform enumPlatform)
+		public static HashSet<CGame> GetGames(GamePlatform enumPlatform)
 		{
 			return m_games[enumPlatform];
 		}
 
 		/// <summary>
-		/// Return all games in memory
+		/// Return all games
 		/// </summary>
 		/// <returns>List of Game objects</returns>
-		public static List<CGame> GetAllGames()
+		public static HashSet<CGame> GetAllGames()
 		{
-			List<CGame> allGameList = new List<CGame>();
+			List<CGame> allGames = new List<CGame>();
 
-			foreach(KeyValuePair<GamePlatform, List<CGame>> platform in m_games)
+			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> platform in m_games)
 			{
-				allGameList.AddRange(platform.Value);
+				allGames.AddRange(platform.Value);
 			}
-			return allGameList;
+
+			return new HashSet<CGame>(allGames);
 		}
 
 		/// <summary>
@@ -188,11 +214,11 @@ namespace GameLauncher_Console
 		{
 			List<string> allTitles = new List<string>();
 
-			foreach(KeyValuePair<GamePlatform, List<CGame>> keyValuePair in m_games)
+			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> keyValuePair in m_games)
 			{
-				for(int i = 0; i < keyValuePair.Value.Count; i++)
+				foreach(CGame game in keyValuePair.Value)
 				{
-					allTitles.Add(keyValuePair.Value[i].Title);
+					allTitles.Add(game.Title);
 				}
 			}
 
@@ -208,7 +234,7 @@ namespace GameLauncher_Console
 			List<string> platforms = new List<string>();
 			int nTotalCount = 0;
 
-			foreach(KeyValuePair<GamePlatform, List<CGame>> keyValuePair in m_games)
+			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> keyValuePair in m_games)
 			{
 				string strPlatform = m_strings[(int)keyValuePair.Key + 2] + ": " + keyValuePair.Value.Count;
 				platforms.Add(strPlatform);
@@ -235,9 +261,9 @@ namespace GameLauncher_Console
 
 			if(m_games.ContainsKey(enumPlatform))
 			{
-				for(int i = 0; i < m_games[enumPlatform].Count; i++)
+				foreach(CGame game in m_games[enumPlatform])
 				{
-					platformTitles.Add(m_games[enumPlatform][i].Title);
+					platformTitles.Add(game.Title);
 				}
 			}
 
@@ -246,7 +272,6 @@ namespace GameLauncher_Console
 
 		/// <summary>
 		/// Add game to the dictionary
-		/// TODO: Check for duplicates when adding. (Consider using a set<CGame> instead of List<CGame>
 		/// </summary>
 		/// <param name="strTitle">Title of the game</param>
 		/// <param name="strLaunchCommand">Game's launch command</param>
@@ -264,7 +289,7 @@ namespace GameLauncher_Console
 			// If this is the first entry in the key, we need to initialise the list
 			if(!m_games.ContainsKey(enumPlatform))
 			{
-				m_games[enumPlatform] = new List<CGame>();
+				m_games[enumPlatform] = new HashSet<CGame>();
 			}
 
 			m_games[enumPlatform].Add(CreateGameInstance(strTitle, strLaunchCommand, bIsFavourite, enumPlatform));
