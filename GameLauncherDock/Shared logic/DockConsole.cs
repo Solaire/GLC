@@ -3,11 +3,6 @@ using System;
 
 namespace GameLauncher_Console
 {
-	/// <summary>
-	/// 
-	/// TODO: Improve the item listing so that they don't overflow when many items are displayed
-	/// TODO: Change the way rendering works, at the moment we're refreshing the buffer with each key press but we could relocate the pointer instead.
-	/// </summary>
 	class CDockConsole : CConsoleHelper
 	{
 		/// <summary>

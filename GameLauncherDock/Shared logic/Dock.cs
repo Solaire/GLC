@@ -11,7 +11,7 @@ namespace GameLauncher_Console
 	class CDock
 	{
 		private bool	m_bIsExit;
-		CDockConsole	m_dockConsole;
+//		CDockConsole	m_dockConsole;
 		private int		m_nFirstSelection;
 		private int		m_nSecondSelection;
 		CGame m_game;
@@ -19,7 +19,7 @@ namespace GameLauncher_Console
 		public CDock()
 		{
 			m_bIsExit		   = false;
-			m_dockConsole	   = new CDockConsole(1, 5, CConsoleHelper.ConsoleState.cState_Navigate);
+			//m_dockConsole	   = new CDockConsole(1, 5, CConsoleHelper.ConsoleState.cState_Navigate);
 			m_nFirstSelection  = -10;
 			m_nSecondSelection = -10;
 		}
@@ -65,7 +65,7 @@ namespace GameLauncher_Console
 			{
 				string strInitialTitle	= "Select platform | Press ESC to terminate";
 				string[] platformArr = CGameData.GetPlatformNames().ToArray();
-				m_nFirstSelection/*int nSelection*/ = m_dockConsole.ShowDockOptions(strInitialTitle, CGameData.GetPlatformNames().ToArray());
+				//m_nFirstSelection/*int nSelection*/ = m_dockConsole.ShowDockOptions(strInitialTitle, CGameData.GetPlatformNames().ToArray());
 				int nPlatformEnumValue = CGameData.GetPlatformEnum(platformArr[m_nFirstSelection].Substring(0, platformArr[m_nFirstSelection].IndexOf(':')));
 				m_nFirstSelection = nPlatformEnumValue;
 				//m_strFirstSelection		= CGameData.GetPlatformString(nSelection);
@@ -73,7 +73,7 @@ namespace GameLauncher_Console
 			else if(m_nSecondSelection == -10)
 			{
 				string strInitialTitle = "Select platform | Press ESC to terminate";
-				m_nSecondSelection /*int nSelection*/ = m_dockConsole.ShowDockOptions(strInitialTitle, GetPlatformTitles((GamePlatform)m_nFirstSelection).ToArray());
+				//m_nSecondSelection /*int nSelection*/ = m_dockConsole.ShowDockOptions(strInitialTitle, GetPlatformTitles((GamePlatform)m_nFirstSelection).ToArray());
 				//m_strFirstSelection = CGameData.GetPlatformString(nSelection);
 			}
 		}

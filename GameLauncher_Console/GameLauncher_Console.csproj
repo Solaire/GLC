@@ -76,6 +76,7 @@
     <Compile Include="JsonWrapper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegScanner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -86,6 +87,9 @@
       <Project>{0122b147-8c10-49bb-acfd-ae04491ea9ea}</Project>
       <Name>Logger</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

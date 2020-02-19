@@ -38,11 +38,6 @@ namespace GameLauncher_Console
 		 *	   Save and unlock the file, close stream and clean memory.
 		 */
 
-		/* TODO: JSON file appending:
-		 * Instead of overwriting the entire file, keep a track of the last object in the array...
-		 * ...when the write/export function is called, iterate/jump to the location and simply write all data.
-		 */
-
 		/// <summary>
 		/// Import games from the game.json config file
 		/// </summary>
@@ -199,6 +194,60 @@ namespace GameLauncher_Console
 			writer.WriteString(GAMES_ARRAY_PLATFORM		, data.PlatformString);
 			writer.WriteBoolean(GAMES_ARRAY_FAVOURITE	, data.IsFavourite);
 			writer.WriteEndObject();
+			
+			/*
+			string strJsonData = Encoding.UTF8.GetString(stream.ToArray());
+			if(!bIsFinal)
+			{
+				strJsonData += ',';
+			}
+			byte[] bytes = new UTF8Encoding(true).GetBytes(strJsonData);
+			*/
 		}
+
+		/*
+		public void start(string strPath)
+		{
+			var options = new JsonDocumentOptions
+			{
+				AllowTrailingCommas = true
+			};
+
+			string strDoc = File.ReadAllText(strPath);
+
+			using(JsonDocument document = JsonDocument.Parse(strDoc, options))
+			{
+				JsonElement root = document.RootElement.GetProperty("games");
+
+				foreach(JsonElement element in root.EnumerateArray())
+				{
+					string strElement = element.ToString();
+					Console.WriteLine(strElement);
+				}
+				Console.ReadLine();
+			}
+		}
+		*/
+		/* TO IMPLEMENT:
+		 *  Load JSON file;
+		 *  Save File to a JSON format;
+		 *  Deserialize JSON data into a dictionary
+		 *  Serialize JSON data from the dictionary into the JSON file
+		 *  Create JSON Data [Add(), Remove(), Replace()/Edit(), Read()]
+		 *  Access JSON Data [MemberAsX(), IsMember(), IsTypeOfX()]
+		 */ 
+
+		/* NOTES:
+		 * Look into different data structures (list, linkedList, Dictionary, Map, array)
+		 * Look into meta-programming (templates\generics)
+		 * Look into dynamic object generation
+		 * Essentially, the data must be broken down and stored into one of the following types(int, float/double, string, char(treat as string), bool)
+		 *	Should be easy to distinguish:
+		 *		* string/char has quotation mark
+		 *		* int is a whole number
+		 *		* float/double has a decimal point
+		 *		* bool is true false (no quotation marks)
+		 *	Not sure about support for binary data (0xFFF and such)
+		 */
 	}
 }
