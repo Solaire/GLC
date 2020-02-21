@@ -4,9 +4,7 @@ using System;
 namespace GameLauncher_Console
 {
 	/// <summary>
-	/// 
-	/// TODO: Improve the item listing so that they don't overflow when many items are displayed
-	/// TODO: Change the way rendering works, at the moment we're refreshing the buffer with each key press but we could relocate the pointer instead.
+	/// Console implementation for this project
 	/// </summary>
 	class CDockConsole : CConsoleHelper
 	{
@@ -29,11 +27,14 @@ namespace GameLauncher_Console
 
 			do
 			{
-
 				if(m_consoleState == ConsoleState.cState_Navigate)
+				{
 					nSelection = HandleNavigationMenu(strMenuTitle, true, options);
+				}
 				else if(m_consoleState == ConsoleState.cState_Insert)
+				{
 					nSelection = HandleInsertMenu(strMenuTitle, options);
+				}
 
 				CLogger.LogDebug("Current Selection = {0}", nSelection);
 

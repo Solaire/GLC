@@ -69,7 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleHelper.cs" />
-    <Compile Include="ConsoleTester.cs" />
     <Compile Include="Dock.cs" />
     <Compile Include="DockConsole.cs" />
     <Compile Include="GameData.cs" />

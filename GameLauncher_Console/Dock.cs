@@ -31,11 +31,11 @@ namespace GameLauncher_Console
 
 			// Load games into memory
 			CJsonWrapper.Import();
-			CGameData.AddGame("custom game 1", "launch/1.exe", false, "Custom");
-			CGameData.AddGame("custom game 2", "launch/2.exe", true,  "Custom");
-			CGameData.AddGame("custom game 2", "launch/2.exe", true, "Custom");
-			CGameData.AddGame("custom game 3", "launch/3.exe", true, "added");
-			CJsonWrapper.Export(CGameData.GetAllGames().ToList());
+			//CGameData.AddGame("custom game 1", "launch/1.exe", false, "Custom");
+			//CGameData.AddGame("custom game 2", "launch/2.exe", true,  "Custom");
+			//CGameData.AddGame("custom game 2", "launch/2.exe", true, "Custom");
+			//CGameData.AddGame("custom game 3", "launch/3.exe", true, "added");
+			//CJsonWrapper.Export(CGameData.GetAllGames().ToList());
 
 			// Run the program loop until exit or a selection has been chosen
 			while(!m_bIsExit && (m_nFirstSelection == -10 || m_nSecondSelection == -10))
