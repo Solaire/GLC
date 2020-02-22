@@ -325,5 +325,10 @@ namespace GameLauncher_Console
 
 			return m_strings[enumPlatform];
 		}
+
+		public static CGame GetGame(int nPlatformEnum, int nGameIndex)
+		{
+			return m_games[(GamePlatform)nPlatformEnum].ElementAt(nGameIndex);
+		}
 	}
 }

@@ -8,13 +8,18 @@ using static GameLauncher_Console.CGameData;
 
 namespace GameLauncher_Console
 {
+	/// <summary>
+	/// Main program logic - this is where all classes meet and get used
+	/// TODO: Add better controls and commands;
+	/// TODO: Only scan the registry when it is required (either file is empty or user called for it)
+	/// TODO: Check if the file is empty
+	/// </summary>
 	class CDock
 	{
 		private bool	m_bIsExit;
 		CDockConsole	m_dockConsole;
 		private int		m_nFirstSelection;
 		private int		m_nSecondSelection;
-		CGame m_game;
 
 		public CDock()
 		{
@@ -29,13 +34,9 @@ namespace GameLauncher_Console
 			// Check JSON file,
 			// Create JSON and scan if missing
 
-			// Load games into memory
+			// Load games into memory and scan the registry
 			CJsonWrapper.Import();
-			//CGameData.AddGame("custom game 1", "launch/1.exe", false, "Custom");
-			//CGameData.AddGame("custom game 2", "launch/2.exe", true,  "Custom");
-			//CGameData.AddGame("custom game 2", "launch/2.exe", true, "Custom");
-			//CGameData.AddGame("custom game 3", "launch/3.exe", true, "added");
-			//CJsonWrapper.Export(CGameData.GetAllGames().ToList());
+			ScanGames();
 
 			// Run the program loop until exit or a selection has been chosen
 			while(!m_bIsExit && (m_nFirstSelection == -10 || m_nSecondSelection == -10))
@@ -49,10 +50,14 @@ namespace GameLauncher_Console
 			}
 			else if(m_nFirstSelection > -10 && m_nSecondSelection > -1)
 			{
-				StartGame(m_game);
+				CGame selectedGame = CGameData.GetGame(m_nFirstSelection, m_nSecondSelection);
+				StartGame(selectedGame);
 			}
 		}
 
+		/// <summary>
+		/// Display menu and handle the selection
+		/// </summary>
 		private void MenuSwitchboard()
 		{
 			// Show initial options - platforms or all
@@ -95,6 +100,16 @@ namespace GameLauncher_Console
 				return;
 			}
 			Process.Start(game.Launch);
+		}
+
+		private void ScanGames()
+		{
+			List<CRegScanner.RegistryGameData> gameDataList = CRegScanner.GetGames();
+			foreach(CRegScanner.RegistryGameData data in gameDataList)
+			{
+				CGameData.AddGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
+			}
+			CJsonWrapper.Export(CGameData.GetAllGames().ToList());
 		}
 	}
 }
