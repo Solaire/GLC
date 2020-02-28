@@ -27,11 +27,11 @@ namespace GameLauncher_Console
 
 			do
 			{
-				if(m_consoleState == ConsoleState.cState_Navigate)
+				if(m_ConsoleState == ConsoleState.cState_Navigate)
 				{
-					nSelection = HandleNavigationMenu(strMenuTitle, true, options);
+					nSelection = HandleNavigationMenu(strMenuTitle, options);
 				}
-				else if(m_consoleState == ConsoleState.cState_Insert)
+				else if(m_ConsoleState == ConsoleState.cState_Insert)
 				{
 					nSelection = HandleInsertMenu(strMenuTitle, options);
 				}
@@ -51,7 +51,7 @@ namespace GameLauncher_Console
 		/// <returns>True if within range, otherwise false</returns>
 		private bool IsSelectionValid(int nSelection, int nItemCount)
 		{
-			return (-1 < nSelection && nSelection < nItemCount);
+			return (-6 < nSelection && nSelection < nItemCount) || nSelection == 99 || nSelection == 100;
 		}
 	}
 }

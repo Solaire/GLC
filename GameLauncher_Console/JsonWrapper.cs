@@ -49,12 +49,19 @@ namespace GameLauncher_Console
 		/// <returns>True if successful, otherwise false</returns>
 		public static bool Import()
 		{
+			int nGameCount = 0;
 			if(!DoesFileExist())
 			{
 				CreateEmptyFile();
 				return false;
 			}
-			ImportGames();
+			ImportGames(ref nGameCount);
+
+			if(nGameCount < 1)
+			{
+				CLogger.LogDebug("JSON file is empty - scanning for games...");
+				CRegScanner.ScanGames();
+			}
 			return true;
 		}
 
@@ -159,7 +166,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Import games from the json file and add them to the global game dictionary.
 		/// </summary>
-		private static void ImportGames()
+		private static void ImportGames(ref int nGameCount)
 		{
 			var options = new JsonDocumentOptions
 			{
@@ -180,6 +187,7 @@ namespace GameLauncher_Console
 					bool   bFavourite	= jElement.GetProperty(GAMES_ARRAY_FAVOURITE).GetBoolean();
 
 					CGameData.AddGame(strTitle, strLaunch, bFavourite, strPlatform);
+					nGameCount++;
 				}
 			}
 		}

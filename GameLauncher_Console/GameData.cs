@@ -14,8 +14,8 @@ namespace GameLauncher_Console
 		/// </summary>
 		public enum GamePlatform
 		{
-			All			= -2,
-			Custom		= -1,
+			All			= 99,
+			Custom		= 100,
 			Steam		= 0,
 			GOG			= 1,
 			Uplay		= 2, 

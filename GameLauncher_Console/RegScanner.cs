@@ -85,6 +85,19 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Scan the registry for games, add new games to memory and export into JSON document
+		/// </summary>
+		public static void ScanGames()
+		{
+			List<CRegScanner.RegistryGameData> gameDataList = CRegScanner.GetGames();
+			foreach(CRegScanner.RegistryGameData data in gameDataList)
+			{
+				CGameData.AddGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
+			}
+			CJsonWrapper.Export(CGameData.GetAllGames().ToList());
+		}
+
+		/// <summary>
 		/// Scan the directory and try to find all installed games
 		/// </summary>
 		/// <returns>List of game data objects</returns>

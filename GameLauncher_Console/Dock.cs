@@ -10,23 +10,33 @@ namespace GameLauncher_Console
 {
 	/// <summary>
 	/// Main program logic - this is where all classes meet and get used
-	/// TODO: Add better controls and commands;
-	/// TODO: Only scan the registry when it is required (either file is empty or user called for it)
-	/// TODO: Check if the file is empty
+	/// TODO: Test console state switching and add comments - including help
 	/// </summary>
 	class CDock
 	{
-		private bool	m_bIsExit;
 		CDockConsole	m_dockConsole;
 		private int		m_nFirstSelection;
 		private int		m_nSecondSelection;
 
+		/// <summary>
+		/// Selection options for special commands
+		/// -1 should be used as the default state
+		/// Once a command such as exit or back is executed, the state should be set to -1.
+		/// </summary>
+		private enum DockSelection
+		{
+			cSel_Exit		= -5,
+			cSel_Back		= -4,
+			cSel_SwitchNav	= -3,
+			cSel_Rescan		= -2,
+			cSel_Default	= -1,
+		}
+
 		public CDock()
 		{
-			m_bIsExit		   = false;
 			m_dockConsole	   = new CDockConsole(1, 5, CConsoleHelper.ConsoleState.cState_Navigate);
-			m_nFirstSelection  = -10;
-			m_nSecondSelection = -10;
+			m_nFirstSelection  = -1;
+			m_nSecondSelection = -1;
 		}
 
 		public void Run()
@@ -36,29 +46,57 @@ namespace GameLauncher_Console
 
 			// Load games into memory and scan the registry
 			CJsonWrapper.Import();
-			ScanGames();
 
-			// Run the program loop until exit or a selection has been chosen
-			while(!m_bIsExit && (m_nFirstSelection == -10 || m_nSecondSelection == -10))
+			int nSelection = -1;
+			for(;;)
 			{
-				MenuSwitchboard();
-			}
+				nSelection = MenuSwitchboard();
 
-			if(m_bIsExit)
-			{
-				return;
-			}
-			else if(m_nFirstSelection > -10 && m_nSecondSelection > -1)
-			{
-				CGame selectedGame = CGameData.GetGame(m_nFirstSelection, m_nSecondSelection);
-				StartGame(selectedGame);
+				switch(nSelection)
+				{
+					case -5: // Exit application
+						return;
+
+					case -4: // Go back to first menu
+						m_nFirstSelection = -1;
+						continue;
+
+					case -3: // Switch console state
+						m_dockConsole.SwitchState();
+						continue;
+
+					case -2: // Rescan the game list
+						if(m_nFirstSelection < 0)
+							CRegScanner.ScanGames();
+						continue;
+
+					case -1: // Possible valid platform/game selection
+					default:
+						break;
+				}
+
+				if(nSelection > -1)
+				{
+					if(m_nFirstSelection < 0)
+						m_nFirstSelection = nSelection;
+					
+					else if(m_nSecondSelection < 0)
+						m_nSecondSelection = nSelection;
+					
+				}
+
+				if(m_nSecondSelection > -1)
+				{
+					CGame selectedGame = CGameData.GetGame(m_nFirstSelection, m_nSecondSelection);
+					StartGame(selectedGame);
+				}
 			}
 		}
 
 		/// <summary>
 		/// Display menu and handle the selection
 		/// </summary>
-		private void MenuSwitchboard()
+		private int MenuSwitchboard()
 		{
 			// Show initial options - platforms or all
 			// Take the selection as a string (we'll figure out the enum later)
@@ -66,21 +104,27 @@ namespace GameLauncher_Console
 			//	Allow cancel with escape (make sure to print that in the heading)
 			//  Run selected game.
 
-			if(m_nFirstSelection == -10)
+			int nSelection = -1;
+
+			if(m_nFirstSelection < 0)
 			{
-				string strInitialTitle	= "Select platform | Press ESC to terminate";
-				string[] platformArr = CGameData.GetPlatformNames().ToArray();
-				m_nFirstSelection/*int nSelection*/ = m_dockConsole.ShowDockOptions(strInitialTitle, CGameData.GetPlatformNames().ToArray());
-				int nPlatformEnumValue = CGameData.GetPlatformEnum(platformArr[m_nFirstSelection].Substring(0, platformArr[m_nFirstSelection].IndexOf(':')));
-				m_nFirstSelection = nPlatformEnumValue;
-				//m_strFirstSelection		= CGameData.GetPlatformString(nSelection);
+				string strHeader		= "Select platform.\n Press [Q] to terminate;\n Press [TAB] to switch console mode;\n Press [~] to rescan game collection";
+				string[] platformArray	= CGameData.GetPlatformNames().ToArray();
+
+				nSelection		= m_dockConsole.ShowDockOptions(strHeader, CGameData.GetPlatformNames().ToArray());
+
+				if(nSelection > -1)
+					nSelection		= CGameData.GetPlatformEnum(platformArray[nSelection].Substring(0, platformArray[nSelection].IndexOf(':')));
 			}
-			else if(m_nSecondSelection == -10)
+			else if(m_nSecondSelection < 0)
 			{
-				string strInitialTitle = "Select platform | Press ESC to terminate";
-				m_nSecondSelection /*int nSelection*/ = m_dockConsole.ShowDockOptions(strInitialTitle, GetPlatformTitles((GamePlatform)m_nFirstSelection).ToArray());
-				//m_strFirstSelection = CGameData.GetPlatformString(nSelection);
+				string strHeader	= "Select game.\n Press [Q] to terminate;\n Press [W] to return to previous menu;\n Press [TAB] to switch console mode;";
+				nSelection			= m_dockConsole.ShowDockOptions(strHeader, GetPlatformTitles((GamePlatform)m_nFirstSelection).ToArray());
 			}
+			else
+				return -1;
+
+			return nSelection;
 		}
 
 		/// <summary>
@@ -100,16 +144,6 @@ namespace GameLauncher_Console
 				return;
 			}
 			Process.Start(game.Launch);
-		}
-
-		private void ScanGames()
-		{
-			List<CRegScanner.RegistryGameData> gameDataList = CRegScanner.GetGames();
-			foreach(CRegScanner.RegistryGameData data in gameDataList)
-			{
-				CGameData.AddGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
-			}
-			CJsonWrapper.Export(CGameData.GetAllGames().ToList());
 		}
 	}
 }

@@ -39,8 +39,8 @@ namespace GameLauncher_Console
 			cType_List		= 1,
 		}
 
-		protected ConsoleState m_consoleState	= ConsoleState.cState_Unknown;
-		protected MenuType m_MenuType			= MenuType.cType_Unknown;
+		protected ConsoleState m_ConsoleState	= ConsoleState.cState_Unknown;
+		protected MenuType	   m_MenuType		= MenuType.cType_Unknown;
 
 		protected int m_nOptionsPerLine; // Control the number of columns
 		protected int m_nSpacingPerLine; // Control the space between the columns
@@ -53,7 +53,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		public CConsoleHelper()
 		{
-			m_consoleState		= ConsoleState.cState_Insert;
+			m_ConsoleState		= ConsoleState.cState_Insert;
 			m_MenuType			= MenuType.cType_Grid;
 			m_nOptionsPerLine	= 1;
 			m_nSpacingPerLine	= 10;
@@ -70,7 +70,7 @@ namespace GameLauncher_Console
 		{
 			m_nSpacingPerLine	= Math.Max(5, nSpacing);
 			m_nOptionsPerLine	= Math.Max(1, nColumnCount);
-			m_consoleState		= (state == ConsoleState.cState_Unknown) ? ConsoleState.cState_Insert : state;
+			m_ConsoleState		= (state == ConsoleState.cState_Unknown) ? ConsoleState.cState_Insert : state;
 			m_MenuType			= (nColumnCount > 1) ? MenuType.cType_Grid : MenuType.cType_List;
 		}
 
@@ -78,10 +78,9 @@ namespace GameLauncher_Console
 		/// Selection handler in the 'browse' state
 		/// </summary>
 		/// <param name="strHeader">Text which will appear at the top of the menu</param>
-		/// <param name="bCanCancel">If true, pressing ESC will return -1, otherwise nothing will happen</param>
 		/// <param name="options">Menu selection</param>
 		/// <returns>Index of the selected item from the options parameter</returns>
-		protected int HandleNavigationMenu(string strHeader, bool bCanCancel, params string[] options)
+		protected int HandleNavigationMenu(string strHeader, params string[] options)
 		{
 			// Setup
 			int nCurrentSelection   = 0;
@@ -110,36 +109,42 @@ namespace GameLauncher_Console
 				key = Console.ReadKey(true).Key;
 				nLastSelection = nCurrentSelection;
 
+				CLogger.LogDebug("{0} key registered", key);
 				switch(key)
 				{
 					case ConsoleKey.LeftArrow:
-						CLogger.LogDebug("Key press registered: {0}", key);
 						CLogger.LogDebug("Cursor on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
 						HandleSelectionLeft(ref nCurrentSelection);
 						break;
 
 					case ConsoleKey.RightArrow:
-						CLogger.LogDebug("Key press registered: {0}", key);
 						CLogger.LogDebug("Cursor on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
 						HandleSelectionRight(ref nCurrentSelection, options.Length);
 						break;
 
 					case ConsoleKey.UpArrow:
-						CLogger.LogDebug("Key press registered: {0}", key);
 						CLogger.LogDebug("Cursor on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
 						HandleSelectionUp(ref nCurrentSelection);
 						break;
 
 					case ConsoleKey.DownArrow:
-						CLogger.LogDebug("Key press registered: {0}", key);
 						CLogger.LogDebug("Cursor on new selection: {0}: {1}", nCurrentSelection, options[nCurrentSelection]);
 						HandleSelectionDown(ref nCurrentSelection, options.Length);
 						break;
 
-					case ConsoleKey.Escape:
-						CLogger.LogDebug("ESC key registered");
-						if(bCanCancel)
-							return -1;
+					case ConsoleKey.Q:
+						return -5;
+
+					case ConsoleKey.W:
+						return -4;
+
+					case ConsoleKey.Tab:
+						return -3;
+
+					case ConsoleKey.Oem3:
+						return -2;
+
+					default:
 						break;
 				}
 			} while(key != ConsoleKey.Enter);
@@ -301,9 +306,9 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Switch the console state
 		/// </summary>
-		protected void SwitchState()
+		public void SwitchState()
 		{
-			m_consoleState = (ConsoleState)((int)m_consoleState % 2);
+			m_ConsoleState = (ConsoleState)((int)m_ConsoleState % 2);
 		}
 		
 		/// <summary>
