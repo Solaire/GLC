@@ -75,12 +75,61 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Switch the console state
+		/// </summary>
+		public void SwitchState()
+		{
+			m_ConsoleState = (ConsoleState)((int)m_ConsoleState % 2);
+		}
+
+		/// <summary>
+		/// Display either the insert or navigate menu, depending on the console state
+		/// </summary>
+		/// <param name="strMenuTitle">Helper heading text block displayed on top of the console.</param>
+		/// <param name="options">String array representing the available options</param>
+		/// <returns>Index of the selection array, or any other valid integer</returns>
+		public int DisplayMenu(string strMenuTitle, params string[] options)
+		{
+			Console.Clear();
+			int nSelection = 0;
+
+			do
+			{
+				if(m_ConsoleState == ConsoleState.cState_Navigate)
+				{
+					nSelection = HandleNavigationMenu(strMenuTitle, true, options);
+				}
+				else if(m_ConsoleState == ConsoleState.cState_Insert)
+				{
+					nSelection = HandleInsertMenu(strMenuTitle, options);
+				}
+
+				CLogger.LogDebug("Current Selection = {0}", nSelection);
+
+			} while(!IsSelectionValid(nSelection, options.Length));
+
+			return nSelection;
+		}
+
+		/// <summary>
+		/// Validate selection
+		/// </summary>
+		/// <param name="nSelection">Selection as integer</param>
+		/// <param name="nItemCount">Count of the possible selections</param>
+		/// <returns>True if valid, otherwise false</returns>
+		protected virtual bool IsSelectionValid(int nSelection, int nItemCount)
+		{
+			return (-1 <= nSelection && nSelection < nItemCount);
+		}
+
+		/// <summary>
 		/// Selection handler in the 'browse' state
 		/// </summary>
-		/// <param name="strHeader">Text which will appear at the top of the menu</param>
-		/// <param name="options">Menu selection</param>
-		/// <returns>Index of the selected item from the options parameter</returns>
-		protected int HandleNavigationMenu(string strHeader, params string[] options)
+		/// <param name="strHeader">Helper header text block which will appear on top of the console</param>
+		/// <param name="bCanExit">Boolean which controls if the menu can be escaped with ESC</param>
+		/// <param name="options">Array of strings representing the possible selections</param>
+		/// <returns>Index of the selected item from the options parameter or -1 (Exit)</returns>
+		protected virtual int HandleNavigationMenu(string strHeader, bool bCanExit, params string[] options)
 		{
 			// Setup
 			int nCurrentSelection   = 0;
@@ -132,17 +181,10 @@ namespace GameLauncher_Console
 						HandleSelectionDown(ref nCurrentSelection, options.Length);
 						break;
 
-					case ConsoleKey.Q:
-						return -5;
-
-					case ConsoleKey.W:
-						return -4;
-
-					case ConsoleKey.Tab:
-						return -3;
-
-					case ConsoleKey.Oem3:
-						return -2;
+					case ConsoleKey.Escape:
+						if(bCanExit)
+							return -1;
+						break;
 
 					default:
 						break;
@@ -159,7 +201,7 @@ namespace GameLauncher_Console
 		/// <param name="strTitleText">Text which will appear at the top of the menu.</param>
 		/// <param name="options">List of menu items</param>
 		/// <returns>Index of the selected item from the options parameter</returns>
-		protected int HandleInsertMenu(string strTitleText, params string[] options)
+		protected virtual int HandleInsertMenu(string strTitleText, params string[] options)
 		{
 			// Setup
 			int nCurrentSelection = 0;
@@ -302,14 +344,6 @@ namespace GameLauncher_Console
 			else if(m_MenuType == MenuType.cType_List && nCurrentSelection + 1 < nOptionCount && nCurrentSelection < 0)
 				nCurrentSelection++;
 		}
-
-		/// <summary>
-		/// Switch the console state
-		/// </summary>
-		public void SwitchState()
-		{
-			m_ConsoleState = (ConsoleState)((int)m_ConsoleState % 2);
-		}
 		
 		/// <summary>
 		/// Update the printed list of menu items by re-colouring only the changed items on the list
@@ -319,7 +353,7 @@ namespace GameLauncher_Console
 		/// <param name="nStartY">Starting Y position (places from top)</param>
 		/// <param name="strPreviousOption">String value of the previously selected option</param>
 		/// <param name="strCurrentOption">String value of the currently selected option</param>
-		private void UpdateMenu(int nPreviousSelection, int nCurrentSelection, int nStartY, string strPreviousOption, string strCurrentOption)
+		protected virtual void UpdateMenu(int nPreviousSelection, int nCurrentSelection, int nStartY, string strPreviousOption, string strCurrentOption)
 		{
 			if(m_MenuType == MenuType.cType_List)
 				Console.SetCursorPosition(1, nStartY + nCurrentSelection);

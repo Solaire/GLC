@@ -111,7 +111,7 @@ namespace GameLauncher_Console
 				string strHeader		= "Select platform.\n Press [Q] to terminate;\n Press [TAB] to switch console mode;\n Press [~] to rescan game collection";
 				string[] platformArray	= CGameData.GetPlatformNames().ToArray();
 
-				nSelection		= m_dockConsole.ShowDockOptions(strHeader, CGameData.GetPlatformNames().ToArray());
+				nSelection		= m_dockConsole.DisplayMenu(strHeader, CGameData.GetPlatformNames().ToArray());
 
 				if(nSelection > -1)
 					nSelection		= CGameData.GetPlatformEnum(platformArray[nSelection].Substring(0, platformArray[nSelection].IndexOf(':')));
@@ -119,7 +119,7 @@ namespace GameLauncher_Console
 			else if(m_nSecondSelection < 0)
 			{
 				string strHeader	= "Select game.\n Press [Q] to terminate;\n Press [W] to return to previous menu;\n Press [TAB] to switch console mode;";
-				nSelection			= m_dockConsole.ShowDockOptions(strHeader, GetPlatformTitles((GamePlatform)m_nFirstSelection).ToArray());
+				nSelection			= m_dockConsole.DisplayMenu(strHeader, GetPlatformTitles((GamePlatform)m_nFirstSelection).ToArray());
 			}
 			else
 				return -1;
