@@ -24,3 +24,8 @@ GUI version will be in development after the console application reaches v1.0. T
 - Add support for written commands and switching between navigation and writing - something like vim;
 - Improve the way JSON document is updated;
 - Create a GUI version of the application;
+
+## Building / using
+- Download the executable; look in the 'Releases' tab and download the version that you like best.
+- Clone the repo and build; the only dependency is .Net System.Text.Json for JSON parsing
+The app does not need instalation, simply download the exe and run - I would recommend putting the executable in a folder, so that the JSON file and the log file will be contained and out of the way.
