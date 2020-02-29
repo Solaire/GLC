@@ -82,13 +82,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Code-and-tools\Logger\Logger.csproj">
+    <ProjectReference Include="..\GameLauncherDock\Logger.csproj">
       <Project>{0122b147-8c10-49bb-acfd-ae04491ea9ea}</Project>
       <Name>Logger</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
