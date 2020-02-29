@@ -10,8 +10,10 @@ namespace GameLauncher_Console
 	{
 		static void Main(string[] args)
 		{
+#if DEBUG
 			// Log unhandled exceptions
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(Logger.CLogger.ExceptionHandleEvent);
+#endif
 			Logger.CLogger.Configure("GameLauncherConsole.log"); // Create a log file
 
 			// Entry 

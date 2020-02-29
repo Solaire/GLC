@@ -71,6 +71,7 @@ namespace GameLauncher_Console
 						{
 							Console.Clear();
 							Console.Write("Scanning for games...");
+							Logger.CLogger.LogInfo("Scanning for games...");
 							CGameData.ClearGames(false);
 							CRegScanner.ScanGames();
 						}
