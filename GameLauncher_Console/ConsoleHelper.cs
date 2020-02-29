@@ -198,11 +198,55 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Selection handler in the 'insert' mode
 		/// </summary>
-		/// <param name="strTitleText">Text which will appear at the top of the menu.</param>
+		/// <param name="strHeader">Text which will appear at the top of the menu.</param>
 		/// <param name="options">List of menu items</param>
 		/// <returns>Index of the selected item from the options parameter</returns>
-		protected virtual int HandleInsertMenu(string strTitleText, params string[] options)
+		protected virtual int HandleInsertMenu(string strHeader, params string[] options)
 		{
+			int nSelection = -1;
+			Console.CursorVisible = true;
+			bool bIsValidSelection = false;
+
+			// Print the selections
+			Console.Clear();
+			Console.WriteLine(strHeader);
+			int nStartY = Console.CursorTop + 1;
+
+			if(m_MenuType == MenuType.cType_Grid)
+				DrawGridMenu(nSelection, nStartY, options);
+
+			else if(m_MenuType == MenuType.cType_List)
+				DrawListMenu(nSelection, nStartY, options);
+
+			do
+			{
+				// Set the cursor to the bottom of the console
+				Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - 2);
+				Console.Write(">>> ");
+				string strInput = Console.ReadLine();
+
+				if(strInput.Length < 1) // Empty string input are invalid
+					continue;
+
+				else if(strInput.ToLower() == "exit")
+					return -1;
+
+				else
+				{
+					nSelection = Array.FindIndex(options, delegate(string s) 
+					{
+						return s == strInput;
+					});
+
+					if(nSelection >= 0)
+						bIsValidSelection = true;
+				}
+
+
+			} while(!bIsValidSelection);
+
+			return nSelection;
+			/*
 			// Setup
 			int nCurrentSelection = 0;
 			Console.CursorVisible = true;
@@ -249,6 +293,7 @@ namespace GameLauncher_Console
 			} while(!bIsValidSelection);
 
 			return nCurrentSelection;
+			*/
 		}
 
 		/// <summary>

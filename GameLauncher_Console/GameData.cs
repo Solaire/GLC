@@ -14,8 +14,6 @@ namespace GameLauncher_Console
 		/// </summary>
 		public enum GamePlatform
 		{
-			All			= 99,
-			Custom		= 100,
 			Steam		= 0,
 			GOG			= 1,
 			Uplay		= 2, 
@@ -24,12 +22,12 @@ namespace GameLauncher_Console
 			Bethesda	= 5,
 			Battlenet	= 6,
 			Rockstar	= 7,
+			All			= 8,
+			Custom		= 9,
 		}
 
 		private static readonly string[] m_strings =
 		{
-			"All",
-			"Custom",
 			"Steam",
 			"GOG",
 			"Uplay",
@@ -37,7 +35,9 @@ namespace GameLauncher_Console
 			"Epic",
 			"Bethesda",
 			"Battlenet",
-			"Rockstar"
+			"Rockstar",
+			"All",
+			"Custom"
 		};
 
 
@@ -139,7 +139,7 @@ namespace GameLauncher_Console
 			{
 				get
 				{
-					return m_strings[(int)m_platfrom + 2];
+					return m_strings[(int)m_platfrom];
 				}
 			}
 		}
@@ -191,6 +191,25 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Remove all games from memory
+		/// </summary>
+		/// <param name="bRemoveCustom">If true, will remove manually added games</param>
+		public static void ClearGames(bool bRemoveCustom)
+		{
+			if(bRemoveCustom)
+				m_games.Clear();
+
+			else
+			{
+				foreach(KeyValuePair<GamePlatform, HashSet<CGame>> gameSet in m_games)
+				{
+					if(gameSet.Key != GamePlatform.Custom)
+						gameSet.Value.Clear();
+				}
+			}
+		}
+
+		/// <summary>
 		/// Return all games
 		/// </summary>
 		/// <returns>List of Game objects</returns>
@@ -236,7 +255,7 @@ namespace GameLauncher_Console
 
 			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> keyValuePair in m_games)
 			{
-				string strPlatform = m_strings[(int)keyValuePair.Key + 2] + ": " + keyValuePair.Value.Count;
+				string strPlatform = m_strings[(int)keyValuePair.Key] + ": " + keyValuePair.Value.Count;
 				platforms.Add(strPlatform);
 				nTotalCount += keyValuePair.Value.Count;
 			}

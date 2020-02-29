@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29001.49
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameLauncherDock", "GameLauncherDock.csproj", "{B9DDFA10-6B5F-4908-B202-E722EFCA9B77}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IconExtractor", "IconExtractor\IconExtractor.csproj", "{E8CE7B65-622D-443D-BEC1-B14B50FA124D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameLauncher_Console", "..\GameLauncher_Console\GameLauncher_Console.csproj", "{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "..\..\Code-and-tools\Logger\Logger.csproj", "{0122B147-8C10-49BB-ACFD-AE04491EA9EA}"
@@ -17,14 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B9DDFA10-6B5F-4908-B202-E722EFCA9B77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B9DDFA10-6B5F-4908-B202-E722EFCA9B77}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B9DDFA10-6B5F-4908-B202-E722EFCA9B77}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B9DDFA10-6B5F-4908-B202-E722EFCA9B77}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E8CE7B65-622D-443D-BEC1-B14B50FA124D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E8CE7B65-622D-443D-BEC1-B14B50FA124D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E8CE7B65-622D-443D-BEC1-B14B50FA124D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E8CE7B65-622D-443D-BEC1-B14B50FA124D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}.Release|Any CPU.ActiveCfg = Release|Any CPU

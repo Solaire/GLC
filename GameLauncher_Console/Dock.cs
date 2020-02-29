@@ -62,12 +62,18 @@ namespace GameLauncher_Console
 						continue;
 
 					case -3: // Switch console state
-						m_dockConsole.SwitchState();
+						// TODO:
+						// m_dockConsole.SwitchState();
 						continue;
 
 					case -2: // Rescan the game list
 						if(m_nFirstSelection < 0)
+						{
+							Console.Clear();
+							Console.Write("Scanning for games...");
+							CGameData.ClearGames(false);
 							CRegScanner.ScanGames();
+						}
 						continue;
 
 					case -1: // Possible valid platform/game selection
