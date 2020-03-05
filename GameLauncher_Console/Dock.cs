@@ -58,7 +58,7 @@ namespace GameLauncher_Console
 						continue;
 
 					case DockSelection.cSel_Fav: // Toggle game favourite
-						if(m_nFirstSelection > 0)
+						if(m_nFirstSelection > -1)
 						{
 							CGameData.ToggleFavourite((CGameData.GamePlatform)m_nFirstSelection, nSelectionIndex);
 							CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
