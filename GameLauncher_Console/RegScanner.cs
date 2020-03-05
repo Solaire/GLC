@@ -94,7 +94,7 @@ namespace GameLauncher_Console
 			{
 				CGameData.AddGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
 			}
-			CJsonWrapper.Export(CGameData.GetAllGames().ToList());
+			CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 		}
 
 		/// <summary>

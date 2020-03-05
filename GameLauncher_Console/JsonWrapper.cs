@@ -24,25 +24,6 @@ namespace GameLauncher_Console
 		private const string GAMES_ARRAY_PLATFORM	= "platform";
 		private const string GAMES_ARRAY_FAVOURITE	= "favourite";
 
-		/* TODO:
-		 * Define const strings for the JSON field names
-		 * READ:
-		 *     Load the json file from disk
-		 *	   Extract each object in the "games" array
-		 *	   Iterate through all objects and add them to the global game dictionary.
-		 *	   Close file stream, unlock the JSON file and clear memory
-		 * WRITE:
-		 *	   Create new "game" JSON objects
-		 *	   Open the JSON file
-		 *	   Ammend the file, adding and removing necessary elements
-		 *	   Save and unlock the file, close stream and clean memory.
-		 */
-
-		/* TODO: JSON file appending:
-		 * Instead of overwriting the entire file, keep a track of the last object in the array...
-		 * ...when the write/export function is called, iterate/jump to the location and simply write all data.
-		 */
-
 		/// <summary>
 		/// Import games from the game.json config file
 		/// </summary>

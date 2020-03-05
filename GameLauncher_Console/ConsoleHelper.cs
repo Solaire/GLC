@@ -123,7 +123,8 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Selection handler in the 'browse' state
+		/// Selection handler in the 'browse' state.
+		/// Return selection code
 		/// </summary>
 		/// <param name="strHeader">Helper header text block which will appear on top of the console</param>
 		/// <param name="bCanExit">Boolean which controls if the menu can be escaped with ESC</param>
@@ -246,54 +247,6 @@ namespace GameLauncher_Console
 			} while(!bIsValidSelection);
 
 			return nSelection;
-			/*
-			// Setup
-			int nCurrentSelection = 0;
-			Console.CursorVisible = true;
-			bool bIsValidSelection = false;
-
-			do
-			{
-				// Refresh console before redraw, print the title and set the menu start position
-				Console.Clear();
-				Console.WriteLine(strTitleText);
-				int nStartY = Console.CursorTop + 1;
-
-				if(m_MenuType == MenuType.cType_Grid)
-					DrawGridMenu(nCurrentSelection, nStartY, options);
-
-				else if(m_MenuType == MenuType.cType_List)
-					DrawListMenu(nCurrentSelection, nStartY, options);
-
-				// Set the cursor to the bottom of the console
-				Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - 2);
-				Console.Write(">>> ");
-				string strInput = Console.ReadLine();
-
-				if(strInput.Length < 1) // Empty strings are invalid
-					continue;
-				
-				for(int i = 0; i < options.Length; i++) // Loop over the menu items and see if anything is a match
-				{
-					if(strInput.ToLower().Contains(options[i].ToLower()))
-					{
-						bIsValidSelection = true;
-						nCurrentSelection = i;
-						break;
-					}
-				}
-
-				// No match - check if we entered the exit command
-				if(!bIsValidSelection && strInput.ToLower() == "wq") //TODO: Change to a list of supported commands (configurable)
-				{
-					bIsValidSelection = true;
-					nCurrentSelection = -1;
-				}
-
-			} while(!bIsValidSelection);
-
-			return nCurrentSelection;
-			*/
 		}
 
 		/// <summary>

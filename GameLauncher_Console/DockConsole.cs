@@ -21,6 +21,36 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Function overload
+		/// Display either the insert or navigate menu, depending on the console state.
+		/// Returns selection code and selection index
+		/// </summary>
+		/// <param name="strMenuTitle">Helper heading text block displayed on top of the console.</param>
+		/// <param name="nSelectionIndex">Index of the selected option - reference</param>
+		/// <param name="options">String array representing the available options</param>
+		/// <returns>Selection code</returns>
+		public int DisplayMenu(string strMenuTitle, out int nSelectionIndex, params string[] options)
+		{
+			Console.Clear();
+			int nSelectionCode = -1;
+
+			do
+			{
+				nSelectionCode = HandleNavigationMenu(strMenuTitle, out nSelectionIndex, true, options);
+				CLogger.LogDebug("Current Selection = {0}", nSelectionCode);
+
+				if(nSelectionIndex == 0 && options.Length == 0)
+				{
+					nSelectionIndex = -1;
+					return nSelectionCode;
+				}
+
+			} while(!IsSelectionValid(nSelectionIndex, options.Length));
+
+			return nSelectionCode;
+		}
+
+		/// <summary>
 		/// Function override
 		/// Validate selection
 		/// </summary>
@@ -29,22 +59,24 @@ namespace GameLauncher_Console
 		/// <returns>True if valid, otherwise false</returns>
 		protected override bool IsSelectionValid(int nSelection, int nItemCount)
 		{
-			return (-6 < nSelection && nSelection < nItemCount) || nSelection == 99 || nSelection == 100;
+			return (-1 < nSelection && nSelection < nItemCount);
 		}
-
+		
 		/// <summary>
-		/// Function override
-		/// Selection handler in the 'browse' state
+		/// Function overload
+		/// Selection handler in the browse state.
+		/// Return selection code and selection index
 		/// </summary>
 		/// <param name="strHeader">Helper header text block which will appear on top of the console</param>
-		/// <param name="bCanExit">Boolean which controls if the menu can be escaped with ESC</param>
-		/// <param name="options">Array of strings representing the possible selections</param>
-		/// <returns>Index of the selected item from the options parameter or any of the defined escape codes (-5 to 2)</returns>
-		protected override int HandleNavigationMenu(string strHeader, bool bCanExit, params string[] options)
+		/// <param name="nSelectionIndex">Index of the option array - reference</param>
+		/// <param name="bCanExit">Flag indicating if exiting is allowed - unused in this function</param>
+		/// <param name="options">Array of available options</param>
+		/// <returns>Selection code</returns>
+		public int HandleNavigationMenu(string strHeader, out int nSelectionIndex, bool bCanExit, params string[] options)
 		{
 			// Setup
-			int nCurrentSelection   = 0;
-			int nLastSelection		= 0;
+			int nCurrentSelection = 0;
+			int nLastSelection = 0;
 
 			ConsoleKey key;
 			Console.CursorVisible = false;
@@ -68,6 +100,7 @@ namespace GameLauncher_Console
 
 				key = Console.ReadKey(true).Key;
 				nLastSelection = nCurrentSelection;
+				nSelectionIndex = nCurrentSelection;
 
 				CLogger.LogDebug("{0} key registered", key);
 				switch(key)
@@ -98,7 +131,7 @@ namespace GameLauncher_Console
 					case ConsoleKey.W:
 						return -4;
 
-					case ConsoleKey.Tab:
+					case ConsoleKey.F:
 						return -3;
 
 					case ConsoleKey.Oem3:
@@ -110,7 +143,7 @@ namespace GameLauncher_Console
 			} while(key != ConsoleKey.Enter);
 
 			Console.CursorVisible = true;
-			return nCurrentSelection;
+			return -1;
 		}
 	}
 }

@@ -23,7 +23,8 @@ namespace GameLauncher_Console
 			Battlenet	= 6,
 			Rockstar	= 7,
 			All			= 8,
-			Custom		= 9,
+			Favourites  = 9,
+			Custom		= 10,
 		}
 
 		private static readonly string[] m_strings =
@@ -37,6 +38,7 @@ namespace GameLauncher_Console
 			"Battlenet",
 			"Rockstar",
 			"All",
+			"Favourites",
 			"Custom"
 		};
 
@@ -48,9 +50,9 @@ namespace GameLauncher_Console
 		{
 			private readonly string		  m_strTitle;
 			private readonly string		  m_strLaunch;
-			private readonly bool		  m_bIsFavourite;
+			private bool				  m_bIsFavourite;
 			private readonly GamePlatform m_platfrom;
-			//private readonly string		m_strIcon; // Currently not in use
+			//private readonly string	  m_strIcon; // Currently not in use
 
 			/// <summary>
 			/// Constructor.
@@ -59,12 +61,13 @@ namespace GameLauncher_Console
 			/// <param name="strLaunchCommand">Game's launch command</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="enumPlatform">Game's platform enumerator</param>
-			protected CGame(string strTitle, string strLaunchCommand, bool bIsFavourite, GamePlatform enumPlatform)
+			protected CGame(string strTitle, string strLaunchCommand, bool bIsFavourite, GamePlatform enumPlatform/*, string strIconPath*/)
 			{
 				m_strTitle		= strTitle;
 				m_strLaunch		= strLaunchCommand;
 				m_bIsFavourite	= bIsFavourite;
 				m_platfrom		= enumPlatform; 
+				//m_strIcon = strIconPath;
 			}
 
 			/// <summary>
@@ -118,6 +121,10 @@ namespace GameLauncher_Console
 				get
 				{
 					return m_bIsFavourite;
+				}
+				set
+				{
+					m_bIsFavourite = value;
 				}
 			}
 
@@ -178,16 +185,25 @@ namespace GameLauncher_Console
 			return new CGameInstance(strTitle, strLaunchCommand, bIsFavourite, enumPlatform);
 		}
 
-		private static Dictionary<GamePlatform, HashSet<CGame>> m_games = new Dictionary<GamePlatform, HashSet<CGame>>();
+		private static Dictionary<GamePlatform, HashSet<CGame>> m_gameDictionary = new Dictionary<GamePlatform, HashSet<CGame>>();
+		private static HashSet<CGame> m_allGames   = new HashSet<CGame>();
+		private static HashSet<CGame> m_favourites = new HashSet<CGame>();
 
 		/// <summary>
 		/// Return the list of Game objects with specified platform
 		/// </summary>
-		/// <param name="enumPlatform">Platform enumerator</param>
+		/// <param name="platformEnum">Platform enumerator</param>
 		/// <returns>List of Game objects</returns>
-		public static HashSet<CGame> GetGames(GamePlatform enumPlatform)
+		public static HashSet<CGame> GetPlatformGameList(GamePlatform platformEnum)
 		{
-			return m_games[enumPlatform];
+			if(platformEnum == GamePlatform.All)
+				return m_allGames;
+
+			else if(platformEnum == GamePlatform.Favourites)
+				return m_favourites;
+
+			else
+				return m_gameDictionary[platformEnum];
 		}
 
 		/// <summary>
@@ -197,11 +213,11 @@ namespace GameLauncher_Console
 		public static void ClearGames(bool bRemoveCustom)
 		{
 			if(bRemoveCustom)
-				m_games.Clear();
+				m_gameDictionary.Clear();
 
 			else
 			{
-				foreach(KeyValuePair<GamePlatform, HashSet<CGame>> gameSet in m_games)
+				foreach(KeyValuePair<GamePlatform, HashSet<CGame>> gameSet in m_gameDictionary)
 				{
 					if(gameSet.Key != GamePlatform.Custom)
 						gameSet.Value.Clear();
@@ -210,79 +226,64 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Return all games
-		/// </summary>
-		/// <returns>List of Game objects</returns>
-		public static HashSet<CGame> GetAllGames()
-		{
-			List<CGame> allGames = new List<CGame>();
-
-			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> platform in m_games)
-			{
-				allGames.AddRange(platform.Value);
-			}
-
-			return new HashSet<CGame>(allGames);
-		}
-
-		/// <summary>
-		/// Return titles of all games
-		/// </summary>
-		/// <returns>List of strings</returns>
-		public static List<string> GetAllTitles()
-		{
-			List<string> allTitles = new List<string>();
-
-			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> keyValuePair in m_games)
-			{
-				foreach(CGame game in keyValuePair.Value)
-				{
-					allTitles.Add(game.Title);
-				}
-			}
-
-			return allTitles;
-		}
-
-		/// <summary>
 		/// Return all platform with at least 1 game along with the number of games per platform
 		/// </summary>
 		/// <returns>List of strings</returns>
 		public static List<string> GetPlatformNames()
 		{
-			List<string> platforms = new List<string>();
-			int nTotalCount = 0;
-
-			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> keyValuePair in m_games)
+			List<string> platformList = new List<string>();
+			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> platform in m_gameDictionary)
 			{
-				string strPlatform = m_strings[(int)keyValuePair.Key] + ": " + keyValuePair.Value.Count;
-				platforms.Add(strPlatform);
-				nTotalCount += keyValuePair.Value.Count;
+				string strPlatform = m_strings[(int)platform.Key] + ": " + platform.Value.Count;
+				platformList.Add(strPlatform);
 			}
-			string strAll = "All: " + nTotalCount;
-			platforms.Add(strAll);
-			return platforms;
+			platformList.Add("All: " + m_allGames.Count);
+
+			if(m_favourites.Count > 0)
+				platformList.Add("Favourites: " + m_favourites.Count);
+
+			return platformList;
 		}
 
 		/// <summary>
 		/// Return titles of games for specified platform
 		/// </summary>
-		/// <param name="enumPlatform">Platform enumerator</param>
+		/// <param name="platformEnum">Platform enumerator</param>
 		/// <returns>List of strings</returns>
-		public static List<string> GetPlatformTitles(GamePlatform enumPlatform)
+		public static List<string> GetPlatformTitles(GamePlatform platformEnum)
 		{
 			List<string> platformTitles = new List<string>();
 			
-			if(enumPlatform == GamePlatform.All)
+			if(platformEnum == GamePlatform.All)
 			{
-				return GetAllTitles();
+				foreach(CGame game in m_allGames)
+				{
+					string strTitle = game.Title;
+					if(game.IsFavourite)
+						strTitle += " [F]";
+
+					platformTitles.Add(strTitle);
+				}
 			}
 
-			if(m_games.ContainsKey(enumPlatform))
+			else if(platformEnum == GamePlatform.Favourites)
 			{
-				foreach(CGame game in m_games[enumPlatform])
+				foreach(CGame game in m_favourites)
 				{
 					platformTitles.Add(game.Title);
+				}
+				return platformTitles;
+			}
+
+			else if(m_gameDictionary.ContainsKey(platformEnum))
+			{
+				foreach(CGame game in m_gameDictionary[platformEnum])
+				{
+					string strTitle = game.Title;
+					if(game.IsFavourite)
+						strTitle += " [F]";
+
+					platformTitles.Add(strTitle);
 				}
 			}
 
@@ -293,25 +294,26 @@ namespace GameLauncher_Console
 		/// Add game to the dictionary
 		/// </summary>
 		/// <param name="strTitle">Title of the game</param>
-		/// <param name="strLaunchCommand">Game's launch command</param>
+		/// <param name="strLaunch">Game's launch command</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 		/// <param name="strPlatform">Game's platform as a string value</param>
-		public static void AddGame(string strTitle, string strLaunchCommand, bool bIsFavourite, string strPlatform)
+		public static void AddGame(string strTitle, string strLaunch, bool bIsFavourite, string strPlatform)
 		{
 			// If platform is incorrect or unsupported, default to custom.
 			GamePlatform enumPlatform;
 			if(!Enum.TryParse(strPlatform, true, out enumPlatform))
-			{
 				enumPlatform = GamePlatform.Custom;
-			}
 
 			// If this is the first entry in the key, we need to initialise the list
-			if(!m_games.ContainsKey(enumPlatform))
-			{
-				m_games[enumPlatform] = new HashSet<CGame>();
-			}
+			if(!m_gameDictionary.ContainsKey(enumPlatform))
+				m_gameDictionary[enumPlatform] = new HashSet<CGame>();
 
-			m_games[enumPlatform].Add(CreateGameInstance(strTitle, strLaunchCommand, bIsFavourite, enumPlatform));
+			CGame game = CreateGameInstance(strTitle, strLaunch, bIsFavourite, enumPlatform);
+			m_gameDictionary[enumPlatform].Add(game);
+			m_allGames.Add(game);
+
+			if(game.IsFavourite)
+				m_favourites.Add(game);
 		}
 
 		/// <summary>
@@ -323,9 +325,7 @@ namespace GameLauncher_Console
 		{
 			GamePlatform enumPlatform;
 			if(!Enum.TryParse(strPlatformName, true, out enumPlatform))
-			{
 				return -1;
-			}
 
 			return (int)enumPlatform;
 		}
@@ -338,16 +338,56 @@ namespace GameLauncher_Console
 		public static string GetPlatformString(int enumPlatform)
 		{
 			if(enumPlatform > m_strings.Length)
-			{
 				return "";
-			}
 
 			return m_strings[enumPlatform];
 		}
 
-		public static CGame GetGame(int nPlatformEnum, int nGameIndex)
+		/// <summary>
+		/// Return game object for the specified platform
+		/// </summary>
+		/// <param name="platformEnum">Game's platform index</param>
+		/// <param name="nGameIndex">Index of the game list</param>
+		/// <returns></returns>
+		public static CGame GetPlatformGame(GamePlatform platformEnum, int nGameIndex)
 		{
-			return m_games[(GamePlatform)nPlatformEnum].ElementAt(nGameIndex);
+			if(platformEnum == GamePlatform.All)
+				return m_allGames.ElementAt(nGameIndex);
+
+			else if(platformEnum == GamePlatform.Favourites)
+				return m_favourites.ElementAt(nGameIndex);
+
+			else
+				return m_gameDictionary[platformEnum].ElementAt(nGameIndex);
+		}
+
+		/// <summary>
+		/// Toggle the specified game's favourite flag
+		/// </summary>
+		/// <param name="platformEnum">Game's platform enumerator</param>
+		/// <param name="nGameIndex">Index of the game list</param>
+		public static void ToggleFavourite(GamePlatform platformEnum, int nGameIndex)
+		{
+			CGame gameCopy;
+			if(platformEnum == GamePlatform.Favourites)
+				gameCopy = m_favourites.ElementAt(nGameIndex);
+
+			else if(platformEnum == GamePlatform.All)
+				gameCopy = m_allGames.ElementAt(nGameIndex);
+
+			else
+				gameCopy = m_gameDictionary[platformEnum].ElementAt(nGameIndex);
+
+			if(gameCopy.IsFavourite)
+			{
+				gameCopy.IsFavourite = false;
+				m_favourites.Remove(gameCopy);
+			}
+			else
+			{
+				gameCopy.IsFavourite = true;
+				m_favourites.Add(gameCopy);
+			}
 		}
 	}
 }
