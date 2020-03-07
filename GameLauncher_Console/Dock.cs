@@ -41,7 +41,8 @@ namespace GameLauncher_Console
 			// Create JSON and scan if missing
 
 			// Load games into memory and scan the registry
-			CJsonWrapper.Import();
+			CJsonWrapper.ImportFromJSON();
+			CGameFinder.CheckCustomFolder();
 
 			int nSelectionCode, nSelectionIndex;
 			for(; ; )
@@ -71,7 +72,7 @@ namespace GameLauncher_Console
 							Console.Clear();
 							Console.Write("Scanning for games...");
 							Logger.CLogger.LogInfo("Scanning for games...");
-							CGameData.ClearGames(false);
+							CGameData.ClearGames(true);
 							CRegScanner.ScanGames();
 						}
 						continue;
@@ -94,8 +95,14 @@ namespace GameLauncher_Console
 				if(m_nSecondSelection > -1)
 				{
 					CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)m_nFirstSelection, m_nSecondSelection);
-					StartGame(selectedGame);
-					return;
+					if(StartGame(selectedGame))
+						return;
+
+					else
+					{
+						CGameData.RemoveGame(selectedGame);
+						CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
+					}
 				}
 			}
 		}
@@ -137,19 +144,28 @@ namespace GameLauncher_Console
 		/// Start the game process
 		/// </summary>
 		/// <param name="game"></param>
-		private void StartGame(CGameData.CGame game)
+		private bool StartGame(CGameData.CGame game)
 		{
-			if(game.PlatformString == "GOG")
+			try
 			{
-				ProcessStartInfo gogProcess = new ProcessStartInfo();
-				string clientPath = game.Launch.Substring(0, game.Launch.IndexOf('.') + 4);
-				string arguments = game.Launch.Substring(game.Launch.IndexOf('.') + 4);
-				gogProcess.FileName = clientPath;
-				gogProcess.Arguments = arguments;
-				Process.Start(gogProcess);
-				return;
+				if(game.PlatformString == "GOG")
+				{
+					ProcessStartInfo gogProcess = new ProcessStartInfo();
+					string clientPath = game.Launch.Substring(0, game.Launch.IndexOf('.') + 4);
+					string arguments = game.Launch.Substring(game.Launch.IndexOf('.') + 4);
+					gogProcess.FileName = clientPath;
+					gogProcess.Arguments = arguments;
+					Process.Start(gogProcess);
+					return true;
+				}
+				Process.Start(game.Launch);
+				return true;
 			}
-			Process.Start(game.Launch);
+			catch(Exception e)
+			{
+				Logger.CLogger.LogError(e, "Cannot start game. Was game removed?");
+				return false;
+			}
 		}
 	}
 }

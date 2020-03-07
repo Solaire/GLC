@@ -27,7 +27,7 @@ namespace GameLauncher_Console
 		/// Import games from the game.json config file
 		/// </summary>
 		/// <returns>True if successful, otherwise false</returns>
-		public static bool Import()
+		public static bool ImportFromJSON()
 		{
 			int nGameCount = 0;
 			if(!DoesFileExist())

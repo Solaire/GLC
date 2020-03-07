@@ -8,6 +8,7 @@ namespace GameLauncher_Console
 	/// </summary>
 	class Program
 	{
+		[STAThread] // Requirement for Shell32.Shell COM object
 		static void Main(string[] args)
 		{
 #if DEBUG
@@ -16,7 +17,6 @@ namespace GameLauncher_Console
 #endif
 			Logger.CLogger.Configure("GameLauncherConsole.log"); // Create a log file
 
-			// Entry 
 			CDock gameDock = new CDock();
 			gameDock.Run();			
 		}

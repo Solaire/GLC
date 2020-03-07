@@ -94,6 +94,7 @@ namespace GameLauncher_Console
 			{
 				CGameData.AddGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
 			}
+			CGameFinder.ImportFromFolder();
 			CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 		}
 
@@ -133,7 +134,7 @@ namespace GameLauncher_Console
 				{
 					string strTitle  = data.GetValue(GAME_DISPLAY_NAME).ToString();
 					string strLaunch = STEAM_LAUNCH + Path.GetFileNameWithoutExtension(data.Name).Substring(10);
-					string strIcon	 = FindGameBinaryFile(data.GetValue(GAME_INSTALL_LOCATION).ToString(), data.GetValue(GAME_DISPLAY_NAME).ToString());
+					string strIcon	 = CGameFinder.FindGameBinaryFile(data.GetValue(GAME_INSTALL_LOCATION).ToString(), data.GetValue(GAME_DISPLAY_NAME).ToString());
 					gameDataList.Add(new RegistryGameData(strTitle, strLaunch, strIcon, "Steam"));
 				}
 			}
@@ -187,7 +188,7 @@ namespace GameLauncher_Console
 				{
 					string strTitle		= data.GetValue(GAME_DISPLAY_NAME).ToString();
 					string strLaunch	= UPLAY_LAUNCH + Path.GetFileNameWithoutExtension(data.Name).Substring(10) + "/0";
-					string strIcon		= FindGameBinaryFile(data.GetValue(GAME_INSTALL_LOCATION).ToString(), data.GetValue(GAME_DISPLAY_NAME).ToString());
+					string strIcon		= CGameFinder.FindGameBinaryFile(data.GetValue(GAME_INSTALL_LOCATION).ToString(), data.GetValue(GAME_DISPLAY_NAME).ToString());
 
 					gameDataList.Add(new RegistryGameData(strTitle, strLaunch, strIcon, UPLAY_NAME));
 				}
@@ -374,127 +375,6 @@ namespace GameLauncher_Console
 				}
 			}
 			return gameKeys;
-		}
-
-		/// <summary>
-		/// Find the game's binary executable file
-		/// </summary>
-		/// <param name="strPath">Path to search</param>
-		/// <param name="strTitle">Title of the game</param>
-		/// <returns></returns>
-		private static string FindGameBinaryFile(string strPath, string strTitle)
-		{
-			/* function flow
-			 * Find all exe files in the directory. (Exclude files with words: "redist", "x86", "x64")
-			 * Compare exe files with gameTitle
-			 * If failed, compare with name of root directory
-			 * Return "" if failed
-			 */
-
-			// Get our list of exe files in the game folder + all subfolders
-			List<string> exeFiles = Directory.EnumerateFiles(strPath, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".exe")).ToList();
-
-			// If only 1 file has been found, return it.
-			if(exeFiles.Count == 1)
-			{
-				return exeFiles[0];
-			}
-
-			// First, compare the files against the game title
-			{
-				string[] words = strTitle.Split(new char[] { ' ', ':', '-', '_' });
-				string letters = "";
-
-				foreach(string word in words)
-				{
-					if(word != "")
-						letters += word[0];
-				}
-
-				foreach(string file in exeFiles)
-				{
-					if(file.ToLower().Contains("redist")) // A lot of steam games contain C++ redistributables. Ignore them
-						continue;
-
-
-					string description = FileVersionInfo.GetVersionInfo(file).FileDescription ?? "";
-					description.ToLower();
-
-					FileInfo info = new FileInfo(file);
-					string name = info.Name.Substring(0, info.Name.IndexOf('.')).ToLower();
-
-					// Perform a check againt the acronym
-					if(letters.Length > 2)
-					{
-						if(letters.ToLower().Contains(name) || name.Contains(letters.ToLower()))
-							return file;
-
-						else if((description != null && description != "") &&
-						(letters.ToLower().Contains(description) || description.Contains(letters.ToLower())))
-							return file;
-					}
-
-					foreach(string word in words)
-					{
-						if(word == "" && word.Length < 3)
-							continue;
-
-						if(name.Contains(word.ToLower()))
-							return file;
-
-						if((description != null && description != "") && description.Contains(word.ToLower()))
-							return file;
-					}
-				}
-			}
-
-			// If search failed, we need to compare the exe files against the name of root directory
-			{
-				string[] words = strPath.Substring(strPath.LastIndexOf('\\')).Split(new char[] { ' ', '-', '_', ':' });
-				string letters = "";
-
-				foreach(string word in words)
-				{
-					if(word != "")
-						letters += word[0];
-				}
-
-				foreach(string file in exeFiles)
-				{
-					if(file.ToLower().Contains("redist")) // A lot of steam games contain C++ redistributables. Ignore them
-						continue;
-
-					string description = FileVersionInfo.GetVersionInfo(file).FileDescription ?? "";
-					description.ToLower();
-
-					FileInfo info = new FileInfo(file);
-					string name = info.Name.Substring(0, info.Name.IndexOf('.')).ToLower();
-
-					// Perform a check againt the acronym
-					if(letters.Length > 2)
-					{
-						if(letters.ToLower().Contains(name) || name.Contains(letters.ToLower()))
-							return file;
-
-						else if((description != null && description != "") &&
-						(letters.ToLower().Contains(description) || description.Contains(letters.ToLower())))
-							return file;
-					}
-
-					foreach(string word in words)
-					{
-						if(word == "" && word.Length < 3)
-							continue;
-
-						if(name.Contains(word.ToLower()))
-							return file;
-
-						if((description != null && description != "") && description.Contains(word.ToLower()))
-							return file;
-					}
-				}
-			}
-			return "";
 		}
 	}
 }

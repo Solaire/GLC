@@ -223,6 +223,8 @@ namespace GameLauncher_Console
 						gameSet.Value.Clear();
 				}
 			}
+
+			m_allGames.Clear();
 		}
 
 		/// <summary>
@@ -388,6 +390,19 @@ namespace GameLauncher_Console
 				gameCopy.IsFavourite = true;
 				m_favourites.Add(gameCopy);
 			}
+		}
+
+		/// <summary>
+		/// Remove selected game from memory
+		/// </summary>
+		/// <param name="game">Game object to remove</param>
+		public static void RemoveGame(CGame game)
+		{
+			if(game.IsFavourite)
+				m_favourites.Remove(game);
+
+			m_allGames.Remove(game);
+			m_gameDictionary[game.Platform].Remove(game);
 		}
 	}
 }
