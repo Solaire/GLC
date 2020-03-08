@@ -152,6 +152,9 @@ namespace GameLauncher_Console
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT))
 			{
+				if(key == null) // GOG not found
+					return;
+
 				strClientPath = key.GetValue(GOG_CLIENT).ToString() + GOG_GALAXY_EXE;
 			}
 
@@ -276,6 +279,10 @@ namespace GameLauncher_Console
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG))
 			{
 				keyList = FindGameKeys(key, EPIC_GAMES_LAUNCHER, GAME_DISPLAY_NAME, EPIC_UNREAL_ENGINE);
+
+				if(keyList.Count == 0) // Epic Game Store not found
+					return;
+
 				strStorePath = keyList[0].GetValue(GAME_INSTALL_LOCATION).ToString();
 			}
 			string[] folders = Directory.GetDirectories(strStorePath, "*", SearchOption.TopDirectoryOnly);
