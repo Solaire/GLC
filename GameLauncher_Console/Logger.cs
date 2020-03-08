@@ -62,7 +62,7 @@ namespace Logger
 					writer.Close();
 				}
 			}
-			catch(Exception e)
+			catch(Exception)
 			{
 				throw new LogUndefinedException("Log file definition is not valid: {0}");
 			}

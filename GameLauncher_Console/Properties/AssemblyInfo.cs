@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("GameLauncher_Console")]
+[assembly: AssemblyTitle("GameLauncher")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("kaz-jurczak")]
-[assembly: AssemblyProduct("GameLauncher_Console")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("GameLauncher")]
 [assembly: AssemblyCopyright("Copyright © 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
