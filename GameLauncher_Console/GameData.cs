@@ -58,15 +58,15 @@ namespace GameLauncher_Console
 			/// Constructor.
 			/// </summary>
 			/// <param name="strTitle">Title of the game</param>
-			/// <param name="strLaunchCommand">Game's launch command</param>
+			/// <param name="strLaunch">Game's launch command</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
-			/// <param name="enumPlatform">Game's platform enumerator</param>
-			protected CGame(string strTitle, string strLaunchCommand, bool bIsFavourite, GamePlatform enumPlatform/*, string strIconPath*/)
+			/// <param name="platformEnum">Game's platform enumerator</param>
+			protected CGame(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum/*, string strIconPath*/)
 			{
 				m_strTitle		= strTitle;
-				m_strLaunch		= strLaunchCommand;
+				m_strLaunch		= strLaunch;
 				m_bIsFavourite	= bIsFavourite;
-				m_platfrom		= enumPlatform; 
+				m_platfrom		= platformEnum; 
 				//m_strIcon = strIconPath;
 			}
 
@@ -162,13 +162,44 @@ namespace GameLauncher_Console
 			/// Call constructor of base class
 			/// </summary>
 			/// <param name="strTitle">Title of the game</param>
-			/// <param name="strLaunchCommand">Game's launch command</param>
+			/// <param name="strLaunch">Game's launch command</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
-			/// <param name="enumPlatform">Game's platform enumerator</param>
-			public CGameInstance(string strTitle, string strLaunchCommand, bool bIsFavourite, GamePlatform enumPlatform) 
-				: base(strTitle, strLaunchCommand, bIsFavourite, enumPlatform)
+			/// <param name="platformEnum">Game's platform enumerator</param>
+			public CGameInstance(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum) 
+				: base(strTitle, strLaunch, bIsFavourite, platformEnum)
 			{
 
+			}
+		}
+
+		/// <summary>
+		/// Child class of HashSet which stores CGame objects.
+		/// Designed to be used to temporarily store the game objects
+		/// </summary>
+		public class CTempGameSet : HashSet<CGame>
+		{
+			/// <summary>
+			/// Default constructor
+			/// </summary>
+			public CTempGameSet()
+			{
+
+			}
+
+			/// <summary>
+			/// Instert CGame object into the HashSet
+			/// </summary>
+			/// <param name="strTitle">Game title</param>
+			/// <param name="strLaunch">Game launch command</param>
+			/// <param name="bIsFavourite">Flag indicating if the game is favourite</param>
+			/// <param name="strPlatform">Game platform string</param>
+			public void InsertGame(string strTitle, string strLaunch, bool bIsFavourite, string strPlatform)
+			{
+				GamePlatform platformEnum;
+				if(!Enum.TryParse(strPlatform, true, out platformEnum))
+					platformEnum = GamePlatform.Custom;
+
+				this.Add(CreateGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum));
 			}
 		}
 
@@ -176,13 +207,13 @@ namespace GameLauncher_Console
 		/// Create a new CGame instance
 		/// </summary>
 		/// <param name="strTitle">Title of the game</param>
-		/// <param name="strLaunchCommand">Game's launch command</param>
+		/// <param name="strLaunch">Game's launch command</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
-		/// <param name="enumPlatform">Game's platform enumerator</param>
+		/// <param name="platformEnum">Game's platform enumerator</param>
 		/// <returns>Instance of CGame</returns>
-		private static CGame CreateGameInstance(string strTitle, string strLaunchCommand, bool bIsFavourite, GamePlatform enumPlatform)
+		private static CGame CreateGameInstance(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum)
 		{
-			return new CGameInstance(strTitle, strLaunchCommand, bIsFavourite, enumPlatform);
+			return new CGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum);
 		}
 
 		private static Dictionary<GamePlatform, HashSet<CGame>> m_gameDictionary = new Dictionary<GamePlatform, HashSet<CGame>>();
@@ -302,17 +333,33 @@ namespace GameLauncher_Console
 		public static void AddGame(string strTitle, string strLaunch, bool bIsFavourite, string strPlatform)
 		{
 			// If platform is incorrect or unsupported, default to custom.
-			GamePlatform enumPlatform;
-			if(!Enum.TryParse(strPlatform, true, out enumPlatform))
-				enumPlatform = GamePlatform.Custom;
+			GamePlatform platformEnum;
+			if(!Enum.TryParse(strPlatform, true, out platformEnum))
+				platformEnum = GamePlatform.Custom;
 
 			// If this is the first entry in the key, we need to initialise the list
-			if(!m_gameDictionary.ContainsKey(enumPlatform))
-				m_gameDictionary[enumPlatform] = new HashSet<CGame>();
+			if(!m_gameDictionary.ContainsKey(platformEnum))
+				m_gameDictionary[platformEnum] = new HashSet<CGame>();
 
-			CGame game = CreateGameInstance(strTitle, strLaunch, bIsFavourite, enumPlatform);
-			m_gameDictionary[enumPlatform].Add(game);
+			CGame game = CreateGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum);
+			m_gameDictionary[platformEnum].Add(game);
 			m_allGames.Add(game);
+
+			if(game.IsFavourite)
+				m_favourites.Add(game);
+		}
+
+		/// <summary>
+		/// Function overload
+		/// Add game object from all game set to the dictionary
+		/// </summary>
+		/// <param name="game">instance of CGame to add</param>
+		private static void AddGame(CGame game)
+		{
+			if(!m_gameDictionary.ContainsKey(game.Platform))
+				m_gameDictionary[game.Platform] = new HashSet<CGame>();
+
+			m_gameDictionary[game.Platform].Add(game);
 
 			if(game.IsFavourite)
 				m_favourites.Add(game);
@@ -325,24 +372,24 @@ namespace GameLauncher_Console
 		/// <returns>GamePlatform enumerator, cast to int type. -1 on failed resolution</returns>
 		public static int GetPlatformEnum(string strPlatformName)
 		{
-			GamePlatform enumPlatform;
-			if(!Enum.TryParse(strPlatformName, true, out enumPlatform))
+			GamePlatform platformEnum;
+			if(!Enum.TryParse(strPlatformName, true, out platformEnum))
 				return -1;
 
-			return (int)enumPlatform;
+			return (int)platformEnum;
 		}
 
 		/// <summary>
 		/// Get selected platform as a string
 		/// </summary>
-		/// <param name="enumPlatform">GamePlatform enumerator</param>
+		/// <param name="platformEnum">GamePlatform enumerator</param>
 		/// <returns>String value of the platform</returns>
-		public static string GetPlatformString(int enumPlatform)
+		public static string GetPlatformString(int platformEnum)
 		{
-			if(enumPlatform > m_strings.Length)
+			if(platformEnum > m_strings.Length)
 				return "";
 
-			return m_strings[enumPlatform];
+			return m_strings[platformEnum];
 		}
 
 		/// <summary>
@@ -403,6 +450,41 @@ namespace GameLauncher_Console
 
 			m_allGames.Remove(game);
 			m_gameDictionary[game.Platform].Remove(game);
+		}
+
+		/// <summary>
+		/// Merge the temporary game set with the main game set.
+		/// Add new games to the main set and remove missing games from the main set.
+		/// </summary>
+		/// <param name="tempGameSet">Instance of CTempGameSet containing new games</param>
+		public static void MergeGameSets(CTempGameSet tempGameSet)
+		{
+			m_gameDictionary.Clear();
+			m_favourites.Clear();
+
+			// Find games that are missing from tempGameSet and remove them from m_allGames
+			// Find games that are missing from m_allGames and add them to m_allGames
+
+			HashSet<CGame> newGames = new HashSet<CGame>(tempGameSet);
+			newGames.ExceptWith(m_allGames);
+
+			HashSet<CGame> gamesToRemove = new HashSet<CGame>(m_allGames);
+			gamesToRemove.ExceptWith(tempGameSet);
+
+			foreach(CGame game in gamesToRemove)
+			{
+				m_allGames.Remove(game);
+			}
+
+			foreach(CGame game in newGames)
+			{
+				m_allGames.Add(game);
+			}
+
+			foreach(CGame game in m_allGames)
+			{
+				AddGame(game);
+			}
 		}
 	}
 }

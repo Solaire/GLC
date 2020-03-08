@@ -134,18 +134,18 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Find and import games from the binaries found in the "CustomGames" directory
 		/// </summary>
-		public static void ImportFromFolder()
+		public static void ImportFromFolder(ref CGameData.CTempGameSet tempGameSet)
 		{
 			CheckCustomFolder();
-			FindCustomLinkFiles();
-			FindCustomBinaries();
+			FindCustomLinkFiles(ref tempGameSet);
+			FindCustomBinaries(ref tempGameSet);
 		}
 
 		/// <summary>
 		/// Search the "CustomGames" folder for file shortcuts (.lnk) to import.
 		/// </summary>
 		/// http://www.saunalahti.fi/janij/blog/2006-12.html#d6d9c7ee-82f9-4781-8594-152efecddae2
-		private static void FindCustomLinkFiles()
+		private static void FindCustomLinkFiles(ref CGameData.CTempGameSet tempGameSet)
 		{
 			List<string> fileList = Directory.EnumerateFiles(GAME_FOLDER_NAME, "*", SearchOption.TopDirectoryOnly).Where(s => s.EndsWith(".lnk")).ToList();
 
@@ -163,7 +163,7 @@ namespace GameLauncher_Console
 					Shell32.ShellLinkObject link = (Shell32.ShellLinkObject)folderItem.GetLink;
 					string strTitle  = Path.GetFileNameWithoutExtension(file);
 					string strLaunch = link.Path;
-					CGameData.AddGame(strTitle, strLaunch, false, CUSTOM_PLATFORM);
+					tempGameSet.InsertGame(strTitle, strLaunch, false, CUSTOM_PLATFORM);
 				}
 			}
 		}
@@ -171,7 +171,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Search the "CustomGames" folder for binaries (.exe) files to import
 		/// </summary>
-		private static void FindCustomBinaries()
+		private static void FindCustomBinaries(ref CGameData.CTempGameSet tempGameSet)
 		{
 			List<string> fileList = Directory.EnumerateFiles(GAME_FOLDER_NAME, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".exe")).ToList();
 
@@ -179,7 +179,7 @@ namespace GameLauncher_Console
 			{
 				string strTitle  = Path.GetFileNameWithoutExtension(file);
 				string strLaunch = Path.GetFullPath(file);
-				CGameData.AddGame(strTitle, strLaunch, false, CUSTOM_PLATFORM);
+				tempGameSet.InsertGame(strTitle, strLaunch, false, CUSTOM_PLATFORM);
 			}
 		}
 

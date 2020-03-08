@@ -89,12 +89,14 @@ namespace GameLauncher_Console
 		/// </summary>
 		public static void ScanGames()
 		{
+			CGameData.CTempGameSet tempGameSet = new CGameData.CTempGameSet();
 			List<CRegScanner.RegistryGameData> gameDataList = CRegScanner.GetGames();
 			foreach(CRegScanner.RegistryGameData data in gameDataList)
 			{
-				CGameData.AddGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
+				tempGameSet.InsertGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
 			}
-			CGameFinder.ImportFromFolder();
+			CGameFinder.ImportFromFolder(ref tempGameSet);
+			CGameData.MergeGameSets(tempGameSet);
 			CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 		}
 
