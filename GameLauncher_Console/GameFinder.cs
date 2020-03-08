@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace GameLauncher_Console
 {
+	/// <summary>
+	/// Class for finding game binary (.exe) and link/shortcus (.lnk) files inside directories.
+	/// </summary>
 	public static class CGameFinder
 	{
 		private const string GAME_FOLDER_NAME = "CustomGames";

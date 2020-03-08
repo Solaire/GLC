@@ -6,7 +6,7 @@ namespace GameLauncher_Console
 	/// <summary>
 	/// Console implementation for this project
 	/// </summary>
-	sealed class CDockConsole : CConsoleHelper
+	public sealed class CDockConsole : CConsoleHelper
 	{
 		/// <summary>
 		/// Constructor:
@@ -125,16 +125,19 @@ namespace GameLauncher_Console
 						HandleSelectionDown(ref nCurrentSelection, options.Length);
 						break;
 
-					case ConsoleKey.Q:
+					case ConsoleKey.H: // Print help
+						return -6;
+
+					case ConsoleKey.Q: // Exit program
 						return -5;
 
-					case ConsoleKey.W:
+					case ConsoleKey.R: // Return to first menu
 						return -4;
 
-					case ConsoleKey.F:
+					case ConsoleKey.F: // Add/remove game from favourites
 						return -3;
 
-					case ConsoleKey.Oem3:
+					case ConsoleKey.S: // Rescan the registry and the 'customGames' folder for new games
 						return -2;
 
 					default:

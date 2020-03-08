@@ -18,7 +18,7 @@ namespace GameLauncher_Console
 			Logger.CLogger.Configure("GameLauncherConsole.log"); // Create a log file
 
 			CDock gameDock = new CDock();
-			gameDock.Run();			
+			gameDock.MainLoop();			
 		}
 	}
 }

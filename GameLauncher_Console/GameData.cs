@@ -7,7 +7,7 @@ namespace GameLauncher_Console
 	/// <summary>
 	/// Contains the definition of the game data and its manipulation logic
 	/// </summary>
-	static public class CGameData
+	public static class CGameData
 	{
 		/// <summary>
 		/// Enumerator containing currently supported game platforms

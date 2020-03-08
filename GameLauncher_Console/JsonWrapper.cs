@@ -11,7 +11,7 @@ namespace GameLauncher_Console
 	/// Class for serializing and deserializing JSON data. 
 	/// JSON data is stored and handled in a dynamically sized dictionary structure.
 	/// </summary>
-	static class CJsonWrapper
+	public static class CJsonWrapper
 	{
 		// Relative path to the games.json config file (the file should be in the same directory as the executable)
 		private const string GAME_JSON_FILE			= @".\games.json";
@@ -32,14 +32,17 @@ namespace GameLauncher_Console
 			int nGameCount = 0;
 			if(!DoesFileExist())
 			{
+				CLogger.LogDebug("JSON file missing - create file and scan...");
+				Console.WriteLine("games.json missing. Creating new...");
 				CreateEmptyFile();
-				return false;
 			}
-			ImportGames(ref nGameCount);
+			else
+				ImportGames(ref nGameCount);
 
 			if(nGameCount < 1)
 			{
 				CLogger.LogDebug("JSON file is empty - scanning for games...");
+				Console.WriteLine("games.json is empty. Scanning for games...");
 				CRegScanner.ScanGames();
 			}
 			return true;
@@ -155,9 +158,14 @@ namespace GameLauncher_Console
 
 			string strDocumentData = File.ReadAllText(GAME_JSON_FILE);
 
+			if(strDocumentData == "") // File is empty
+				return;
+
 			using(JsonDocument document = JsonDocument.Parse(strDocumentData, options))
 			{
-				JsonElement jArrGames = document.RootElement.GetProperty(GAMES_ARRAY);
+				JsonElement jArrGames;
+				if(!document.RootElement.TryGetProperty(GAMES_ARRAY, out jArrGames))
+					return; // 'games' array does not exist
 
 				foreach(JsonElement jElement in jArrGames.EnumerateArray())
 				{
