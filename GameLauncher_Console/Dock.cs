@@ -33,7 +33,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private readonly string[] m_helpLines =
 		{
-			"GameLauncherDock - version 0.9",
+			"GameLauncherDock - version 1.0",
 			"",
 			" This program will scan the registry for installed video games and display them as a list.",
 			" The games are stored in a JSON file called \'games.json\', found in the same folder as this program.",
