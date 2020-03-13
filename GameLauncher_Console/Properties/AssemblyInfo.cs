@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("GameLauncher")]
-[assembly: AssemblyCopyright("Copyright © kaz-jurczak 2020")]
+[assembly: AssemblyCopyright("Copyright © kaz 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
