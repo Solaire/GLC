@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("GameLauncher")]
 [assembly: AssemblyDescription("Video Game registry key scanner and launcher.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("kaz")]
 [assembly: AssemblyProduct("GameLauncher")]
 [assembly: AssemblyCopyright("Copyright © kaz 2020")]
 [assembly: AssemblyTrademark("")]

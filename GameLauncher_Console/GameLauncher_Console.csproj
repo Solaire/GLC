@@ -59,6 +59,16 @@
   <PropertyGroup>
     <StartupObject>GameLauncher_Console.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Costura, Version=4.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\GameLauncherDock\packages\Costura.Fody.4.1.0\lib\net40\Costura.dll</HintPath>
@@ -126,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="app.manifest" />
     <None Include="Resources\icon.ico" />
   </ItemGroup>
   <ItemGroup>
