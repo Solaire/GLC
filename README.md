@@ -9,6 +9,9 @@ The game launcher dock is a simple program which will scan the system for video 
 -	Battlenet 
 
 ## Console
+
+![](GLConsole.gif)
+
 At the moment only a console version of this program exists. The console allows the user to navigate the menu using arrows and select an option using enter (the program also supports a range of functions, using different keys), so there is no need for typing commands (this is also a planned feature).
 
 Console version has the following features:
