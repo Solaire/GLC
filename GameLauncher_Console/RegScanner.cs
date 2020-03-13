@@ -127,9 +127,14 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
-			RegistryKey baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-			using(RegistryKey key = baseKey.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
+				if(key == null)
+				{
+					Logger.CLogger.LogInfo("Steam games not found in registry.");
+					return;
+				}
+
 				keyList = FindGameFolders(key, STEAM_GAME_FOLDER);
 
 				foreach(var data in keyList)
@@ -150,19 +155,28 @@ namespace GameLauncher_Console
 		{
 			string strClientPath = "";
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree))
 			{
-				if(key == null) // GOG not found
+				if(key == null)
+				{
+					Logger.CLogger.LogInfo("GOG client not found in the registry");
 					return;
+				}
 
 				strClientPath = key.GetValue(GOG_CLIENT).ToString() + GOG_GALAXY_EXE;
 			}
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_GAMES))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_GAMES, RegistryKeyPermissionCheck.ReadSubTree))
 			{
+				if(key == null)
+				{
+					Logger.CLogger.LogInfo("GOG games folder not found in the registry");
+					return;
+				}
+
 				foreach(string strSubkeyName in key.GetSubKeyNames())
 				{
-					using(RegistryKey subkey = key.OpenSubKey(strSubkeyName))
+					using(RegistryKey subkey = key.OpenSubKey(strSubkeyName, RegistryKeyPermissionCheck.ReadSubTree))
 					{
 						string strGameID	= subkey.GetValue(GOG_GAME_ID).ToString();
 						string strGamePath	= subkey.GetValue(GOG_GAME_PATH).ToString();
@@ -185,7 +199,7 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameFolders(key, UPLAY_INSTALL);
 
@@ -208,7 +222,7 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameKeys(key, ORIGIN_GAMES, GAME_INSTALL_LOCATION, ORIGIN_NAME);
 
@@ -230,7 +244,7 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, BETHESDA_CREATION_KIT);
 
@@ -253,7 +267,7 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameKeys(key, BATTLE_NET, BATTLENET_UNINSTALL_STRING, BATTLE_NET);
 
@@ -276,7 +290,7 @@ namespace GameLauncher_Console
 			string strStorePath = "";
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG))
+			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameKeys(key, EPIC_GAMES_LAUNCHER, GAME_DISPLAY_NAME, EPIC_UNREAL_ENGINE);
 
@@ -340,7 +354,7 @@ namespace GameLauncher_Console
 						{
 							try
 							{
-								toCheck.AddLast(root.OpenSubKey(sub));
+								toCheck.AddLast(root.OpenSubKey(sub, RegistryKeyPermissionCheck.ReadSubTree));
 							}
 							catch(System.Security.SecurityException)
 							{
@@ -378,7 +392,7 @@ namespace GameLauncher_Console
 					{
 						if(sub != "Microsoft" && sub.Contains(strFolder))
 						{
-							gameKeys.Add(root.OpenSubKey(sub));
+							gameKeys.Add(root.OpenSubKey(sub, RegistryKeyPermissionCheck.ReadSubTree));
 						}
 					}
 				}
