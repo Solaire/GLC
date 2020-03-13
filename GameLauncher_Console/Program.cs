@@ -17,6 +17,9 @@ namespace GameLauncher_Console
 #endif
 			Logger.CLogger.Configure("GameLauncherConsole.log"); // Create a log file
 
+			// Allow for unicode characters, such as trademark symbol
+			Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 			CDock gameDock = new CDock();
 			gameDock.MainLoop();			
 		}
