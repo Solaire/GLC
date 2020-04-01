@@ -130,6 +130,7 @@ namespace GameLauncher_Console
 
 					else
 					{
+						Logger.CLogger.LogInfo("Cannot start game, remove game from file.");
 						CGameData.RemoveGame(selectedGame);
 						CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 					}
@@ -177,6 +178,7 @@ namespace GameLauncher_Console
 		private bool StartGame(CGameData.CGame game)
 		{
 			Console.Clear();
+			Logger.CLogger.LogDebug("Starting game: {0} ...", game.Title);
 			Console.WriteLine("Starting game: {0} ...", game.Title);
 			try
 			{

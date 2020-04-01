@@ -32,7 +32,7 @@ namespace GameLauncher_Console
 			int nGameCount = 0;
 			if(!DoesFileExist())
 			{
-				CLogger.LogDebug("JSON file missing - create file and scan...");
+				CLogger.LogInfo("JSON file missing - create file and scan...");
 				Console.WriteLine("games.json missing. Creating new...");
 				CreateEmptyFile();
 			}
@@ -41,7 +41,7 @@ namespace GameLauncher_Console
 
 			if(nGameCount < 1)
 			{
-				CLogger.LogDebug("JSON file is empty - scanning for games...");
+				CLogger.LogInfo("JSON file is empty - scanning for games...");
 				Console.WriteLine("games.json is empty. Scanning for games...");
 				CRegScanner.ScanGames();
 			}
@@ -56,6 +56,7 @@ namespace GameLauncher_Console
 		/// <returns>True is successful, otherwise false</returns>
 		public static bool Export(List<CGameData.CGame> gameList)
 		{
+			CLogger.LogInfo("Save game data to JSON...");
 			var options = new JsonWriterOptions
 			{
 				Indented = true
@@ -151,6 +152,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private static void ImportGames(ref int nGameCount)
 		{
+			CLogger.LogInfo("Importing games from JSON...");
 			var options = new JsonDocumentOptions
 			{
 				AllowTrailingCommas = true

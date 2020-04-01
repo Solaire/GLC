@@ -125,6 +125,7 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetSteamGames(List<RegistryGameData> gameDataList)
 		{
+			Logger.CLogger.LogInfo("Looking for Steam games...");
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree))
@@ -137,6 +138,7 @@ namespace GameLauncher_Console
 
 				keyList = FindGameFolders(key, STEAM_GAME_FOLDER);
 
+				Logger.CLogger.LogInfo("{0} Steam games found", keyList.Count);
 				foreach(var data in keyList)
 				{
 					string strTitle  = data.GetValue(GAME_DISPLAY_NAME).ToString();
@@ -153,6 +155,7 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetGogGames(List<RegistryGameData> gameDataList)
 		{
+			Logger.CLogger.LogInfo("Looking for GOG games...");
 			string strClientPath = "";
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree))
@@ -174,6 +177,7 @@ namespace GameLauncher_Console
 					return;
 				}
 
+				Logger.CLogger.LogInfo("{0} GOG games found", key.GetSubKeyNames().Length);
 				foreach(string strSubkeyName in key.GetSubKeyNames())
 				{
 					using(RegistryKey subkey = key.OpenSubKey(strSubkeyName, RegistryKeyPermissionCheck.ReadSubTree))
@@ -197,12 +201,14 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetUplayGames(List<RegistryGameData> gameDataList)
 		{
+			Logger.CLogger.LogInfo("Looking for UPLAY games...");
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameFolders(key, UPLAY_INSTALL);
 
+				Logger.CLogger.LogInfo("{0} UPLAY games found", keyList.Count);
 				foreach(var data in keyList)
 				{
 					string strTitle		= data.GetValue(GAME_DISPLAY_NAME).ToString();
@@ -220,12 +226,14 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetOriginGames(List<RegistryGameData> gameDataList)
 		{
+			Logger.CLogger.LogInfo("Looking for ORIGIN games...");
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameKeys(key, ORIGIN_GAMES, GAME_INSTALL_LOCATION, ORIGIN_NAME);
 
+				Logger.CLogger.LogInfo("{0} ORIGIN games found", keyList.Count);
 				foreach(var data in keyList)
 				{
 					string strTitle  = data.GetValue(GAME_DISPLAY_NAME).ToString();
@@ -242,12 +250,14 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetBethesdaGames(List<RegistryGameData> gameDataList)
 		{
+			Logger.CLogger.LogInfo("Looking for BETHESDA games...");
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, BETHESDA_CREATION_KIT);
 
+				Logger.CLogger.LogInfo("{0} BETHESDA games found", keyList.Count);
 				foreach(var data in keyList)
 				{
 					string strTitle  = data.GetValue(GAME_DISPLAY_NAME).ToString();
@@ -265,12 +275,14 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetBattlenetGames(List<RegistryGameData> gameDataList)
 		{
+			Logger.CLogger.LogInfo("Looking for BATTLE.NET games...");
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree))
 			{
 				keyList = FindGameKeys(key, BATTLE_NET, BATTLENET_UNINSTALL_STRING, BATTLE_NET);
 
+				Logger.CLogger.LogInfo("{0} BATTLE.NET games found", keyList.Count);
 				foreach(var data in keyList)
 				{
 					string strTitle  = data.GetValue(GAME_DISPLAY_NAME).ToString();
@@ -287,6 +299,7 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetEpicGames(List<RegistryGameData> gameDataList)
 		{
+			Logger.CLogger.LogInfo("Looking for EPIC STORE games");
 			string strStorePath = "";
 			List<RegistryKey> keyList = new List<RegistryKey>();
 
@@ -301,6 +314,7 @@ namespace GameLauncher_Console
 			}
 			string[] folders = Directory.GetDirectories(strStorePath, "*", SearchOption.TopDirectoryOnly);
 
+			Logger.CLogger.LogInfo("{0} potential EPIC STORE games found", folders.Length);
 			foreach(string folder in folders)
 			{
 				if(!(folder.Contains(EPIC_GAMES_LAUNCHER) || folder.Contains(EPIC_DIRECT_X_REDIST)))
