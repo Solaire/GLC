@@ -172,12 +172,14 @@ namespace GameLauncher_Console
 
 				foreach(JsonElement jElement in jArrGames.EnumerateArray())
 				{
-					string strTitle		= jElement.GetProperty(GAMES_ARRAY_TITLE).GetString();
-					string strLaunch	= jElement.GetProperty(GAMES_ARRAY_LAUNCH).GetString();
-					string strPlatform	= jElement.GetProperty(GAMES_ARRAY_PLATFORM).GetString();
-					bool   bFavourite	= jElement.GetProperty(GAMES_ARRAY_FAVOURITE).GetBoolean();
-					double fOccurCount  = 0f;
-					jElement.GetProperty(GAMES_ARRAY_FREQUENCY).TryGetDouble(out fOccurCount);
+					string strTitle		= GetStringProperty(jElement, GAMES_ARRAY_TITLE);
+					if(strTitle == "")
+						continue;
+
+					string strLaunch	= GetStringProperty(jElement, GAMES_ARRAY_LAUNCH);
+					string strPlatform	= GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
+					bool   bFavourite	= GetBoolProperty(jElement, GAMES_ARRAY_FAVOURITE);
+					double fOccurCount	= GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
 
 					CGameData.AddGame(strTitle, strLaunch, bFavourite, strPlatform, fOccurCount);
 					nGameCount++;
@@ -202,6 +204,68 @@ namespace GameLauncher_Console
 			writer.WriteBoolean(GAMES_ARRAY_FAVOURITE	, data.IsFavourite);
 			writer.WriteNumber(GAMES_ARRAY_FREQUENCY	, data.Frequency);
 			writer.WriteEndObject();
+		}
+
+		/// <summary>
+		/// Retrieve string value from the JSON element
+		/// </summary>
+		/// <param name="strPropertyName">Name of the property</param>
+		/// <param name="jElement">Source JSON element</param>
+		/// <returns>Value of the property as a string or empty string if not found</returns>
+		private static string GetStringProperty(JsonElement jElement, string strPropertyName)
+		{
+			if(jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
+			{
+				return jValue.GetString();
+			}
+			return "";
+		}
+
+		/// <summary>
+		/// Retrieve boolean value from the JSON element
+		/// </summary>
+		/// <param name="strPropertyName">Name of the property</param>
+		/// <param name="jElement">Source JSON element</param>
+		/// <returns>Value of the property as a boolean or false if not found</returns>
+		private static bool GetBoolProperty(JsonElement jElement, string strPropertyName)
+		{
+			if(jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
+			{
+				return jValue.GetBoolean();
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// Retrieve int value from the JSON element
+		/// </summary>
+		/// <param name="strPropertyName">Name of the property</param>
+		/// <param name="jElement">Source JSON element</param>
+		/// <returns>Value of the property as an int or 0 if not found</returns>
+		private static int GetIntProperty(JsonElement jElement, string strPropertyName)
+		{
+			int nOut = 0;
+			if(jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
+			{
+				jValue.TryGetInt32(out nOut);
+			}
+			return nOut;
+		}
+
+		/// <summary>
+		/// Retrieve double value from the JSON element
+		/// </summary>
+		/// <param name="strPropertyName">Name of the property</param>
+		/// <param name="jElement">Source JSON element</param>
+		/// <returns>Value of the property as a double or 0f if not found</returns>
+		private static double GetDoubleProperty(JsonElement jElement, string strPropertyName)
+		{
+			double fOut = 0f;
+			if(jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
+			{
+				jValue.TryGetDouble(out fOut);
+			}
+			return fOut;
 		}
 	}
 }
