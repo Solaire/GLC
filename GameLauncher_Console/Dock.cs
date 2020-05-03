@@ -125,15 +125,23 @@ namespace GameLauncher_Console
 				if(m_nSecondSelection > -1)
 				{
 					CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)m_nFirstSelection, m_nSecondSelection);
-					if(StartGame(selectedGame))
-						return;
+					CGameData.NormaliseFrequencies(selectedGame);
 
-					else
+					//Don't need to run the game in debug mode
+#if !DEBUG
+					if(!StartGame(selectedGame))
 					{
 						Logger.CLogger.LogInfo("Cannot start game, remove game from file.");
 						CGameData.RemoveGame(selectedGame);
-						CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 					}
+#else
+					Console.Clear();
+					Console.WriteLine("Game {0} selected", selectedGame.Title);
+					Console.WriteLine("DEBUG mode - game will not be launched");
+					Console.ReadLine();
+#endif
+					CJsonWrapper.Export(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
+					return;
 				}
 			}
 		}

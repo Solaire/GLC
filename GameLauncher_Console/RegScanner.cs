@@ -93,7 +93,7 @@ namespace GameLauncher_Console
 			List<CRegScanner.RegistryGameData> gameDataList = CRegScanner.GetGames();
 			foreach(CRegScanner.RegistryGameData data in gameDataList)
 			{
-				tempGameSet.InsertGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform);
+				tempGameSet.InsertGame(data.m_strTitle, data.m_strLaunch, false, data.m_strPlatform, 0f);
 			}
 			CGameFinder.ImportFromFolder(ref tempGameSet);
 			CGameData.MergeGameSets(tempGameSet);

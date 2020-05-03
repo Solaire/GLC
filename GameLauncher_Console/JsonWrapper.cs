@@ -22,6 +22,7 @@ namespace GameLauncher_Console
 		private const string GAMES_ARRAY_LAUNCH		= "launch";
 		private const string GAMES_ARRAY_PLATFORM	= "platform";
 		private const string GAMES_ARRAY_FAVOURITE	= "favourite";
+		private const string GAMES_ARRAY_FREQUENCY  = "frequency";
 
 		/// <summary>
 		/// Import games from the game.json config file
@@ -175,10 +176,13 @@ namespace GameLauncher_Console
 					string strLaunch	= jElement.GetProperty(GAMES_ARRAY_LAUNCH).GetString();
 					string strPlatform	= jElement.GetProperty(GAMES_ARRAY_PLATFORM).GetString();
 					bool   bFavourite	= jElement.GetProperty(GAMES_ARRAY_FAVOURITE).GetBoolean();
+					double fOccurCount  = 0f;
+					jElement.GetProperty(GAMES_ARRAY_FREQUENCY).TryGetDouble(out fOccurCount);
 
-					CGameData.AddGame(strTitle, strLaunch, bFavourite, strPlatform);
+					CGameData.AddGame(strTitle, strLaunch, bFavourite, strPlatform, fOccurCount);
 					nGameCount++;
 				}
+				CGameData.SortGames();
 			}
 		}
 
@@ -196,6 +200,7 @@ namespace GameLauncher_Console
 			writer.WriteString(GAMES_ARRAY_LAUNCH		, data.Launch);
 			writer.WriteString(GAMES_ARRAY_PLATFORM		, data.PlatformString);
 			writer.WriteBoolean(GAMES_ARRAY_FAVOURITE	, data.IsFavourite);
+			writer.WriteNumber(GAMES_ARRAY_FREQUENCY	, data.Frequency);
 			writer.WriteEndObject();
 		}
 	}

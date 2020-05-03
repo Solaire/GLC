@@ -166,7 +166,7 @@ namespace GameLauncher_Console
 					Shell32.ShellLinkObject link = (Shell32.ShellLinkObject)folderItem.GetLink;
 					string strTitle  = Path.GetFileNameWithoutExtension(file);
 					string strLaunch = link.Path;
-					tempGameSet.InsertGame(strTitle, strLaunch, false, CUSTOM_PLATFORM);
+					tempGameSet.InsertGame(strTitle, strLaunch, false, CUSTOM_PLATFORM, 0f);
 				}
 			}
 		}
@@ -182,7 +182,7 @@ namespace GameLauncher_Console
 			{
 				string strTitle  = Path.GetFileNameWithoutExtension(file);
 				string strLaunch = Path.GetFullPath(file);
-				tempGameSet.InsertGame(strTitle, strLaunch, false, CUSTOM_PLATFORM);
+				tempGameSet.InsertGame(strTitle, strLaunch, false, CUSTOM_PLATFORM, 0f);
 			}
 		}
 

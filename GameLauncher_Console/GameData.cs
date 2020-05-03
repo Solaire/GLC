@@ -14,21 +14,24 @@ namespace GameLauncher_Console
 		/// </summary>
 		public enum GamePlatform
 		{
-			Steam		= 0,
-			GOG			= 1,
-			Uplay		= 2, 
-			Origin		= 3,
-			Epic		= 4,
-			Bethesda	= 5,
-			Battlenet	= 6,
-			Rockstar	= 7,
-			All			= 8,
-			Favourites  = 9,
-			Custom		= 10,
+			Favourites	= 0,
+			Custom		= 1,
+			All			= 2,
+			Steam		= 3,
+			GOG			= 4,
+			Uplay		= 5, 
+			Origin		= 6,
+			Epic		= 7,
+			Bethesda	= 8,
+			Battlenet	= 9,
+			Rockstar	= 10,
 		}
 
 		private static readonly string[] m_strings =
 		{
+			"Favourites",
+			"Custom",
+			"All",
 			"Steam",
 			"GOG",
 			"Uplay",
@@ -36,12 +39,8 @@ namespace GameLauncher_Console
 			"Epic",
 			"Bethesda",
 			"Battlenet",
-			"Rockstar",
-			"All",
-			"Favourites",
-			"Custom"
+			"Rockstar"
 		};
-
 
 		/// <summary>
 		/// Contains information about a game
@@ -52,6 +51,7 @@ namespace GameLauncher_Console
 			private readonly string		  m_strLaunch;
 			private bool				  m_bIsFavourite;
 			private readonly GamePlatform m_platfrom;
+			private double				  m_fOccurCount;
 			//private readonly string	  m_strIcon; // Currently not in use
 
 			/// <summary>
@@ -61,12 +61,14 @@ namespace GameLauncher_Console
 			/// <param name="strLaunch">Game's launch command</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="platformEnum">Game's platform enumerator</param>
-			protected CGame(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum/*, string strIconPath*/)
+			/// <param name="fOccurCount">Game's frequency counter</param>
+			protected CGame(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum, double fOccurCount/*, string strIconPath*/)
 			{
 				m_strTitle		= strTitle;
 				m_strLaunch		= strLaunch;
 				m_bIsFavourite	= bIsFavourite;
 				m_platfrom		= platformEnum; 
+				m_fOccurCount   = fOccurCount;
 				//m_strIcon = strIconPath;
 			}
 
@@ -149,6 +151,34 @@ namespace GameLauncher_Console
 					return m_strings[(int)m_platfrom];
 				}
 			}
+
+			/// <summary>
+			/// OccurCount getter
+			/// </summary>
+			public double Frequency
+			{
+				get
+				{
+					return m_fOccurCount;
+				}
+			}
+
+			/// <summary>
+			/// Increment the frequency counter by 1
+			/// </summary>
+			public void IncrementFrequency()
+			{
+				m_fOccurCount += 5;
+			}
+
+			/// <summary>
+			/// Decrease the frequency counter by 10%
+			/// </summary>
+			public void DecimateFrequency()
+			{
+				if(m_fOccurCount > 0f)
+					m_fOccurCount *= 0.9f;
+			}
 		}
 		
 		/// <summary>
@@ -165,8 +195,9 @@ namespace GameLauncher_Console
 			/// <param name="strLaunch">Game's launch command</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="platformEnum">Game's platform enumerator</param>
-			public CGameInstance(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum) 
-				: base(strTitle, strLaunch, bIsFavourite, platformEnum)
+			/// <param name="fOccurCount">Game's frequency counter</param>
+			public CGameInstance(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum, double fOccurCount) 
+				: base(strTitle, strLaunch, bIsFavourite, platformEnum, fOccurCount)
 			{
 
 			}
@@ -193,13 +224,14 @@ namespace GameLauncher_Console
 			/// <param name="strLaunch">Game launch command</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is favourite</param>
 			/// <param name="strPlatform">Game platform string</param>
-			public void InsertGame(string strTitle, string strLaunch, bool bIsFavourite, string strPlatform)
+			/// <param name="fOccurCount">Game's frequency counter</param>
+			public void InsertGame(string strTitle, string strLaunch, bool bIsFavourite, string strPlatform, double fOccurCount)
 			{
 				GamePlatform platformEnum;
 				if(!Enum.TryParse(strPlatform, true, out platformEnum))
 					platformEnum = GamePlatform.Custom;
 
-				this.Add(CreateGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum));
+				this.Add(CreateGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum, fOccurCount));
 			}
 		}
 
@@ -210,10 +242,11 @@ namespace GameLauncher_Console
 		/// <param name="strLaunch">Game's launch command</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 		/// <param name="platformEnum">Game's platform enumerator</param>
+		/// <param name="fOccurCount">Game's frequency counter</param>
 		/// <returns>Instance of CGame</returns>
-		private static CGame CreateGameInstance(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum)
+		private static CGame CreateGameInstance(string strTitle, string strLaunch, bool bIsFavourite, GamePlatform platformEnum, double fOccurCount)
 		{
-			return new CGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum);
+			return new CGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum, fOccurCount);
 		}
 
 		private static Dictionary<GamePlatform, HashSet<CGame>> m_gameDictionary = new Dictionary<GamePlatform, HashSet<CGame>>();
@@ -265,15 +298,17 @@ namespace GameLauncher_Console
 		public static List<string> GetPlatformNames()
 		{
 			List<string> platformList = new List<string>();
+
+			if(m_favourites.Count > 0)
+				platformList.Add("Favourites: " + m_favourites.Count);
+
+			platformList.Add("All: " + m_allGames.Count);
+
 			foreach(KeyValuePair<GamePlatform, HashSet<CGame>> platform in m_gameDictionary)
 			{
 				string strPlatform = m_strings[(int)platform.Key] + ": " + platform.Value.Count;
 				platformList.Add(strPlatform);
 			}
-			platformList.Add("All: " + m_allGames.Count);
-
-			if(m_favourites.Count > 0)
-				platformList.Add("Favourites: " + m_favourites.Count);
 
 			return platformList;
 		}
@@ -298,7 +333,6 @@ namespace GameLauncher_Console
 					platformTitles.Add(strTitle);
 				}
 			}
-
 			else if(platformEnum == GamePlatform.Favourites)
 			{
 				foreach(CGame game in m_favourites)
@@ -307,7 +341,6 @@ namespace GameLauncher_Console
 				}
 				return platformTitles;
 			}
-
 			else if(m_gameDictionary.ContainsKey(platformEnum))
 			{
 				foreach(CGame game in m_gameDictionary[platformEnum])
@@ -330,7 +363,8 @@ namespace GameLauncher_Console
 		/// <param name="strLaunch">Game's launch command</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 		/// <param name="strPlatform">Game's platform as a string value</param>
-		public static void AddGame(string strTitle, string strLaunch, bool bIsFavourite, string strPlatform)
+		/// <param name="fOccurCount">Game's frequency counter</param>
+		public static void AddGame(string strTitle, string strLaunch, bool bIsFavourite, string strPlatform, double fOccurCount)
 		{
 			// If platform is incorrect or unsupported, default to custom.
 			GamePlatform platformEnum;
@@ -341,7 +375,7 @@ namespace GameLauncher_Console
 			if(!m_gameDictionary.ContainsKey(platformEnum))
 				m_gameDictionary[platformEnum] = new HashSet<CGame>();
 
-			CGame game = CreateGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum);
+			CGame game = CreateGameInstance(strTitle, strLaunch, bIsFavourite, platformEnum, fOccurCount);
 			m_gameDictionary[platformEnum].Add(game);
 			m_allGames.Add(game);
 
@@ -436,6 +470,7 @@ namespace GameLauncher_Console
 			{
 				gameCopy.IsFavourite = true;
 				m_favourites.Add(gameCopy);
+				SortGameSet(ref m_favourites);
 			}
 		}
 
@@ -485,6 +520,48 @@ namespace GameLauncher_Console
 			{
 				AddGame(game);
 			}
+		}
+
+		/// <summary>
+		/// Decrease the frequecny counter for all games by 10%
+		/// Increment the selected game's frequency counter 
+		/// </summary>
+		/// <param name="selectedGame">CGame object that will be incremented</param>
+		public static void NormaliseFrequencies(CGame selectedGame)
+		{
+			foreach(CGame game in m_allGames)
+			{
+				game.DecimateFrequency();
+
+				if(game == selectedGame)
+					game.IncrementFrequency();
+			}
+		}
+
+		/// <summary>
+		/// Sort all game containers by the game frequency counters
+		/// </summary>
+		public static void SortGames()
+		{
+			for(int i = 0; i < m_gameDictionary.Count; i++)
+			{
+				var pair = m_gameDictionary.ElementAt(i);
+				HashSet<CGame> temp = pair.Value;
+				SortGameSet(ref temp);
+				m_gameDictionary[pair.Key] = temp;
+			}
+			SortGameSet(ref m_allGames);
+			SortGameSet(ref m_favourites);
+		}
+
+		/// <summary>
+		/// Sort a game set by the game frequency counters
+		/// </summary>
+		/// <param name="gameSet">Set of games</param>
+		private static void SortGameSet(ref HashSet<CGame> gameSet)
+		{
+			var tempSet = gameSet.OrderByDescending(x => x.Frequency);
+			gameSet = tempSet.ToHashSet();
 		}
 	}
 }
