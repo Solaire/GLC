@@ -5,7 +5,7 @@ using System.Collections.Generic;
 // Useful stack overflow question:
 // https://stackoverflow.com/questions/888533/how-can-i-update-the-current-line-in-a-c-sharp-windows-console-app
 
-namespace GameLauncher_Console
+namespace GameHub_Console
 {
 	/// <summary>
 	/// Console helper class which can handle typing and navigation. 

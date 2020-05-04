@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GameLauncher_Console
+namespace GameHub_Console
 {
 	/// <summary>
 	/// Contains the definition of the game data and its manipulation logic

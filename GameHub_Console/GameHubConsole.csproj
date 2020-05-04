@@ -7,8 +7,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>GameLauncher_Console</RootNamespace>
-    <AssemblyName>GameLauncher</AssemblyName>
+    <RootNamespace>GameHub_Console</RootNamespace>
+    <AssemblyName>GameHub</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -57,7 +57,7 @@
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>GameLauncher_Console.Program</StartupObject>
+    <StartupObject>GameHub_Console.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GameLauncher_Console
+namespace GameHub_Console
 {
 	/// <summary>
 	/// Entry point class.
@@ -15,7 +15,7 @@ namespace GameLauncher_Console
 			// Log unhandled exceptions
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(Logger.CLogger.ExceptionHandleEvent);
 #endif
-			Logger.CLogger.Configure("GameLauncherConsole.log"); // Create a log file
+			Logger.CLogger.Configure("GameHub.log"); // Create a log file
 
 			// Allow for unicode characters, such as trademark symbol
 			Console.OutputEncoding = System.Text.Encoding.UTF8;

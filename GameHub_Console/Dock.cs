@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 
-namespace GameLauncher_Console
+namespace GameHub_Console
 {
 	/// <summary>
 	/// Main program logic - this is where all classes meet and get used
@@ -33,7 +33,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private readonly string[] m_helpLines =
 		{
-			"GameLauncherDock - version 1.0",
+			"GameHub - version 1.0",
 			"",
 			" This program will scan the registry for installed video games and display them as a list.",
 			" The games are stored in a JSON file called \'games.json\', found in the same folder as this program.",

@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("GameLauncher")]
-[assembly: AssemblyDescription("Video Game registry key scanner and launcher.")]
+[assembly: AssemblyTitle("GameHub")]
+[assembly: AssemblyDescription("Video game registry key scanner and launcher.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("kaz")]
-[assembly: AssemblyProduct("GameLauncher")]
-[assembly: AssemblyCopyright("Copyright © kaz 2020")]
+[assembly: AssemblyCompany("kaz-jurczak")]
+[assembly: AssemblyProduct("GameHub")]
+[assembly: AssemblyCopyright("Copyright © kaz-jurczak 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
