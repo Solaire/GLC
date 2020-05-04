@@ -1,5 +1,5 @@
-# GameLauncherDock
-The game launcher dock is a simple program which will scan the system for video games and store them in a JSON file. The program will allow the user to launch any of their games from a single location - without having to store the icons on the desktop, or launching a dedicated client such as Steam or Uplay. The program finds the games by scanning the registry in read-only mode. The program supports following platforms:
+# GameHub
+A simple program which will scan the system for video games and store them in a JSON file. The program will allow the user to launch any of their games from a single location - without having to store the icons on the desktop, or launching a dedicated client such as Steam or Uplay. The program finds the games by scanning the registry in read-only mode. The program supports following platforms:
 - Steam,
 - GOG,
 - Uplay,
