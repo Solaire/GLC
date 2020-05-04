@@ -25,10 +25,9 @@ In order to manually add games and programs, place executables (.exe) or file sh
 GUI version might be developed in the future. 
 
 ## Building / using
-- Download the executable from one of the releases.
-- Clone the repo and build. The program uses following nuGet packages:
--- System.Text.Json for JSON parsing;
--- Costure.Fody for merging the binary file with dlls.
+Download the executable from one of the releases or clone the repo and build. The program uses following nuGet packages:
+- System.Text.Json for JSON parsing;
+- Costure.Fody for merging the binary file with dlls.
 
 The app does not need instalation, simply download the exe and run - I would recommend putting the executable in a folder, so that the JSON file, the log file and the custom game folder will be contained and out of the way.
 
