@@ -31,3 +31,10 @@ GUI version might be developed in the future.
 -- Costure.Fody for merging the binary file with dlls.
 
 The app does not need instalation, simply download the exe and run - I would recommend putting the executable in a folder, so that the JSON file, the log file and the custom game folder will be contained and out of the way.
+
+
+## Contributing
+You can support the project in the following ways:
+- Fork the repo, make some changes and submit a PR;
+- Identify and raise bugs and issues;
+- Raise suggestions;
