@@ -277,6 +277,10 @@ namespace GameHub_Console
 		/// <param name="itemList">List of items to be displayed</param>
 		protected void DrawListMenu(int nCursorPosition, int nStartTop, params string[] itemList)
 		{
+			// If the list items won't fit in the current window, resize to fit
+			if(itemList.Length > Console.WindowHeight)
+				Console.WindowHeight = ((itemList.Length + 5) <= Console.LargestWindowHeight) ? itemList.Length + 5 : Console.LargestWindowHeight;
+
 			for(int i = 0; i < itemList.Length; i++)
 			{
 				Console.SetCursorPosition(1, nStartTop + i);
