@@ -212,7 +212,7 @@ namespace GameHub_Console
 				foreach(var data in keyList)
 				{
 					string strTitle		= data.GetValue(GAME_DISPLAY_NAME).ToString();
-					string strLaunch	= UPLAY_LAUNCH + Path.GetFileNameWithoutExtension(data.Name).Substring(10) + "/0";
+					string strLaunch	= UPLAY_LAUNCH + GetUplayGameID(Path.GetFileNameWithoutExtension(data.Name));
 					string strIcon		= CGameFinder.FindGameBinaryFile(data.GetValue(GAME_INSTALL_LOCATION).ToString(), data.GetValue(GAME_DISPLAY_NAME).ToString());
 
 					gameDataList.Add(new RegistryGameData(strTitle, strLaunch, strIcon, UPLAY_NAME));
@@ -412,6 +412,27 @@ namespace GameHub_Console
 				}
 			}
 			return gameKeys;
+		}
+
+		/// <summary>
+		/// Scan the key name and extract the game id
+		/// </summary>
+		/// <param name="key">The game string</param>
+		/// <returns>Uplay game ID as string</returns>
+		private static string GetUplayGameID(string key)
+		{
+			int index = 0;
+			for(int i = key.Length - 1; i > -1; i--)
+			{
+				if(char.IsDigit(key[i]))
+				{
+					index = i;
+					continue;
+				}
+				break;
+			}
+
+			return key.Substring(index);
 		}
 	}
 }
