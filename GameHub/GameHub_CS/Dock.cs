@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 
-namespace GameHub_Console
+namespace GameHub_CS
 {
 	/// <summary>
 	/// Main program logic - this is where all classes meet and get used

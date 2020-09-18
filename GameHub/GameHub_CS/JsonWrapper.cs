@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 
-namespace GameHub_Console
+namespace GameHub_CS
 {
 	/// <summary>
 	/// Class for serializing and deserializing JSON data. 

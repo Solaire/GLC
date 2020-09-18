@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace GameHub_Console
+namespace GameHub_CS
 {
 	/// <summary>
 	/// Class for finding game binary (.exe) and link/shortcus (.lnk) files inside directories.

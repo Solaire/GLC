@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace GameHub_Console
+namespace GameHub_CS
 {
 	/// <summary>
 	/// Entry point class.

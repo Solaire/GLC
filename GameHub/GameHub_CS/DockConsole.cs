@@ -1,7 +1,7 @@
 ﻿using Logger;
 using System;
 
-namespace GameHub_Console
+namespace GameHub_CS
 {
 	/// <summary>
 	/// Console implementation for this project

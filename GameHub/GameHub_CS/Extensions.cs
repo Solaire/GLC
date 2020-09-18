@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace GameHub_Console
+namespace GameHub_CS
 {
 	/// <summary>
 	/// Collection of extension methods

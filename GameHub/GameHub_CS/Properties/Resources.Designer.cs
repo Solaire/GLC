@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace GameHub_Console.Properties {
+namespace GameHub_CS.Properties {
     using System;
     
     
