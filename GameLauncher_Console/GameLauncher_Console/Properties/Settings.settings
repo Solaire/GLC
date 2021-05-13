@@ -1,0 +1,312 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GameLauncher_Console.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="prevent_exit" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="dont_save_interface_changes" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="always_scan_for_new_games" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="only_allow_command_line" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="typing_input_is_default" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="single_column_list_is_default" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="do_not_split_over_pages" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="enlarge_height_to_fit" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="sort_alphabetically" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="sort_favourites_on_top" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="light_colour_is_default" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="always_show_all_games" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="dont_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="only_scan_custom_games" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="text_use_custom_text_values" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="image_draw_border_characters" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="image_dont_use_custom" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="image_ignore_custom_aspect_ratio" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="list_icons_max_size_in_characters" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="list_icons_resolution" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">16</Value>
+    </Setting>
+    <Setting Name="selected_image_max_size_in_characters" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">16</Value>
+    </Setting>
+    <Setting Name="selected_image_icon_resolution" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">96</Value>
+    </Setting>
+    <Setting Name="selected_image_y_location_percent" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="grid_text_min_column_characters" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">25</Value>
+    </Setting>
+    <Setting Name="colour_background" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="colour_background_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="colour_title" Type="System.String" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="colour_title_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DarkBlue</Value>
+    </Setting>
+    <Setting Name="colour_subtitle" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DarkGray</Value>
+    </Setting>
+    <Setting Name="colour_subtitle_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Gray</Value>
+    </Setting>
+    <Setting Name="colour_entries" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Gray</Value>
+    </Setting>
+    <Setting Name="colour_entries_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="colour_highlight_background" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DarkGray</Value>
+    </Setting>
+    <Setting Name="colour_highlight_background_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Blue</Value>
+    </Setting>
+    <Setting Name="colour_highlight_text" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Red</Value>
+    </Setting>
+    <Setting Name="colour_highlight_text_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="colour_error_background" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="colour_error_background_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="colour_error_text" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Yellow</Value>
+    </Setting>
+    <Setting Name="colour_error_text_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Red</Value>
+    </Setting>
+    <Setting Name="key_left_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">LeftArrow</Value>
+    </Setting>
+    <Setting Name="key_left_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad4</Value>
+    </Setting>
+    <Setting Name="key_up_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">UpArrow</Value>
+    </Setting>
+    <Setting Name="key_up_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad8</Value>
+    </Setting>
+    <Setting Name="key_right_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">RightArrow</Value>
+    </Setting>
+    <Setting Name="key_right_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad6</Value>
+    </Setting>
+    <Setting Name="key_down_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DownArrow</Value>
+    </Setting>
+    <Setting Name="key_down_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad2</Value>
+    </Setting>
+    <Setting Name="key_select_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Enter</Value>
+    </Setting>
+    <Setting Name="key_select_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad5</Value>
+    </Setting>
+    <Setting Name="key_exit_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Escape</Value>
+    </Setting>
+    <Setting Name="key_exit_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Q</Value>
+    </Setting>
+    <Setting Name="key_rescan_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F5</Value>
+    </Setting>
+    <Setting Name="key_rescan_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">S</Value>
+    </Setting>
+    <Setting Name="key_help_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F1</Value>
+    </Setting>
+    <Setting Name="key_help_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">H</Value>
+    </Setting>
+    <Setting Name="key_back_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Backspace</Value>
+    </Setting>
+    <Setting Name="key_back_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">R</Value>
+    </Setting>
+    <Setting Name="key_pageup_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">PageUp</Value>
+    </Setting>
+    <Setting Name="key_pageup_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad9</Value>
+    </Setting>
+    <Setting Name="key_pagedown_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">PageDown</Value>
+    </Setting>
+    <Setting Name="key_pagedown_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad3</Value>
+    </Setting>
+    <Setting Name="key_first_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Home</Value>
+    </Setting>
+    <Setting Name="key_first_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad7</Value>
+    </Setting>
+    <Setting Name="key_last_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">End</Value>
+    </Setting>
+    <Setting Name="key_last_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NumPad1</Value>
+    </Setting>
+    <Setting Name="key_search_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F3</Value>
+    </Setting>
+    <Setting Name="key_search_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Oem2</Value>
+    </Setting>
+    <Setting Name="key_autocomplete_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Tab</Value>
+    </Setting>
+    <Setting Name="key_autocomplete_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_cancel_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Escape</Value>
+    </Setting>
+    <Setting Name="key_cancel_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_uninstall_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F9</Value>
+    </Setting>
+    <Setting Name="key_uninstall_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_desktop_shortcut_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F8</Value>
+    </Setting>
+    <Setting Name="key_desktop_shortcut_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_hide_game_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F10</Value>
+    </Setting>
+    <Setting Name="key_hide_game_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_favourite_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F12</Value>
+    </Setting>
+    <Setting Name="key_favourite_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F</Value>
+    </Setting>
+    <Setting Name="key_set_alias_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F2</Value>
+    </Setting>
+    <Setting Name="key_set_alias_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Oem7</Value>
+    </Setting>
+    <Setting Name="key_input_type_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Oem5</Value>
+    </Setting>
+    <Setting Name="key_input_type_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_grid_view_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Oem4</Value>
+    </Setting>
+    <Setting Name="key_grid_view_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Oem6</Value>
+    </Setting>
+    <Setting Name="key_light_mode_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F6</Value>
+    </Setting>
+    <Setting Name="key_light_mode_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_image_display_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F4</Value>
+    </Setting>
+    <Setting Name="key_image_display_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_sort_method_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">F7</Value>
+    </Setting>
+    <Setting Name="key_sort_method_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="text_main_menu_title" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Main Menu</Value>
+    </Setting>
+    <Setting Name="text_settings_title" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Settings</Value>
+    </Setting>
+    <Setting Name="text_instruct1_platforms_nav_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Select a platform.</Value>
+    </Setting>
+    <Setting Name="text_instruct2_platforms_nav_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Press [Q] to exit;\n Press [S] to rescan game collection;\n Press H for help.</Value>
+    </Setting>
+    <Setting Name="text_instruct1_games_nav_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Select a game.</Value>
+    </Setting>
+    <Setting Name="text_instruct2_games_nav_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Press [Q] to exit;\n Press [R] to return to previous menu;\n Press [F] to add/remove from favourites.</Value>
+    </Setting>
+    <Setting Name="text_instruct1_platforms_type_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Type name of a platform.</Value>
+    </Setting>
+    <Setting Name="text_instruct2_platforms_type_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Enter \'/exit\' to quit;\n Enter \'/help\' for more commands.</Value>
+    </Setting>
+    <Setting Name="text_instruct1_games_type_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Type title of a game.</Value>
+    </Setting>
+    <Setting Name="text_instruct2_games_type_custom_msg" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> Enter \'/exit\' to quit;\n Enter \'/help\' for more commands.</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
