@@ -94,7 +94,7 @@ namespace GameLauncher_Console
 					{
 						CLogger.LogInfo("Scanning for games...");
 						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-						CRegScanner.ScanGames((bool)config.onlyCustom);
+						CRegScanner.ScanGames((bool)config.onlyCustom, config.imageSize > 0 || config.iconSize > 0);
 						return;
 					}
 					else if (gameSearch[0].Equals('c') || gameSearch[0].Equals('C'))
@@ -322,7 +322,7 @@ namespace GameLauncher_Console
 							CLogger.LogError(e);
 						}
 						Console.Write("Scanning for games");
-						CRegScanner.ScanGames((bool)config.onlyCustom);
+						CRegScanner.ScanGames((bool)config.onlyCustom, config.imageSize > 0 || config.iconSize > 0);
 						continue;
 
 					case CConsoleHelper.DockSelection.cSel_Input: // Toggle arrows/typing input
@@ -828,9 +828,8 @@ namespace GameLauncher_Console
 
 			Console.Clear();
 			WriteWithBreak(ref line, height, cols.titleCC, cols.titleLtCC, cols.titleCC, cols.titleLtCC,
-				Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product +
-				" version " +
-				Assembly.GetEntryAssembly().GetName().Version.ToString());
+                string.Format("{0} version {1}", Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product,
+				Assembly.GetEntryAssembly().GetName().Version.ToString()));
 			foreach (string str in m_helpLines)
 			{
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC, str);

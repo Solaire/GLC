@@ -1,4 +1,5 @@
 ﻿using Logger;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -123,7 +124,7 @@ namespace GameLauncher_Console
 			{
 				CLogger.LogInfo("{0} is empty, corrupt, or outdated. Scanning for games...", GAME_JSON_FILE);
 				Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-				CRegScanner.ScanGames((bool)config.onlyCustom);
+				CRegScanner.ScanGames((bool)config.onlyCustom, config.imageSize > 0 || config.iconSize > 0);
 			}
 
 			if (parseError)
@@ -611,8 +612,8 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("ERROR: Malformed {0} file!", file);
 				CLogger.LogError(e);
+				Console.WriteLine("ERROR: Malformed {0} file!", file);
 				return false;
 			}
 			return true;
@@ -624,15 +625,17 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetEpicGames(List<CRegScanner.RegistryGameData> gameDataList)
 		{
+			const string EPIC_NAME = "Epic";
 			const string EPIC_ITEMS_FOLDER = @"\Epic\EpicGamesLauncher\Data\Manifests";
 
 			string dir = GetFolderPath(SpecialFolder.CommonApplicationData) + EPIC_ITEMS_FOLDER;
 			if (!Directory.Exists(dir))
 			{
-				CLogger.LogInfo("EPIC games not found in ProgramData.");
+				CLogger.LogInfo("{0} games not found in ProgramData.", EPIC_NAME.ToUpper());
 				return;
 			}
 			string[] files = Directory.GetFiles(dir, "*.item", SearchOption.TopDirectoryOnly);
+			CLogger.LogInfo("{0} {1} games found", files.Length, EPIC_NAME.ToUpper());
 			
 			var options = new JsonDocumentOptions
 			{
@@ -653,13 +656,13 @@ namespace GameLauncher_Console
 						string strID = Path.GetFileName(file);
 						string strTitle = GetStringProperty(document.RootElement, "DisplayName");
 						CLogger.LogDebug("* {0}", strTitle);
-						string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable");
-						string strAlias = CRegScanner.GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
+						string strLaunch = GetStringProperty(document.RootElement, "InstallLocation") + "\\" + GetStringProperty(document.RootElement, "LaunchExecutable");
+						string strAlias = "";
 						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Epic);
 
 						if (!string.IsNullOrEmpty(strLaunch))
 						{
-							strLaunch = GetStringProperty(document.RootElement, "InstallLocation") + "\\" + strLaunch;
+							strAlias = CRegScanner.GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
 							if (strAlias.Length > strTitle.Length)
 								strAlias = CRegScanner.GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -670,11 +673,10 @@ namespace GameLauncher_Console
 				}
 				catch (Exception e)
 				{
-					Console.WriteLine("ERROR: Malformed EPIC file: {0}", file);
-					CLogger.LogError(e);
+					CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", EPIC_NAME.ToUpper(), file));
 				}
 			}
-			return;
+			CLogger.LogDebug("--------------------");
 		}
 
 		/// <summary>
@@ -717,8 +719,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("ERROR: Malformed {0} file!", file);
-				CLogger.LogError(e);
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} file!", file));
 				return false;
 			}
 			return true;

@@ -16,11 +16,17 @@ namespace GameLauncher_Console
 		// CONSTANTS
 
 		// Steam (Valve)
+		private const int    STEAM_MAX_LIBS			= 64;
 		private const string STEAM_NAME				= "Steam";
 		private const string STEAM_NAME_LONG		= "Steam";
 		private const string STEAM_GAME_FOLDER		= "Steam App ";
 		private const string STEAM_LAUNCH			= "steam://rungameid/";
-		//private const string STEAM_REG				= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
+		private const string STEAM_UNINST			= "steam://uninstall/";
+		private const string STEAM_REG				= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
+		private const string STEAM_PATH				= "steamapps";
+		private const string STEAM_LIBFILE			= "libraryfolders.vdf";
+		private const string STEAM_LIBARR			= "LibraryFolders";
+		private const string STEAM_APPARR			= "AppState";
 
 		// GOG Galaxy
 		private const string GOG_NAME				= "GOG";
@@ -163,21 +169,10 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Scan the registry for games, add new games to memory and export into JSON document
 		/// </summary>
-		public static void ScanGames(bool bOnlyCustom)
+		public static void ScanGames(bool bOnlyCustom, bool bExpensiveIcons)
 		{
 			CGameData.CTempGameSet tempGameSet = new CGameData.CTempGameSet();
-			List<RegistryGameData> gameDataList = GetGames(bOnlyCustom);
-			if (!bOnlyCustom)
-			{
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", EPIC_NAME_LONG.ToUpper());
-				CJsonWrapper.GetEpicGames(gameDataList);
-				/*
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", XBOX_NAME_LONG.ToUpper());
-				CStoreScanner.GetXboxGames(gameDataList);
-				*/
-			}
+			List<RegistryGameData> gameDataList = GetGames(bOnlyCustom, bExpensiveIcons);
 			foreach (RegistryGameData data in gameDataList)
 			{
 				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, false, false, data.m_strAlias, data.m_strPlatform, 0f);
@@ -194,7 +189,7 @@ namespace GameLauncher_Console
 		/// Scan the directory and try to find all installed games
 		/// </summary>
 		/// <returns>List of game data objects</returns>
-		public static List<RegistryGameData> GetGames(bool bOnlyCustom)
+		public static List<RegistryGameData> GetGames(bool bOnlyCustom, bool bExpensiveIcons)
 		{
 			List<RegistryGameData> gameDataList = new List<RegistryGameData>();
 
@@ -202,7 +197,7 @@ namespace GameLauncher_Console
 			{
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", AMAZON_NAME_LONG.ToUpper());
-				GetAmazonGames(gameDataList);
+				GetAmazonGames(gameDataList, bExpensiveIcons);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", BATTLENET_NAME_LONG.ToUpper());
 				GetBattlenetGames(gameDataList);
@@ -213,6 +208,9 @@ namespace GameLauncher_Console
 				CLogger.LogInfo("Looking for {0} games...", BIGFISH_NAME_LONG.ToUpper());
 				GetBigFishGames(gameDataList);
 				Console.Write(".");
+				CLogger.LogInfo("Looking for {0} games...", EPIC_NAME_LONG.ToUpper());
+				CJsonWrapper.GetEpicGames(gameDataList);
+				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", GOG_NAME_LONG.ToUpper());
 				GetGogGames(gameDataList);
 				Console.Write(".");
@@ -220,10 +218,15 @@ namespace GameLauncher_Console
 				GetOriginGames(gameDataList);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", STEAM_NAME_LONG.ToUpper());
-				GetSteamGames(gameDataList);
+				GetSteamGames(gameDataList, bExpensiveIcons);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", UPLAY_NAME_LONG.ToUpper());
-				GetUplayGames(gameDataList);
+				GetUplayGames(gameDataList, bExpensiveIcons);
+				/*
+				Console.Write(".");
+				CLogger.LogInfo("Looking for {0} games...", XBOX_NAME_LONG.ToUpper());
+				CStoreScanner.GetXboxGames(gameDataList);
+				*/
 			}
 
 			return gameDataList;
@@ -233,59 +236,111 @@ namespace GameLauncher_Console
 		/// Find installed Steam games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetSteamGames(List<RegistryGameData> gameDataList)
+		public static void GetSteamGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
 		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
+			string strClientPath = "";
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
-							  key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				if(key == null && key2 == null)
+				if (key == null)
 				{
-					CLogger.LogInfo("{0} games not found in registry.", STEAM_NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", STEAM_NAME.ToUpper());
 					return;
 				}
 
-				if (key != null)
-				{
-					keyList = FindGameFolders(key, STEAM_GAME_FOLDER);
-					keyList.AddRange(FindGameFolders(key2, STEAM_GAME_FOLDER));
-				}
-				else
-					keyList = FindGameFolders(key2, STEAM_GAME_FOLDER);
+				strClientPath = CRegScanner.GetRegStrVal(key, GAME_INSTALL_PATH) + "\\" + STEAM_PATH;
+			}
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, STEAM_NAME.ToUpper());
-				foreach(var data in keyList)
+			if (!Directory.Exists(strClientPath))
+			{
+				CLogger.LogInfo("{0} library not found: {1}", STEAM_NAME.ToUpper(), strClientPath);
+				return;
+			}
+
+			string libFile = strClientPath + "\\" + STEAM_LIBFILE;
+			List<string> libs = new List<string>();
+			libs.Add(strClientPath);
+
+			try
+			{
+
+				if (File.Exists(libFile))
 				{
-					string strID = "";
-					string strTitle = "";
-					string strLaunch = "";
-					string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+					SteamWrapper document = new SteamWrapper(libFile);
+					ACF_Struct documentData = document.ACFFileToStruct();
+					ACF_Struct folders = documentData.SubACF[STEAM_LIBARR];
+
+					for (int i = 1; i <= STEAM_MAX_LIBS; ++i)
+					{
+						folders.SubItems.TryGetValue(i.ToString(), out string library);
+						if (string.IsNullOrEmpty(library))
+							break;
+						library += "\\" + STEAM_PATH;
+						if (Directory.Exists(library))
+							libs.Add(library);
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), libFile));
+			}
+
+			foreach (string lib in libs)
+			{
+				string[] libFiles;
+				try
+				{
+					libFiles = Directory.GetFiles(lib, "appmanifest_*.acf", SearchOption.TopDirectoryOnly);
+					CLogger.LogInfo("{0} {1} games found", libFiles.Length, STEAM_NAME.ToUpper());
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e, string.Format("ERROR: {0} directory read error: ", STEAM_NAME.ToUpper(), lib));
+					continue;
+				}
+
+				foreach (string file in libFiles)
+				{
 					try
 					{
-						strID = Path.GetFileName(data.Name);
-						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
+						SteamWrapper document = new SteamWrapper(file);
+						ACF_Struct documentData = document.ACFFileToStruct();
+						ACF_Struct app = documentData.SubACF[STEAM_APPARR];
+
+						string id = app.SubItems["appid"];
+
+						string strID = Path.GetFileName(file);
+						string strTitle = app.SubItems["name"];
 						CLogger.LogDebug("* {0}", strTitle);
-						strLaunch = STEAM_LAUNCH + Path.GetFileNameWithoutExtension(data.Name).Substring(10);
-						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						if (string.IsNullOrEmpty(strIconPath))
-							strIconPath = CGameFinder.FindGameBinaryFile(GetRegStrVal(data, GAME_INSTALL_LOCATION), GetRegStrVal(data, GAME_DISPLAY_NAME));
-						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING);
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
-						if (strAlias.Length > strTitle.Length)
-							strAlias = GetAlias(strTitle);
-						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-							strAlias = "";
+						string strLaunch = STEAM_LAUNCH + id;
+						string strIconPath = "";
+						string strUninstall = "";
+						string strAlias = "";
+						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+
+						if (!string.IsNullOrEmpty(strLaunch))
+						{
+							using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
+												key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
+							{
+								if (key != null)
+									strIconPath = GetRegStrVal(key, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+								else if (key2 != null)
+									strIconPath = GetRegStrVal(key2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+							}
+							if (String.IsNullOrEmpty(strIconPath) && expensiveIcons)
+								strIconPath = CGameFinder.FindGameBinaryFile(lib + "\\common\\" + app.SubItems["installdir"], strTitle);
+							strUninstall = STEAM_UNINST + id;
+							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+								strAlias = "";
+							gameDataList.Add(new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+						}
 					}
 					catch (Exception e)
 					{
-						CLogger.LogError(e);
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), file));
 					}
-					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
 				}
 				CLogger.LogDebug("---------------------");
 			}
@@ -295,7 +350,7 @@ namespace GameLauncher_Console
 		/// Find installed Amazon games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetAmazonGames(List<RegistryGameData> gameDataList)
+		private static void GetAmazonGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
 
@@ -312,6 +367,8 @@ namespace GameLauncher_Console
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, AMAZON_NAME.ToUpper());
 				foreach (var data in keyList)
 				{
+					string icon = GetRegStrVal(data, GAME_DISPLAY_ICON);
+
 					string strID = "";
 					string strTitle = "";
 					string strLaunch = "";
@@ -325,11 +382,11 @@ namespace GameLauncher_Console
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
 						CLogger.LogDebug("* {0}", strTitle);
 						strLaunch = AMAZON_LAUNCH + GetAmazonGameID(GetRegStrVal(data, GAME_UNINSTALL_STRING));
-						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						if (string.IsNullOrEmpty(strIconPath))
-							strIconPath = CGameFinder.FindGameBinaryFile(GetRegStrVal(data, GAME_INSTALL_LOCATION), GetRegStrVal(data, GAME_DISPLAY_NAME));
+						strIconPath = icon.Trim(new char[] { ' ', '"' });
+						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
+							strIconPath = CGameFinder.FindGameBinaryFile(GetRegStrVal(data, GAME_INSTALL_LOCATION), strTitle);
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING);
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(icon.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Length > strTitle.Length)
@@ -356,7 +413,7 @@ namespace GameLauncher_Console
 		{
 			string strClientPath = "";
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM
 			{
 				if(key == null)
 				{
@@ -367,7 +424,7 @@ namespace GameLauncher_Console
 				strClientPath = GetRegStrVal(key, GOG_CLIENT) + "\\" + GOG_GALAXY_EXE;
 			}
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_GAMES, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_GAMES, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM
 			{
 				if(key == null)
 				{
@@ -378,7 +435,7 @@ namespace GameLauncher_Console
 				CLogger.LogInfo("{0} {1} games found", key.GetSubKeyNames().Length, GOG_NAME.ToUpper());
 				foreach(string strSubkeyName in key.GetSubKeyNames())
 				{
-					using(RegistryKey subkey = key.OpenSubKey(strSubkeyName, RegistryKeyPermissionCheck.ReadSubTree))
+					using (RegistryKey subkey = key.OpenSubKey(strSubkeyName, RegistryKeyPermissionCheck.ReadSubTree))
 					{
 						string strID = "";
 						string strTitle = "";
@@ -424,17 +481,19 @@ namespace GameLauncher_Console
 		/// Find installed Ubisoft (formerly Uplay) games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetUplayGames(List<RegistryGameData> gameDataList)
+		private static void GetUplayGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
 				keyList = FindGameFolders(key, UPLAY_INSTALL);
 
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, UPLAY_NAME.ToUpper());
 				foreach(var data in keyList)
 				{
+					string loc = GetRegStrVal(data, GAME_INSTALL_LOCATION);
+
 					string strID = "";
 					string strTitle = "";
 					string strLaunch = "";
@@ -449,10 +508,10 @@ namespace GameLauncher_Console
 						CLogger.LogDebug("* {0}", strTitle);
 						strLaunch = UPLAY_LAUNCH + GetUplayGameID(Path.GetFileNameWithoutExtension(data.Name));
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						if (string.IsNullOrEmpty(strIconPath))
-							strIconPath = CGameFinder.FindGameBinaryFile(GetRegStrVal(data, GAME_INSTALL_LOCATION), GetRegStrVal(data, GAME_DISPLAY_NAME));
+						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
+							strIconPath = CGameFinder.FindGameBinaryFile(loc, strTitle);
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -477,7 +536,7 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
 				keyList = FindGameKeys(key, ORIGIN_REG_GAMES, GAME_INSTALL_LOCATION, new string[] { ORIGIN_NAME });
 
@@ -523,13 +582,15 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
 				keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
 
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, BETHESDA_NAME.ToUpper());
 				foreach(var data in keyList)
 				{
+					string loc = GetRegStrVal(data, BETHESDA_PATH);
+
 					string strID = "";
 					string strTitle = "";
 					string strLaunch = "";
@@ -545,9 +606,9 @@ namespace GameLauncher_Console
 						strLaunch = BETHESDA_LAUNCH + GetRegStrVal(data, BETHESDA_PRODUCT_ID) + ".exe";
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						if (string.IsNullOrEmpty(strIconPath))
-							strIconPath = GetRegStrVal(data, BETHESDA_PATH).Trim(new char[] { ' ', '"' }) + "\\" + GetRegStrVal(data, GAME_DISPLAY_NAME) + ".exe";
+							strIconPath = loc.Trim(new char[] { ' ', '"' }) + "\\" + strTitle + ".exe";
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, BETHESDA_PATH).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -572,7 +633,7 @@ namespace GameLauncher_Console
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
 
-			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
 				keyList = FindGameKeys(key, BATTLE_NET_REG, GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_REG });
 
@@ -625,6 +686,8 @@ namespace GameLauncher_Console
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, BIGFISH_NAME.ToUpper());
 				foreach (var data in keyList)
 				{
+					string loc = GetRegStrVal(data, GAME_INSTALL_PATH);
+
 					string strID = "";
 					string strTitle = "";
 					string strLaunch = "";
@@ -637,10 +700,10 @@ namespace GameLauncher_Console
 						strID = Path.GetFileName(data.Name);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
 						CLogger.LogDebug("* {0}", strTitle);
-						strLaunch = GetRegStrVal(data, GAME_INSTALL_PATH) + "\\" + BIGFISH_LAUNCH;
+						strLaunch = loc + "\\" + BIGFISH_LAUNCH;
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_INSTALL_PATH).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))

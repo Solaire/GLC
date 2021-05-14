@@ -130,6 +130,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="GameFinder.cs" />
+    <Compile Include="SteamWrapper.cs" />
     <Compile Include="JsonWrapper.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />

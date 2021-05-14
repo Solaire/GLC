@@ -9,6 +9,10 @@ using System.Threading;
 
 namespace GameLauncher_Console
 {
+	/// <summary>
+	/// Originally based on:
+	/// https://stackoverflow.com/a/33652557/6754996
+	/// </summary>
 	public class CConsoleImage
 	{
 		//public static bool IsRunning { get; set; }
