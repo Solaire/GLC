@@ -3,7 +3,7 @@
 Forked from Solaire/GameHub
 <https://github.com/Solaire/GameHub>
 
-This is a simple program that will scan the system for video games, then allow the user to launch any of these games from a single location - without having to store the icons on the desktop, or launching a dedicated client such as Steam or Epic. The program finds the games by scanning the registry in read-only mode. The program supports the following platforms:
+This is a simple program that will scan the system for video games, then allow the user to launch any of these games from a single location - without having to store the icons on the desktop, or launching a dedicated client such as Steam or Epic. The program supports the following platforms:
 - Amazon Games;
 - Battle.net;
 - Bethesda.net Launcher;
@@ -60,7 +60,7 @@ You can support the project in the following ways:
 - Change name back to "GameLauncher Console," change .exe to GLC for convenience
   - Note that tkashkin/GameHub (a Linux GUI game launcher) pre-existed the GameHub name change
 - New icon (although it was based on the idea of a Game "Hub," so it should be re-thought)
-- Improve Epic implementation by reading .json files from ProgramData instead of registry + folder structure
+- Improve Steam and Epic implementations by reading library files instead of registry
 - Use grid view by default, now dynamic based on console width and height, and split into pages
 - By default, sort by frequency (as before), but also secondarily by alphabet
 
