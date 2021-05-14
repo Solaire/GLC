@@ -335,7 +335,7 @@ namespace GameLauncher_Console
 						//DrawMenuTitle(config, cols);
 					}
 					else
-						options = GetPlatformNames(!(bool)config.hideSettings).ToArray();
+						options = GetPlatformNames(config).ToArray();
 				}
 				game = "";
 			}
@@ -600,7 +600,7 @@ namespace GameLauncher_Console
 						//DrawMenuTitle(config, cols);
 					}
 					else
-						options = GetPlatformNames(!(bool)config.hideSettings).ToArray();
+						options = GetPlatformNames(config).ToArray();
 				}
 				game = "";
 			}
@@ -1009,7 +1009,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Search for a game by title or alias
 		/// </summary>
-		public static List<string> GetPlatformNames(bool showSettings)
+		public static List<string> GetPlatformNames(CConfig.Configuration config)
 		{
 			List<string> platforms = new List<string>();
 
@@ -1018,7 +1018,7 @@ namespace GameLauncher_Console
 				if (platformPair.Value > 0)
 					platforms.Add(platformPair.Key + ": " + platformPair.Value);
 			}
-			if (showSettings) platforms.Add(CDock.SETTINGS_TITLE);
+			if (!(bool)config.hideSettings) platforms.Add(CDock.SETTINGS_TITLE);
 			return platforms;
 		}
 

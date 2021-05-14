@@ -508,11 +508,12 @@ namespace GameLauncher_Console
 				CLogger.LogDebug("Platform {0}, Game {1}, Selection {2}", m_nSelectedPlatform, m_nSelectedGame, m_nCurrentSelection); //, m_nSelectedCategory
 				if (m_nSelectedPlatform < 0)
 				{
-					List<string> platforms = CConsoleHelper.GetPlatformNames(!(bool)config.hideSettings);
+					List<string> platforms = CConsoleHelper.GetPlatformNames(config);
 					if (!noInteractive && CConsoleHelper.IsSelectionValid(m_nCurrentSelection, platforms.Count))
 					{
-						if (m_nCurrentSelection == platforms.Count - 1)
-						{ //DoSettingsMenu();
+						if (!(bool)config.hideSettings && m_nCurrentSelection == platforms.Count - 1)
+						{
+							//DoSettingsMenu();
 						}
 						else
 						{
@@ -709,7 +710,7 @@ namespace GameLauncher_Console
 
 			nSelectionCode = -1;
 
-			List<string> platforms = CConsoleHelper.GetPlatformNames(!(bool)config.hideSettings);
+			List<string> platforms = CConsoleHelper.GetPlatformNames(config);
 
 			if (!noInteractive)
 			{
