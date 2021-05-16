@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameLauncher_Console", "GameLauncher_Console\GameLauncher_Console.csproj", "{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTest.csproj", "{FBEDF6E1-33EC-4B48-B44F-0CC2CE8585BF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1} = {4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
