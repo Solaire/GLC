@@ -391,7 +391,7 @@ namespace GameLauncher_Console
 				key = Console.ReadKey(true).Key;
 				nLastSelection = CDock.m_nCurrentSelection;
 
-				CLogger.LogDebug("READKEY: {0}", key);
+				CLogger.LogDebug($"READKEY: {key}");
 				if (key == keys.leftCK1 || key == keys.leftCK2)
 				{
 					if (CDock.m_nCurrentSelection > 0)
@@ -730,7 +730,6 @@ namespace GameLauncher_Console
 		/// <param name="itemList">List of items to be displayed</param>
 		public void DrawGridMenu(int nCursorPosition, int nPage, int nStartY, int nStopY, CConfig.Configuration config, CConfig.Colours cols, params string[] itemList)
 		{
-			CLogger.LogDebug("y:{0}, -y:{1}", nStartY, nStopY);
 			int itemsPerPage = m_nMaxItemsPerPage - (m_nOptionsPerLine * (nStartY + nStopY));
 			int startIndex = 0;
 			if (!(bool)config.noPageSplit)
@@ -771,7 +770,6 @@ namespace GameLauncher_Console
 		/// <param name="itemList">List of items to be displayed</param>
 		public void DrawListMenu(int nSelection, int nPage, int nStartY, int nStopY, CConfig.Configuration config, CConfig.Colours cols, params string[] itemList)
 		{
-			CLogger.LogDebug("y:{0}, -y:{1}", nStartY, nStopY);
 			int itemsPerPage = m_nMaxItemsPerPage - (nStartY + nStopY);
 			int startIndex = 0;
 			if (!(bool)config.noPageSplit)

@@ -355,16 +355,14 @@ namespace GameLauncher_Console
 						try
 						{
 							using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
+							using (image = Icon.ExtractAssociatedIcon(imgPath).ToBitmap())
 							{
-								using (image = Icon.ExtractAssociatedIcon(imgPath).ToBitmap())
+								// translating the character positions to pixels
+								if (selection == CDock.m_nCurrentSelection)
 								{
-									// translating the character positions to pixels
-									if (selection == CDock.m_nCurrentSelection)
-									{
-										ClearImage(size, point, bg);
-										Rectangle imageRect = new Rectangle(x, y, w, h);
-										g.DrawImage(image, imageRect);
-									}
+									ClearImage(size, point, bg);
+									Rectangle imageRect = new Rectangle(x, y, w, h);
+									g.DrawImage(image, imageRect);
 								}
 							}
 						}
@@ -528,51 +526,49 @@ namespace GameLauncher_Console
 				try
 				{
 					using (Bitmap target = new Bitmap(w, h))
+					using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
 					{
-						using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
+						/*
+						g.CompositingQuality = CompositingQuality.HighQuality;
+						g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+						g.SmoothingMode = SmoothingMode.HighQuality;
+						*/
+
+						// Scaling
+						float scaling = 1;
+						if (!(ignoreRatio))
 						{
-							/*
-							g.CompositingQuality = CompositingQuality.HighQuality;
-							g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-							g.SmoothingMode = SmoothingMode.HighQuality;
-							*/
-
-							// Scaling
-							float scaling = 1;
-							if (!(ignoreRatio))
-							{
-								float scalingY = (float)source.Height / h;
-								float scalingX = (float)source.Width / w;
-								if (scalingX > scalingY) scaling = scalingX;
-								else scaling = scalingY;
-							}
-
-							int newWidth = (int)(source.Width / scaling);
-							int newHeight = (int)(source.Height / scaling);
-
-							// Correct float to int rounding
-							if (newWidth > w) newWidth = w;
-							if (newHeight > h) newHeight = h;
-
-							// See if image needs to be cropped
-							int shiftX = 0;
-							int shiftY = 0;
-
-							if (newWidth < w)
-								shiftX = (newWidth - w) / 2;
-							if (newHeight < h)
-								shiftY = (newHeight - h) / 2;
-
-							// Draw image
-							/*
-							if (selection == CDock.m_nCurrentSelection)
-							{
-								ClearImage(size, point, bg);
-							*/
-								Rectangle imageRect = new Rectangle(x - shiftX, y - shiftY, newWidth, newHeight);
-								g.DrawImage(source, imageRect);
-							//}
+							float scalingY = (float)source.Height / h;
+							float scalingX = (float)source.Width / w;
+							if (scalingX > scalingY) scaling = scalingX;
+							else scaling = scalingY;
 						}
+
+						int newWidth = (int)(source.Width / scaling);
+						int newHeight = (int)(source.Height / scaling);
+
+						// Correct float to int rounding
+						if (newWidth > w) newWidth = w;
+						if (newHeight > h) newHeight = h;
+
+						// See if image needs to be cropped
+						int shiftX = 0;
+						int shiftY = 0;
+
+						if (newWidth < w)
+							shiftX = (newWidth - w) / 2;
+						if (newHeight < h)
+							shiftY = (newHeight - h) / 2;
+
+						// Draw image
+						/*
+						if (selection == CDock.m_nCurrentSelection)
+						{
+							ClearImage(size, point, bg);
+						*/
+							Rectangle imageRect = new Rectangle(x - shiftX, y - shiftY, newWidth, newHeight);
+							g.DrawImage(source, imageRect);
+						//}
 					}
 				}
 				catch (Exception e)

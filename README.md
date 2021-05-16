@@ -1,6 +1,7 @@
 # GLC
 ## (GameLauncher Console)
 Forked from Solaire/GameHub
+
 <https://github.com/Solaire/GameHub>
 
 This is a simple program that will scan the system for video games, then allow the user to launch any of these games from a single location - without having to store the icons on the desktop, or launching a dedicated client such as Steam or Epic. The program supports the following platforms:
@@ -13,6 +14,7 @@ This is a simple program that will scan the system for video games, then allow t
 - Origin;
 - Steam;
 - Ubisoft Connect (formerly Uplay).
+
 You can also launch custom programs (see below for instructions).
 
 ![](GLConsole.gif)
@@ -47,6 +49,7 @@ You can edit glc-cfg.json to change the default configuration options, including
 ## Building from source
 Clone the repo and build. The program uses following nuGet packages:
 - System.Text.Json for JSON parsing;
+- System.Data.SQLite for parsing the itch database;
 - Costura.Fody for merging the binary file with dlls.
 
 ## Contributing
@@ -60,18 +63,19 @@ You can support the project in the following ways:
 - Change name back to "GameLauncher Console," change .exe to GLC for convenience
   - Note that tkashkin/GameHub (a Linux GUI game launcher) pre-existed the GameHub name change
 - New icon (although it was based on the idea of a Game "Hub," so it should be re-thought)
-- Improve Steam and Epic implementations by reading library files instead of registry
+- Improve Epic, Origin, and Steam implementations by reading library files instead of, or in addition to, registry
 - Use grid view by default, now dynamic based on console width and height, and split into pages
 - By default, sort by frequency (as before), but also secondarily by alphabet
 
 ### NEW FEATURES:
 - New platforms:
   - Amazon Games;
-  - Big Fish Games.
+  - Big Fish Games;
+  - itch.
 - New functions:
   - Search;
   - Create Desktop shortcut;
-  - Uninstall (not currently available for Epic Games).
+  - Uninstall (not currently available for Epic or itch).
 - Screen paging with new navigation keys:
   - Home/End for first/last entry;
   - PgUp/PgDn between pages.
@@ -83,24 +87,28 @@ You can support the project in the following ways:
   -  /C    : Toggle command-line only mode;
   -  /P    : Add glc.exe location to your path;
   -  /?|/H : Display help.
-- A settable alias for use with searching for each game (a default is set by stripping "the", spaces, punctuation, symbols from folder or .exe name)
+- A settable alias for use with searching for each game (a default is set by stripping article (a/an/the), spaces, punctuation, and symbols from folder or .exe name)
 - Show icons/images for games and platforms, either the icon from the detected .exe, or from a custom image placed in ".\customImages" folder
-  - The following extensions are recognized:
+  - Note this only works with shells using conhost, e.g., cmd or PowerShell, but not Windows Terminal and some third party shells.
+  - The following extensions are recognized for custom images:
     - .ico;
     - .bmp;
     - .png;
     - .gif;
     - .jpg / .jpe / .jpeg;
     - .tif / .tiff.
-  - This only works with shells using conhost, e.g., cmd or PowerShell, but not Windows Terminal and some third party shells.
-- Attempt to recognize unsupported shells (see known issues)
+- Attempt to recognize unsupported shells (see known issues above)
 - Add config .json file for user-configurable settings
   - Custom keys (2 for each function);
-  - Custom colours (2 sets for dark/light mode);
+  - Custom colours (2 sets, for dark/light mode);
   - Custom text;
   - Settings for input, layout, sorting, images, etc.
 
 ### IN PROGRESS:
+- Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible
+  - Fixed Steam and Epic
+  - Fixed the former issue for Origin, but if the uninstall entry doesn't exist, we must rely on problematic FindGameBinaryFile()
+  - Still looking for a solution for itch for the former issue, and it *always* relies on FindGameBinaryFile()
 - Small icons to left in single-column list mode
   - Disabled currently, as icons are randomly missing, especially after going to previous page or back to previous menu.
 - In-app search
@@ -118,6 +126,8 @@ You can support the project in the following ways:
 - Code clean-up; better comments; finish updating function summaries
 
 ### TODO:
+- FindGameBinaryFile() should be smarter
+  - This is used for itch but otherwise only for fallback (typically icon) purposes
 - New feature? In-app custom game add
   - Since these would need to be added to .json, should other custom games from customGames folder be imported also? Maybe deleted afterwards?
 - New feature? In-app database entry revision (i.e., title, command line, icon)
@@ -127,6 +137,7 @@ You can support the project in the following ways:
   -  /U "My Game" : Uninstall game
   -  /A "My Game" : Change alias
 - Do ScanGames()/ExportGames() without losing aliases/favourites/hidden items
+- Figure out where itch keeps its list of install locations
 - More platforms, e.g.:
   - Arc;
   - itch;
@@ -145,7 +156,6 @@ You can support the project in the following ways:
 - New feature? Export all games as shortcuts to a given folder
 - Allow fuzzy searches in typing input mode
   - Or maybe just deprecate it altogether (is there a benefit to this instead of just using the non-interactive command-line)?
-- FindGameBinaryFile() should be smarter, but as it's only used for fallback purposes, the priority is low
 - Support Xbox (Microsoft Store) apps
   - Not sure how to determine whether a given UWP app is a game or not;
   - Windows.Management.Deployment.PackageManager requires either a UWP or MSIX-packaged app;

@@ -143,7 +143,7 @@ namespace GameLauncher_Console
 							{
 								SetFgColour(cols.errorCC, cols.errorLtCC);
 								CLogger.LogWarn("Invalid search index number!");
-								Console.WriteLine("{0} is an invalid search index number!", gameIndex);
+								Console.WriteLine($"{gameIndex} is an invalid search index number!");
 								Console.ResetColor();
 								return;
 							}
@@ -152,7 +152,7 @@ namespace GameLauncher_Console
                         {
 							SetFgColour(cols.errorCC, cols.errorLtCC);
 							CLogger.LogWarn("Invalid parameter!");
-							Console.WriteLine("/{0}is an invalid parameter!", gameSearch);
+							Console.WriteLine($"/{gameSearch}is an invalid parameter!");
 							Console.ResetColor();
 							return;
 						}
@@ -162,7 +162,7 @@ namespace GameLauncher_Console
 				else
 				{
 					gameSearch = gameSearch.Substring(0, gameSearch.Length - 1);
-					CLogger.LogInfo("Search from command line: {0}", gameSearch);
+					CLogger.LogInfo($"Search from command line: {gameSearch}");
 				}
 			}
 
@@ -486,7 +486,7 @@ namespace GameLauncher_Console
 						}
 						if (!string.IsNullOrEmpty(gameSearch))
 						{
-							CLogger.LogInfo("Search for: {0}", gameSearch);
+							CLogger.LogInfo($"Search for: {gameSearch}");
 							m_nSelectedPlatform = (int)CGameData.GamePlatform.Search;
 						}
 						else

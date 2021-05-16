@@ -2,8 +2,12 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
+//using System.IO.Compression;
+using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -129,8 +133,9 @@ namespace GameLauncher_Console
 
 			if (parseError)
 			{
-				Console.WriteLine("Press any key to continue...");
+				Console.Write("Press any key to continue...");
 				Console.ReadKey();
+				Console.WriteLine();
 			}
 			return true;
 		}
@@ -174,7 +179,6 @@ namespace GameLauncher_Console
 						fs.Write(bytes, 0, bytes.Length);
 					}
 				}
-				
 			}
 			catch(Exception e)
 			{
@@ -575,7 +579,7 @@ namespace GameLauncher_Console
 
 			string strDocumentData = File.ReadAllText(file);
 
-			if (string.IsNullOrEmpty(strDocumentData)) // File is empty
+			if (string.IsNullOrEmpty(strDocumentData))
 				return false;
 
 			try
@@ -613,7 +617,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Malformed {0} file!", file);
+				Console.WriteLine($"ERROR: Malformed {file} file!");
 				return false;
 			}
 			return true;
@@ -635,7 +639,7 @@ namespace GameLauncher_Console
 				return;
 			}
 			string[] files = Directory.GetFiles(dir, "*.item", SearchOption.TopDirectoryOnly);
-			CLogger.LogInfo("{0} {1} games found", files.Length, EPIC_NAME.ToUpper());
+			CLogger.LogInfo("{0} {1} games found", files.Count(), EPIC_NAME.ToUpper());
 			
 			var options = new JsonDocumentOptions
 			{
@@ -646,8 +650,8 @@ namespace GameLauncher_Console
 			{
 				string strDocumentData = File.ReadAllText(file);
 
-				if (string.IsNullOrEmpty(strDocumentData)) // File is empty
-					return;
+				if (string.IsNullOrEmpty(strDocumentData))
+					continue;
 
 				try
 				{
@@ -655,13 +659,14 @@ namespace GameLauncher_Console
 					{
 						string strID = Path.GetFileName(file);
 						string strTitle = GetStringProperty(document.RootElement, "DisplayName");
-						CLogger.LogDebug("* {0}", strTitle);
-						string strLaunch = GetStringProperty(document.RootElement, "InstallLocation") + "\\" + GetStringProperty(document.RootElement, "LaunchExecutable");
+						CLogger.LogDebug($"* {strTitle}");
+						string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
 						string strAlias = "";
 						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Epic);
 
 						if (!string.IsNullOrEmpty(strLaunch))
 						{
+							strLaunch = GetStringProperty(document.RootElement, "InstallLocation") + "\\" + strLaunch;
 							strAlias = CRegScanner.GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
 							if (strAlias.Length > strTitle.Length)
 								strAlias = CRegScanner.GetAlias(strTitle);
@@ -680,6 +685,217 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Find installed Itch games
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetItchGames(List<CRegScanner.RegistryGameData> gameDataList)
+		{
+			const string ITCH_NAME = "itch";
+			const string ITCH_DB = @"\itch\db\butler.db";
+			string db = GetFolderPath(SpecialFolder.ApplicationData) + ITCH_DB;
+			if (!File.Exists(db))
+			{
+				CLogger.LogInfo("{0} database not found.", ITCH_NAME.ToUpper());
+				return;
+			}
+
+			/*
+			// A thought: maybe don't include the SQLite dlls to keep things lightweight, and so an installer isn't necessary;
+			// especially as many users won't have itch, then download them at runtime if necessary?
+
+			// Alternatively, we could use ILMerge for binary releases...?
+
+			if (!File.Exists("x64\SQLite.Interop.dll"))
+			{
+				using (var client = new WebClient())
+				{
+					client.DownloadFile("https://raw.githubusercontent.com/Nutzzz/GLC/master/dll/x86/SQLite.Interop.dll", @"x86\SQLite.Interop.dll");
+					client.DownloadFile("https://raw.githubusercontent.com/Nutzzz/GLC/master/dll/x64/SQLite.Interop.dll", @"x64\SQLite.Interop.dll");
+				}
+			}
+			*/
+
+			try
+			{
+				using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+				{
+					con.Open();
+
+					// SELECT path FROM install_locations
+					// SELECT install_folder FROM downloads
+					// SELECT verdict FROM caves
+					using (var cmd = new SQLiteCommand("SELECT game_id, verdict, install_folder_name FROM caves", con))
+					{
+						using (SQLiteDataReader rdr = cmd.ExecuteReader())
+						{
+							while (rdr.Read())
+							{
+								int id = rdr.GetInt32(0);
+								string strID = string.Format("itch{0}", id);
+								string verdict = rdr.GetString(1);
+								string strTitle = rdr.GetString(2);
+								string strAlias = CRegScanner.GetAlias(strTitle);
+								string strLaunch = "";
+								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Itch);
+
+								var options = new JsonDocumentOptions
+								{
+									AllowTrailingCommas = true
+								};
+
+								using (JsonDocument document = JsonDocument.Parse(@verdict, options))
+								{
+									string basePath = GetStringProperty(document.RootElement, "basePath");
+									if (document.RootElement.TryGetProperty("candidates", out JsonElement candidates)) // 'candidates' object exists
+									{
+										if (!string.IsNullOrEmpty(candidates.ToString()))
+										{
+											foreach (JsonElement jElement in candidates.EnumerateArray())
+											{
+												strLaunch = string.Format("{0}\\{1}", basePath, GetStringProperty(jElement, "path"));
+											}
+										}
+									}
+								}
+								if (string.IsNullOrEmpty(strLaunch))
+									continue;
+
+								using (var cmd2 = new SQLiteCommand(string.Format($"SELECT title FROM games WHERE id={id};"), con))
+								using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
+								{
+									while (rdr2.Read())
+									{
+										strTitle = rdr2.GetString(0);
+										if (strAlias.Length > strTitle.Length)
+											strAlias = CRegScanner.GetAlias(strTitle);
+										break;
+									}
+								}
+								CLogger.LogDebug($"* {strTitle}");
+
+								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+									strAlias = "";
+								if (!string.IsNullOrEmpty(strLaunch))
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+							}
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", ITCH_NAME.ToUpper()));
+				return;
+			}
+			CLogger.LogDebug("-------------------");
+		}
+
+		// This is a non-SQL implementation, but then we have no way of knowing about multiple library locations, and have to unzip a .gz to get the real title
+		/*
+		/// <summary>
+		/// Find installed Itch games
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetItchGames(List<CRegScanner.RegistryGameData> gameDataList)
+		{
+			// TODO: Get location of other libraries
+
+			const string ITCH_NAME				= "itch";
+			const string ITCH_REG				= "itch"; // HKCU64 Uninstall
+			const string ITCH_GAME_FOLDER		= "apps";
+			const string ITCH_METADATA_GZ		= @".itch\receipt.json.gz";
+			const string ITCH_METADATA			= @".itch\receipt.json";
+			const string ITCH_GAME_JSON			= "game";
+
+			const string NODE64_REG				= @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+			const string GAME_INSTALL_LOCATION	= "InstallLocation";
+
+			string[] dirs;
+			using (RegistryKey key = Registry.CurrentUser.OpenSubKey(NODE64_REG + "\\" + ITCH_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKCU64
+			{
+				if (key == null)
+				{
+					CLogger.LogInfo("{0} games not found in the registry.", ITCH_NAME.ToUpper());
+					return;
+				}
+
+				string path = CRegScanner.GetRegStrVal(key, GAME_INSTALL_LOCATION).Trim() + "\\" + ITCH_GAME_FOLDER;
+				try
+				{
+					dirs = Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly);
+					CLogger.LogInfo("{0} {1} games found", dirs.Count() - 1, ITCH_NAME.ToUpper());  // subtract one for "downloads"
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e, string.Format("ERROR: {0} directory read error: ", ITCH_NAME.ToUpper(), path));
+					return;
+				}
+			}
+			foreach (string dir in dirs)
+			{
+				if (dir.EndsWith("downloads"))
+					continue;
+				string strID = "";
+				string strTitle = "";
+				string strLaunch = "";
+				string strAlias = "";
+				string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Itch);
+
+				try
+				{
+					string gzfile = dir + "\\" + ITCH_METADATA_GZ;
+					string jsonfile = dir + "\\" + ITCH_METADATA;
+					string strDocumentData = "";
+					if (File.Exists(gzfile))
+					{
+						Decompress(new FileInfo(gzfile));
+						if (File.Exists(jsonfile))
+							strDocumentData = File.ReadAllText(jsonfile);
+					}
+
+					if (!(string.IsNullOrEmpty(strDocumentData)))
+					{
+						var options = new JsonDocumentOptions
+						{
+							AllowTrailingCommas = true
+						};
+
+						using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+						{
+							if (document.RootElement.TryGetProperty(ITCH_GAME_JSON, out JsonElement jElement)) // 'game' object exists
+							{
+								strTitle = GetStringProperty(jElement, "title");
+							}
+						}
+					}
+					if (File.Exists(jsonfile))
+						File.Delete(jsonfile);
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e, string.Format("ERROR: Malformed {0} file in {1}", ITCH_NAME.ToUpper(), dir));
+				}
+
+				strID = Path.GetFileName(dir);
+				if (string.IsNullOrEmpty(strTitle)) strTitle = strID;
+				CLogger.LogDebug($"* {strTitle}");
+				strLaunch = CGameFinder.FindGameBinaryFile(dir, strTitle);
+				strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Itch);
+				
+				strAlias = CRegScanner.GetAlias(strID);
+				if (strAlias.Length > strTitle.Length)
+					strAlias = CRegScanner.GetAlias(strTitle);
+				if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+					strAlias = "";
+
+				if (!string.IsNullOrEmpty(strLaunch))
+					gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+			}
+			CLogger.LogDebug("-------------------");
+		}
+		*/
+
+		/// <summary>
 		/// Import games from the json file and add them to the global game dictionary.
 		/// <returns>True if successful, otherwise false</returns>
 		/// </summary>
@@ -693,7 +909,7 @@ namespace GameLauncher_Console
 
 			string strDocumentData = File.ReadAllText(file);
 
-			if (string.IsNullOrEmpty(strDocumentData)) // File is empty
+			if (string.IsNullOrEmpty(strDocumentData))
 				return false;
 
 			try
@@ -719,7 +935,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format("ERROR: Malformed {0} file!", file));
+				CLogger.LogError(e, string.Format($"ERROR: Malformed {file} file!"));
 				return false;
 			}
 			return true;
@@ -746,7 +962,7 @@ namespace GameLauncher_Console
 
 			SetConfigDefaults(ref config, false, false, false, false, false, false);  // always set defaults for null values in case some have been added after a version update
 
-			if (string.IsNullOrEmpty(strDocumentData)) // File is empty
+			if (string.IsNullOrEmpty(strDocumentData))
 			{
 				//SetConfigDefaults(ref config, false, false, false, false, false, false);
 				bCfgReset = true;
@@ -762,7 +978,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad version data in {0} file.", file);
+				Console.WriteLine($"ERROR: Bad version data in {file} file.");
 				Console.Write("Would you like to reset to defaults? (y|n) : ");
 				string strInput = Console.ReadLine();
 				if (strInput.ToUpper().Equals("Y"))
@@ -798,7 +1014,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
             {
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad boolean data in {0} file. Resetting defaults...", file);
+				Console.WriteLine($"ERROR: Bad boolean data in {file} file. Resetting defaults...");
 				parseError = true;
 				SetConfigDefaults(ref config, false, true, false, false, false, false);
 			}
@@ -817,7 +1033,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad number data in {0} file. Resetting defaults...", file);
+				Console.WriteLine($"ERROR: Bad number data in {file} file. Resetting defaults...");
 				parseError = true;
 				SetConfigDefaults(ref config, false, false, true, false, false, false);
 			}
@@ -846,7 +1062,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad colour string in {0} file. Resetting defaults...", file);
+				Console.WriteLine($"ERROR: Bad colour string in {file} file. Resetting defaults...");
 				parseError = true;
 				SetConfigDefaults(ref config, false, false, false, true, false, false);
 			}
@@ -872,7 +1088,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad colour value in {0} file. Resetting defaults...", file);
+				Console.WriteLine($"ERROR: Bad colour value in {file} file. Resetting defaults...");
 				parseError = true;
 				SetConfigDefaults(ref config, false, false, false, true, false, false);
 			}
@@ -937,7 +1153,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad hotkey string in {0} file. Resetting defaults...", file);
+				Console.WriteLine($"ERROR: Bad hotkey string in {file} file. Resetting defaults...");
 				parseError = true;
 				SetConfigDefaults(ref config, false, false, false, false, true, false);
 			}
@@ -999,7 +1215,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad hotkey value in {0} file. Resetting defaults...", file);
+				Console.WriteLine($"ERROR: Bad hotkey value in {file} file. Resetting defaults...");
 				parseError = true;
 				SetConfigDefaults(ref config, false, false, false, false, true, false);
 			}
@@ -1022,7 +1238,7 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
-				Console.WriteLine("ERROR: Bad text data in {0} file. Resetting defaults...", file);
+				Console.WriteLine($"ERROR: Bad text data in {file} file. Resetting defaults...");
 				parseError = true;
 				SetConfigDefaults(ref config, false, false, false, false, false, true);
 			}
@@ -1428,5 +1644,24 @@ namespace GameLauncher_Console
 				strValue = strDefault;
 			return;
 		}
+
+		/*
+		/// <summary>
+		/// Decompress gzip file (for itch)
+		/// </summary>
+		/// <param name="fileToDecompress"></param>
+		public static void Decompress(FileInfo fileToDecompress)
+		{
+			using (FileStream originalFileStream = fileToDecompress.OpenRead())
+			{
+				string currentFileName = fileToDecompress.FullName;
+				string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
+
+				using (FileStream decompressedFileStream = File.Create(newFileName))
+				using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+					decompressionStream.CopyTo(decompressedFileStream);
+			}
+		}
+		*/
 	}
 }
