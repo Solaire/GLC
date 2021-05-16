@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("GLC")]
 [assembly: AssemblyDescription("Video game registry key scanner and launcher")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("kaz-jurczak")]
+[assembly: AssemblyCompany("Solaire")]
 [assembly: AssemblyProduct("GameLauncher Console")]
 [assembly: AssemblyCopyright("Copyright © 2021 GLC contributors")]
 [assembly: AssemblyTrademark("")]
