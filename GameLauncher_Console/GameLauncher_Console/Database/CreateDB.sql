@@ -16,8 +16,9 @@ CREATE TABLE "Platform" (
 CREATE TABLE "Game" (
 	"GameID"		INTEGER NOT NULL UNIQUE,
 	"PlatformFK"	INTEGER,
-	"Identifier"	varchar(50) NOT NULL UNIQUE,
-	"Title"			varchar(50) NOT NULL UNIQUE,
+	"Identifier"	varchar(50) NOT NULL,
+	"Title"			varchar(50) NOT NULL,
+	"Alias"			varchar(50) NOT NULL UNIQUE,
 	"Launch"		varchar(255) NOT NULL,
 	"Uninstall"		varchar(255),
 	"IsFavourite"	bit NOT NULL DEFAULT 0,
@@ -25,7 +26,9 @@ CREATE TABLE "Game" (
 	"Frequency"		NUMERIC NOT NULL DEFAULT 0.0,
 	"Rating"		INTEGER,
 	"Description" 	VARCHAR(255),
-	PRIMARY KEY("GameID" AUTOINCREMENT)
+	"IsMultiPlatform" bit NOT NULL DEFAULT 0,
+	PRIMARY KEY("GameID" AUTOINCREMENT),
+	CONSTRAINT "Platform_Title" UNIQUE("PlatformFK","Title")
 );
 
 CREATE TABLE "GameAttribute" (
