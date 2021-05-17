@@ -33,7 +33,7 @@ namespace UnitTest
         public static void PrepatePlatformTable()
         {
             CSqlDB.Instance.Execute("DELETE FROM Platform");
-            CSqlDB.Instance.Execute("insert into Platform (PlatformID, Name, GameCount) VALUES (1, 'test', 10)");
+            CSqlDB.Instance.Execute("insert into Platform (PlatformID, Name, Description) VALUES (1, 'test', 'PlatformID 1')");
         }
     }
 
@@ -45,9 +45,9 @@ namespace UnitTest
     {
         public CTest_InsertQry() : base("Platform")
         {
-            m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cInsWrite);
+            m_fields["PlatformID"]  = new CSqlFieldInteger("PlatformID", QryFlag.cInsWrite);
             m_fields["Name"]        = new CSqlFieldString("Name", QryFlag.cInsWrite);
-            m_fields["GameCount"]   = new CSqlFieldInteger("GameCount", QryFlag.cInsWrite);
+            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cInsWrite);
         }
         public int PlatformID
         {
@@ -59,10 +59,10 @@ namespace UnitTest
             get { return m_fields["Name"].String;   }
             set { m_fields["Name"].String = value;  }
         }
-        public int GameCount
+        public string Description
         {
-            get { return m_fields["GameCount"].Integer; }
-            set { m_fields["GameCount"].Integer = value; }
+            get { return m_fields["Description"].String; }
+            set { m_fields["Description"].String = value; }
         }
     }
 
@@ -75,7 +75,7 @@ namespace UnitTest
         {
             m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cWhere);
             m_fields["Name"]       = new CSqlFieldString("Name", QryFlag.cSelRead);
-            m_fields["GameCount"]  = new CSqlFieldInteger("GameCount", QryFlag.cSelRead);
+            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cSelRead);
         }
         public int PlatformID
         {
@@ -87,10 +87,10 @@ namespace UnitTest
             get { return m_fields["Name"].String; }
             set { m_fields["Name"].String = value; }
         }
-        public int GameCount
+        public string Description
         {
-            get { return m_fields["GameCount"].Integer; }
-            set { m_fields["GameCount"].Integer = value; }
+            get { return m_fields["Description"].String; }
+            set { m_fields["Description"].String = value; }
         }
     }
 
@@ -102,17 +102,17 @@ namespace UnitTest
         public CTest_UpdateQry() : base("Platform")
         {
             m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cWhere);
-            m_fields["GameCount"]  = new CSqlFieldInteger("GameCount", QryFlag.cUpdWrite);
+            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cUpdWrite);
         }
         public int PlatformID
         {
             get { return m_fields["PlatformID"].Integer; }
             set { m_fields["PlatformID"].Integer = value; }
         }
-        public int GameCount
+        public string Description
         {
-            get { return m_fields["GameCount"].Integer; }
-            set { m_fields["GameCount"].Integer = value; }
+            get { return m_fields["Description"].String; }
+            set { m_fields["Description"].String = value; }
         }
     }
 
@@ -141,7 +141,7 @@ namespace UnitTest
         {
             m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cSelRead);
             m_fields["Name"] = new CSqlFieldString("Name", QryFlag.cSelRead);
-            m_fields["GameCount"] = new CSqlFieldInteger("GameCount", QryFlag.cSelRead);
+            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cSelRead);
         }
         public int PlatformID
         {
@@ -153,10 +153,10 @@ namespace UnitTest
             get { return m_fields["Name"].String; }
             set { m_fields["Name"].String = value; }
         }
-        public int GameCount
+        public string Description
         {
-            get { return m_fields["GameCount"].Integer; }
-            set { m_fields["GameCount"].Integer = value; }
+            get { return m_fields["Description"].String; }
+            set { m_fields["Description"].String = value; }
         }
     }
 
@@ -169,7 +169,7 @@ namespace UnitTest
         {
             m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cSelRead);
             m_fields["Name"] = new CSqlFieldString("Name", QryFlag.cWhere);
-            m_fields["GameCount"] = new CSqlFieldInteger("GameCount", QryFlag.cWhere);
+            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cWhere);
         }
         public int PlatformID
         {
@@ -181,10 +181,10 @@ namespace UnitTest
             get { return m_fields["Name"].String; }
             set { m_fields["Name"].String = value; }
         }
-        public int GameCount
+        public string Description
         {
-            get { return m_fields["GameCount"].Integer; }
-            set { m_fields["GameCount"].Integer = value; }
+            get { return m_fields["Description"].String; }
+            set { m_fields["Description"].String = value; }
         }
     }
 
@@ -197,7 +197,7 @@ namespace UnitTest
         {
             m_fields["PlatformID"]  = new CSqlFieldInteger("PlatformID",    QryFlag.cWhere | QryFlag.cInsWrite);
             m_fields["Name"]        = new CSqlFieldString("Name",           QryFlag.cSelRead | QryFlag.cUpdWrite | QryFlag.cInsWrite);
-            m_fields["GameCount"]   = new CSqlFieldInteger("GameCount",     QryFlag.cSelRead | QryFlag.cUpdWrite | QryFlag.cInsWrite);
+            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cSelRead | QryFlag.cUpdWrite | QryFlag.cInsWrite);
         }
         public int PlatformID
         {
@@ -209,10 +209,10 @@ namespace UnitTest
             get { return m_fields["Name"].String; }
             set { m_fields["Name"].String = value; }
         }
-        public int GameCount
+        public string Description
         {
-            get { return m_fields["GameCount"].Integer; }
-            set { m_fields["GameCount"].Integer = value; }
+            get { return m_fields["Description"].String; }
+            set { m_fields["Description"].String = value; }
         }
     }
 
@@ -258,7 +258,7 @@ namespace UnitTest
             CTest_InsertQry qryIns = new CTest_InsertQry();
             qryIns.PlatformID  = 1;
             qryIns.Name        = "test";
-            qryIns.GameCount   = 10;
+            qryIns.Description = "PlatformID 1";
             Assert.AreEqual(qryIns.Insert(), SQLiteErrorCode.Ok);
 
             // Try again
@@ -266,7 +266,7 @@ namespace UnitTest
             Assert.AreEqual(qrySel.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qrySel.PlatformID, 1);
             Assert.AreEqual(qrySel.Name, "test");
-            Assert.AreEqual(qrySel.GameCount, 10);
+            Assert.AreEqual(qrySel.Description, "PlatformID 1");
             Assert.IsFalse(qrySel.Fetch()); // Only one row found
         }
 
@@ -282,19 +282,19 @@ namespace UnitTest
             Assert.AreEqual(qrySel.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qrySel.PlatformID, 1);
             Assert.AreEqual(qrySel.Name, "test");
-            Assert.AreEqual(qrySel.GameCount, 10);
+            Assert.AreEqual(qrySel.Description, "PlatformID 1");
 
             // Update database row
             CTest_UpdateQry qryUpd = new CTest_UpdateQry();
             qryUpd.PlatformID = 1;
-            qryUpd.GameCount = 100;
+            qryUpd.Description = "Updated PlatformID 1";
             Assert.AreEqual(qryUpd.Update(), SQLiteErrorCode.Ok);
 
             // Read again
             Assert.AreEqual(qrySel.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qrySel.PlatformID, 1);
             Assert.AreEqual(qrySel.Name, "test");
-            Assert.AreEqual(qrySel.GameCount, 100);
+            Assert.AreEqual(qrySel.Description, "Updated PlatformID 1");
             Assert.IsFalse(qrySel.Fetch());
         }
 
@@ -310,7 +310,7 @@ namespace UnitTest
             Assert.AreEqual(qrySel.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qrySel.PlatformID, 1);
             Assert.AreEqual(qrySel.Name, "test");
-            Assert.AreEqual(qrySel.GameCount, 10);
+            Assert.AreEqual(qrySel.Description, "PlatformID 1");
 
             // Delete database row
             CTest_DeleteQry qryDel = new CTest_DeleteQry();
@@ -327,16 +327,16 @@ namespace UnitTest
         [TestMethod]
         public void Test_E_ReadManyColumns()
         {
-            CSqlDB.Instance.Execute("insert into Platform (PlatformID, Name, GameCount) VALUES (2, 'test 2', 20)");
+            CSqlDB.Instance.Execute("insert into Platform (PlatformID, Name, Description) VALUES (2, 'test 2', 'PlatformID 2')");
             CTest_SelectManyQry qry = new CTest_SelectManyQry();
             Assert.AreEqual(qry.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qry.PlatformID, 1);
             Assert.AreEqual(qry.Name, "test");
-            Assert.AreEqual(qry.GameCount, 10);
+            Assert.AreEqual(qry.Description, "PlatformID 1");
             Assert.IsTrue(qry.Fetch());
             Assert.AreEqual(qry.PlatformID, 2);
             Assert.AreEqual(qry.Name, "test 2");
-            Assert.AreEqual(qry.GameCount, 20);
+            Assert.AreEqual(qry.Description, "PlatformID 2");
         }
 
         /// <summary>
@@ -351,13 +351,13 @@ namespace UnitTest
             Assert.AreEqual(qrySel.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qrySel.PlatformID, 1);
             Assert.AreEqual(qrySel.Name, "test");
-            Assert.AreEqual(qrySel.GameCount, 10);
+            Assert.AreEqual(qrySel.Description, "PlatformID 1");
 
             // Insert into database
             CTest_InsertQry qryIns = new CTest_InsertQry();
             qryIns.PlatformID = 1;
             qryIns.Name = "test";
-            qryIns.GameCount = 10;
+            qryIns.Description = "PlatformID 1";
             Assert.AreNotEqual(qryIns.Insert(), SQLiteErrorCode.Ok);
         }
 
@@ -371,12 +371,12 @@ namespace UnitTest
 
             // Find data that does not exist (should fail)
             qry.Name = "test";
-            qry.GameCount = 100;
+            qry.Description = "PlatformID 2";
             Assert.AreEqual(qry.Select(), SQLiteErrorCode.NotFound);
 
             // Find data that does exist
             qry.Name = "test";
-            qry.GameCount = 10;
+            qry.Description = "PlatformID 1";
             Assert.AreEqual(qry.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qry.PlatformID, 1);
         }
@@ -397,7 +397,7 @@ namespace UnitTest
             // Insert new row
             qry.PlatformID = 10;
             qry.Name = "test 10";
-            qry.GameCount = 100;
+            qry.Description = "PlatformID 10";
             Assert.AreEqual(qry.Insert(), SQLiteErrorCode.Ok);
             qry.ClearFields();
 
@@ -406,7 +406,7 @@ namespace UnitTest
             Assert.AreEqual(qry.Select(), SQLiteErrorCode.Ok);
             Assert.AreEqual(qry.PlatformID, 10);
             Assert.AreEqual(qry.Name, "test 10");
-            Assert.AreEqual(qry.GameCount, 100);
+            Assert.AreEqual(qry.Description, "PlatformID 10");
             qry.ClearFields();
 
             // Delete new row
