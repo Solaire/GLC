@@ -1,8 +1,5 @@
 # GLC
 ## (GameLauncher Console)
-Forked from Solaire/GameHub
-
-<https://github.com/Solaire/GameHub>
 
 This is a simple program that will scan the system for video games, then allow the user to launch any of these games from a single location - without having to store the icons on the desktop, or launching a dedicated client such as Steam or Epic. The program supports the following platforms:
 - Amazon Games;
@@ -58,7 +55,7 @@ You can support the project in the following ways:
 - Raise suggestions;
 - Fork the repo, make some changes and submit a PR.
 
-## Differences between Nutzzz/GLC fork and Solaire/GameHub upstream
+## Version 1.1.0
 ### CHANGES:
 - Change name back to "GameLauncher Console," change .exe to GLC for convenience
   - Note that tkashkin/GameHub (a Linux GUI game launcher) pre-existed the GameHub name change
