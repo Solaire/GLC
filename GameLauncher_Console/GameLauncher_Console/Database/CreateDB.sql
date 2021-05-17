@@ -1,6 +1,7 @@
 -- Create tables --
 
 CREATE TABLE "SystemAttribute" (
+	"SystemFK"			INTEGER,
 	"AttributeName"		varchar(50),
 	"AttributeIndex"	INTEGER,
 	"AttributeValue"	varchar(255)

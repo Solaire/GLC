@@ -204,12 +204,16 @@ namespace GameLauncher_Console
         /// </summary>
         public enum QryFlag
         {
-            cSelRead  = 0x01,
-            cUpdWrite = 0x02,
-            cInsWrite = 0x04,
-            cSelWhere = 0x10,
-            cUpdWhere = 0x20,
-            cDelWhere = 0x40,
+            cSelRead  = 0x01, // Read field
+            cUpdWrite = 0x02, // Update field
+            cInsWrite = 0x04, // Insert field
+            cSelWhere = 0x10, // SELECT WHERE field
+            cUpdWhere = 0x20, // UPDATE WHERE field
+            cDelWhere = 0x40, // DELETE WHERE field
+
+            cReadWrite  = 0x0f, // All read/write flags
+            cWhere      = 0xf0, // All where flags
+            cAll        = 0xff,
         }
 
         public readonly string  m_columnName;
@@ -402,7 +406,7 @@ namespace GameLauncher_Console
             string whereCondition = "";
             foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                if((field.Value.m_qryFlag & whereFlag) == 0)
+                if((field.Value.m_qryFlag & whereFlag) == 0 || field.Value.String.Length == 0)
                 {
                     continue;
                 }
@@ -569,6 +573,118 @@ namespace GameLauncher_Console
                 }
             }
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Class for handling Attribute tables
+    /// Provide a table name without the attribute (ie. Game) and the 'Attribute' will be added in the construction
+    /// MasterID (foreign key) must be specified before first use
+    /// 
+    /// TODOs:
+    ///     When adding a new value, override the first index or increment the index and add
+    ///     Support for more types
+    /// </summary>
+    public class CDbAttribute
+    {
+        /// <summary>
+        /// Inner class providing a qury definition for the attribute tables
+        /// </summary>
+        protected class CQryAttribute : CSqlQry
+        {
+            private string m_columnFK;
+            public CQryAttribute(string table) : base(table + "Attribute")
+            {
+                m_columnFK = table + "FK";
+                m_fields[m_columnFK]        = new CSqlFieldInteger(m_columnFK, CSqlField.QryFlag.cAll);
+                m_fields["AttributeName"]   = new CSqlFieldString("AttributeName"   , CSqlField.QryFlag.cAll);
+                m_fields["AttributeIndex"]  = new CSqlFieldInteger("AttributeIndex" , CSqlField.QryFlag.cAll);
+                m_fields["AttributeValue"]  = new CSqlFieldString("AttributeValue"  , CSqlField.QryFlag.cAll);
+            }
+            public int ForeignKey
+            {
+                get { return m_fields[m_columnFK].Integer; }
+                set { m_fields[m_columnFK].Integer = value; }
+            }
+            public string AttributeName
+            {
+                get { return m_fields["AttributeName"].String; }
+                set { m_fields["AttributeName"].String = value; }
+            }
+            public int AttributeIndex
+            {
+                get { return m_fields["AttributeIndex"].Integer; }
+                set { m_fields["AttributeIndex"].Integer = value; }
+            }
+            public string AttributeValue
+            {
+                get { return m_fields["AttributeValue"].String; }
+                set { m_fields["AttributeValue"].String = value; }
+            }
+        }
+        private CQryAttribute m_qry;
+
+        public int MasterID { get; set; }
+
+        public CDbAttribute(string table)
+        {
+            m_qry = new CQryAttribute(table);
+        }
+
+        /// <summary>
+        /// Retrieve a single attribute value
+        /// </summary>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="attributeIndex">The attribute index. Default = 0</param>
+        /// <returns>AttributeVaue matching the query, or empty string if not found</returns>
+        public string GetStringValue(string attributeName, int attributeIndex = 0)
+        {
+            m_qry.ClearFields();
+            m_qry.ForeignKey        = MasterID;
+            m_qry.AttributeName     = attributeName;
+            m_qry.AttributeIndex    = attributeIndex;
+            m_qry.Select();
+            return m_qry.AttributeValue;
+        }
+
+        /// <summary>
+        /// Retrieve an array of attribute values based on the attribute name
+        /// </summary>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns>String array with attribute values (in index order), or empty array if nothing</returns>
+        public string[] GetStringValues(string attributeName)
+        {
+            List<string> response = new List<string>();
+            m_qry.ClearFields();
+            m_qry.ForeignKey    = MasterID;
+            m_qry.AttributeName = attributeName;
+            if(m_qry.Select() != SQLiteErrorCode.Ok)
+            {
+                return response.ToArray(); // Empty array
+            }
+
+            do
+            {
+                response.Add(m_qry.AttributeValue);
+            } while(m_qry.Fetch());
+            return response.ToArray();
+        }
+
+        /// <summary>
+        /// Insert an attribute
+        /// </summary>
+        /// <param name="attributeName">Attribute name</param>
+        /// <param name="attributeValue">Attribute value</param>
+        /// <param name="attributeIndex">Attribute index. Default = 0</param>
+        /// <returns>SQL success/fail status code</returns>
+        public SQLiteErrorCode SetStringValue(string attributeName, string attributeValue, int attributeIndex = 0)
+        {
+            m_qry.ClearFields();
+            m_qry.ForeignKey     = MasterID;
+            m_qry.AttributeName  = attributeName;
+            m_qry.AttributeIndex = attributeIndex;
+            m_qry.AttributeValue = attributeValue;
+            return m_qry.Insert();
         }
     }
 }

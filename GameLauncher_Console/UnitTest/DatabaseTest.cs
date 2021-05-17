@@ -13,9 +13,9 @@ namespace UnitTest
     /// </summary>
     public static class CTest_Setup
     {
-        private static bool m_loggerInitialised = false;
-        private static bool m_databaseDeleted   = false;
-        private static bool m_databaseOpened    = false;
+        private static bool LoggerInit { get; set; }
+        private static bool RemovedDB  { get; set; }
+        private static bool OpenedDB   { get; set; }
 
         private const string SQL_TEST_DATA_SOURCE = "test.db";
 
@@ -24,7 +24,7 @@ namespace UnitTest
         /// </summary>
         public static void InitLogger()
         {
-            if(m_loggerInitialised)
+            if(LoggerInit)
             {
                 return;
             }
@@ -34,7 +34,7 @@ namespace UnitTest
 #endif
             CLogger.Configure(Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]) + ".log"); // Create a log file
             CLogger.LogInfo("*************************");
-            m_loggerInitialised = true;
+            LoggerInit = true;
         }
 
         /// <summary>
@@ -42,9 +42,9 @@ namespace UnitTest
         /// </summary>
         public static void DatabaseSetup()
         {
-            if(!m_databaseOpened && CSqlDB.Instance.Open(true, SQL_TEST_DATA_SOURCE) == SQLiteErrorCode.Ok)
+            if(!OpenedDB && CSqlDB.Instance.Open(true, SQL_TEST_DATA_SOURCE) == SQLiteErrorCode.Ok)
             {
-                m_databaseOpened = true;
+                OpenedDB = true;
             }
             CSqlDB.Instance.Execute("DELETE FROM Platform");
             CSqlDB.Instance.Execute("insert into Platform (PlatformID, Name, Description) VALUES (1, 'test', 'PlatformID 1')");
@@ -55,7 +55,7 @@ namespace UnitTest
         /// </summary>
         public static void RemoveDatabase()
         {
-            if(m_databaseDeleted)
+            if(RemovedDB)
             {
                 return;
             }
@@ -63,7 +63,7 @@ namespace UnitTest
             {
                 File.Delete(SQL_TEST_DATA_SOURCE);
             }
-            m_databaseDeleted = true;
+            RemovedDB = true;
         }
     }
 
@@ -265,7 +265,7 @@ namespace UnitTest
         /// Open database
         /// </summary>
         [TestMethod]
-        public void Test_A_CreateDB()
+        public void Test_CreateDB()
         {
             Assert.IsTrue(CSqlDB.Instance.IsOpen());
         }
@@ -274,7 +274,7 @@ namespace UnitTest
         /// Insert row into the database
         /// </summary>
         [TestMethod]
-        public void Test_B_InsertRow()
+        public void Test_InsertRow()
         {
             // Clear Platform table
             string qry = "DELETE FROM Platform";
@@ -305,7 +305,7 @@ namespace UnitTest
         /// Update a row in the database
         /// </summary>
         [TestMethod]
-        public void Test_C_UpdateRow()
+        public void Test_UpdateRow()
         {
             // Get initial row
             CTest_SelectQry qrySel = new CTest_SelectQry();
@@ -333,7 +333,7 @@ namespace UnitTest
         /// Delete row from the database
         /// </summary>
         [TestMethod]
-        public void Test_D_DeleteRow()
+        public void Test_DeleteRow()
         {
             // Get initial row
             CTest_SelectQry qrySel = new CTest_SelectQry();
@@ -356,7 +356,7 @@ namespace UnitTest
         /// Select multiple columnns from the database
         /// </summary>
         [TestMethod]
-        public void Test_E_ReadManyColumns()
+        public void Test_ReadManyColumns()
         {
             CSqlDB.Instance.Execute("insert into Platform (PlatformID, Name, Description) VALUES (2, 'test 2', 'PlatformID 2')");
             CTest_SelectManyQry qry = new CTest_SelectManyQry();
@@ -374,7 +374,7 @@ namespace UnitTest
         /// Insert a row with a duplicate PK into the DB
         /// </summary>
         [TestMethod]
-        public void Test_F_InsertDuplicateValue()
+        public void Test_InsertDuplicateValue()
         {
             // Read from database
             CTest_SelectQry qrySel = new CTest_SelectQry();
@@ -396,7 +396,7 @@ namespace UnitTest
         /// Select row from database with a multi-param WHERE clause
         /// </summary>
         [TestMethod]
-        public void Test_G_MultiSelectQuery()
+        public void Test_MultiSelectQuery_TwoParams()
         {
             CTest_SelectMultiParamQry qry = new CTest_SelectMultiParamQry();
 
@@ -413,10 +413,30 @@ namespace UnitTest
         }
 
         /// <summary>
+        /// Select row from database with a multi-param WHERE clause
+        /// Test when only one of the fields is used for SELECT
+        /// </summary>
+        [TestMethod]
+        public void Test_MultiSelectQuery_OneParam()
+        {
+            CTest_SelectMultiParamQry qry = new CTest_SelectMultiParamQry();
+
+            // Find data that does not exist (should fail)
+            qry.Name = "test";
+            qry.Description = "PlatformID 2";
+            Assert.AreEqual(qry.Select(), SQLiteErrorCode.NotFound);
+
+            // Find data that does exist
+            qry.Description = "PlatformID 1";
+            Assert.AreEqual(qry.Select(), SQLiteErrorCode.Ok);
+            Assert.AreEqual(qry.PlatformID, 1);
+        }
+
+        /// <summary>
         /// Test a query class designed to insert, select and delete data
         /// </summary>
         [TestMethod]
-        public void Test_H_MultiPurposeQuery()
+        public void Test_MultiPurposeQuery()
         {
             CTest_MultiQry qry = new CTest_MultiQry();
 
@@ -448,6 +468,36 @@ namespace UnitTest
             // Try to read again (should fail)
             qry.PlatformID = 10;
             Assert.AreEqual(qry.Select(), SQLiteErrorCode.NotFound);
+        }
+
+        /// <summary>
+        /// Test the CDbAttribute class
+        /// </summary>
+        [TestMethod]
+        public void Test_AttributeTable()
+        {
+            // Add a game
+
+            Assert.AreEqual(CSqlDB.Instance.Execute("INSERT INTO Game (GameID, Identifier, Title, Alias, Launch) VALUES (1, 'testID', 'Test Game', 'test', 'test.exe')"), SQLiteErrorCode.Ok);
+
+            CDbAttribute gameAttribute = new CDbAttribute("Game");
+            gameAttribute.MasterID = 1;
+
+            Assert.AreEqual(gameAttribute.SetStringValue("TEST_ATTRIBUTE", "TEST_VALUE", 0), SQLiteErrorCode.Ok); // Insert first attribute
+            Assert.AreEqual(gameAttribute.GetStringValue("TEST_ATTRIBUTE", 0), "TEST_VALUE");  // Read
+            Assert.AreEqual(gameAttribute.GetStringValue("TEST_ATTRIBUTE", 1), "");            // Read with different index
+            Assert.AreEqual(gameAttribute.GetStringValue("NOT_EXIST"     , 0), "");            // Read different attribute name
+            string[] multiple = gameAttribute.GetStringValues("TEST_ATTRIBUTE");               // Read all matching attribute name
+            Assert.AreEqual(multiple.Length, 1);
+            Assert.AreEqual(multiple[0], "TEST_VALUE");
+
+            Assert.AreEqual(gameAttribute.SetStringValue("TEST_ATTRIBUTE", "TEST_VALUE_2", 1), SQLiteErrorCode.Ok); // Insert second attribute
+            Assert.AreEqual(gameAttribute.GetStringValue("TEST_ATTRIBUTE", 0), "TEST_VALUE");   // Read
+            Assert.AreEqual(gameAttribute.GetStringValue("TEST_ATTRIBUTE", 1), "TEST_VALUE_2"); // Read with different index
+            multiple = gameAttribute.GetStringValues("TEST_ATTRIBUTE");                         // Read all matching attribute name
+            Assert.AreEqual(multiple.Length, 2);
+            Assert.AreEqual(multiple[0], "TEST_VALUE");
+            Assert.AreEqual(multiple[1], "TEST_VALUE_2");
         }
     }
 }
