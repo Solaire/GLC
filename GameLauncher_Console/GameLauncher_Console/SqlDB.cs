@@ -1,4 +1,5 @@
 ﻿using Logger;
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
@@ -118,6 +119,12 @@ namespace GameLauncher_Console
             return SQLiteErrorCode.Ok;
         }
 
+        /// <summary>
+        /// Execure SQL select statement
+        /// </summary>
+        /// <param name="qry">The SQL query</param>
+        /// <param name="dataReader">SQLiteDataReader which contains the SELECT result</param>
+        /// <returns>SQL success/failure status code</returns>
         public SQLiteErrorCode ExecuteRead(string qry, out SQLiteDataReader dataReader)
         {
             SQLiteCommand cmd;
@@ -136,278 +143,383 @@ namespace GameLauncher_Console
             }
             return SQLiteErrorCode.Ok;
         }
-
         private SQLiteConnection m_sqlite_conn;
     }
 
-    public struct CSqlField
+    /// <summary>
+    /// Abstract base class for SQL fields
+    /// </summary>
+    public abstract class CSqlField
     {
         /// <summary>
-        /// Flags to describe the field's value type (string, bool, etc)
+        /// Flags to describe the field's part in the query
+        /// Will be used during statement construction
         /// </summary>
-        public enum FieldType
-        {
-            cTypeInteger,
-            cTypeDouble,
-            cTypeString,
-            cTypeBit
-        }
-
-        /// <summary>
-        /// Flags to describe the field's position in the query (part of SELECT, WHERE, etc)
-        /// </summary>
-        public enum QueryFlag
+        public enum QryFlag
         {
             cSelRead  = 0x01,
             cInsWrite = 0x02,
             cUpdWrite = 0x08,
-            cSelWhere = 0x10,
-            cInsWhere = 0x20,
-            cUpdWhere = 0x40,
-            cDelWhere = 0x80,
-
-            cCondition = 0xf0,
+            cWhere    = 0xf0,
         }
 
-        public string m_columnName;
-        public string m_columnValue; // Initial string, will be converted to the appropriate type
-        public QueryFlag m_qryFlag;
-        public FieldType m_fieldType;
+        public readonly string  m_columnName;
+        public readonly QryFlag m_qryFlag;
+        public string           m_value;
 
-        public CSqlField(string column, QueryFlag flag, FieldType type)
+        protected CSqlField(string columnName, QryFlag qryFlag)
         {
-            m_columnName    = column;
-            m_columnValue   = "";
-            m_qryFlag       = flag;
-            m_fieldType     = type;
+            m_columnName    = columnName;
+            m_qryFlag       = qryFlag;
+            m_value         = "";
         }
 
-        public int Int()
+        public TypeCode Type { get; protected set; }
+
+        public string String 
         {
-            int ret;
-            int.TryParse(m_columnValue, out ret);
-            return ret;
+            get { return m_value;  }
+            set { m_value = value; }
         }
 
-        public string String()
+        public int Integer
         {
-            return m_columnValue;
+            get
+            {
+                int i;
+                Int32.TryParse(m_value, out i);
+                return i;
+            }
+            set { m_value = value.ToString(); }
         }
 
-        public bool Bool()
+        public double Double
         {
-            return m_columnValue == "1";
+            get
+            {
+                double d;
+                double.TryParse(m_value, out d);
+                return d;
+            }
+            set { m_value = value.ToString(); }
+        }
+
+        public bool Bool
+        {
+            get { return m_value == "1"; }
+            set
+            {
+                if(value)
+                {
+                    m_value = "1";
+                }
+                else
+                {
+                    m_value = "0";
+                }
+            }
+        }
+    }
+
+    public class CSqlFieldString : CSqlField
+    {
+        public CSqlFieldString(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
+        {
+            Type = TypeCode.String;
+            String = "";
+        }
+    }
+
+    public class CSqlFieldInteger : CSqlField
+    {
+        public CSqlFieldInteger(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
+        {
+            Type = TypeCode.Int32;
+            Integer = 0;
+        }
+    }
+
+    public class CSqlFieldDouble : CSqlField
+    {
+        public CSqlFieldDouble(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
+        {
+            Type = TypeCode.Double;
+            Double = 0.0;
+        }
+    }
+
+    public class CSqlFieldBoolean : CSqlField
+    {
+        public CSqlFieldBoolean(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
+        {
+            Type = TypeCode.Boolean;
+            Bool = false;
         }
     }
 
     /// <summary>
     /// Abstract base class for managing SQL queries
+    /// 
+    /// TODOs:
+    ///     Some extra comments/documentation wouldn't hurt
+    ///     Support fot he following:
+    ///         <, <=, >=, >, != , IS NULL, IS NOT NULL, IN (multiple params)
+    ///         ALL JOINS
+    ///         ORDER BY, GROUP BY
+    ///     As of now, this stuff is probably not super important and can be added when needed
     /// </summary>
     public abstract class CSqlQry
     {
-        private string m_qry = ""; // Query body
-        private string m_selectWhereCondition = ""; // Query condition
-        private string m_insertValues = ""; // Values for the insert statement
-        private readonly string m_table;
+        private readonly string m_tableName;
+        protected Dictionary<string, CSqlField> m_fields;
+        private SQLiteDataReader m_selectResult;
 
         protected CSqlQry(string table)
         {
-            m_table = table;
+            m_tableName = table;
+            m_selectResult = null;
+            m_fields = new Dictionary<string, CSqlField>();
         }
 
-        /// <summary>
-        /// Initialise the query and select condtions
-        /// </summary>
-        /// <param name="fields">Array of SQL fields</param>
-        protected void InitialiseQuery(CSqlField[] fields)
+        public void ClearFields()
         {
-            List<CSqlField> noCondition = new List<CSqlField>(); // Contains all standard fields
-            List<CSqlField> condition = new List<CSqlField>(); // Contains all fields which are part of a WHERE clause
-            foreach(CSqlField field in fields)
+            m_selectResult = null;
+            foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                // Check each field to see if it's conditional (part of WHERE) or not.
-                // NOTE: The field can be both
-                if((field.m_qryFlag & CSqlField.QueryFlag.cCondition) > 0)
-                {
-                    condition.Add(field);
-                }
-                if((field.m_qryFlag & (~CSqlField.QueryFlag.cCondition)) > 0)
-                {
-                    noCondition.Add(field);
-                }
-            }
-
-            for(int i = 0; i < noCondition.Count; i++)
-            {
-                m_qry += noCondition[i].m_columnName;
-                if(noCondition[i].m_columnValue.Length > 0)
-                {
-                    m_qry += " = ";
-                    if(noCondition[i].m_fieldType == CSqlField.FieldType.cTypeString)
-                    {
-                        m_qry += "'";
-                        m_qry += noCondition[i].m_columnValue;
-                        m_qry += "'";
-                    }
-                    else
-                    {
-                        m_qry += noCondition[i].m_columnValue;
-                    }
-                }
-                if(i != noCondition.Count - 1)
-                {
-                    m_qry += ", ";
-                }
+                field.Value.String = "";
             }
         }
 
         /// <summary>
-        /// Execure INSERT query
+        /// Prepare the main statement body
         /// </summary>
-        /// <returns>SQL success/failure status code</returns>
-        public virtual SQLiteErrorCode Insert()
+        private string PrepareMainStatement(CSqlField.QryFlag stmtFlag)
         {
-            string query = "INSERT INTO " + m_table + " (" + m_qry + ") ";
-            if(m_insertValues.Length > 0)
+            string query = "";
+            foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                query += " VALUES (" + m_insertValues + ") ";
+                if((field.Value.m_qryFlag & stmtFlag) == 0)
+                {
+                    continue;
+                }
+                if (query.Length > 0)
+                {
+                    query += ", ";
+                }
+                query += field.Key;
             }
-            return CSqlDB.Instance.Execute(query);
+            return query;
         }
 
         /// <summary>
-        /// Execure SELECT query
+        /// Prepare values for the INSERT statement
         /// </summary>
-        /// <returns>SQL success/failure status code</returns>
-        public virtual SQLiteErrorCode Select(CSqlField[] fields)
+        private string PrepareInsertStatement()
         {
-            string query = "SELECT " + m_qry + " FROM " + m_table;
-            if (m_selectWhereCondition.Length > 0)
+            string insertValues = "";
+            foreach(KeyValuePair<string, CSqlField> field in m_fields)
             {
-                query += " WHERE " + m_selectWhereCondition;
-            }
-            SQLiteDataReader reader;
-            SQLiteErrorCode err = CSqlDB.Instance.ExecuteRead(query, out reader);
-            if(reader != null && err == SQLiteErrorCode.Ok)
-            {
-                int limit = 0;
-                int col = 0;
-                reader.Read(); // Only once for now TODO:
+                if ((field.Value.m_qryFlag & CSqlField.QryFlag.cInsWrite) == 0)
                 {
-                    limit = reader.FieldCount;
-                    for(int i = 0; i < fields.Length; i++)
-                    {
-                        if(reader.GetName(col) == fields[i].m_columnName)
-                        {
-                            switch(fields[i].m_fieldType)
-                            {
-                                case CSqlField.FieldType.cTypeBit:
-                                    fields[i].m_columnValue = reader.GetBoolean(col).ToString();
-                                    break;
+                    continue;
+                }
+                if (insertValues.Length > 0)
+                {
+                    insertValues += ", ";
+                }
+                if(field.Value.Type == TypeCode.String)
+                {
+                    insertValues += "'";
+                    insertValues += field.Value.String;
+                    insertValues += "'";
+                }
+                else if(field.Value.Type == TypeCode.Double)
+                {
+                    insertValues += field.Value.Double;
+                }
+                else // Bool fields are 0/1
+                {
+                    insertValues += field.Value.Integer;
+                }
+            }
+            return insertValues;
+        }
 
-                                case CSqlField.FieldType.cTypeDouble:
-                                    fields[i].m_columnValue = reader.GetDouble(col).ToString();
-                                    break;
+        /// <summary>
+        /// Prepare values for the query condition
+        /// </summary>
+        private string PrepareWhereStatement()
+        {
+            string whereCondition = "";
+            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            {
+                if((field.Value.m_qryFlag & CSqlField.QryFlag.cWhere) == 0)
+                {
+                    continue;
+                }
+                if(whereCondition.Length > 0)
+                {
+                    whereCondition += " AND ";
+                }
+                whereCondition += field.Key;
+                whereCondition += " = ";
+                if(field.Value.Type == TypeCode.String)
+                {
+                    whereCondition += "'";
+                    whereCondition += field.Value.String;
+                    whereCondition += "'";
+                }
+                else if(field.Value.Type == TypeCode.Double)
+                {
+                    whereCondition += field.Value.Double;
+                }
+                else // Bool fields are 0/1
+                {
+                    whereCondition += field.Value.Integer;
+                }
+            }
+            return whereCondition;
+        }
 
-                                case CSqlField.FieldType.cTypeInteger:
-                                    fields[i].m_columnValue = reader.GetInt32(col).ToString();
-                                    break;
+        /// <summary>
+        /// Prepare the main statement body
+        /// </summary>
+        private string PrepareUpdateStatement()
+        {
+            string update = "";
+            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            {
+                if ((field.Value.m_qryFlag & CSqlField.QryFlag.cUpdWrite) == 0)
+                {
+                    continue;
+                }
+                if (update.Length > 0)
+                {
+                    update += ", ";
+                }
+                update += field.Key;
+                update += " = ";
+                if (field.Value.Type == TypeCode.String)
+                {
+                    update += "'";
+                    update += field.Value.String;
+                    update += "'";
+                }
+                else if (field.Value.Type == TypeCode.Double)
+                {
+                    update += field.Value.Double;
+                }
+                else // Bool fields are 0/1
+                {
+                    update += field.Value.Integer;
+                }
+            }
+            return update;
+        }
 
-                                case CSqlField.FieldType.cTypeString:
-                                    fields[i].m_columnValue = reader.GetString(col);
-                                    break;
+        /// <summary>
+        /// Prepare and execure SELECT statement
+        /// </summary>
+        /// <returns></returns>
+        public SQLiteErrorCode Select()
+        {
+            m_selectResult = null;
+            string mainStmt = PrepareMainStatement(CSqlField.QryFlag.cSelRead);
+            string whereCondition = PrepareWhereStatement();
 
-                                default:
-                                    break;
-                            }
-                            i++;
-                            col++;
-                        }
-                    }
+            string query = "SELECT " + mainStmt + " FROM " + m_tableName;
+            if(whereCondition.Length > 0)
+            {
+                query += " WHERE " + whereCondition;
+            }
+            SQLiteErrorCode err = CSqlDB.Instance.ExecuteRead(query, out m_selectResult);
+            if(err == SQLiteErrorCode.Ok)
+            {
+                if(!Fetch()) // Perform a fetch on the first row, if available
+                {
+                    return SQLiteErrorCode.NotFound;
                 }
             }
             return err;
         }
 
         /// <summary>
-        /// Execure UPDATE query
+        /// Prepare and execure INSERT statement
         /// </summary>
         /// <returns>SQL success/failure status code</returns>
-        public virtual SQLiteErrorCode Update()
+        public SQLiteErrorCode Insert()
         {
-            string query = "UPDATE " + m_table + " SET " + m_qry;
-            if (m_selectWhereCondition.Length > 0)
+            string mainStmt = PrepareMainStatement(CSqlField.QryFlag.cInsWrite);
+            string insertValues = PrepareInsertStatement();
+
+            string query = "INSERT INTO " + m_tableName + " ( " + mainStmt + ") ";
+            if(insertValues.Length > 0)
             {
-                query += " WHERE " + m_selectWhereCondition;
+                query += " VALUES (" + insertValues + ") ";
             }
             return CSqlDB.Instance.Execute(query);
         }
 
         /// <summary>
-        /// Execure DELETE query
+        /// Prepare and execute UPDATE statement
         /// </summary>
         /// <returns>SQL success/failure status code</returns>
-        public virtual SQLiteErrorCode Delete()
+        public SQLiteErrorCode Update()
         {
-            string query = "DELETE FROM" + m_table;
-            if (m_selectWhereCondition.Length > 0)
+            string mainStmt = PrepareUpdateStatement();
+            string whereCondition = PrepareWhereStatement();
+
+            string query = "UPDATE " + m_tableName + " SET " + mainStmt;
+            if (whereCondition.Length > 0)
             {
-                query += " WHERE " + m_selectWhereCondition;
+                query += " WHERE " + whereCondition;
             }
             return CSqlDB.Instance.Execute(query);
         }
 
-        protected void PrepareInsertStmt(CSqlField[] fields)
+        /// <summary>
+        /// Prepare and execure DELETE statement
+        /// </summary>
+        /// <returns>SQL success/failure status code</returns>
+        public SQLiteErrorCode Delete()
         {
-            for (int i = 0; i < fields.Length; i++)
+            m_selectResult = null;
+            string whereCondition = PrepareWhereStatement();
+
+            string query = "DELETE FROM " + m_tableName;
+            if(whereCondition.Length > 0)
             {
-                if (fields[i].m_fieldType == CSqlField.FieldType.cTypeString)
-                {
-                    m_insertValues += "'";
-                    m_insertValues += fields[i].m_columnValue;
-                    m_insertValues += "'";
-                }
-                else
-                {
-                    m_insertValues += fields[i].m_columnValue;
-                }
-                if (i != fields.Length - 1)
-                {
-                    m_insertValues += ", ";
-                }
+                query += " WHERE " + whereCondition;
             }
+            return CSqlDB.Instance.Execute(query);
         }
 
-        protected void PrepareSelectStmt(CSqlField[] fields)
+        /// <summary>
+        /// Fetch the next row from the select result
+        /// </summary>
+        /// <returns><c>false</c>if reached end of results, otherwise <c>true</c></returns>
+        public bool Fetch()
         {
-            for (int i = 0; i < fields.Length; i++)
+            if(m_selectResult == null)
             {
-                if ((fields[i].m_qryFlag & (CSqlField.QueryFlag.cCondition)) == 0)
-                {
-                    continue;
-                }
+                return false;
+            }
+            if(!m_selectResult.Read()) // End of results.
+            {
+                m_selectResult = null;
+                ClearFields();
+                return false;
+            }
 
-                if (m_selectWhereCondition.Length > 0)
+            // Get the values
+            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            {
+                if((field.Value.m_qryFlag & CSqlField.QryFlag.cSelRead) > 0)
                 {
-                    m_selectWhereCondition += " AND ";
-                }
-
-                m_selectWhereCondition += fields[i].m_columnName;
-                if (fields[i].m_columnValue.Length > 0)
-                {
-                    m_selectWhereCondition += " = ";
-                    if (fields[i].m_fieldType == CSqlField.FieldType.cTypeString)
-                    {
-                        m_selectWhereCondition += "'";
-                        m_selectWhereCondition += fields[i].m_columnValue;
-                        m_selectWhereCondition += "'";
-                    }
-                    else
-                    {
-                        m_selectWhereCondition += fields[i].m_columnValue;
-                    }
+                    field.Value.String = m_selectResult[field.Key].ToString();
                 }
             }
+            return true;
         }
     }
 }
