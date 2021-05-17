@@ -10,11 +10,18 @@ namespace UnitTest
 {
     /// <summary>
     /// Class for setting up tests
-    /// Currently only used to set up the logger
     /// </summary>
     public static class CTest_Setup
     {
         private static bool m_loggerInitialised = false;
+        private static bool m_databaseDeleted   = false;
+        private static bool m_databaseOpened    = false;
+
+        private const string SQL_TEST_DATA_SOURCE = "test.db";
+
+        /// <summary>
+        /// Initialise log file
+        /// </summary>
         public static void InitLogger()
         {
             if(m_loggerInitialised)
@@ -30,10 +37,33 @@ namespace UnitTest
             m_loggerInitialised = true;
         }
 
-        public static void PrepatePlatformTable()
+        /// <summary>
+        /// Setup test database tables and data
+        /// </summary>
+        public static void DatabaseSetup()
         {
+            if(!m_databaseOpened && CSqlDB.Instance.Open(true, SQL_TEST_DATA_SOURCE) == SQLiteErrorCode.Ok)
+            {
+                m_databaseOpened = true;
+            }
             CSqlDB.Instance.Execute("DELETE FROM Platform");
             CSqlDB.Instance.Execute("insert into Platform (PlatformID, Name, Description) VALUES (1, 'test', 'PlatformID 1')");
+        }
+
+        /// <summary>
+        /// Delete database file
+        /// </summary>
+        public static void RemoveDatabase()
+        {
+            if(m_databaseDeleted)
+            {
+                return;
+            }
+            if(File.Exists(SQL_TEST_DATA_SOURCE))
+            {
+                File.Delete(SQL_TEST_DATA_SOURCE);
+            }
+            m_databaseDeleted = true;
         }
     }
 
@@ -73,7 +103,7 @@ namespace UnitTest
     {
         public CTest_SelectQry() : base("Platform")
         {
-            m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cWhere);
+            m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cSelWhere);
             m_fields["Name"]       = new CSqlFieldString("Name", QryFlag.cSelRead);
             m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cSelRead);
         }
@@ -101,7 +131,7 @@ namespace UnitTest
     {
         public CTest_UpdateQry() : base("Platform")
         {
-            m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cWhere);
+            m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cUpdWhere);
             m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cUpdWrite);
         }
         public int PlatformID
@@ -123,7 +153,7 @@ namespace UnitTest
     {
         public CTest_DeleteQry() : base("Platform")
         {
-            m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cWhere);
+            m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cDelWhere);
         }
         public int PlatformID
         {
@@ -168,8 +198,8 @@ namespace UnitTest
         public CTest_SelectMultiParamQry() : base("Platform")
         {
             m_fields["PlatformID"] = new CSqlFieldInteger("PlatformID", QryFlag.cSelRead);
-            m_fields["Name"] = new CSqlFieldString("Name", QryFlag.cWhere);
-            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cWhere);
+            m_fields["Name"] = new CSqlFieldString("Name", QryFlag.cSelWhere);
+            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cSelWhere);
         }
         public int PlatformID
         {
@@ -195,9 +225,9 @@ namespace UnitTest
     {
         public CTest_MultiQry() : base("Platform")
         {
-            m_fields["PlatformID"]  = new CSqlFieldInteger("PlatformID",    QryFlag.cWhere | QryFlag.cInsWrite);
-            m_fields["Name"]        = new CSqlFieldString("Name",           QryFlag.cSelRead | QryFlag.cUpdWrite | QryFlag.cInsWrite);
-            m_fields["Description"] = new CSqlFieldString("Description", QryFlag.cSelRead | QryFlag.cUpdWrite | QryFlag.cInsWrite);
+            m_fields["PlatformID"]  = new CSqlFieldInteger("PlatformID",    QryFlag.cInsWrite | QryFlag.cSelWhere | QryFlag.cUpdWhere | QryFlag.cDelWhere);
+            m_fields["Name"]        = new CSqlFieldString("Name",           QryFlag.cSelRead  | QryFlag.cUpdWrite | QryFlag.cInsWrite);
+            m_fields["Description"] = new CSqlFieldString("Description",    QryFlag.cSelRead  | QryFlag.cUpdWrite | QryFlag.cInsWrite);
         }
         public int PlatformID
         {
@@ -227,11 +257,12 @@ namespace UnitTest
         public void Initialise()
         {
             CTest_Setup.InitLogger();
-            CTest_Setup.PrepatePlatformTable();
+            CTest_Setup.RemoveDatabase();
+            CTest_Setup.DatabaseSetup(); // This is pretty much our test for creating a database and populating it with data, if this fails all tests will fail
         }
 
         /// <summary>
-        /// Create database called 'database.db' and populate with schema information
+        /// Open database
         /// </summary>
         [TestMethod]
         public void Test_A_CreateDB()

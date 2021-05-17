@@ -17,7 +17,7 @@ namespace GameLauncher_Console
     /// </summary>
     public sealed class CSqlDB
     {
-        private const string SQL_DATA_SOURCE = "database.db";
+        private const string SQL_MAIN_DATA_SOURCE = "database.db";
         private static CSqlDB m_instance = new CSqlDB();
 
         public static CSqlDB Instance
@@ -28,9 +28,34 @@ namespace GameLauncher_Console
             }
         }
 
+        /// <summary>
+        /// Open a separate data source and return the connection
+        /// </summary>
+        /// <param name="dataSource">Path to the data source</param>
+        /// <returns><c>SQLiteConnection</c> object or <c>null</c> if not found</returns>
+        public static SQLiteConnection OpenSeparateConnection(string dataSource)
+        {
+            if(!File.Exists(dataSource))
+            {
+                return null;
+            }
+            SQLiteConnection connection = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=False;Compress=True;");
+            try
+            {
+                CLogger.LogInfo("Connecting to Data Source " + dataSource);
+                connection.Open();
+            }
+            catch (SQLiteException e)
+            {
+                CLogger.LogWarn("ERROR: Database connection could not be established: " + e.ResultCode);
+                return null;
+            }
+            return connection;
+        }
+
         static CSqlDB()
         {
-
+            
         }
 
         /// <summary>
@@ -38,7 +63,7 @@ namespace GameLauncher_Console
         /// </summary>
         private CSqlDB()
         {
-            Open();
+
         }
 
         /// <summary>
@@ -53,28 +78,33 @@ namespace GameLauncher_Console
         /// <summary>
         /// Create SQLiteConnection and open the data source
         /// </summary>
-        /// <returns>Error code</returns>
-        public SQLiteErrorCode Open()
+        /// <param name="create">If <c>true</c> and data source is not found, create new one and apply schema</param>
+        /// <param name="dataSource">Path to the data source</param>
+        /// <returns>SQL success/failure error code</returns>
+        public SQLiteErrorCode Open(bool create, string dataSource = SQL_MAIN_DATA_SOURCE)
         {
             if (IsOpen())
             {
                 return SQLiteErrorCode.Ok;
             }
 
-            bool exists = File.Exists(SQL_DATA_SOURCE);
-            m_sqlite_conn = new SQLiteConnection("Data source=" + SQL_DATA_SOURCE + ";Version=3;New=False;Compress=True;");
-            try
+            bool exists = File.Exists(dataSource);
+            if(exists || create) // Only open if it's there or if we're making a new one
             {
-                CLogger.LogInfo("Connecting to Data Source " + SQL_DATA_SOURCE);
-                m_sqlite_conn.Open();
-            }
-            catch (SQLiteException e)
-            {
-                CLogger.LogWarn("ERROR: Database connection could not be established: " + e.ResultCode);
-                return e.ResultCode;
+                m_sqlite_conn = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=False;Compress=True;");
+                try
+                {
+                    CLogger.LogInfo("Connecting to Data Source " + dataSource);
+                    m_sqlite_conn.Open();
+                }
+                catch (SQLiteException e)
+                {
+                    CLogger.LogWarn("ERROR: Database connection could not be established: " + e.ResultCode);
+                    return e.ResultCode;
+                }
             }
 
-            if(!exists) // New DB. Apply schema
+            if(create && !exists) // New DB. Apply schema
             {
                 string script;
                 try
@@ -92,7 +122,24 @@ namespace GameLauncher_Console
                     Execute(script);
                 }
             }
+            else
+            {
+                return SQLiteErrorCode.Error;
+            }
+            return MaybeUpdateSchema();
+        }
 
+        /// <summary>
+        /// Check database schema and update if out of data
+        /// </summary>
+        /// <returns>SQL success/failure status code</returns>
+        private SQLiteErrorCode MaybeUpdateSchema()
+        {
+            /* TODOs:
+                    Find the latest 'SCHEMA_VERSION' attribute in SystemAttribute table,
+                    Check if there exist any shecma files with higher version (each schema file should look like this: schema_x.y.z.sql
+                    Apply any schema files in ascending order and update 'SCHEMA_VERSION' attribute
+            */
             return SQLiteErrorCode.Ok;
         }
 
@@ -158,9 +205,11 @@ namespace GameLauncher_Console
         public enum QryFlag
         {
             cSelRead  = 0x01,
-            cInsWrite = 0x02,
-            cUpdWrite = 0x08,
-            cWhere    = 0xf0,
+            cUpdWrite = 0x02,
+            cInsWrite = 0x04,
+            cSelWhere = 0x10,
+            cUpdWhere = 0x20,
+            cDelWhere = 0x40,
         }
 
         public readonly string  m_columnName;
@@ -348,12 +397,12 @@ namespace GameLauncher_Console
         /// <summary>
         /// Prepare values for the query condition
         /// </summary>
-        private string PrepareWhereStatement()
+        private string PrepareWhereStatement(CSqlField.QryFlag whereFlag)
         {
             string whereCondition = "";
             foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                if((field.Value.m_qryFlag & CSqlField.QryFlag.cWhere) == 0)
+                if((field.Value.m_qryFlag & whereFlag) == 0)
                 {
                     continue;
                 }
@@ -425,7 +474,7 @@ namespace GameLauncher_Console
         {
             m_selectResult = null;
             string mainStmt = PrepareMainStatement(CSqlField.QryFlag.cSelRead);
-            string whereCondition = PrepareWhereStatement();
+            string whereCondition = PrepareWhereStatement(CSqlField.QryFlag.cSelWhere);
 
             string query = "SELECT " + mainStmt + " FROM " + m_tableName;
             if(whereCondition.Length > 0)
@@ -467,7 +516,7 @@ namespace GameLauncher_Console
         public SQLiteErrorCode Update()
         {
             string mainStmt = PrepareUpdateStatement();
-            string whereCondition = PrepareWhereStatement();
+            string whereCondition = PrepareWhereStatement(CSqlField.QryFlag.cUpdWhere);
 
             string query = "UPDATE " + m_tableName + " SET " + mainStmt;
             if (whereCondition.Length > 0)
@@ -484,7 +533,7 @@ namespace GameLauncher_Console
         public SQLiteErrorCode Delete()
         {
             m_selectResult = null;
-            string whereCondition = PrepareWhereStatement();
+            string whereCondition = PrepareWhereStatement(CSqlField.QryFlag.cDelWhere);
 
             string query = "DELETE FROM " + m_tableName;
             if(whereCondition.Length > 0)
