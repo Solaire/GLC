@@ -769,6 +769,78 @@ namespace GameLauncher_Console
 		/// Find installed Itch games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetAmazonGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
+		{
+			const string NODE64_REG = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+
+			const string AMAZON_NAME = "Amazon";
+			const string AMAZON_LAUNCH = "amazon-games://play/";
+			const string AMAZON_DB = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
+			string db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_DB;
+			if (!File.Exists(db))
+			{
+				CLogger.LogInfo("{0} database not found.", AMAZON_NAME.ToUpper());
+				return;
+			}
+
+			try
+			{
+				using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+				{
+					con.Open();
+
+					// SELECT path FROM install_locations
+					// SELECT install_folder FROM downloads
+					// SELECT verdict FROM caves
+					using (var cmd = new SQLiteCommand("SELECT Id, InstallDirectory, ProductTitle FROM DbSet", con))
+					{
+						using (SQLiteDataReader rdr = cmd.ExecuteReader())
+						{
+							while (rdr.Read())
+							{
+								string strID = rdr.GetString(0);
+								string strTitle = rdr.GetString(2);
+								CLogger.LogDebug($"* {strTitle}");
+								string strLaunch = AMAZON_LAUNCH + strID;
+								string strIconPath = "";
+								string strUninstall = "";
+
+								using (RegistryKey key = Registry.CurrentUser.OpenSubKey(NODE64_REG + "\\AmazonGames/" + strTitle, RegistryKeyPermissionCheck.ReadSubTree))
+								{
+									strIconPath = CRegScanner.GetRegStrVal(key, "DisplayIcon");
+									strUninstall = CRegScanner.GetRegStrVal(key, "UninstallString");
+								}
+								if (string.IsNullOrEmpty(strIconPath))
+								{
+									if (expensiveIcons)
+										strIconPath = CGameFinder.FindGameBinaryFile(rdr.GetString(1), strTitle);
+								}
+								string strAlias = CRegScanner.GetAlias(strTitle);
+								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Amazon);
+
+								if (!string.IsNullOrEmpty(strLaunch))
+								{
+									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+										strAlias = "";
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+								}
+							}
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+				return;
+			}
+			CLogger.LogDebug("-------------------");
+		}
+
+		/// <summary>
+		/// Find installed Itch games
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetItchGames(List<CRegScanner.RegistryGameData> gameDataList)
 		{
 			const string ITCH_NAME = "itch";

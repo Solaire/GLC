@@ -77,10 +77,13 @@ namespace GameLauncher_Console
 		//private const string BATTLE_NET_REG			= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
 
 		// Amazon Games
-		private const string AMAZON_NAME			= "Amazon";
+		//private const string AMAZON_NAME			= "Amazon";
 		private const string AMAZON_NAME_LONG		= "Amazon Games";
+		/*
 		private const string AMAZON_GAME_FOLDER		= "AmazonGames/";
 		private const string AMAZON_LAUNCH			= "amazon-games://play/";
+		private const string AMAZON_DB				= @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
+		*/
 
 		// Big Fish Games
 		private const string BIGFISH_NAME			= "BigFish";
@@ -213,7 +216,7 @@ namespace GameLauncher_Console
 			{
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", AMAZON_NAME_LONG.ToUpper());
-				GetAmazonGames(gameDataList, bExpensiveIcons);
+				CJsonWrapper.GetAmazonGames(gameDataList, bExpensiveIcons);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", BATTLENET_NAME_LONG.ToUpper());
 				GetBattlenetGames(gameDataList);
@@ -372,62 +375,6 @@ namespace GameLauncher_Console
 				i++;
 				if (i > nLibs)
 					CLogger.LogDebug("---------------------");
-			}
-		}
-
-		/// <summary>
-		/// Find installed Amazon games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetAmazonGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
-
-			using (RegistryKey key = Registry.CurrentUser.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKCU
-			{
-				if (key == null) return;
-
-				//keyList = FindGameKeys(key, AMAZON_GAMES, GAME_UNINSTALL_STRING, new string[] { "" });
-				keyList = FindGameFolders(key, AMAZON_GAME_FOLDER);
-
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, AMAZON_NAME.ToUpper());
-				foreach (var data in keyList)
-				{
-					string icon = GetRegStrVal(data, GAME_DISPLAY_ICON);
-
-					string strID = "";
-					string strTitle = "";
-					string strLaunch = "";
-					string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Amazon);
-					try
-					{
-						strID = Path.GetFileName(data.Name);
-						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"* {strTitle}");
-						strLaunch = AMAZON_LAUNCH + GetAmazonGameID(GetRegStrVal(data, GAME_UNINSTALL_STRING));
-						strIconPath = icon.Trim(new char[] { ' ', '"' });
-						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
-							strIconPath = CGameFinder.FindGameBinaryFile(GetRegStrVal(data, GAME_INSTALL_LOCATION), strTitle);
-						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING);
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(icon.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
-						if (strAlias.Length > strTitle.Length)
-							strAlias = GetAlias(strTitle);
-						if (strAlias.Length > strTitle.Length)
-							strAlias = GetAlias(strTitle);
-						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-							strAlias = "";
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e);
-					}
-					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
-				}
-				CLogger.LogDebug("----------------------");
 			}
 		}
 
@@ -803,6 +750,17 @@ namespace GameLauncher_Console
 
 		/*
 		/// <summary>
+		/// Find installed Amazon games
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		private static void GetAmazonGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
+		{
+			// moved to JsonWrapper.cs
+		}
+		*/
+
+		/*
+		/// <summary>
 		/// Find installed Epic store games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
@@ -981,9 +939,10 @@ namespace GameLauncher_Console
 
 			return key.Substring(index);
 		}
-		
+
+		/*
 		/// <summary>
-		/// Scan the key name and extract the game id
+		/// Scan the key name and extract the game id [no longer necessary after moving to SQLite method]
 		/// </summary>
 		/// <param name="key">The game string</param>
 		/// <returns>Amazon game ID as string</returns>
@@ -991,5 +950,6 @@ namespace GameLauncher_Console
 		{
 			return key.Substring(key.LastIndexOf(" -p ") + 4);
 		}
+		*/
 	}
 }
