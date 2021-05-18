@@ -133,6 +133,11 @@ namespace GameLauncher_Console
 		// Wargaming.net Game Center
 		//private const string WARGAMING_REG			= "Wargaming.net Game Center"; // HKCU64 Uninstall
 
+		// Indiegala
+		//const string IG_NAME = "IGClient";
+		const string IG_NAME_LONG = "IndieGala Client";
+		//const string IG_JSON_FILE = @"\IGClient\storage\installed.json";
+
 		/*
 		// Xbox (Microsoft Store)
 		private const string XBOX_NAME				= "Xbox";
@@ -224,6 +229,9 @@ namespace GameLauncher_Console
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", GOG_NAME_LONG.ToUpper());
 				GetGogGames(gameDataList);
+				Console.Write(".");
+				CLogger.LogInfo("Looking for {0} games...", IG_NAME_LONG.ToUpper());
+				CJsonWrapper.GetIGGames(gameDataList);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", ITCH_NAME_LONG.ToUpper());
 				CJsonWrapper.GetItchGames(gameDataList);
