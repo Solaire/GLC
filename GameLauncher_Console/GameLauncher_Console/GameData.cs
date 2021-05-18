@@ -61,7 +61,9 @@ namespace GameLauncher_Console
 			[Description("Twitch")]
 			Twitch = 19,
 			[Description("Wargaming.net")]
-			Wargaming = 20
+			Wargaming = 20,
+			[Description("Indiegala Client")]
+			IGClient = 21
 		}
 
 		public enum Match

@@ -214,36 +214,36 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\0.ico" />
-    <Content Include="Resources\14.ico" />
-    <Content Include="Resources\greenCheck.ico" />
-    <None Include="Resources\1.ico" />
-    <None Include="Resources\12.ico" />
-    <None Include="Resources\settings.ico" />
-    <Content Include="Resources\unknown.ico" />
-    <Content Include="Resources\11.ico" />
-    <Content Include="Resources\9.ico" />
+    <Content Include="Resources\0.ico" />
+    <Content Include="Resources\1.ico" />
     <Content Include="Resources\10.ico" />
+    <Content Include="Resources\11.ico" />
+    <Content Include="Resources\12.ico" />
     <Content Include="Resources\13.ico" />
-    <Content Include="Resources\refresh.ico" />
+    <Content Include="Resources\14.ico" />
+    <Content Include="Resources\15.ico" />
+    <Content Include="Resources\16.ico" />
+    <Content Include="Resources\17.ico" />
+    <Content Include="Resources\18.ico" />
+    <Content Include="Resources\19.ico" />
     <Content Include="Resources\2.ico" />
+    <Content Include="Resources\20.ico" />
+    <Content Include="Resources\21.ico" />
     <Content Include="Resources\3.ico" />
     <Content Include="Resources\4.ico" />
     <Content Include="Resources\5.ico" />
     <Content Include="Resources\6.ico" />
     <Content Include="Resources\7.ico" />
     <Content Include="Resources\8.ico" />
-    <Content Include="Resources\15.ico" />
-    <Content Include="Resources\fanatical.ico" />
-    <Content Include="Resources\humble.ico" />
-    <Content Include="Resources\IndieGala.ico" />
-    <Content Include="Resources\16.ico" />
-    <Content Include="Resources\17.ico" />
-    <Content Include="Resources\18.ico" />
-    <Content Include="Resources\riot.ico" />
-    <Content Include="Resources\19.ico" />
-    <Content Include="Resources\20.ico" />
-    <Content Include="Resources\Xbox.ico" />
+    <Content Include="Resources\9.ico" />
+    <Content Include="Resources\settings.ico" />
+    <Content Include="Resources\unknown.ico" />
+    <None Include="Resources\fanatical.ico" />
+    <None Include="Resources\greenCheck.ico" />
+    <None Include="Resources\humble.ico" />
+    <None Include="Resources\refresh.ico" />
+    <None Include="Resources\riot.ico" />
+    <None Include="Resources\Xbox.ico" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />

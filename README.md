@@ -8,6 +8,8 @@ This is a simple program that will scan the system for video games, then allow t
 - Big Fish Games;
 - Epic Games Launcher;
 - GOG Galaxy;
+- Indiegala Client;
+- itch;
 - Origin;
 - Steam;
 - Ubisoft Connect (formerly Uplay).
@@ -55,8 +57,9 @@ You can support the project in the following ways:
 - Raise suggestions;
 - Fork the repo, make some changes and submit a PR.
 
-## Version 1.1.0
-### CHANGES:
+## Changelog
+### Version 1.1.0
+CHANGES:
 - Change name back to "GameLauncher Console," change .exe to GLC for convenience
   - Note that tkashkin/GameHub (a Linux GUI game launcher) pre-existed the GameHub name change
 - New icon (although it was based on the idea of a Game "Hub," so it should be re-thought)
@@ -64,15 +67,14 @@ You can support the project in the following ways:
 - Use grid view by default, now dynamic based on console width and height, and split into pages
 - By default, sort by frequency (as before), but also secondarily by alphabet
 
-### NEW FEATURES:
+NEW FEATURES:
 - New platforms:
   - Amazon Games;
-  - Big Fish Games;
-  - itch.
+  - Big Fish Games.
 - New functions:
   - Search;
   - Create Desktop shortcut;
-  - Uninstall (not currently available for Epic or itch).
+  - Uninstall (not currently available for Epic, Indiegala, or itch).
 - Screen paging with new navigation keys:
   - Home/End for first/last entry;
   - PgUp/PgDn between pages.
@@ -101,11 +103,17 @@ You can support the project in the following ways:
   - Custom text;
   - Settings for input, layout, sorting, images, etc.
 
-### IN PROGRESS:
+## In progress changes:
+- New platforms:
+  - IGClient (Indiegala);
+  - itch.
 - Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible
-  - Fixed Steam and Epic
-  - Fixed the former issue for Origin, but if the uninstall entry doesn't exist, we must rely on problematic FindGameBinaryFile()
-  - Still looking for a solution for itch for the former issue, and it *always* relies on FindGameBinaryFile()
+  - Fixed Epic, itch, and Steam
+  - Fixed the former issue for Origin, but if the uninstall entry doesn't exist, for now we must rely on problematic FindGameBinaryFile()
+  - Future Amazon and GOG Galaxy fixes will likely be the same as Origin
+  - I'm not sure if there is a solution possible for Battle.net, Bethesda.net, and Big Fish
+  - Haven't looked at Ubisoft Connect yet
+  - New IGClient has the same problem, except the games never end up in uninstall so we are always relying on FindGameBinaryFile()
 - Small icons to left in single-column list mode
   - Disabled currently, as icons are randomly missing, especially after going to previous page or back to previous menu.
 - In-app search
@@ -122,9 +130,9 @@ You can support the project in the following ways:
   - Ensure there are no duplicate/invalid titles, aliases, and hotkeys (also test for conflicts with built-ins, e.g., F11).
 - Code clean-up; better comments; finish updating function summaries
 
-### TODO:
+## To-Do:
 - FindGameBinaryFile() should be smarter
-  - This is used for itch but otherwise only for fallback (typically icon) purposes
+  - This is used when uninstall registry entries don't exist for certain platforms (though often just for icons)
 - New feature? In-app custom game add
   - Since these would need to be added to .json, should other custom games from customGames folder be imported also? Maybe deleted afterwards?
 - New feature? In-app database entry revision (i.e., title, command line, icon)
@@ -134,17 +142,15 @@ You can support the project in the following ways:
   -  /U "My Game" : Uninstall game
   -  /A "My Game" : Change alias
 - Do ScanGames()/ExportGames() without losing aliases/favourites/hidden items
-- Figure out where itch keeps its list of install locations
 - More platforms, e.g.:
   - Arc;
-  - itch;
   - Paradox;
   - Plarium;
   - Rockstar;
   - Twitch;
   - Wargaming.net.
 
-### POTENTIAL TODO:
+# Potential To-Do:
 - New feature? Tags (user-specified categories); these could be handled like custom platforms, or put in another layer
   - Perhaps if custom games are put in a subfolder, they could automatically inherit the subfolder name as a tag.
 - New feature? Replace escape sequences in command-line with value provided at prompt
@@ -162,4 +168,3 @@ You can support the project in the following ways:
   - Humble Bundle;
   - IndieGala;
   - Riot Games.
-- Windows GUI frontend
