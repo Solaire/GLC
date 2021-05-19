@@ -443,14 +443,14 @@ namespace UnitTest
             // Try to read (should fail)
             qry.PlatformID = 10;
             Assert.AreEqual(qry.Select(), SQLiteErrorCode.NotFound);
-            qry.ClearFields();
+            qry.MakeFieldsNull();
 
             // Insert new row
             qry.PlatformID = 10;
             qry.Name = "test 10";
             qry.Description = "PlatformID 10";
             Assert.AreEqual(qry.Insert(), SQLiteErrorCode.Ok);
-            qry.ClearFields();
+            qry.MakeFieldsNull();
 
             // Select new row
             qry.PlatformID = 10;
@@ -458,12 +458,12 @@ namespace UnitTest
             Assert.AreEqual(qry.PlatformID, 10);
             Assert.AreEqual(qry.Name, "test 10");
             Assert.AreEqual(qry.Description, "PlatformID 10");
-            qry.ClearFields();
+            qry.MakeFieldsNull();
 
             // Delete new row
             qry.PlatformID = 10;
             Assert.AreEqual(qry.Delete(), SQLiteErrorCode.Ok);
-            qry.ClearFields();
+            qry.MakeFieldsNull();
 
             // Try to read again (should fail)
             qry.PlatformID = 10;

@@ -148,6 +148,7 @@
     <Compile Include="Dock.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Game.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="GameFinder.cs" />
     <Compile Include="SqlDB.cs" />

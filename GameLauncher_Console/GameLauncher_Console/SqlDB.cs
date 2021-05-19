@@ -216,19 +216,38 @@ namespace GameLauncher_Console
             cAll        = 0xff,
         }
 
-        public readonly string  m_columnName;
-        public readonly QryFlag m_qryFlag;
-        public string           m_value;
+        protected string m_value; // Column value
 
-        protected CSqlField(string columnName, QryFlag qryFlag)
+        protected CSqlField(string column, QryFlag flag)
         {
-            m_columnName    = columnName;
-            m_qryFlag       = qryFlag;
-            m_value         = "";
+            Column  = column;
+            Flag    = flag;
+            MakeNull();
         }
 
+        /// <summary>
+        /// Set the value to null
+        /// </summary>
+        public void MakeNull()
+        {
+            m_value = null;
+        }
+
+        /// <summary>
+        /// Check if the value is null
+        /// </summary>
+        /// <returns><c>true</c> if null, otherwise <c>false</c></returns>
+        public bool IsNull()
+        {
+            return m_value == null;
+        }
+
+        // Properties
+        public string Column { get; private set; }
+        public QryFlag Flag  { get; private set; }
         public TypeCode Type { get; protected set; }
 
+        // Column value getter and setter properties
         public string String 
         {
             get { return m_value;  }
@@ -260,17 +279,7 @@ namespace GameLauncher_Console
         public bool Bool
         {
             get { return m_value == "1"; }
-            set
-            {
-                if(value)
-                {
-                    m_value = "1";
-                }
-                else
-                {
-                    m_value = "0";
-                }
-            }
+            set { m_value = (value) ? "1" : "0"; }
         }
     }
 
@@ -334,12 +343,12 @@ namespace GameLauncher_Console
             m_fields = new Dictionary<string, CSqlField>();
         }
 
-        public void ClearFields()
+        public void MakeFieldsNull()
         {
             m_selectResult = null;
             foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                field.Value.String = "";
+                field.Value.MakeNull();
             }
         }
 
@@ -351,7 +360,7 @@ namespace GameLauncher_Console
             string query = "";
             foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                if((field.Value.m_qryFlag & stmtFlag) == 0)
+                if((field.Value.Flag & stmtFlag) == 0)
                 {
                     continue;
                 }
@@ -372,7 +381,7 @@ namespace GameLauncher_Console
             string insertValues = "";
             foreach(KeyValuePair<string, CSqlField> field in m_fields)
             {
-                if ((field.Value.m_qryFlag & CSqlField.QryFlag.cInsWrite) == 0)
+                if ((field.Value.Flag & CSqlField.QryFlag.cInsWrite) == 0)
                 {
                     continue;
                 }
@@ -406,7 +415,7 @@ namespace GameLauncher_Console
             string whereCondition = "";
             foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                if((field.Value.m_qryFlag & whereFlag) == 0 || field.Value.String.Length == 0)
+                if((field.Value.Flag & whereFlag) == 0 || field.Value.IsNull())
                 {
                     continue;
                 }
@@ -442,7 +451,7 @@ namespace GameLauncher_Console
             string update = "";
             foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                if ((field.Value.m_qryFlag & CSqlField.QryFlag.cUpdWrite) == 0)
+                if ((field.Value.Flag & CSqlField.QryFlag.cUpdWrite) == 0)
                 {
                     continue;
                 }
@@ -560,14 +569,14 @@ namespace GameLauncher_Console
             if(!m_selectResult.Read()) // End of results.
             {
                 m_selectResult = null;
-                ClearFields();
+                MakeFieldsNull();
                 return false;
             }
 
             // Get the values
             foreach (KeyValuePair<string, CSqlField> field in m_fields)
             {
-                if((field.Value.m_qryFlag & CSqlField.QryFlag.cSelRead) > 0)
+                if((field.Value.Flag & CSqlField.QryFlag.cSelRead) > 0)
                 {
                     field.Value.String = m_selectResult[field.Key].ToString();
                 }
@@ -639,12 +648,12 @@ namespace GameLauncher_Console
         /// <returns>AttributeVaue matching the query, or empty string if not found</returns>
         public string GetStringValue(string attributeName, int attributeIndex = 0)
         {
-            m_qry.ClearFields();
+            m_qry.MakeFieldsNull();
             m_qry.ForeignKey        = MasterID;
             m_qry.AttributeName     = attributeName;
             m_qry.AttributeIndex    = attributeIndex;
             m_qry.Select();
-            return m_qry.AttributeValue;
+            return (m_qry.AttributeValue == null) ? "" : m_qry.AttributeValue;
         }
 
         /// <summary>
@@ -655,7 +664,7 @@ namespace GameLauncher_Console
         public string[] GetStringValues(string attributeName)
         {
             List<string> response = new List<string>();
-            m_qry.ClearFields();
+            m_qry.MakeFieldsNull();
             m_qry.ForeignKey    = MasterID;
             m_qry.AttributeName = attributeName;
             if(m_qry.Select() != SQLiteErrorCode.Ok)
@@ -665,7 +674,7 @@ namespace GameLauncher_Console
 
             do
             {
-                response.Add(m_qry.AttributeValue);
+                response.Add((m_qry.AttributeValue == null) ? "" : m_qry.AttributeValue);
             } while(m_qry.Fetch());
             return response.ToArray();
         }
@@ -679,7 +688,7 @@ namespace GameLauncher_Console
         /// <returns>SQL success/fail status code</returns>
         public SQLiteErrorCode SetStringValue(string attributeName, string attributeValue, int attributeIndex = 0)
         {
-            m_qry.ClearFields();
+            m_qry.MakeFieldsNull();
             m_qry.ForeignKey     = MasterID;
             m_qry.AttributeName  = attributeName;
             m_qry.AttributeIndex = attributeIndex;
