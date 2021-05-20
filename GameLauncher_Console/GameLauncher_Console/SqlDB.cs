@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
+using System.Text;
 
-namespace GameLauncher_Console
+namespace SqlDB
 {
     /// <summary>
     /// SQL database core implementation as a singleton pattern.
@@ -195,6 +196,8 @@ namespace GameLauncher_Console
 
     /// <summary>
     /// Abstract base class for SQL fields
+    /// SQL field represents a single table column which holds the column name and the value
+    /// Any derived classes can be used to read and write data to the specified column
     /// </summary>
     public abstract class CSqlField
     {
@@ -236,7 +239,7 @@ namespace GameLauncher_Console
         /// <summary>
         /// Check if the value is null
         /// </summary>
-        /// <returns><c>true</c> if null, otherwise <c>false</c></returns>
+        /// <returns>True if null, otherwise false</returns>
         public bool IsNull()
         {
             return m_value == null;
@@ -283,6 +286,7 @@ namespace GameLauncher_Console
         }
     }
 
+    // CSqlField-derived classes
     public class CSqlFieldString : CSqlField
     {
         public CSqlFieldString(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
@@ -291,7 +295,6 @@ namespace GameLauncher_Console
             String = "";
         }
     }
-
     public class CSqlFieldInteger : CSqlField
     {
         public CSqlFieldInteger(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
@@ -300,7 +303,6 @@ namespace GameLauncher_Console
             Integer = 0;
         }
     }
-
     public class CSqlFieldDouble : CSqlField
     {
         public CSqlFieldDouble(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
@@ -309,7 +311,6 @@ namespace GameLauncher_Console
             Double = 0.0;
         }
     }
-
     public class CSqlFieldBoolean : CSqlField
     {
         public CSqlFieldBoolean(string columnName, QryFlag qryFlag) : base(columnName, qryFlag)
@@ -320,7 +321,55 @@ namespace GameLauncher_Console
     }
 
     /// <summary>
+    /// SQL row class, implementing the Dictionary collection
+    /// Preserves the insert order of the row definitions for extended queries
+    /// </summary>
+    public class CSqlRow : Dictionary<string, CSqlField>
+    {
+        private List<string> m_insertOrder;
+        public CSqlRow() : base()
+        {
+            m_insertOrder = new List<string>();
+        }
+
+        /// <summary>
+        /// Integer indexer.
+        /// Return CSqlField from the insert order index
+        /// </summary>
+        /// <param name="index">the insert order index</param>
+        /// <returns>CSqlField</returns>
+        public CSqlField this[int index]
+        {
+            get
+            {
+                return base[m_insertOrder[index]];
+            }
+        }
+
+        /// <summary>
+        /// String indexer overload
+        /// Return CSqlField from the string key
+        /// If inserting new key-value pair, add the key to the insert order list
+        /// </summary>
+        /// <param name="key">Field column name</param>
+        /// <returns>CSqlField</returns>
+        public CSqlField this[string key]
+        {
+            get { return base[key]; }
+            set
+            {
+                if(!this.ContainsKey(key))
+                {
+                    m_insertOrder.Add(key);
+                }
+                base[key] = value;
+            }
+        }
+    }
+
+    /// <summary>
     /// Abstract base class for managing SQL queries
+    /// This class contains all query information such as 
     /// 
     /// TODOs:
     ///     Some extra comments/documentation wouldn't hurt
@@ -332,21 +381,35 @@ namespace GameLauncher_Console
     /// </summary>
     public abstract class CSqlQry
     {
-        private readonly string m_tableName;
-        protected Dictionary<string, CSqlField> m_fields;
-        private SQLiteDataReader m_selectResult;
+        private const string M_FIELD_MASK = "&";
+        private const string M_VALUE_MASK = "?";
 
-        protected CSqlQry(string table)
+        protected readonly string m_tableName;
+        protected readonly string m_selectCondition;
+        protected readonly string m_selectExtraCondition;
+
+        protected CSqlRow m_sqlRow;
+        protected SQLiteDataReader m_selectResult;
+
+        /// <summary>
+        /// Constructor, set up the table name and the select condition strings
+        /// </summary>
+        /// <param name="table">The table name. This string should also include any JOIN tables</param>
+        /// <param name="selectCondition">Select condition string for more complex queries. Use the field and value masks as templates (eg. & <= ?), those will be populated when query is constructed based on the CSqlRow's field insert order</param>
+        /// <param name="selectExtraCondition">Any additional select conditions such as ORDER BY or GROUP BY</param>
+        protected CSqlQry(string table, string selectCondition, string selectExtraCondition)
         {
             m_tableName = table;
+            m_selectCondition = selectCondition;
+            m_selectExtraCondition = selectExtraCondition;
             m_selectResult = null;
-            m_fields = new Dictionary<string, CSqlField>();
+            m_sqlRow = new CSqlRow();
         }
 
         public void MakeFieldsNull()
         {
             m_selectResult = null;
-            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            foreach (KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
                 field.Value.MakeNull();
             }
@@ -355,10 +418,10 @@ namespace GameLauncher_Console
         /// <summary>
         /// Prepare the main statement body
         /// </summary>
-        private string PrepareMainStatement(CSqlField.QryFlag stmtFlag)
+        protected virtual string PrepareMainStatement(CSqlField.QryFlag stmtFlag)
         {
             string query = "";
-            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            foreach (KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
                 if((field.Value.Flag & stmtFlag) == 0)
                 {
@@ -376,10 +439,10 @@ namespace GameLauncher_Console
         /// <summary>
         /// Prepare values for the INSERT statement
         /// </summary>
-        private string PrepareInsertStatement()
+        protected virtual string PrepareInsertStatement()
         {
             string insertValues = "";
-            foreach(KeyValuePair<string, CSqlField> field in m_fields)
+            foreach(KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
                 if ((field.Value.Flag & CSqlField.QryFlag.cInsWrite) == 0)
                 {
@@ -408,12 +471,17 @@ namespace GameLauncher_Console
         }
 
         /// <summary>
-        /// Prepare values for the query condition
+        /// Prepare a WHERE condition string
         /// </summary>
-        private string PrepareWhereStatement(CSqlField.QryFlag whereFlag)
+        /// <returns>Constructed query condition. If pre-defined condition string exists, return advanced condition string</returns>
+        protected virtual string PrepareWhereStatement(CSqlField.QryFlag whereFlag)
         {
+            if(m_selectCondition.Length > 0)
+            {
+                return PrepareAdvancedWhereStatement();
+            }
             string whereCondition = "";
-            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            foreach (KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
                 if((field.Value.Flag & whereFlag) == 0 || field.Value.IsNull())
                 {
@@ -444,12 +512,51 @@ namespace GameLauncher_Console
         }
 
         /// <summary>
-        /// Prepare the main statement body
+        /// Construct advanced WHERE condition based on the predefined select string.
         /// </summary>
-        private string PrepareUpdateStatement()
+        /// <returns>Constructed query condition</returns>
+        protected virtual string PrepareAdvancedWhereStatement()
+        {
+            int fieldIndex = 0; // Which SQL field we're on right now
+            int charIndex  = 0; // Current character on the m_selectCondition
+            StringBuilder whereCondition = new StringBuilder();
+
+            while(charIndex > -1 && charIndex < m_selectCondition.Length)
+            {
+                // Value mask should always come after field mask
+                charIndex = m_selectCondition.IndexOf(M_VALUE_MASK, charIndex);
+                if(charIndex == -1 || charIndex >= m_selectCondition.Length)
+                {
+                    continue;
+                }
+                whereCondition.Replace(M_FIELD_MASK, m_sqlRow[fieldIndex].Column, charIndex, 1);
+
+                if(m_sqlRow[fieldIndex].Type == TypeCode.String)
+                {
+                    string s = "'" + m_sqlRow[fieldIndex].String + "'";
+                    whereCondition.Replace(M_VALUE_MASK, s, charIndex, 1);
+                }
+                else if(m_sqlRow[fieldIndex].Type == TypeCode.Double)
+                {
+                    whereCondition.Replace(M_VALUE_MASK, m_sqlRow[fieldIndex].Double.ToString(), charIndex, 1);
+                }
+                else
+                {
+                    whereCondition.Replace(M_VALUE_MASK, m_sqlRow[fieldIndex].Integer.ToString(), charIndex, 1);
+                }
+                fieldIndex++;
+            }
+            return whereCondition.ToString();
+        }
+
+        /// <summary>
+        /// Prepare the main statement body for UPDATE queries
+        /// </summary>
+        /// <returns>query statement string</returns>
+        protected virtual string PrepareUpdateStatement()
         {
             string update = "";
-            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            foreach (KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
                 if ((field.Value.Flag & CSqlField.QryFlag.cUpdWrite) == 0)
                 {
@@ -482,7 +589,7 @@ namespace GameLauncher_Console
         /// <summary>
         /// Prepare and execure SELECT statement
         /// </summary>
-        /// <returns></returns>
+        /// <returns>SQL success/failure status code</returns>
         public SQLiteErrorCode Select()
         {
             m_selectResult = null;
@@ -493,6 +600,10 @@ namespace GameLauncher_Console
             if(whereCondition.Length > 0)
             {
                 query += " WHERE " + whereCondition;
+            }
+            if(m_selectExtraCondition.Length > 0)
+            {
+                query += " " + m_selectExtraCondition;
             }
             SQLiteErrorCode err = CSqlDB.Instance.ExecuteRead(query, out m_selectResult);
             if(err == SQLiteErrorCode.Ok)
@@ -559,7 +670,7 @@ namespace GameLauncher_Console
         /// <summary>
         /// Fetch the next row from the select result
         /// </summary>
-        /// <returns><c>false</c>if reached end of results, otherwise <c>true</c></returns>
+        /// <returns>False if reached end of results, otherwise true</returns>
         public bool Fetch()
         {
             if(m_selectResult == null)
@@ -574,7 +685,7 @@ namespace GameLauncher_Console
             }
 
             // Get the values
-            foreach (KeyValuePair<string, CSqlField> field in m_fields)
+            foreach (KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
                 if((field.Value.Flag & CSqlField.QryFlag.cSelRead) > 0)
                 {
@@ -602,33 +713,33 @@ namespace GameLauncher_Console
         protected class CQryAttribute : CSqlQry
         {
             private string m_columnFK;
-            public CQryAttribute(string table) : base(table + "Attribute")
+            public CQryAttribute(string table) : base(table + "Attribute", "", "")
             {
                 m_columnFK = table + "FK";
-                m_fields[m_columnFK]        = new CSqlFieldInteger(m_columnFK, CSqlField.QryFlag.cAll);
-                m_fields["AttributeName"]   = new CSqlFieldString("AttributeName"   , CSqlField.QryFlag.cAll);
-                m_fields["AttributeIndex"]  = new CSqlFieldInteger("AttributeIndex" , CSqlField.QryFlag.cAll);
-                m_fields["AttributeValue"]  = new CSqlFieldString("AttributeValue"  , CSqlField.QryFlag.cAll);
+                m_sqlRow[m_columnFK]        = new CSqlFieldInteger(m_columnFK, CSqlField.QryFlag.cAll);
+                m_sqlRow["AttributeName"]   = new CSqlFieldString("AttributeName"   , CSqlField.QryFlag.cAll);
+                m_sqlRow["AttributeIndex"]  = new CSqlFieldInteger("AttributeIndex" , CSqlField.QryFlag.cAll);
+                m_sqlRow["AttributeValue"]  = new CSqlFieldString("AttributeValue"  , CSqlField.QryFlag.cAll);
             }
             public int ForeignKey
             {
-                get { return m_fields[m_columnFK].Integer; }
-                set { m_fields[m_columnFK].Integer = value; }
+                get { return m_sqlRow[m_columnFK].Integer; }
+                set { m_sqlRow[m_columnFK].Integer = value; }
             }
             public string AttributeName
             {
-                get { return m_fields["AttributeName"].String; }
-                set { m_fields["AttributeName"].String = value; }
+                get { return m_sqlRow["AttributeName"].String; }
+                set { m_sqlRow["AttributeName"].String = value; }
             }
             public int AttributeIndex
             {
-                get { return m_fields["AttributeIndex"].Integer; }
-                set { m_fields["AttributeIndex"].Integer = value; }
+                get { return m_sqlRow["AttributeIndex"].Integer; }
+                set { m_sqlRow["AttributeIndex"].Integer = value; }
             }
             public string AttributeValue
             {
-                get { return m_fields["AttributeValue"].String; }
-                set { m_fields["AttributeValue"].String = value; }
+                get { return m_sqlRow["AttributeValue"].String; }
+                set { m_sqlRow["AttributeValue"].String = value; }
             }
         }
         private CQryAttribute m_qry;

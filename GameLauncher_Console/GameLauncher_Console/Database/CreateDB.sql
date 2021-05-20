@@ -26,6 +26,7 @@ CREATE TABLE "Game" (
 	"IsHidden"		bit NOT NULL DEFAULT 0,
 	"Frequency"		NUMERIC NOT NULL DEFAULT 0.0,
 	"Rating"		INTEGER,
+	"Icon" 			VARCHAR(255),
 	"Description" 	VARCHAR(255),
 	"IsMultiPlatform" bit NOT NULL DEFAULT 0,
 	PRIMARY KEY("GameID" AUTOINCREMENT),
