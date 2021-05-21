@@ -1,5 +1,8 @@
-﻿using SqlDB;
+﻿using GameLauncher_Console;
+using SqlDB;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SQLite;
 using System.Linq;
 using static SqlDB.CSqlField;
@@ -33,75 +36,31 @@ namespace CGame_Test // TODO: GameLauncher_Console
 			*/
         };
 
-        private static CQryGame m_qryGame = new CQryGame();
-        private static CDbAttribute m_gameAttribute = new CDbAttribute("Game");
-        private static GameSet m_currentGames = new GameSet();
-
-        /// <summary>
-        /// Dictionary collection implementation for the game object
-        /// Encapsulates all sorting and direct manipulation of the collection
-        /// </summary>
-        public class GameSet : Dictionary<string, GameObject>
-        {
-            /// <summary>
-            /// Enum used when returning sorted lists of games
-            /// The flags can be added together to support multi-parameter sorting
-            /// The lower flag values take precedence as they are easier to sort
-            /// Performance should be considered before sorting with all flags
-            /// </summary>
-            public enum SortFlag
-            {
-                // When adding new sorting flags, add the easiest ones (such as binary flags)
-                // to the top and more difficult ones (alphabetical) to the bottom.
-                cSortFavourite  = 0x01,
-                cSortFrequency  = 0x02,
-                cSortRating     = 0x04,
-                cSortAlpha      = 0x08,
-            }
-
-            public GameSet()
-            {
-
-            }
-
-            /// <summary>
-            /// The current platform of the games
-            /// </summary>
-            public int Platform { get; set; }
-
-            /// <summary>
-            /// Sort the current GameSet
-            /// </summary>
-            /// <param name="flag">Sorting flags</param>
-            /// <param name="noArticle">If true and doing alpha sort, ignore articles in the names</param>
-            /// <returns>List of sorted games</returns>
-            public List<GameObject> SortGames(SortFlag flag, bool noArticle)
-            {
-                return null; // TODO
-            }
-        }
+        // Due to C#'s limitations, every query will come with a lot of bloated boilerplate code
+        // Best thing to do for now is to hide them away in a region and just use them. I will have to return to them one day
+        #region Query definitions
 
         /// <summary>
         /// Main game query, handling all reading and writing
         /// TODO: Once the game class is done, it's probably worth seeing if this can be split into special-purpose queries to improve performance and avoid potential problems
         /// </summary>
         public class CQryGame : CSqlQry
-        { 
+        {
             public CQryGame() : base("Game", "", "")
             {
-                m_sqlRow["GameID"]          = new CSqlFieldInteger("GameID",          QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
-                m_sqlRow["PlatformFK"]      = new CSqlFieldInteger("PlatformFK",      QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
-                m_sqlRow["Identifier"]      = new CSqlFieldString("Identifier",       QryFlag.cInsWrite | QryFlag.cSelRead );
-                m_sqlRow["Title"]           = new CSqlFieldString("Title",            QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Alias"]           = new CSqlFieldString("Alias",            QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Launch"]          = new CSqlFieldString("Launch",           QryFlag.cInsWrite | QryFlag.cSelRead );
-                m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall",        QryFlag.cInsWrite | QryFlag.cSelRead );
-                m_sqlRow["IsFavourite"]     = new CSqlFieldBoolean("IsFavourite",     QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden",        QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency",        QryFlag.cInsWrite | QryFlag.cSelRead );
-                m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating",          QryFlag.cInsWrite | QryFlag.cSelRead );
-                m_sqlRow["Icon"]            = new CSqlFieldString("Description",      QryFlag.cInsWrite | QryFlag.cSelRead );
-                m_sqlRow["Description"]     = new CSqlFieldString("Description",      QryFlag.cInsWrite | QryFlag.cSelRead );
+                m_sqlRow["GameID"]          = new CSqlFieldInteger("GameID", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
+                m_sqlRow["PlatformFK"]      = new CSqlFieldInteger("PlatformFK", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
+                m_sqlRow["Identifier"]      = new CSqlFieldString("Identifier", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Title"]           = new CSqlFieldString("Title", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Alias"]           = new CSqlFieldString("Alias", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Launch"]          = new CSqlFieldString("Launch", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["IsFavourite"]     = new CSqlFieldBoolean("IsFavourite", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Icon"]            = new CSqlFieldString("Description", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Description"]     = new CSqlFieldString("Description", QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["IsMultiPlatform"] = new CSqlFieldBoolean("IsMultiPlatform", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
             }
             public int GameID
@@ -177,6 +136,152 @@ namespace CGame_Test // TODO: GameLauncher_Console
         }
 
         /// <summary>
+        /// Query for game sorting
+        /// </summary>
+        private class CQryGameSort : CSqlQry
+        {
+            public CQryGameSort() : base("Game", "", "")
+            {
+                m_sqlRow["GameID"] = new CSqlFieldInteger("GameID", QryFlag.cSelRead);
+                m_sqlRow["PlatformFK"] = new CSqlFieldInteger("PlatformFK", QryFlag.cSelWhere);
+            }
+
+            public int GameID
+            {
+                get { return m_sqlRow["GameID"].Integer; }
+                set { m_sqlRow["GameID"].Integer = value; }
+            }
+            public int PlatformFK
+            {
+                get { return m_sqlRow["PlatformFK"].Integer; }
+                set { m_sqlRow["PlatformFK"].Integer = value; }
+            }
+        }
+
+        /// <summary>
+        /// Class for performing a fuzzy search 
+        /// </summary>
+        private class CQryGameFuzzySearch : CSqlQry
+        {
+            public CQryGameFuzzySearch() : base("Game", "(& = ?) AND (& LIKE '%?%')", "")
+            {
+                m_sqlRow["PlatformFK"] = new CSqlFieldInteger("PlatformFK", QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Title"] = new CSqlFieldString("Title", QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["GameID"] = new CSqlFieldInteger("GameID", QryFlag.cSelRead);
+            }
+            public int GameID
+            {
+                get { return m_sqlRow["GameID"].Integer; }
+                set { m_sqlRow["GameID"].Integer = value; }
+            }
+            public int PlatformFK
+            {
+                get { return m_sqlRow["PlatformFK"].Integer; }
+                set { m_sqlRow["PlatformFK"].Integer = value; }
+            }
+            public string Title
+            {
+                get { return m_sqlRow["Title"].String; }
+                set { m_sqlRow["Title"].String = value; }
+            }
+        }
+        
+        #endregion // Query definitions
+
+        private static CQryGame m_qryGame = new CQryGame();
+        private static CDbAttribute m_gameAttribute = new CDbAttribute("Game");
+        private static GameSet m_currentGames = new GameSet();
+
+        /// <summary>
+        /// Dictionary collection implementation for the game object
+        /// Encapsulates all sorting and direct manipulation of the collection
+        /// </summary>
+        public class GameSet : Dictionary<string, GameObject>
+        {
+            /// <summary>
+            /// Enum used when returning sorted lists of games
+            /// The flags can be added together to support multi-parameter sorting
+            /// The lower flag values take precedence as they are easier to sort
+            /// Performance should be considered before sorting with all flags
+            /// </summary>
+            public enum SortFlag
+            {
+                // When adding new sorting flags, add the easiest ones (such as binary flags)
+                // to the top and more difficult ones (alphabetical) to the bottom.
+                [Description("IsFavourite")]
+                cSortFavourite  = 0x01,
+                [Description("Frequency")]
+                cSortFrequency  = 0x02,
+                [Description("Rating")]
+                cSortRating     = 0x04,
+                [Description("Title")]
+                cSortAlpha      = 0x08,
+            }
+
+            private CQryGameSort m_qryGameSort;
+
+            public GameSet()
+            {
+                m_qryGameSort = new CQryGameSort();
+            }
+
+            /// <summary>
+            /// The current platform of the games
+            /// </summary>
+            public int Platform { get; set; }
+
+            /// <summary>
+            /// Sort the current GameSet
+            /// </summary>
+            /// <param name="flag">Sorting flags</param>
+            /// <param name="ascending">If true, sort by ascending order, otherwise sort by descending</param>
+            /// <param name="noArticle">If true and doing alpha sort, ignore articles in the names</param>
+            /// <returns>List of sorted games</returns>
+            public List<int> SortGames(SortFlag flag, bool ascending, bool noArticle)
+            {
+                // TODO. all, fav, hidden games
+                // TODO. ignore article
+                List<int> outGameIDs = new List<int>();
+
+                m_qryGameSort.MakeFieldsNull();
+                m_qryGameSort.PlatformFK = Platform; // Using current platform
+
+                // Create the order by condition
+                string orderByString = " ORDER BY ";
+                int used = 0;
+                foreach(SortFlag i in Enum.GetValues(typeof(SortFlag)))
+                {
+                    if((flag & i) > 0)
+                    {
+                        orderByString += CExtensions.GetDescription(i);
+                        if(!ascending)
+                        {
+                            orderByString += " DESC, ";
+                        }
+                        used++;
+                    }
+                }
+                if(used == 1) // Remove tailing comma
+                {
+                    orderByString.Remove(',');
+                }
+                else if(used == 0) // Clear if no flags (just in case)
+                {
+                    orderByString = "";
+                }
+                m_qryGameSort.SelectExtraCondition = orderByString;
+                if (m_qryGameSort.Select() == SQLiteErrorCode.Ok)
+                {
+                    do
+                    {
+                        outGameIDs.Add(m_qryGameSort.GameID);
+                    } while (m_qryGameSort.Fetch());
+                }
+                return outGameIDs;
+            }
+        }
+
+        /// <summary>
         /// Struct which actually holds the game information
         /// </summary>
         public struct GameObject
@@ -245,41 +350,25 @@ namespace CGame_Test // TODO: GameLauncher_Console
             public double Rating        { get; set; }
             public double Frequency     { get; private set; }
             public bool IsMultiPlatform { get; set; }
-            /*
+
             /// <summary>
             /// Equals override for HashSet comparison.
             /// </summary>
             /// <param name="other">Object to compare against</param>
-            /// <returns>True if other is <c>GameObject</c> and the titles are matching</returns>
+            /// <returns>True is other is not null and the titles are matching</returns>
             public override bool Equals(object other)
             {
-                return (other is GameObject game && Title == game.Title);
+                // We're only interested in comparing the titles
+                return (other is GameObject game && this.Title == game.Title);
             }
 
             /// <summary>
-            /// Return the hashcode of the games's title
+            /// Return the hash code of this object's title variable
             /// </summary>
             /// <returns>Hash code</returns>
             public override int GetHashCode()
             {
-                return Title.GetHashCode();
-            }
-            */
-            /// <summary>
-            /// Increment game's frequency by 5
-            /// </summary>
-            public void IncrementFrequency()
-            {
-                Frequency += 5;
-            }
-
-            /// <summary>
-            /// Decrement the game's frequency by 10% and truncate to 3dp.
-            /// </summary>
-            public void DecimateFrequency()
-            {
-                Frequency -= (Frequency / 10);
-                Frequency = ((int)(Frequency * 1000)) / 1000; // TODO verify
+                return this.Title.GetHashCode();
             }
         }
 
@@ -310,6 +399,20 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 } while(m_qryGame.Fetch());
             }
             return m_currentGames.Values.ToList();
+        }
+
+        public static HashSet<GameObject> GetAllGames()
+        {
+            HashSet<GameObject> outHashSet = new HashSet<GameObject>();
+            m_qryGame.MakeFieldsNull();
+            if(m_qryGame.Select() == SQLiteErrorCode.Ok)
+            {
+                do
+                {
+                    outHashSet.Add(new GameObject(m_qryGame));
+                } while(m_qryGame.Fetch());
+            }
+            return outHashSet;
         }
 
         /// <summary>
@@ -402,7 +505,22 @@ namespace CGame_Test // TODO: GameLauncher_Console
         /// <param name="games">Game set to merge</param>
         public static void MergeGameSets(GameSet games)
         {
+            HashSet<GameObject> newGames = games.Values.ToHashSet();
+            HashSet<GameObject> allGames = GetAllGames().ToHashSet();
 
+            HashSet<GameObject> toAdd = new HashSet<GameObject>(newGames);
+            toAdd.ExceptWith(allGames);
+            HashSet<GameObject> toRemove = new HashSet<GameObject>(allGames);
+            toRemove.ExceptWith(newGames);
+
+            foreach(GameObject game in toAdd)
+            {
+                InsertGame(game);
+            }
+            foreach(GameObject game in toRemove)
+            {
+                RemoveGame(game.GameID);
+            }
         }
 
         /// <summary>
@@ -413,8 +531,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
         /// <param name="gameID">gameID of the game to increment</param>
         public static void NormaliseFrequencies(int gameID)
         {
-            // TODO:
-            // Instead of updating each game separately, write a query that does it for us
+            CSqlDB.Instance.Execute("UPDATE Game SET Frequency = (CASE GameID WHEN " + gameID + " THEN Frequency + 5 ELSE Frequency * 0.9 END)");
         }
 
         /// <summary>

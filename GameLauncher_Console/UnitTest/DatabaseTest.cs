@@ -191,6 +191,68 @@ namespace UnitTest
     }
 
     /// <summary>
+    /// Advanced query test class.
+    /// Select from Platform table where PlatformID is greater than x
+    /// </summary>
+    public class CTest_AdvancedGreaterThanQry : CSqlQry
+    {
+        public CTest_AdvancedGreaterThanQry()
+            : base("Platform", "(& > ?)", "ORDER BY PlatformID DESC")
+        {
+            m_sqlRow["PlatformID"]  = new CSqlFieldInteger("PlatformID" , QryFlag.cSelRead | QryFlag.cSelWhere);
+            m_sqlRow["Name"]        = new CSqlFieldString("Name"        , QryFlag.cSelRead );
+            m_sqlRow["Description"] = new CSqlFieldString("Description" , QryFlag.cSelRead );
+        }
+
+        public int PlatformID
+        {
+            get { return m_sqlRow["PlatformID"].Integer; }
+            set { m_sqlRow["PlatformID"].Integer = value; }
+        }
+        public string Name
+        {
+            get { return m_sqlRow["Name"].String; }
+            set { m_sqlRow["Name"].String = value; }
+        }
+        public string Description
+        {
+            get { return m_sqlRow["Description"].String; }
+            set { m_sqlRow["Description"].String = value; }
+        }
+    }
+
+    /// <summary>
+    /// Advanced query test class.
+    /// Select from Platform table where PlatformID like x
+    /// </summary>
+    public class CTest_AdvancedLikeQry : CSqlQry
+    {
+        public CTest_AdvancedLikeQry()
+            : base("Platform", "(& LIKE '%?%')", "")
+        {
+            m_sqlRow["Name"]        = new CSqlFieldString("Name",         QryFlag.cSelRead | QryFlag.cSelWhere);
+            m_sqlRow["PlatformID"]  = new CSqlFieldInteger("PlatformID" , QryFlag.cSelRead );
+            m_sqlRow["Description"] = new CSqlFieldString("Description" , QryFlag.cSelRead );
+        }
+
+        public int PlatformID
+        {
+            get { return m_sqlRow["PlatformID"].Integer; }
+            set { m_sqlRow["PlatformID"].Integer = value; }
+        }
+        public string Name
+        {
+            get { return m_sqlRow["Name"].String; }
+            set { m_sqlRow["Name"].String = value; }
+        }
+        public string Description
+        {
+            get { return m_sqlRow["Description"].String; }
+            set { m_sqlRow["Description"].String = value; }
+        }
+    }
+
+    /// <summary>
     /// Database test class.
     /// Load database and test various queries such as SELECT or INSERT
     /// </summary>
@@ -421,7 +483,6 @@ namespace UnitTest
         public void Test_AttributeTable()
         {
             // Add a game
-
             Assert.AreEqual(CSqlDB.Instance.Execute("INSERT INTO Game (GameID, Identifier, Title, Alias, Launch) VALUES (1, 'testID', 'Test Game', 'test', 'test.exe')"), SQLiteErrorCode.Ok);
 
             CDbAttribute gameAttribute = new CDbAttribute("Game");
@@ -442,6 +503,66 @@ namespace UnitTest
             Assert.AreEqual(multiple.Length, 2);
             Assert.AreEqual(multiple[0], "TEST_VALUE");
             Assert.AreEqual(multiple[1], "TEST_VALUE_2");
+        }
+
+        /// <summary>
+        /// Test the 'SELECT ... WHERE x > y' query
+        /// </summary>
+        [TestMethod]
+        public void Test_SelectGreaterThanQuery()
+        {
+            // Add some platforms
+            Assert.AreEqual(CSqlDB.Instance.Execute("DELETE FROM Platform"), SQLiteErrorCode.Ok);
+            Assert.AreEqual(CSqlDB.Instance.Execute(
+                "INSERT INTO Platform (PlatformID, Name, Description) VALUES " + 
+                "(1,  'test 1',  'PlatformID 1'), " +
+                "(2,  'test 2',  'PlatformID 2'), " +
+                "(3,  'test 3',  'PlatformID 3'), " + 
+                "(5,  'test 5',  'PlatformID 5'), " +
+                "(10, 'test 10', 'PlatformID 10')"), SQLiteErrorCode.Ok);
+
+            CTest_AdvancedGreaterThanQry qry = new CTest_AdvancedGreaterThanQry();
+            qry.PlatformID = 3;
+            Assert.AreEqual(qry.Select(), SQLiteErrorCode.Ok);
+            Assert.AreEqual(qry.PlatformID, 10);
+            Assert.AreEqual(qry.Name, "test 10");
+            Assert.AreEqual(qry.Description, "PlatformID 10");
+            Assert.IsTrue(qry.Fetch());
+            Assert.AreEqual(qry.PlatformID, 5);
+            Assert.AreEqual(qry.Name, "test 5");
+            Assert.AreEqual(qry.Description, "PlatformID 5");
+        }
+
+        /// <summary>
+        /// Test the 'SELECT ... WHERE x LIKE '%y%' query
+        /// </summary>
+        [TestMethod]
+        public void Test_SelectLikeQuery()
+        {
+            // Add some platforms
+            Assert.AreEqual(CSqlDB.Instance.Execute("DELETE FROM Platform"), SQLiteErrorCode.Ok);
+            Assert.AreEqual(CSqlDB.Instance.Execute(
+                "INSERT INTO Platform (PlatformID, Name, Description) VALUES " +
+                "(1,  'platform A', 'PlatformID 1'), " +
+                "(2,  'platform B', 'PlatformID 2'), " +
+                "(3,  'STEAM',      'PlatformID 3'), " +
+                "(5,  'gog',        'PlatformID 5'), " +
+                "(10, 'PLATFORM C', 'PlatformID 10')"), SQLiteErrorCode.Ok);
+
+            CTest_AdvancedLikeQry qry = new CTest_AdvancedLikeQry();
+            qry.Name = "platform"; // Should be case-insensitive
+            Assert.AreEqual(qry.Select(), SQLiteErrorCode.Ok);
+            Assert.AreEqual(qry.PlatformID, 1);
+            Assert.AreEqual(qry.Name, "platform A");
+            Assert.AreEqual(qry.Description, "PlatformID 1");
+            Assert.IsTrue(qry.Fetch());
+            Assert.AreEqual(qry.PlatformID, 2);
+            Assert.AreEqual(qry.Name, "platform B");
+            Assert.AreEqual(qry.Description, "PlatformID 2");
+            Assert.IsTrue(qry.Fetch());
+            Assert.AreEqual(qry.PlatformID, 10);
+            Assert.AreEqual(qry.Name, "PLATFORM C");
+            Assert.AreEqual(qry.Description, "PlatformID 10");
         }
     }
 }

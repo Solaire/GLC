@@ -1,4 +1,5 @@
-﻿using Logger;
+﻿using GameLauncher_Console;
+using Logger;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -386,7 +387,6 @@ namespace SqlDB
 
         protected readonly string m_tableName;
         protected readonly string m_selectCondition;
-        protected readonly string m_selectExtraCondition;
 
         protected CSqlRow m_sqlRow;
         protected SQLiteDataReader m_selectResult;
@@ -401,10 +401,12 @@ namespace SqlDB
         {
             m_tableName = table;
             m_selectCondition = selectCondition;
-            m_selectExtraCondition = selectExtraCondition;
+            SelectExtraCondition = selectExtraCondition;
             m_selectResult = null;
             m_sqlRow = new CSqlRow();
         }
+
+        public string SelectExtraCondition { get; set; }
 
         public void MakeFieldsNull()
         {
@@ -517,34 +519,47 @@ namespace SqlDB
         /// <returns>Constructed query condition</returns>
         protected virtual string PrepareAdvancedWhereStatement()
         {
-            int fieldIndex = 0; // Which SQL field we're on right now
-            int charIndex  = 0; // Current character on the m_selectCondition
-            StringBuilder whereCondition = new StringBuilder();
+            int columnIndex = 0; // Which SQL column we're currently using
+            int fMask = 0; // Field mask index
+            int vMask = 0; // Value mask index
+            StringBuilder whereCondition = new StringBuilder(m_selectCondition);
 
-            while(charIndex > -1 && charIndex < m_selectCondition.Length)
+            //while(-1 < vMask && vMask < whereCondition.Length)
+            while(true)
             {
-                // Value mask should always come after field mask
-                charIndex = m_selectCondition.IndexOf(M_VALUE_MASK, charIndex);
-                if(charIndex == -1 || charIndex >= m_selectCondition.Length)
+                fMask = whereCondition.IndexOf(M_FIELD_MASK, fMask, false);
+                if(fMask == -1)
                 {
-                    continue;
+                    break;
                 }
-                whereCondition.Replace(M_FIELD_MASK, m_sqlRow[fieldIndex].Column, charIndex, 1);
+                whereCondition.Replace(M_FIELD_MASK, m_sqlRow[columnIndex].Column, fMask, 1);
 
-                if(m_sqlRow[fieldIndex].Type == TypeCode.String)
+                vMask = whereCondition.IndexOf(M_VALUE_MASK, fMask, false);
+                if (vMask == -1)
                 {
-                    string s = "'" + m_sqlRow[fieldIndex].String + "'";
-                    whereCondition.Replace(M_VALUE_MASK, s, charIndex, 1);
+                    break;
                 }
-                else if(m_sqlRow[fieldIndex].Type == TypeCode.Double)
+                if(m_sqlRow[columnIndex].Type == TypeCode.String)
                 {
-                    whereCondition.Replace(M_VALUE_MASK, m_sqlRow[fieldIndex].Double.ToString(), charIndex, 1);
+                    if (whereCondition[vMask - 1] == '%') // Part of LIKE statement (cannot have single quotes)
+                    {
+                        whereCondition.Replace(M_VALUE_MASK, m_sqlRow[columnIndex].String.ToString(), vMask, 1);
+                    }
+                    else
+                    {
+                        string s = "'" + m_sqlRow[columnIndex].String + "'";
+                        whereCondition.Replace(M_VALUE_MASK, s, vMask, 1);
+                    }
                 }
-                else
+                else if (m_sqlRow[columnIndex].Type == TypeCode.Double)
                 {
-                    whereCondition.Replace(M_VALUE_MASK, m_sqlRow[fieldIndex].Integer.ToString(), charIndex, 1);
+                    whereCondition.Replace(M_VALUE_MASK, m_sqlRow[columnIndex].Double.ToString(), vMask, 1);
                 }
-                fieldIndex++;
+                else // Database stores bit fields as numbers
+                {
+                    whereCondition.Replace(M_VALUE_MASK, m_sqlRow[columnIndex].Integer.ToString(), vMask, 1);
+                }
+                columnIndex++;
             }
             return whereCondition.ToString();
         }
@@ -601,9 +616,9 @@ namespace SqlDB
             {
                 query += " WHERE " + whereCondition;
             }
-            if(m_selectExtraCondition.Length > 0)
+            if(SelectExtraCondition.Length > 0)
             {
-                query += " " + m_selectExtraCondition;
+                query += " " + SelectExtraCondition;
             }
             SQLiteErrorCode err = CSqlDB.Instance.ExecuteRead(query, out m_selectResult);
             if(err == SQLiteErrorCode.Ok)
