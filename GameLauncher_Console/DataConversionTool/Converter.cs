@@ -1,6 +1,8 @@
-﻿using GameLauncher_Console;
+﻿using CGame_Test;
+using GameLauncher_Console;
 using SqlDB;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using static CGame_Test.CGame;
 
 namespace DataConversionTool
@@ -25,58 +27,86 @@ namespace DataConversionTool
         }
 
         /// <summary>
-        /// Begin the data conversion
+        /// Convert platform and game data from JSON file into the database.
+        /// NOTE: Any existing data in the Game and Platform tables will be deleted
         /// </summary>
-        /// <returns>True if in 'verify' mode or on conversion success</returns>
+        /// <returns>True if in 'verify' mode or on conversion success, false on any error during verification/conversion</returns>
         public bool ConvertData()
         {
-            // TODO: Open database connection
-            // TODO: Load games and put into a GameSets (platform to game objects)
-            // TODO: Display platform count, games per platform and each game data
-            // TODO: Log the data as well
-            // TODO: Save the games to database (show the counter too while doing it)
-            // TODO: Load the games from database (to a new collection) and compare against the original
-            // TODO: Is success, print success - otherwise remove data from DB table (rollback?) and print failure
             bool success = true;
-            if (Mode == ConvertMode.cModeApply)
+
+            // Open/create database and clear the Game/Platform tables
+            if (Mode == ConvertMode.cModeApply) 
             {
-                success = CSqlDB.Instance.Open(true) == System.Data.SQLite.SQLiteErrorCode.Ok;
-                if (!success)
+                success = CSqlDB.Instance.Open(true) == SQLiteErrorCode.Ok;
+                if(!success)
                 {
                     CInputOutput.Log("ERROR: Could not open or create the database.");
                     return success;
                 }
+                success = CSqlDB.Instance.Execute("DELETE FROM Game; DELETE FROM Platform") == SQLiteErrorCode.Ok; // Delete existing platforms and games
+                if(!success)
+                {
+                    CInputOutput.Log("ERROR: Could not prepare the Platform and Game tables");
+                    return success;
+                }
             }
-            // Load games from JSON
+
+            // Load and log all platforms and games from JSON
             success = CJsonWrapper.ImportFromJSON(out CConfig.Configuration config, out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches);
             if(!success)
             {
                 CInputOutput.Log("ERROR: Could not load games from the JSON file");
                 return success;
             }
-            Dictionary<string, int> platforms = CGameData.GetPlatforms();
-            HashSet<CGameData.CGame> allGames = CGameData.GetPlatformGameList(CGameData.GamePlatform.All);
-            CInputOutput.LogGameData(platforms, allGames);
+            Dictionary<string, int> jsonPlatforms = CGameData.GetPlatforms();
+            HashSet<CGameData.CGame> jsonAllGames = CGameData.GetPlatformGameList(CGameData.GamePlatform.All);
+            CInputOutput.LogGameData(jsonPlatforms, jsonAllGames);
 
+            // Begin migration here
             if(Mode == ConvertMode.cModeApply)
             {
                 // Add platforms to the database
+                foreach(KeyValuePair<string, int> platform in jsonPlatforms)
+                {
+                    if(platform.Key != "All games" 
+                        && platform.Key != "Search results" 
+                        && platform.Key != "Favourites"
+                        && platform.Key != "Hidden games")
+                    {
+                        CPlatform.InsertPlatform(platform.Key, "");
+                    }
+                }
 
+                // Get the platforms from the DB (we need the PK)
+                Dictionary<string, CPlatform.PlatformObject> dbPlatforms = CPlatform.GetPlatforms();
 
                 // Add the games to the database
-                List<GameObject> gamesDB = new List<GameObject>();
-                foreach(CGameData.CGame game in allGames)
+                foreach(CGameData.CGame game in jsonAllGames)
                 {
-                    gamesDB.Add(new GameObject());
+                    int platformFK = (dbPlatforms.ContainsKey(game.PlatformString)) ? dbPlatforms[game.PlatformString].PlatformID : 0;
+                    GameObject tmp = new GameObject(platformFK, game.ID, game.Title, game.Alias, game.Launch, game.Uninstaller);
+                    CGame.InsertGame(tmp);
                 }
+                HashSet<CGame.GameObject> dbGames = CGame.GetAllGames();
+                success = (success && jsonAllGames.Count == dbGames.Count);
+                if (!success)
+                {
+                    CInputOutput.Log("ERROR: Not all games were migrated to the database");
+                }
+
+                CInputOutput.Log((success) ? "SUCCESS" : "FAILURE");
+                CInputOutput.Log("Game data migration finished");
+                CInputOutput.Log(dbPlatforms.Count + " Platforms added");
+                CInputOutput.Log(dbGames.Count + " Games added");
+                return success;
             }
             else
             {
                 CInputOutput.Log("Mode is 'verify' - no changes have been made");
                 CInputOutput.Log("In order to perform conversion, run the program in 'apply' mode");
-                CInputOutput.Log("**** END ****");
             }
-
+            CInputOutput.Log("**** END ****");
             return success;
         }
 

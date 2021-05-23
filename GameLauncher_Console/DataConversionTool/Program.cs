@@ -18,8 +18,20 @@ namespace DataConversionTool
                 Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title,
                 Assembly.GetEntryAssembly().GetName().Version.ToString());
             CLogger.LogInfo("*************************");
+
+           if(args.Length == 0)
+            {
+                CInputOutput.Log("No arguments provided");
+                CInputOutput.ShowHelp();
+                return;
+            }
+            CConverter.ConvertMode mode = CInputOutput.DetermineMode(args[0]);
+            if(mode == CConverter.ConvertMode.cModeUnknown)
+            {
+                return;
+            }
+            CConverter converter = new CConverter(mode);
+            converter.ConvertData();
         }
-
-
     }
 }

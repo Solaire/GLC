@@ -18,48 +18,38 @@ namespace GameLauncher_Console
         {
 			[Description("Unknown")]
 			Unknown = -1,
-			[Description("Favourites")]
-			Favourites = 0,
-			[Description("Custom games")]
-			Custom = 1,
-			[Description("All games")]
-			All = 2,
 			[Description("Steam")]
-			Steam = 3,
+			Steam = 0,
 			[Description("GOG Galaxy")]
-			GOG = 4,
+			GOG = 1,
 			[Description("Ubisoft Connect")]
-			Uplay = 5,
+			Uplay = 2,
 			[Description("Origin")]
-			Origin = 6,
+			Origin = 3,
 			[Description("Epic")]
-			Epic = 7,
+			Epic = 4,
 			[Description("Betheda.net")]
-			Bethesda = 8,
+			Bethesda = 5,
 			[Description("Battle.net")]
-			Battlenet = 9,
+			Battlenet = 6,
 			[Description("Rockstar")]
-			Rockstar = 10,
-			[Description("Hidden games")]
-			Hidden = 11,
-			[Description("Search results")]
-			Search = 12,
+			Rockstar = 7, 
 			[Description("Amazon")]
-			Amazon = 13,
+			Amazon = 8, 
 			[Description("Big Fish")]
-			BigFish = 14,
+			BigFish = 9, 
 			[Description("Arc")]
-			Arc = 15,
+			Arc = 10,
 			[Description("itch")]
-			Itch = 16,
+			Itch = 11,
 			[Description("Paradox")]
-			Paradox = 17,
+			Paradox = 12,
 			[Description("Plarium Play")]
-			Plarium = 18,
+			Plarium = 13,
 			[Description("Twitch")]
-			Twitch = 19,
+			Twitch = 14,
 			[Description("Wargaming.net")]
-			Wargaming = 20
+			Wargaming = 15,
 		}
 
 		#region Query definitions
@@ -168,15 +158,15 @@ namespace GameLauncher_Console
 		/// Get list of platforms from the database
 		/// </summary>
 		/// <returns>List of PlatformObjects</returns>
-		public static List<PlatformObject> GetPlatforms()
+		public static Dictionary<string, PlatformObject>GetPlatforms()
         {
-			List<PlatformObject> platforms = new List<PlatformObject>();
+			Dictionary<string, PlatformObject> platforms = new Dictionary<string, PlatformObject>();
 			m_qryRead.MakeFieldsNull();
 			if(m_qryRead.Select() == SQLiteErrorCode.Ok)
             {
 				do
 				{
-					platforms.Add(new PlatformObject(m_qryRead));
+					platforms[m_qryRead.Name] = new PlatformObject(m_qryRead);
 				} while(m_qryRead.Fetch());
             }
 			return platforms;
@@ -194,6 +184,20 @@ namespace GameLauncher_Console
 			m_qryWrite.Description	= platform.Description;
 			return m_qryWrite.Insert() == SQLiteErrorCode.Ok;
         }
+
+		/// <summary>
+		/// Insert specified platform into the database
+		/// </summary>
+		/// <param name="title">Platform title</param>
+		/// <param name="description">Platform description</param>
+		/// <returns>True on insert success, otherwise false</returns>
+		public static bool InsertPlatform(string title, string description)
+		{
+			m_qryWrite.MakeFieldsNull();
+			m_qryWrite.Name = title;
+			m_qryWrite.Description = description;
+			return m_qryWrite.Insert() == SQLiteErrorCode.Ok;
+		}
 
 		/// <summary>
 		/// Update specified platform

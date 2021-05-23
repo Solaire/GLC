@@ -48,19 +48,19 @@ namespace CGame_Test // TODO: GameLauncher_Console
         {
             public CQryGame() : base("Game", "", "")
             {
-                m_sqlRow["GameID"]          = new CSqlFieldInteger("GameID", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
-                m_sqlRow["PlatformFK"]      = new CSqlFieldInteger("PlatformFK", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
-                m_sqlRow["Identifier"]      = new CSqlFieldString("Identifier", QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Title"]           = new CSqlFieldString("Title", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Alias"]           = new CSqlFieldString("Alias", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Launch"]          = new CSqlFieldString("Launch", QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["GameID"]          = new CSqlFieldInteger("GameID"     , QryFlag.cSelRead | QryFlag.cWhere);
+                m_sqlRow["PlatformFK"]      = new CSqlFieldInteger("PlatformFK" , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
+                m_sqlRow["Identifier"]      = new CSqlFieldString("Identifier"  , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Title"]           = new CSqlFieldString("Title"       , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Alias"]           = new CSqlFieldString("Alias"       , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Launch"]          = new CSqlFieldString("Launch"      , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall"   , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["IsFavourite"]     = new CSqlFieldBoolean("IsFavourite", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency", QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating", QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Icon"]            = new CSqlFieldString("Description", QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Description"]     = new CSqlFieldString("Description", QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden"   , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency"   , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating"     , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Icon"]            = new CSqlFieldString("Icon"        , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Description"]     = new CSqlFieldString("Description" , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["IsMultiPlatform"] = new CSqlFieldBoolean("IsMultiPlatform", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
             }
             public int GameID
@@ -315,19 +315,20 @@ namespace CGame_Test // TODO: GameLauncher_Console
             /// <param name="platformFK">PlatformFK database field</param>
             /// <param name="identifier">Identifier used for launching the game (eg. steamapp id)</param>
             /// <param name="title">Game title</param>
+            /// <param name="alias">Game alias</param>
             /// <param name="launch">Game executable path or launch string</param>
             /// <param name="uninstall">Game uninstaller path or uninstall string</param>
-            public GameObject(int platformFK, string identifier, string title, string launch, string uninstall)
+            public GameObject(int platformFK, string identifier, string title, string alias, string launch, string uninstall)
             {
                 PlatformFK  = platformFK;
                 Identifier  = identifier;
                 Title       = title;
+                Alias       = alias;
                 Launch      = launch;
                 Uninstall   = uninstall;
 
                 // Default rest
                 GameID          = 0;
-                Alias           = "";
                 Icon            = "";
                 IsFavourite     = false;
                 IsHidden        = false;
@@ -423,9 +424,13 @@ namespace CGame_Test // TODO: GameLauncher_Console
         public static bool InsertGame(GameObject game)
         {
             m_qryGame.MakeFieldsNull();
-            m_qryGame.PlatformFK = game.PlatformFK;
+            if(game.PlatformFK > 0)
+            {
+                m_qryGame.PlatformFK = game.PlatformFK;
+            }
             m_qryGame.Identifier = game.Identifier;
             m_qryGame.Title      = game.Title;
+            m_qryGame.Alias      = (game.Alias.Length > 0) ? game.Alias : game.Title;
             m_qryGame.Launch     = game.Launch;
             m_qryGame.Uninstall  = game.Uninstall;
             if(m_qryGame.Insert() == SQLiteErrorCode.Ok)

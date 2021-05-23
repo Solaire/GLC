@@ -118,15 +118,10 @@ namespace SqlDB
                     CLogger.LogError(e);
                     return SQLiteErrorCode.Unknown; // Use unknown for non-sql issues
                 }
-
                 if (script.Length > 0)
                 {
                     Execute(script);
                 }
-            }
-            else
-            {
-                return SQLiteErrorCode.Error;
             }
             return MaybeUpdateSchema();
         }
@@ -433,7 +428,7 @@ namespace SqlDB
                 {
                     query += ", ";
                 }
-                query += field.Key;
+                query += field.Value.Column;
             }
             return query;
         }
@@ -456,9 +451,8 @@ namespace SqlDB
                 }
                 if(field.Value.Type == TypeCode.String)
                 {
-                    insertValues += "'";
-                    insertValues += field.Value.String;
-                    insertValues += "'";
+                    string literal = StringToLiteral(field.Value.String);                   
+                    insertValues += literal;
                 }
                 else if(field.Value.Type == TypeCode.Double)
                 {
@@ -493,13 +487,12 @@ namespace SqlDB
                 {
                     whereCondition += " AND ";
                 }
-                whereCondition += field.Key;
+                whereCondition += field.Value.Column;
                 whereCondition += " = ";
                 if(field.Value.Type == TypeCode.String)
                 {
-                    whereCondition += "'";
-                    whereCondition += field.Value.String;
-                    whereCondition += "'";
+                    string literal = StringToLiteral(field.Value.String);
+                    whereCondition += literal;
                 }
                 else if(field.Value.Type == TypeCode.Double)
                 {
@@ -547,8 +540,8 @@ namespace SqlDB
                     }
                     else
                     {
-                        string s = "'" + m_sqlRow[columnIndex].String + "'";
-                        whereCondition.Replace(M_VALUE_MASK, s, vMask, 1);
+                        string literal = StringToLiteral(m_sqlRow[columnIndex].String);
+                        whereCondition.Replace(M_VALUE_MASK, literal, vMask, 1);
                     }
                 }
                 else if (m_sqlRow[columnIndex].Type == TypeCode.Double)
@@ -581,13 +574,12 @@ namespace SqlDB
                 {
                     update += ", ";
                 }
-                update += field.Key;
+                update += field.Value.Column;
                 update += " = ";
                 if (field.Value.Type == TypeCode.String)
                 {
-                    update += "'";
-                    update += field.Value.String;
-                    update += "'";
+                    string literal = StringToLiteral(field.Value.String);
+                    update += literal;
                 }
                 else if (field.Value.Type == TypeCode.Double)
                 {
@@ -599,6 +591,21 @@ namespace SqlDB
                 }
             }
             return update;
+        }
+
+        /// <summary>
+        /// Take a string input and return a literal, SQL-ready string
+        /// </summary>
+        /// <param name="input">The input string</param>
+        /// <returns>SQL-ready literal string</returns>
+        private string StringToLiteral(string input)
+        {
+            if(input == null)
+            {
+                return "''";
+            }
+            string literal = input.Replace("'", "''");
+            return "'" + literal + "'";
         }
 
         /// <summary>

@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace DataConversionTool
 {
-    public class CInputOutput
+    public static class CInputOutput
     {
         // Command-line option const
-        private const string FLAG_APPLY = "apply";
-        private const string FLAG_VERIFY = "verify";
+        private const string FLAG_APPLY = "-apply";
+        private const string FLAG_VERIFY = "-verify";
 
         private static readonly string[] HELP =
         {
@@ -20,27 +20,25 @@ namespace DataConversionTool
             "-apply: Perform the same checks as 'verify' and also migrate data to the DB",
         };
 
-        public CInputOutput()
-        {
-
-        }
-
         /// <summary>
         /// Determine tool mode from input string
         /// </summary>
         /// <param name="mode">Input string</param>
         /// <returns>ConvertMode enum</returns>
-        public CConverter.ConvertMode DetermineMode(string mode)
+        public static CConverter.ConvertMode DetermineMode(string mode)
         {
             switch(mode)
             {
                 case FLAG_VERIFY:
+                    Log("Running in VERIFY mode");
                     return CConverter.ConvertMode.cModeVerify;
                         
                 case FLAG_APPLY:
+                    Log("Running in APPLY mode");
                     return CConverter.ConvertMode.cModeApply;
 
                 default:
+                    Log("WARN: Could not determine mode");
                     return CConverter.ConvertMode.cModeUnknown;
             }
         }
@@ -48,7 +46,7 @@ namespace DataConversionTool
         /// <summary>
         /// Write help array to donsole
         /// </summary>
-        public void ShowHelp()
+        public static void ShowHelp()
         {
             Console.Clear();
             foreach(string s in HELP)
