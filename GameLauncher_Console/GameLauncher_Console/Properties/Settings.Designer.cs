@@ -12,7 +12,7 @@ namespace GameLauncher_Console.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.8.1.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,288 +26,288 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool prevent_exit {
+        public bool flag_prevent_exit {
             get {
-                return ((bool)(this["prevent_exit"]));
+                return ((bool)(this["flag_prevent_exit"]));
             }
             set {
-                this["prevent_exit"] = value;
+                this["flag_prevent_exit"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool dont_save_interface_changes {
+        public bool flag_dont_save_interface_changes {
             get {
-                return ((bool)(this["dont_save_interface_changes"]));
+                return ((bool)(this["flag_dont_save_interface_changes"]));
             }
             set {
-                this["dont_save_interface_changes"] = value;
+                this["flag_dont_save_interface_changes"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool always_scan_for_new_games {
+        public bool flag_always_scan_for_new_games {
             get {
-                return ((bool)(this["always_scan_for_new_games"]));
+                return ((bool)(this["flag_always_scan_for_new_games"]));
             }
             set {
-                this["always_scan_for_new_games"] = value;
+                this["flag_always_scan_for_new_games"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool only_allow_command_line {
+        public bool flag_only_allow_command_line {
             get {
-                return ((bool)(this["only_allow_command_line"]));
+                return ((bool)(this["flag_only_allow_command_line"]));
             }
             set {
-                this["only_allow_command_line"] = value;
+                this["flag_only_allow_command_line"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool typing_input_is_default {
+        public bool flag_typing_input_is_default {
             get {
-                return ((bool)(this["typing_input_is_default"]));
+                return ((bool)(this["flag_typing_input_is_default"]));
             }
             set {
-                this["typing_input_is_default"] = value;
+                this["flag_typing_input_is_default"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool single_column_list_is_default {
+        public bool flag_single_column_list_is_default {
             get {
-                return ((bool)(this["single_column_list_is_default"]));
+                return ((bool)(this["flag_single_column_list_is_default"]));
             }
             set {
-                this["single_column_list_is_default"] = value;
+                this["flag_single_column_list_is_default"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool do_not_split_over_pages {
+        public bool flag_do_not_split_over_pages {
             get {
-                return ((bool)(this["do_not_split_over_pages"]));
+                return ((bool)(this["flag_do_not_split_over_pages"]));
             }
             set {
-                this["do_not_split_over_pages"] = value;
+                this["flag_do_not_split_over_pages"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool enlarge_height_to_fit {
+        public bool flag_enlarge_height_to_fit {
             get {
-                return ((bool)(this["enlarge_height_to_fit"]));
+                return ((bool)(this["flag_enlarge_height_to_fit"]));
             }
             set {
-                this["enlarge_height_to_fit"] = value;
+                this["flag_enlarge_height_to_fit"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool sort_alphabetically {
+        public bool flag_sort_alphabetically {
             get {
-                return ((bool)(this["sort_alphabetically"]));
+                return ((bool)(this["flag_sort_alphabetically"]));
             }
             set {
-                this["sort_alphabetically"] = value;
+                this["flag_sort_alphabetically"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool sort_favourites_on_top {
+        public bool flag_sort_favourites_on_top {
             get {
-                return ((bool)(this["sort_favourites_on_top"]));
+                return ((bool)(this["flag_sort_favourites_on_top"]));
             }
             set {
-                this["sort_favourites_on_top"] = value;
+                this["flag_sort_favourites_on_top"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool light_colour_is_default {
+        public bool flag_colour_light_mode_is_default {
             get {
-                return ((bool)(this["light_colour_is_default"]));
+                return ((bool)(this["flag_colour_light_mode_is_default"]));
             }
             set {
-                this["light_colour_is_default"] = value;
+                this["flag_colour_light_mode_is_default"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool always_show_all_games {
+        public bool flag_always_show_all_games {
             get {
-                return ((bool)(this["always_show_all_games"]));
+                return ((bool)(this["flag_always_show_all_games"]));
             }
             set {
-                this["always_show_all_games"] = value;
+                this["flag_always_show_all_games"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool dont_show_settings_in_platform_list {
+        public bool flag_dont_show_settings_in_platform_list {
             get {
-                return ((bool)(this["dont_show_settings_in_platform_list"]));
+                return ((bool)(this["flag_dont_show_settings_in_platform_list"]));
             }
             set {
-                this["dont_show_settings_in_platform_list"] = value;
+                this["flag_dont_show_settings_in_platform_list"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool only_scan_custom_games {
+        public bool flag_only_scan_custom_games {
             get {
-                return ((bool)(this["only_scan_custom_games"]));
+                return ((bool)(this["flag_only_scan_custom_games"]));
             }
             set {
-                this["only_scan_custom_games"] = value;
+                this["flag_only_scan_custom_games"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool text_use_custom_text_values {
+        public bool flag_text_use_custom_text_values {
             get {
-                return ((bool)(this["text_use_custom_text_values"]));
+                return ((bool)(this["flag_text_use_custom_text_values"]));
             }
             set {
-                this["text_use_custom_text_values"] = value;
+                this["flag_text_use_custom_text_values"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool image_draw_border_characters {
+        public bool flag_image_draw_border_characters {
             get {
-                return ((bool)(this["image_draw_border_characters"]));
+                return ((bool)(this["flag_image_draw_border_characters"]));
             }
             set {
-                this["image_draw_border_characters"] = value;
+                this["flag_image_draw_border_characters"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool image_dont_use_custom {
+        public bool flag_image_dont_use_custom {
             get {
-                return ((bool)(this["image_dont_use_custom"]));
+                return ((bool)(this["flag_image_dont_use_custom"]));
             }
             set {
-                this["image_dont_use_custom"] = value;
+                this["flag_image_dont_use_custom"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool image_ignore_custom_aspect_ratio {
+        public bool flag_image_ignore_custom_aspect_ratio {
             get {
-                return ((bool)(this["image_ignore_custom_aspect_ratio"]));
+                return ((bool)(this["flag_image_ignore_custom_aspect_ratio"]));
             }
             set {
-                this["image_ignore_custom_aspect_ratio"] = value;
+                this["flag_image_ignore_custom_aspect_ratio"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public ushort list_icons_max_size_in_characters {
+        public ushort num_list_icons_max_size_in_characters {
             get {
-                return ((ushort)(this["list_icons_max_size_in_characters"]));
+                return ((ushort)(this["num_list_icons_max_size_in_characters"]));
             }
             set {
-                this["list_icons_max_size_in_characters"] = value;
+                this["num_list_icons_max_size_in_characters"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("16")]
-        public ushort list_icons_resolution {
+        public ushort num_list_icons_resolution {
             get {
-                return ((ushort)(this["list_icons_resolution"]));
+                return ((ushort)(this["num_list_icons_resolution"]));
             }
             set {
-                this["list_icons_resolution"] = value;
+                this["num_list_icons_resolution"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("16")]
-        public ushort selected_image_max_size_in_characters {
+        public ushort num_selected_image_max_size_in_characters {
             get {
-                return ((ushort)(this["selected_image_max_size_in_characters"]));
+                return ((ushort)(this["num_selected_image_max_size_in_characters"]));
             }
             set {
-                this["selected_image_max_size_in_characters"] = value;
+                this["num_selected_image_max_size_in_characters"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("96")]
-        public ushort selected_image_icon_resolution {
+        public ushort num_selected_image_icon_resolution {
             get {
-                return ((ushort)(this["selected_image_icon_resolution"]));
+                return ((ushort)(this["num_selected_image_icon_resolution"]));
             }
             set {
-                this["selected_image_icon_resolution"] = value;
+                this["num_selected_image_icon_resolution"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("10")]
-        public ushort selected_image_y_location_percent {
+        public ushort num_selected_image_y_location_percent {
             get {
-                return ((ushort)(this["selected_image_y_location_percent"]));
+                return ((ushort)(this["num_selected_image_y_location_percent"]));
             }
             set {
-                this["selected_image_y_location_percent"] = value;
+                this["num_selected_image_y_location_percent"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("25")]
-        public ushort grid_text_min_column_characters {
+        public ushort num_grid_text_min_column_characters {
             get {
-                return ((ushort)(this["grid_text_min_column_characters"]));
+                return ((ushort)(this["num_grid_text_min_column_characters"]));
             }
             set {
-                this["grid_text_min_column_characters"] = value;
+                this["num_grid_text_min_column_characters"] = value;
             }
         }
         
@@ -452,6 +452,54 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["colour_highlight_text_lightmode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("DarkGray")]
+        public string colour_input_background {
+            get {
+                return ((string)(this["colour_input_background"]));
+            }
+            set {
+                this["colour_input_background"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Blue")]
+        public string colour_input_background_lightmode {
+            get {
+                return ((string)(this["colour_input_background_lightmode"]));
+            }
+            set {
+                this["colour_input_background_lightmode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("White")]
+        public string colour_input_prompt {
+            get {
+                return ((string)(this["colour_input_prompt"]));
+            }
+            set {
+                this["colour_input_prompt"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Yellow")]
+        public string colour_input_prompt_lightmode {
+            get {
+                return ((string)(this["colour_input_prompt_lightmode"]));
+            }
+            set {
+                this["colour_input_prompt_lightmode"] = value;
             }
         }
         
@@ -889,6 +937,54 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("OemPlus")]
+        public string key_new_game_1 {
+            get {
+                return ((string)(this["key_new_game_1"]));
+            }
+            set {
+                this["key_new_game_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("N")]
+        public string key_new_game_2 {
+            get {
+                return ((string)(this["key_new_game_2"]));
+            }
+            set {
+                this["key_new_game_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Delete")]
+        public string key_delete_1 {
+            get {
+                return ((string)(this["key_delete_1"]));
+            }
+            set {
+                this["key_delete_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_delete_2 {
+            get {
+                return ((string)(this["key_delete_2"]));
+            }
+            set {
+                this["key_delete_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("F9")]
         public string key_uninstall_1 {
             get {
@@ -914,24 +1010,24 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("F8")]
-        public string key_desktop_shortcut_1 {
+        public string key_make_shortcuts_1 {
             get {
-                return ((string)(this["key_desktop_shortcut_1"]));
+                return ((string)(this["key_make_shortcuts_1"]));
             }
             set {
-                this["key_desktop_shortcut_1"] = value;
+                this["key_make_shortcuts_1"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
-        public string key_desktop_shortcut_2 {
+        public string key_make_shortcuts_2 {
             get {
-                return ((string)(this["key_desktop_shortcut_2"]));
+                return ((string)(this["key_make_shortcuts_2"]));
             }
             set {
-                this["key_desktop_shortcut_2"] = value;
+                this["key_make_shortcuts_2"] = value;
             }
         }
         
@@ -1138,22 +1234,67 @@ namespace GameLauncher_Console.Properties {
                 this["text_main_menu_title"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Settings")]
-        public string text_settings_title
-        {
-            get
-            {
+        public string text_settings_title {
+            get {
                 return ((string)(this["text_settings_title"]));
             }
-            set
-            {
+            set {
                 this["text_settings_title"] = value;
             }
         }
-
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Browse for folder")]
+        public string text_browse_title {
+            get {
+                return ((string)(this["text_browse_title"]));
+            }
+            set {
+                this["text_browse_title"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("This PC")]
+        public string text_root_folder {
+            get {
+                return ((string)(this["text_root_folder"]));
+            }
+            set {
+                this["text_root_folder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("SELECT THIS FOLDER")]
+        public string text_select_folder {
+            get {
+                return ((string)(this["text_select_folder"]));
+            }
+            set {
+                this["text_select_folder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("CREATE FOLDER HERE")]
+        public string text_create_folder {
+            get {
+                return ((string)(this["text_create_folder"]));
+            }
+            set {
+                this["text_create_folder"] = value;
+            }
+        }
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(" Select a platform.")]

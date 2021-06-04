@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameLauncher_Console
@@ -96,8 +97,8 @@ namespace GameLauncher_Console
 			cImage_Unknown = -1,
 			cImage_Disabled = 0,
 			cImage_Enabled = 1
-		}       
-		
+		}
+
 		/// <summary>
 		/// Menu type enum.
 		/// Menu elements can be displayed as either:
@@ -147,14 +148,15 @@ namespace GameLauncher_Console
 		/// </summary>
 		public enum DockSelection
 		{
-			cSel_Search = -18,
-			cSel_Sort = -17,
-			cSel_Image = -16,
-			cSel_Colour = -15,
-			cSel_View = -14,
-			cSel_Input = -13,
+			cSel_Search = -19,
+			cSel_Sort = -18,
+			cSel_Image = -17,
+			cSel_Colour = -16,
+			cSel_View = -15,
+			cSel_Input = -14,
+			cSel_New = -13,
 			cSel_Hide = -12,
-			cSel_Desktop = -11,
+			cSel_Shortcut = -11,
 			cSel_Alias = -10,
 			cSel_Uninst = -9,
 			cSel_Redraw = -8,
@@ -207,6 +209,150 @@ namespace GameLauncher_Console
 			m_SortMethod = (SortMethod)(((int)m_SortMethod + 1) % 2);
 		}
 
+		/// <summary
+		/// </summary>
+		public int DisplayFS(CConfig.Hotkeys keys, CConfig.Colours cols, ref bool browse, ref string path)
+		{
+			int code;
+			string game = "";
+			string mask = "*.*";
+
+			CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
+			Console.Clear();
+			CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
+			Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
+			Console.WriteLine($"{mask} in {path}");
+			DrawFSMenu(cols, string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTFILET)) ? Properties.Settings.Default.text_browse_title : CConfig.GetConfigString(CConfig.CFG_TXTFILET));
+
+			int nStartY = Console.CursorTop + CDock.INSTRUCT_CUSHION;
+			int nStopY = CDock.INPUT_BOTTOM_CUSHION;
+			if (m_ConsoleState == ConsoleState.cState_Insert)
+				nStopY += CDock.INPUT_ITEM_CUSHION;
+
+			List<string> options = new List<string>();
+			List<string> dirs = new List<string>();
+			List<string> files = new List<string>();
+			string rootName = string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTROOT)) ? Properties.Settings.Default.text_root_folder : CConfig.GetConfigString(CConfig.CFG_TXTROOT);
+			try
+			{
+				if (path.Equals(rootName))
+				{
+					dirs.AddRange(Directory.GetLogicalDrives());
+					foreach (string dir in dirs)
+					{
+						options.Add($"<{dir}>");
+					}
+				}
+				else
+				{
+					dirs = new List<string>()
+					{
+						string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTSELECT)) ? Properties.Settings.Default.text_select_folder : CConfig.GetConfigString(CConfig.CFG_TXTSELECT),
+						string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTCREATE)) ? Properties.Settings.Default.text_create_folder : CConfig.GetConfigString(CConfig.CFG_TXTCREATE),
+						".."
+					};
+					dirs.AddRange(Directory.GetDirectories(path));
+					foreach (string dir in dirs)
+					{
+						options.Add(string.Format("<{0}>", Path.GetFileName(dir)));
+					}
+					files.AddRange(Directory.GetFiles(path, mask));
+					foreach (string file in files)
+					{
+						options.Add(Path.GetFileName(file));
+					}
+				}
+			}
+            catch (Exception e)
+            {
+				CDock.SetFgColour(cols.errorCC, cols.errorLtCC);
+				CLogger.LogError(e);
+				Console.WriteLine("Error reading path!");
+				if (path.Equals(Path.GetPathRoot(path)))
+				{
+					path = rootName;
+				}
+				else
+					path = Path.GetDirectoryName(path);
+				Thread.Sleep(2000);
+				return (int)DockSelection.cSel_Back;
+			}
+			
+            do
+			{
+				if (m_ConsoleState == ConsoleState.cState_Insert)
+				{
+					code = HandleInsertMenu(nStartY, nStopY, cols, true, ref game, options.ToArray());
+					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
+				}
+				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
+				{
+					code = HandleNavigationMenu(nStartY, nStopY, keys, cols, true, ref game, options.ToArray());
+					CLogger.LogDebug("HandleNavigationMenu:{0},{1}", code, CDock.m_nCurrentSelection);
+				}
+				if (options.Count() < 2)
+					CDock.m_nCurrentSelection = -1;
+			} while (!IsFSSelectionValid(CDock.m_nCurrentSelection, dirs.Count()));
+
+			if (path == rootName)
+            {
+				path = dirs[CDock.m_nCurrentSelection];
+			}
+			else
+			{
+				if (CDock.m_nCurrentSelection == -1) // quit
+				{
+					code = (int)DockSelection.cSel_Exit;
+				}
+				else if (CDock.m_nCurrentSelection == 0) // select folder
+				{
+					code = (int)DockSelection.cSel_Shortcut;
+				}
+				else if (code == (int)DockSelection.cSel_New ||
+					CDock.m_nCurrentSelection == 1) // create folder
+				{
+					string dir = CDock.InputPrompt("Create folder name >>> ", cols);
+					if (!string.IsNullOrEmpty(dir))
+					{
+						try
+						{
+							Directory.CreateDirectory(path + "\\" + dir);
+						}
+						catch (Exception e)
+						{
+							CDock.SetFgColour(cols.errorCC, cols.errorLtCC);
+							CLogger.LogError(e);
+							Console.WriteLine("Error creating folder!");
+							Thread.Sleep(2000);
+						}
+						code = (int)DockSelection.cSel_Shortcut;
+					}
+				}
+				else if (code == (int)DockSelection.cSel_Back ||
+					CDock.m_nCurrentSelection == 2) // <..>
+				{
+					if (path.Equals(Path.GetPathRoot(path)))
+						path = rootName;
+					else
+						path = Path.GetDirectoryName(path);
+				}
+				else //if (IsFSSelectionValid(CDock.m_nCurrentSelection, dirs.Count()))
+					path = dirs[CDock.m_nCurrentSelection];
+			}
+			CDock.m_nCurrentSelection = 0;
+
+			if (code == (int)DockSelection.cSel_Default ||
+				code == (int)DockSelection.cSel_Back)
+				return (int)DockSelection.cSel_Shortcut;
+			if (code == (int)DockSelection.cSel_Exit)
+			{
+				CDock.m_nSelectedPlatform = -1;
+				browse = false;
+				return (int)DockSelection.cSel_Redraw;
+			}
+			return code;
+		}
+		
 		/// <summary>
 		/// Function overload
 		/// Display either the insert or navigate menu, depending on the console state.
@@ -214,34 +360,34 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="options">String array representing the available options</param>
 		/// <returns>Selection code</returns>
-		public int DisplayMenu(CConfig.Configuration config, CConfig.Hotkeys keys, CConfig.Colours cols, ref string game, params string[] options)
+		public int DisplayMenu(CConfig.Hotkeys keys, CConfig.Colours cols, ref string game, params string[] options)
 		{
 			int code; //= -1;
 
 			CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
-			if (!(bool)config.onlyCmdLine) Console.Clear();
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD)) Console.Clear();
 
-			DrawMenuTitle(config, cols);
-			if (IsSelectionValid(CDock.m_nSelectedPlatform, options.Length)) DrawInstruct(config, cols, true);
-			else DrawInstruct(config, cols, false);
+			DrawMenuTitle(cols);
+			if (IsSelectionValid(CDock.m_nSelectedPlatform, options.Length)) DrawInstruct(cols, true);
+			else DrawInstruct(cols, false);
 			int nStartY = Console.CursorTop + CDock.INSTRUCT_CUSHION;
-			int nStopY = 2;
+			int nStopY = CDock.INPUT_BOTTOM_CUSHION;
 			if (m_ConsoleState == ConsoleState.cState_Insert)
-				nStopY = CDock.INPUT_BOTTOM_CUSHION + CDock.INPUT_ITEM_CUSHION;
+				nStopY += CDock.INPUT_ITEM_CUSHION;
 
 			do
 			{
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
-					code = HandleInsertMenu(nStartY, nStopY, config, cols, ref game, options);
+					code = HandleInsertMenu(nStartY, nStopY, cols, false, ref game, options);
 					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
 				{
-					code = HandleNavigationMenu(nStartY, nStopY, config, keys, cols, ref game, options);
+					code = HandleNavigationMenu(nStartY, nStopY, keys, cols, false, ref game, options);
 					CLogger.LogDebug("HandleNavigationMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
-				if (code == (int)DockSelection.cSel_Exit    ||
+				if (code == (int)DockSelection.cSel_Exit ||
 					code == (int)DockSelection.cSel_Default)
 					return code;
 				if (options.Length == 0)
@@ -266,28 +412,47 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Validate selection for filesystem menu
+		/// </summary>
+		/// <param name="nSelection">Selection as integer</param>
+		/// <param name="nItemCount">Count of the possible selections</param>
+		/// <returns>True if valid, otherwise false</returns>
+		public static bool IsFSSelectionValid(int nSelection, int nItemCount)
+		{
+			return (nSelection > -1 && nSelection < nItemCount);
+		}
+
+		/// <summary>
 		/// Function overload
 		/// Selection handler in the browse state.
 		/// Return selection code and selection index
 		/// </summary>
 		/// <param name="options">Array of available options</param>
 		/// <returns>Selection code</returns>
-		public int HandleNavigationMenu(int nStartY, int nStopY, CConfig.Configuration config, CConfig.Hotkeys keys, CConfig.Colours cols, ref string game, params string[] options)
+		public int HandleNavigationMenu(int nStartY, int nStopY, CConfig.Hotkeys keys, CConfig.Colours cols, bool browse, ref string game, params string[] options)
 		{
 			Console.CursorVisible = false;
 
 			ConsoleKey key;
 			int nLastSelection = CDock.m_nCurrentSelection;
 
-			if ((bool)config.sizeToFit)
+			if ((bool)CConfig.GetConfigBool(CConfig.CFG_USESIZE))
 			{
 				// If the list items won't fit in the current window, resize to fit
 				int numLines = (options.Length / m_nOptionsPerLine) + nStartY + CDock.INPUT_BOTTOM_CUSHION;
-				if (numLines > Console.WindowHeight)
+				try
 				{
-					Console.WindowHeight = Math.Min(numLines, Console.LargestWindowHeight);
-					m_nMaxItemsPerPage = Math.Max(m_nOptionsPerLine, Console.WindowHeight * m_nOptionsPerLine);
+					int wh = Console.WindowHeight;
+					if (numLines > wh)
+					{
+						Console.WindowHeight = Math.Min(numLines, Console.LargestWindowHeight);
+						m_nMaxItemsPerPage = Math.Max(m_nOptionsPerLine, wh * m_nOptionsPerLine);
+					}
 				}
+                catch (Exception e)
+                {
+					CLogger.LogError(e);
+                }
 			}
 
 			// Print the selections
@@ -304,18 +469,18 @@ namespace GameLauncher_Console
 			{
 				int maxTitles = (Math.Min(9, Console.WindowHeight - nStartY - CDock.INPUT_BOTTOM_CUSHION - CDock.INPUT_ITEM_CUSHION - 1));
 				options = CGameData.GetPlatformTitles(CGameData.GamePlatform.All).ToArray();
-				if (GameSearch(game, (bool)config.onlyCmdLine, maxTitles, options, out string[] optionsNew, out int nMatches) && nMatches > 0)
+				if (DoGameSearch(game, maxTitles, options, out string[] optionsNew, out int nMatches) && nMatches > 0)
 				{
 					CDock.m_nSelectedPlatform = (int)CGameData.GamePlatform.Search;
 					options = optionsNew;
-					if ((bool)config.onlyCmdLine)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{
 						if (optionsNew.Length == 1) //nMatches == 1)
 							return (int)DockSelection.cSel_Default;
 						return (int)DockSelection.cSel_Exit;
 					}
 
-					//DrawMenuTitle(config, cols);
+					//DrawMenuTitle(cols);
 				}
 				else
 				{
@@ -323,33 +488,33 @@ namespace GameLauncher_Console
 					CDock.m_nSelectedPlatform = -1;
 					CDock.SetFgColour(cols.errorCC, cols.errorLtCC);
 					Console.WriteLine("{0}: {1}!", CGameData.GetDescription(CGameData.GamePlatform.Search), CGameData.GetDescription(CGameData.Match.NoMatches));
-					if ((bool)config.onlyCmdLine)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{
 						options = new string[0];
 						return (int)DockSelection.cSel_Exit;
 					}
 
-					if ((bool)config.goToAll)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USEALL))
 					{
 						CDock.m_nSelectedPlatform = (int)CGameData.GamePlatform.All;
-						//DrawMenuTitle(config, cols);
+						//DrawMenuTitle(cols);
 					}
 					else
-						options = GetPlatformNames(config).ToArray();
+						options = GetPlatformNames().ToArray();
 				}
 				game = "";
 			}
 
-			if ((int)config.imageSize > 0 && (bool)config.imageBorder)
+			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 && (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD))
 				CConsoleImage.ShowImageBorder(CDock.imgSize, CDock.imgLoc, CDock.IMG_BORDER_X_CUSHION, CDock.IMG_BORDER_Y_CUSHION);
 
 			if (m_MenuType == MenuType.cType_List)
-				DrawListMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, config, cols, options);
+				DrawListMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cols, options);
 			
 			else //if (m_MenuType == MenuType.cType_Grid)
-				DrawGridMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, config, cols, options);
+				DrawGridMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cols, options);
 			
-			if (!(bool)config.noPageSplit && pages > 1 && nPage < pages - 1)
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1 && nPage < pages - 1)
 			{
 				CDock.SetFgColour(cols.subCC, cols.subLtCC);
 				Console.WriteLine("... ({0}/{1})", nPage + 1, pages);
@@ -361,30 +526,30 @@ namespace GameLauncher_Console
 				if (CDock.m_nCurrentSelection != nLastSelection && IsSelectionValid(nLastSelection, options.Length) &&
 					IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
 					UpdateMenu(nLastSelection, nPage,
-						(int)config.iconSize > 0 ? CDock.ICON_LEFT_CUSHION + (int)config.iconSize + CDock.ICON_RIGHT_CUSHION: 0,
-						nStartY, itemsPerPage, config, cols, options);
+						(ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0 ? CDock.ICON_LEFT_CUSHION + (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) + CDock.ICON_RIGHT_CUSHION: 0,
+						nStartY, itemsPerPage, cols, options);
 
-				if (m_MenuType == MenuType.cType_List && (int)config.iconSize > 0)
+				if (m_MenuType == MenuType.cType_List && (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
                 {
-					ConsoleColor iconColour = (int)config.iconRes > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+					ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 					for (int i = itemsPerPage * nPage; i > itemsPerPage * (nPage + 1); ++i)
 					{
-						DrawIcon(Console.CursorTop, i, options[i], config, iconColour);
+						DrawIcon(Console.CursorTop, i, options[i], iconColour);
 					}
 				}
 
-				if ((int)config.imageSize > 0 && IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
+				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 && IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
 				{
-					ConsoleColor imageColour = (int)config.imageRes > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+					ConsoleColor imageColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 					var t = Task.Run(() =>
 					{
 						if (CDock.m_nSelectedPlatform > -1)
 						{
 							CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
-							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.imgSize, CDock.imgLoc, config, imageColour);
+							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.imgSize, CDock.imgLoc, imageColour);
 						}
 						else
-							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection], options[CDock.m_nCurrentSelection], true, CDock.imgSize, CDock.imgLoc, config, imageColour);
+							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection], options[CDock.m_nCurrentSelection], true, CDock.imgSize, CDock.imgLoc, imageColour);
 					});
 				}
 
@@ -412,9 +577,9 @@ namespace GameLauncher_Console
 				{
 					if (CDock.m_nCurrentSelection > 0)
 					{
-						HandleSelectionUp(itemsPerPage);
+						HandleSelectionUp();
 						CLogger.LogDebug("Selected {0}: [{1}]", CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection]);
-						if (!(bool)config.noPageSplit && CDock.m_nCurrentSelection < itemsPerPage * nPage)
+						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && CDock.m_nCurrentSelection < itemsPerPage * nPage)
 							return (int)DockSelection.cSel_Redraw;
 					}
 				}
@@ -422,9 +587,9 @@ namespace GameLauncher_Console
 				{
 					if (CDock.m_nCurrentSelection < options.Length - 1)
 					{
-						HandleSelectionDown(itemsPerPage, options.Length);
+						HandleSelectionDown(options.Length);
 						CLogger.LogDebug("Selected {0}: [{1}]", CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection]);
-						if (!(bool)config.noPageSplit && CDock.m_nCurrentSelection >= itemsPerPage * (nPage + 1))
+						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && CDock.m_nCurrentSelection >= itemsPerPage * (nPage + 1))
 							return (int)DockSelection.cSel_Redraw;
 					}
 				}
@@ -434,7 +599,7 @@ namespace GameLauncher_Console
 					{
 						HandleSelectionPageUp(itemsPerPage, options.Length);
 						CLogger.LogDebug("Selected {0}: [{1}]", CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection]);
-						if (!(bool)config.noPageSplit && nPage > 0)
+						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && nPage > 0)
 							return (int)DockSelection.cSel_Redraw;
 					}
 				}
@@ -444,7 +609,7 @@ namespace GameLauncher_Console
 					{
 						HandleSelectionPageDown(itemsPerPage, options.Length);
 						CLogger.LogDebug("Selected {0}: [{1}]", CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection]);
-						if (!(bool)config.noPageSplit && nPage < pages)
+						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && nPage < pages)
 							return (int)DockSelection.cSel_Redraw;
 					}
 				}
@@ -456,7 +621,7 @@ namespace GameLauncher_Console
 					{
 						HandleSelectionFirst();
 						CLogger.LogDebug("Selected {0}: [{1}]", CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection]);
-						if (!(bool)config.noPageSplit && pages > 1)
+						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1)
 							return (int)DockSelection.cSel_Redraw;
 					}
 				}
@@ -466,7 +631,7 @@ namespace GameLauncher_Console
 					{
 						HandleSelectionLast(options.Length);
 						CLogger.LogDebug("Selected {0}: [{1}]", CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection]);
-						if (!(bool)config.noPageSplit && pages > 1)
+						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1)
 							return (int)DockSelection.cSel_Redraw;
 					}
 				}
@@ -485,10 +650,10 @@ namespace GameLauncher_Console
 				else if (key == keys.typeCK1 || key == keys.typeCK2)
 					return (int)DockSelection.cSel_Input; // Arrows/Typing input
 
-				else if (key == keys.desktopCK1 || key == keys.desktopCK2)
+				else if (key == keys.shortcutCK1 || key == keys.shortcutCK2)
                 {
-					if (CDock.m_nSelectedPlatform > -1)
-						return (int)DockSelection.cSel_Desktop; // Add shortcut to Desktop
+					//if (CDock.m_nSelectedPlatform > -1)
+						return (int)DockSelection.cSel_Shortcut; // Export shortcuts
                 }
 				else if (key == keys.uninstCK1 || key == keys.uninstCK2)
 				{
@@ -498,20 +663,32 @@ namespace GameLauncher_Console
 				else if (key == keys.helpCK1 || key == keys.helpCK2)
 					return (int)DockSelection.cSel_Help; // Print help
 
+				else if (key == keys.cancelCK1 || key == keys.cancelCK2) // by default, cancelCK1 and quitCK1 are both Esc, so check for cancel before quit
+				{
+					if (browse)
+					{
+						CDock.m_nCurrentSelection = -1;
+						return (int)DockSelection.cSel_Exit;
+					}
+				}
 				else if (key == keys.quitCK1 || key == keys.quitCK2)
 				{
-					if (!(bool)config.preventQuit)
+					if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT))
 						return (int)DockSelection.cSel_Exit; // Exit program
 				}
 				else if (key == keys.backCK1 || key == keys.backCK2)
 				{
-					if (CDock.m_nSelectedPlatform > -1 && !((bool)config.goToAll))
+					if (CDock.m_nSelectedPlatform > -1 && !((bool)CConfig.GetConfigBool(CConfig.CFG_USEALL)))
 						return (int)DockSelection.cSel_Back; // Return to first menu
 				}
 				else if (key == keys.hideCK1 || key == keys.hideCK2)
 				{
 					if (CDock.m_nSelectedPlatform > -1)
 						return (int)DockSelection.cSel_Hide; // Remove game from list
+				}
+				else if (key == keys.newCK1 || key == keys.newCK2)
+				{
+					return (int)DockSelection.cSel_New; // Add game to list (or create folder)
 				}
 				else if (key == keys.faveCK1 || key == keys.faveCK2)
 				{
@@ -537,22 +714,30 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="options">List of menu items</param>
 		/// <returns>Index of the selected item from the options parameter</returns>
-		public int HandleInsertMenu(int nStartY, int nStopY, CConfig.Configuration config, CConfig.Colours cols, ref string game, params string[] options)
+		public int HandleInsertMenu(int nStartY, int nStopY, CConfig.Colours cols, bool browse, ref string game, params string[] options)
 		{
 			Console.CursorVisible = true;
 
 			int nSelection = -1;
 			bool bIsValidSelection = false;
 
-			if ((bool)config.sizeToFit)
+			if ((bool)CConfig.GetConfigBool(CConfig.CFG_USESIZE))
 			{
 				// If the list items won't fit in the current window, resize to fit
 				int numLines = (options.Length / m_nOptionsPerLine) + nStartY + CDock.INPUT_BOTTOM_CUSHION;
-				if (numLines > Console.WindowHeight)
+				try
 				{
-					Console.WindowHeight = Math.Min(numLines, Console.LargestWindowHeight);
-					m_nMaxItemsPerPage = Math.Max(m_nOptionsPerLine, Console.WindowHeight * m_nOptionsPerLine);
+					int wh = Console.WindowHeight;
+					if (numLines > wh)
+					{
+						Console.WindowHeight = Math.Min(numLines, Console.LargestWindowHeight);
+						m_nMaxItemsPerPage = Math.Max(m_nOptionsPerLine, wh * m_nOptionsPerLine);
+					}
 				}
+				catch (Exception e)
+                {
+					CLogger.LogError(e);
+                }
 			}
 
 			// Print the selections
@@ -569,18 +754,18 @@ namespace GameLauncher_Console
 			{
 				int maxTitles = (Math.Min(9, Console.WindowHeight - nStartY - CDock.INPUT_BOTTOM_CUSHION - CDock.INPUT_ITEM_CUSHION - 1));
 				options = CGameData.GetPlatformTitles(CGameData.GamePlatform.All).ToArray();
-				if (GameSearch(game, (bool)config.onlyCmdLine, maxTitles, options, out string[] optionsNew, out int nMatches) && nMatches > 0)
+				if (DoGameSearch(game, maxTitles, options, out string[] optionsNew, out int nMatches) && nMatches > 0)
 				{
 					CDock.m_nSelectedPlatform = (int)CGameData.GamePlatform.Search;
 					options = optionsNew;
-					if ((bool)config.onlyCmdLine)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{
 						if (optionsNew.Length == 1) //nMatches == 1)
 							return (int)DockSelection.cSel_Default;
 						return (int)DockSelection.cSel_Exit;
 					}
 
-					//DrawMenuTitle(config, cols);
+					//DrawMenuTitle(cols);
 				}
 				else
 				{
@@ -588,33 +773,33 @@ namespace GameLauncher_Console
 					CDock.m_nSelectedPlatform = -1;
 					CDock.SetFgColour(cols.errorCC, cols.errorLtCC);
 					Console.WriteLine("{0}: {1}!", CGameData.GetDescription(CGameData.GamePlatform.Search), CGameData.GetDescription(CGameData.Match.NoMatches));
-					if ((bool)config.onlyCmdLine)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{
-						options = new string[0];
+						//options = new string[0];
 						return (int)DockSelection.cSel_Exit;
 					}
 
-					if ((bool)config.goToAll)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USEALL))
 					{
 						CDock.m_nSelectedPlatform = (int)CGameData.GamePlatform.All;
-						//DrawMenuTitle(config, cols);
+						//DrawMenuTitle(cols);
 					}
 					else
-						options = GetPlatformNames(config).ToArray();
+						options = GetPlatformNames().ToArray();
 				}
 				game = "";
 			}
 
-			if ((int)config.imageSize > 0 && (bool)config.imageBorder)
+			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 && (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD))
 				CConsoleImage.ShowImageBorder(CDock.imgSize, CDock.imgLoc, CDock.IMG_BORDER_X_CUSHION, CDock.IMG_BORDER_Y_CUSHION);
 			
 			if (m_MenuType == MenuType.cType_List)
-				DrawListMenu(nSelection, nPage, nStartY, nStopY, config, cols, options);
+				DrawListMenu(nSelection, nPage, nStartY, nStopY, cols, options);
 
 			else //if (m_MenuType == MenuType.cType_Grid)
-				DrawGridMenu(nSelection, nPage, nStartY, nStopY, config, cols, options);
+				DrawGridMenu(nSelection, nPage, nStartY, nStopY, cols, options);
 			
-			if (!(bool)config.noPageSplit && pages > 1 && nPage < pages - 1)
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1 && nPage < pages - 1)
 			{
 				CDock.SetFgColour(cols.subCC, cols.subLtCC);
 				Console.WriteLine("... ({0}/{1})", nPage + 1, pages);
@@ -622,19 +807,7 @@ namespace GameLauncher_Console
 
 			do
 			{
-				// Set the cursor to the bottom of the console
-				try
-				{
-					Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
-				}
-				catch (Exception e)
-				{
-					CLogger.LogError(e);
-				}
-				CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
-				Console.Write(">>> ");
-				string strInput;
-				strInput = Console.ReadLine();
+				string strInput = CDock.InputPrompt(">>> ", cols);
 
 				if (strInput.Length < 1) // Empty string input are invalid
 					continue;
@@ -705,7 +878,7 @@ namespace GameLauncher_Console
 			return nSelection;
 		}
 
-		public void DrawIcon(int nY, int nItem, string strItem, CConfig.Configuration config, ConsoleColor iconColour)
+		public void DrawIcon(int nY, int nItem, string strItem, ConsoleColor iconColour)
         {
 			//CLogger.LogDebug("test {0}x{1} = {2} ({3})", CDock.ICON_LEFT_CUSHION, nY, strItem, nItem);
 			var t = Task.Run(() =>
@@ -714,10 +887,10 @@ namespace GameLauncher_Console
 				if (CDock.m_nSelectedPlatform > -1)
 				{
 					CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, nItem);
-					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.iconSize, iconPosition, config, iconColour);
+					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.iconSize, iconPosition, iconColour);
 				}
 				else
-					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, strItem, strItem, true, CDock.iconSize, iconPosition, config, iconColour);
+					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, strItem, strItem, true, CDock.iconSize, iconPosition, iconColour);
 			});
 		}
 
@@ -728,17 +901,17 @@ namespace GameLauncher_Console
 		/// <param name="nCursorPosition">Current position, which will be printed in a highlight colour</param>
 		/// <param name="nStartY">Offset from the top of the window</param>
 		/// <param name="itemList">List of items to be displayed</param>
-		public void DrawGridMenu(int nCursorPosition, int nPage, int nStartY, int nStopY, CConfig.Configuration config, CConfig.Colours cols, params string[] itemList)
+		public void DrawGridMenu(int nCursorPosition, int nPage, int nStartY, int nStopY, CConfig.Colours cols, params string[] itemList)
 		{
 			int itemsPerPage = m_nMaxItemsPerPage - (m_nOptionsPerLine * (nStartY + nStopY));
 			int startIndex = 0;
-			if (!(bool)config.noPageSplit)
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE))
 				startIndex = nPage * itemsPerPage;
 
 			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 			for (int i = startIndex; i < itemList.Length; ++i)
 			{
-				if (!(bool)config.noPageSplit && i >= itemsPerPage * (nPage + 1))
+				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && i >= itemsPerPage * (nPage + 1))
 					break;
 				try
 				{
@@ -768,22 +941,22 @@ namespace GameLauncher_Console
 		/// <param name="nCursorPosition">Current position, which will be printed in a red colour</param>
 		/// <param name="nStartY">Offset from the top of the window</param>
 		/// <param name="itemList">List of items to be displayed</param>
-		public void DrawListMenu(int nSelection, int nPage, int nStartY, int nStopY, CConfig.Configuration config, CConfig.Colours cols, params string[] itemList)
+		public void DrawListMenu(int nSelection, int nPage, int nStartY, int nStopY, CConfig.Colours cols, params string[] itemList)
 		{
 			int itemsPerPage = m_nMaxItemsPerPage - (nStartY + nStopY);
 			int startIndex = 0;
-			if (!(bool)config.noPageSplit)
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE))
 				startIndex = nPage * itemsPerPage;
 
 			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
-			ConsoleColor iconColour = (int)config.iconRes > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+			ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 			for (int i = startIndex; i < itemList.Length; ++i)
 			{
-				if (!(bool)config.noPageSplit && i >= itemsPerPage * (nPage + 1))
+				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && i >= itemsPerPage * (nPage + 1))
 					break;
 				try
 				{
-					Console.SetCursorPosition((int)config.iconSize > 0 ? CDock.ICON_LEFT_CUSHION + (int)config.iconSize + CDock.ICON_RIGHT_CUSHION : 0,
+					Console.SetCursorPosition((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0 ? CDock.ICON_LEFT_CUSHION + (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) + CDock.ICON_RIGHT_CUSHION : 0,
 						nStartY + i - (nPage * itemsPerPage));
 				}
 				catch (Exception e)
@@ -799,8 +972,8 @@ namespace GameLauncher_Console
 				Console.WriteLine(itemList[i]);
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
 				CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
-				if ((int)config.iconSize > 0)
-					DrawIcon(Console.CursorTop - 2, i, itemList[i], config, iconColour);
+				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
+					DrawIcon(Console.CursorTop - 2, i, itemList[i], iconColour);
 			}
 		}
 
@@ -808,7 +981,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Handle selection calculation when 'up' is selected
 		/// </summary>
-		public void HandleSelectionUp(int nItemsPerPage)
+		public void HandleSelectionUp()
 		{
 			if (m_MenuType == MenuType.cType_Grid && CDock.m_nCurrentSelection >= m_nOptionsPerLine)
 				CDock.m_nCurrentSelection -= m_nOptionsPerLine;
@@ -821,7 +994,7 @@ namespace GameLauncher_Console
 		/// Handle selection calculation when 'down' is selected
 		/// </summary>
 		/// <param name="nOptionCount">Number of items in the list</param>
-		public void HandleSelectionDown(int nItemsPerPage, int nOptionCount)
+		public void HandleSelectionDown(int nOptionCount)
 		{
 			if (m_MenuType == MenuType.cType_Grid && CDock.m_nCurrentSelection + m_nOptionsPerLine < nOptionCount)
 				CDock.m_nCurrentSelection += m_nOptionsPerLine;
@@ -937,7 +1110,7 @@ namespace GameLauncher_Console
 		/// <param name="nStartY">Starting Y position (places from top)</param>
 		/// <param name="strPreviousOption">String value of the previously selected option</param>
 		/// <param name="strCurrentOption">String value of the currently selected option</param>
-		public void UpdateMenu(int nPreviousSelection, int nPage, int nListStartX, int nStartY, int nItemsPerPage, CConfig.Configuration config, CConfig.Colours cols, params string[] options)
+		public void UpdateMenu(int nPreviousSelection, int nPage, int nListStartX, int nStartY, int nItemsPerPage, CConfig.Colours cols, params string[] options)
 		{
 			string strPreviousOption = options[nPreviousSelection];
 			string strCurrentOption = options[CDock.m_nCurrentSelection];
@@ -989,14 +1162,14 @@ namespace GameLauncher_Console
 				Console.Write(strPreviousOption);
 				
 				// Redraw all icons below current selection
-				if (config.iconSize > 0)
+				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
 				{
-					ConsoleColor iconColour = (int)config.iconRes > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+					ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 					int maxItems = Math.Min(nItemsPerPage * (nPage + 1), options.Length);
 					for (int i = nItemsPerPage * nPage + CDock.m_nCurrentSelection; i < maxItems; ++i)
 					{
 						string option = options[i];
-						DrawIcon(nStartY + i - 1, i, option, config, iconColour);
+						DrawIcon(nStartY + i - 1, i, option, iconColour);
 					}
 				}
 			}
@@ -1007,7 +1180,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Search for a game by title or alias
 		/// </summary>
-		public static List<string> GetPlatformNames(CConfig.Configuration config)
+		public static List<string> GetPlatformNames()
 		{
 			List<string> platforms = new List<string>();
 
@@ -1016,7 +1189,7 @@ namespace GameLauncher_Console
 				if (platformPair.Value > 0)
 					platforms.Add(platformPair.Key + ": " + platformPair.Value);
 			}
-			if (!(bool)config.hideSettings) platforms.Add(CDock.SETTINGS_TITLE);
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOCFG)) platforms.Add(string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)) ? Properties.Settings.Default.text_settings_title : CConfig.GetConfigString(CConfig.CFG_TXTCFGT));
 			return platforms;
 		}
 
@@ -1025,18 +1198,18 @@ namespace GameLauncher_Console
 		/// </summary>
 		public static void MakeShortcut(string title, string path, string icon, string location)
         {
-			IShellLink link = (IShellLink)new ShellLink();
-
-			// setup shortcut information
-			if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(path))
-				return;
-			link.SetDescription(title);
-			link.SetPath(path);
-			if (!string.IsNullOrEmpty(icon))
-				link.SetIconLocation(icon, 0);
-
 			try
 			{
+				IShellLink link = (IShellLink)new ShellLink();
+
+				// setup shortcut information
+				if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(path))
+					return;
+				link.SetDescription(title);
+				link.SetPath(path);
+				if (!string.IsNullOrEmpty(icon))
+					link.SetIconLocation(icon, 0);
+
 				// save it
 				IPersistFile file = (IPersistFile)link;
 				if (Directory.Exists(location))
@@ -1051,11 +1224,12 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Search for a game by title or alias
 		/// </summary>
-		public static bool GameSearch(string strInput, bool consoleOutput, int maxTitles, string[] options, out string[] optionsNew, out int nMatches)
+		public static bool DoGameSearch(string strInput, int maxTitles, string[] options, out string[] optionsNew, out int nMatches)
         {
 			Dictionary<string, int> matches = new Dictionary<string, int>();
 			List<CGameData.CMatch> searchResults = new List<CGameData.CMatch>();
 			bool bValid = false;
+			bool consoleOutput = (bool)CConfig.GetConfigBool(CConfig.CFG_USECMD);
 			/*
 			nSelection = Array.FindIndex(options, s => s.Equals(strInput, CDock.IGNORE_CASE));
 			if (nSelection >= 0)
@@ -1148,9 +1322,9 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Write menu title
 		/// </summary>
-		public static void DrawMenuTitle(CConfig.Configuration config, CConfig.Colours cols)
+		public static void DrawMenuTitle(CConfig.Colours cols)
 		{
-			if (!(bool)config.onlyCmdLine)
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 			{
 				CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
 				Console.SetCursorPosition(0, 0);
@@ -1161,30 +1335,70 @@ namespace GameLauncher_Console
 				}
 				else
 				{
-					Console.WriteLine(config.mainTitle);
-					Console.WriteLine(new String('-', config.mainTitle.Length));
+					Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTMAINT));
+					Console.WriteLine(new String('-', CConfig.GetConfigString(CConfig.CFG_TXTMAINT).Length));
 				}
 			}
 		}
-		
+
+		/// <summary>
+		/// Write filesystem instructions
+		/// </summary>
+		public static void DrawFSMenu(CConfig.Colours cols, string title)
+        {
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
+			{
+				CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
+				Console.SetCursorPosition(0, 0);
+				Console.WriteLine(title);
+				Console.WriteLine(new String('-', title.Length));
+
+				CDock.SetFgColour(cols.subCC, cols.subLtCC);
+				if (m_MenuType == (MenuType)MenuType.cType_Grid)
+				{
+					Console.WriteLine(" Use {0}/{1}/{2}/{3} + {4} to select a folder.",
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYLT1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYUP1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYRT1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDN1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSEL1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
+				}
+				else
+				{
+					Console.WriteLine(" Use {0}/{1} + {2} to select a folder.",
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYUP1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDN1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+						OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSEL1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
+				}
+				//  0|-------|---------|---------|---------|40
+				Console.WriteLine(
+					" Press {0} to cancel selection;\n" +
+					" Press {1} to go to the previous folder;\n" +
+					" Press {2} to create a new folder.",
+					OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYESC1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYESC2)), String.Empty, String.Empty, " or ", "N/A", 0),
+					OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYBACK1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYBACK2)), String.Empty, String.Empty, " or ", "N/A", 0),
+					OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYNEW1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYNEW2)), String.Empty, String.Empty, " or ", "N/A", 0));
+			}
+		}
+
 		/// <summary>
 		/// Write menu instructions
 		/// </summary>
-		public static void DrawInstruct(CConfig.Configuration config, CConfig.Colours cols, bool subMenu)
+		public static void DrawInstruct(CConfig.Colours cols, bool subMenu)
 		{
-			if (!(bool)config.onlyCmdLine)
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 			{
 				// MESSAGE 1
 				//CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
 				CDock.SetFgColour(cols.subCC, cols.subLtCC);
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
-					if ((bool)config.msgCustom)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USETEXT))
 					{
 						if (subMenu)
-							Console.WriteLine(config.subTextIns1);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTISUB1));
 						else
-							Console.WriteLine(config.mainTextIns1);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTIMAIN1));
 					}
 					else
 					{
@@ -1196,12 +1410,12 @@ namespace GameLauncher_Console
 				}
 				else // Navigate
 				{
-					if ((bool)config.msgCustom)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USETEXT))
 					{
 						if (subMenu)
-							Console.WriteLine(config.subTextNav1);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTNSUB1));
 						else
-							Console.WriteLine(config.mainTextNav1);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTNMAIN1));
 					}
 					else
 					{
@@ -1210,18 +1424,18 @@ namespace GameLauncher_Console
 							if (m_MenuType == (MenuType)MenuType.cType_Grid)
 							{
 								Console.WriteLine(" Use {0}/{1}/{2}/{3} + {4} to select a game.",
-									OutputKeys(CConfig.ShortenKeyName(config.leftKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.upKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.rightKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.downKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.selectKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYLT1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYUP1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYRT1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDN1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSEL1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
 							}
 							else
 							{
 								Console.WriteLine(" Use {0}/{1} + {2} to select a game.",
-									OutputKeys(CConfig.ShortenKeyName(config.upKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.downKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.selectKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYUP1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDN1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSEL1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
 							}
 						}
 						else  // main menu
@@ -1229,16 +1443,16 @@ namespace GameLauncher_Console
 							if (m_MenuType == (MenuType)MenuType.cType_Grid)
 							{
 								Console.WriteLine(" Use {0}/{1}/{2}/{3} + {4} to select platform.",
-									OutputKeys(CConfig.ShortenKeyName(config.leftKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.upKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.rightKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.downKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-									OutputKeys(CConfig.ShortenKeyName(config.selectKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYLT1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYUP1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYRT1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDN1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+									OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSEL1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
 							}
 							else Console.WriteLine(" Use {0}/{1} + {2} to select platform.",
-								OutputKeys(CConfig.ShortenKeyName(config.upKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-								OutputKeys(CConfig.ShortenKeyName(config.downKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
-								OutputKeys(CConfig.ShortenKeyName(config.selectKey1), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYUP1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDN1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0),
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSEL1)), String.Empty, String.Empty, String.Empty, String.Empty, "NA", 0));
 						}
 					}
 				}
@@ -1247,26 +1461,26 @@ namespace GameLauncher_Console
 				//CDock.SetFgColour(cols.subCC, cols.subLtCC);
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
-					if ((bool)config.msgCustom)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USETEXT))
 					{
 						if (subMenu)
-							Console.WriteLine(config.subTextIns2);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTISUB2));
 						else
-							Console.WriteLine(config.mainTextIns2);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTIMAIN2));
 					}
 					else
 					{
 						/*
 						if (subMenu)
 						{
-							Console.WriteLine(((bool)config.preventQuit ? String.Empty :
+							Console.WriteLine(((bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT) ? String.Empty :
 								" Enter \'/exit\' to quit;\n") +
 								" Enter \'/help\' for more commands.");
 						}
 						else  // main menu
 						{
 						*/
-						Console.WriteLine(((bool)config.preventQuit ? String.Empty :
+						Console.WriteLine(((bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT) ? String.Empty :
 							" Enter \'/exit\' to quit;\n") +
 							" Enter \'/help\' for more commands.");
 						//}
@@ -1274,36 +1488,36 @@ namespace GameLauncher_Console
 				}
 				else // Navigate
 				{
-					if ((bool)config.msgCustom)
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USETEXT))
 					{
 						if (subMenu)
-							Console.WriteLine(config.subTextNav2);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTNSUB2));
 						else
-							Console.WriteLine(config.mainTextNav2);
+							Console.WriteLine(CConfig.GetConfigString(CConfig.CFG_TXTNMAIN2));
 					}
 					else
 					{
 						if (subMenu)
 						{
 							//  0|-------|---------|---------|---------|40
-							Console.WriteLine(((bool)config.preventQuit ? String.Empty :
+							Console.WriteLine(((bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT) ? String.Empty :
 								" Press {0} to exit;\n") +
 								" Press {1} to return to main;\n" +
 								" Press {2} to toggle favourites.",
-								OutputKeys(CConfig.ShortenKeyName(config.quitKey1), CConfig.ShortenKeyName(config.quitKey2), String.Empty, String.Empty, " or ", "N/A", 0),
-								OutputKeys(CConfig.ShortenKeyName(config.backKey1), CConfig.ShortenKeyName(config.backKey2), String.Empty, String.Empty, " or ", "N/A", 0),
-								OutputKeys(CConfig.ShortenKeyName(config.faveKey1), CConfig.ShortenKeyName(config.faveKey2), String.Empty, String.Empty, " or ", "N/A", 0));
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYQUIT1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYQUIT2)), String.Empty, String.Empty, " or ", "N/A", 0),
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYBACK1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYBACK2)), String.Empty, String.Empty, " or ", "N/A", 0),
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYFAVE1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYFAVE2)), String.Empty, String.Empty, " or ", "N/A", 0));
 						}
 						else  // main menu
 						{
 							//  0|-------|---------|---------|---------|40
-							Console.WriteLine(((bool)config.preventQuit ? String.Empty :
+							Console.WriteLine(((bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT) ? String.Empty :
 								" Press {0} to exit;\n") +
 								" Press {1} to rescan games;\n" +
 								" Press {2} for help.",
-								OutputKeys(CConfig.ShortenKeyName(config.quitKey1), CConfig.ShortenKeyName(config.quitKey2), String.Empty, String.Empty, " or ", "N/A", 0),
-								OutputKeys(CConfig.ShortenKeyName(config.scanKey1), CConfig.ShortenKeyName(config.scanKey2), String.Empty, String.Empty, " or ", "N/A", 0),
-								OutputKeys(CConfig.ShortenKeyName(config.helpKey1), CConfig.ShortenKeyName(config.helpKey2), String.Empty, String.Empty, " or ", "N/A", 0));
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYQUIT1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYQUIT2)), String.Empty, String.Empty, " or ", "N/A", 0),
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSCAN1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSCAN2)), String.Empty, String.Empty, " or ", "N/A", 0),
+								OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYHELP1)), CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYHELP2)), String.Empty, String.Empty, " or ", "N/A", 0));
 						}
 					}
 				}

@@ -468,9 +468,9 @@ namespace GameLauncher_Console
 		/// <param name="value">Enum to match to string</param>
 		public static string GetPlatformString(GamePlatform value)
 		{
-			Type type = value.GetType();
 			return GetDescription<GamePlatform>(value);
 			/*
+			Type type = value.GetType();
 			string name = Enum.GetName(type, value);
 			if (name != null)
 			{

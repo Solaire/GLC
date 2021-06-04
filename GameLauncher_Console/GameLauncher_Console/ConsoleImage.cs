@@ -235,12 +235,12 @@ namespace GameLauncher_Console
 			Console.SetCursorPosition(0, 0);
 		}
 
-		public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, CConfig.Configuration config, ConsoleColor bg)
+		public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, ConsoleColor bg)
         {
 			if (bPlatform)
 				title = title.Substring(0, title.LastIndexOf(':'));
 
-			if (!((bool)config.noImageCustom) && !string.IsNullOrEmpty(title))
+			if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGCUST)) && !string.IsNullOrEmpty(title))
 			{
 				foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF" })
 				{
@@ -253,12 +253,12 @@ namespace GameLauncher_Console
 				}
 			}
 			if (bPlatform)
-				ShowPlatformImage(selection, size, location, imgPath, config, bg);
+				ShowPlatformImage(selection, size, location, imgPath, bg);
 			else
-				ShowGameImage(selection, size, location, imgPath, config, bg);
+				ShowGameImage(selection, size, location, imgPath, bg);
 		}
 
-		public static void ShowGameImage(int selection, Size size, Point point, string imgPath, CConfig.Configuration config, ConsoleColor bg)
+		public static void ShowGameImage(int selection, Size size, Point point, string imgPath, ConsoleColor bg)
 		{
 			//GetImageProperties((int)config.imageSize, (int)config.imagePosition, out Size imageSize, out Point location);
 			Size fontSize = GetConsoleFontSize();
@@ -303,7 +303,7 @@ namespace GameLauncher_Console
 							using (image = (Bitmap)Image.FromFile(imgPath))
 							{
 								ClearImage(size, point, bg);
-								DrawImage(image, x, y, w, h, (bool)config.imageIgnoreRatio);
+								DrawImage(image, x, y, w, h, (bool)CConfig.GetConfigBool(CConfig.CFG_IMGRTIO));
 							}
 						}
 						catch (Exception e)
@@ -319,7 +319,7 @@ namespace GameLauncher_Console
 						{
 							using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
 							{
-								int res = (int)config.imageRes < 256 ? (int)config.imageRes : 256;
+								int res = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) < 256 ? (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) : 256;
 								if (w > h && w < res)
 									res = w;
 								else if (h > w && h < res)
@@ -379,7 +379,7 @@ namespace GameLauncher_Console
 			//IsRunning = false;
 		}
 
-		public static void ShowPlatformImage(int selection, Size size, Point point, string platform, CConfig.Configuration config, ConsoleColor bg)
+		public static void ShowPlatformImage(int selection, Size size, Point point, string platform, ConsoleColor bg)
 		{
 			//GetImageProperties((int)config.imageSize, (int)config.imagePosition, out Size imageSize, out Point location);
 			Size fontSize = GetConsoleFontSize();
@@ -392,7 +392,7 @@ namespace GameLauncher_Console
 				int w = size.Width * fontSize.Width;
 				int h = size.Height * fontSize.Height;
 
-				int res = (int)config.imageRes < 256 ? (int)config.imageRes : 256;
+				int res = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) < 256 ? (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) : 256;
 				if (w > h && w < res)
 					res = w;
 				else if (h > w && h < res)
@@ -402,13 +402,13 @@ namespace GameLauncher_Console
 				{
 					try
 					{
-						if (platform.StartsWith(CGameData.GetPlatformString(-1)))      // Unknown
+						if (platform.StartsWith(CGameData.GetPlatformString(-1)))               // Unknown
 							icon = new Icon(Properties.Resources.unknown, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(0)))  // Favourites
+						else if (platform.StartsWith(CGameData.GetPlatformString(0)))           // Favourites
 							icon = new Icon(Properties.Resources._0, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(1)))  // Custom
+						else if (platform.StartsWith(CGameData.GetPlatformString(1)))           // Custom
 							icon = new Icon(Properties.Resources._1, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(2)))  // All
+						else if (platform.StartsWith(CGameData.GetPlatformString(2)))           // All
 							icon = new Icon(Properties.Resources._2, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(3)))
 							icon = new Icon(Properties.Resources._3, res, res);
@@ -426,9 +426,9 @@ namespace GameLauncher_Console
 							icon = new Icon(Properties.Resources._9, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(10)))
 							icon = new Icon(Properties.Resources._10, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(11)))  // Hidden
+						else if (platform.StartsWith(CGameData.GetPlatformString(11)))          // Hidden
 							icon = new Icon(Properties.Resources._11, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(12)))  // Search
+						else if (platform.StartsWith(CGameData.GetPlatformString(12)))          // Search
 							icon = new Icon(Properties.Resources._12, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(13)))
 							icon = new Icon(Properties.Resources._13, res, res);
@@ -448,7 +448,7 @@ namespace GameLauncher_Console
 							icon = new Icon(Properties.Resources._20, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(21)))
 							icon = new Icon(Properties.Resources._21, res, res);
-						else if (platform.Equals(CDock.SETTINGS_TITLE))					// Settings
+						else if (platform.Equals(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)))	// Settings
 							icon = new Icon(Properties.Resources.settings, res, res);
 						else
 							icon = new Icon(Properties.Resources.icon, res, res);
