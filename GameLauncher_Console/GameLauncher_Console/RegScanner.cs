@@ -341,6 +341,8 @@ namespace GameLauncher_Console
 						ACF_Struct app = documentData.SubACF[STEAM_APPARR];
 
 						string id = app.SubItems["appid"];
+						if (id.Equals("228980"))  // Steamworks Common Redistributables
+							continue;
 
 						string strID = Path.GetFileName(file);
 						string strTitle = app.SubItems["name"];

@@ -57,7 +57,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="num_list_icons_max_size_in_characters" Type="System.UInt16" Scope="User">
-      <Value Profile="(Default)">0</Value>
+      <Value Profile="(Default)">2</Value>
     </Setting>
     <Setting Name="num_list_icons_resolution" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">16</Value>

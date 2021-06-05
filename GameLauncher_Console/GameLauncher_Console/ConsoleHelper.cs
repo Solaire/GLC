@@ -365,7 +365,8 @@ namespace GameLauncher_Console
 			int code; //= -1;
 
 			CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
-			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD)) Console.Clear();
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
+				Console.Clear();
 
 			DrawMenuTitle(cols);
 			if (IsSelectionValid(CDock.m_nSelectedPlatform, options.Length)) DrawInstruct(cols, true);
@@ -463,7 +464,7 @@ namespace GameLauncher_Console
 			if (CDock.m_nCurrentSelection >= itemsPerPage)
 				nPage = CDock.m_nCurrentSelection / itemsPerPage;
 			int pages = options.Length / itemsPerPage + (options.Length % itemsPerPage == 0 ? 0 : 1);
-			CLogger.LogDebug("total items:{0}, lines:{1}, items per pg:{2}, page:{3}/{4}", options.Length, m_nMaxItemsPerPage, itemsPerPage, nPage, pages);
+			CLogger.LogDebug("total items:{0}, lines:{1}, items per pg:{2}, page:{3}/{4}", options.Length, m_nMaxItemsPerPage, itemsPerPage, nPage + 1, pages);
 
 			if (!string.IsNullOrEmpty(game))
 			{
@@ -528,15 +529,6 @@ namespace GameLauncher_Console
 					UpdateMenu(nLastSelection, nPage,
 						(ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0 ? CDock.ICON_LEFT_CUSHION + (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) + CDock.ICON_RIGHT_CUSHION: 0,
 						nStartY, itemsPerPage, cols, options);
-
-				if (m_MenuType == MenuType.cType_List && (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
-                {
-					ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
-					for (int i = itemsPerPage * nPage; i > itemsPerPage * (nPage + 1); ++i)
-					{
-						DrawIcon(Console.CursorTop, i, options[i], iconColour);
-					}
-				}
 
 				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 && IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
 				{
@@ -748,7 +740,7 @@ namespace GameLauncher_Console
 			if (nSelection >= itemsPerPage)
 				nPage = nSelection / itemsPerPage;
 			int pages = options.Length / itemsPerPage + (options.Length % itemsPerPage == 0 ? 0 : 1);
-			CLogger.LogDebug("total items:{0}, lines:{1}, items per pg:{2}, page:{3}/{4}", options.Length, m_nMaxItemsPerPage, itemsPerPage, nPage, pages);
+			CLogger.LogDebug("total items:{0}, lines:{1}, items per pg:{2}, page:{3}/{4}", options.Length, m_nMaxItemsPerPage, itemsPerPage, nPage + 1, pages);
 
 			if (!string.IsNullOrEmpty(game))
 			{
@@ -878,11 +870,11 @@ namespace GameLauncher_Console
 			return nSelection;
 		}
 
-		public void DrawIcon(int nY, int nItem, string strItem, ConsoleColor iconColour)
+		public void DrawIcon(int nY, int nItem, string strItem, ConsoleColor? iconColour)
         {
-			//CLogger.LogDebug("test {0}x{1} = {2} ({3})", CDock.ICON_LEFT_CUSHION, nY, strItem, nItem);
 			var t = Task.Run(() =>
 			{
+				Thread.Sleep(5);  // icons sometimes become hidden otherwise
 				Point iconPosition = new Point(CDock.ICON_LEFT_CUSHION, Console.WindowHeight / m_nMaxItemsPerPage + nY);
 				if (CDock.m_nSelectedPlatform > -1)
 				{
@@ -949,7 +941,9 @@ namespace GameLauncher_Console
 				startIndex = nPage * itemsPerPage;
 
 			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
-			ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+			//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
+				Thread.Sleep(50);  // icons sometimes become hidden otherwise
 			for (int i = startIndex; i < itemList.Length; ++i)
 			{
 				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && i >= itemsPerPage * (nPage + 1))
@@ -973,7 +967,7 @@ namespace GameLauncher_Console
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
 				CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
-					DrawIcon(Console.CursorTop - 2, i, itemList[i], iconColour);
+					DrawIcon(Console.CursorTop - 2, i, itemList[i], null);
 			}
 		}
 
@@ -1164,12 +1158,12 @@ namespace GameLauncher_Console
 				// Redraw all icons below current selection
 				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
 				{
-					ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+					Thread.Sleep(50);  // icons sometimes become hidden otherwise
+					//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 					int maxItems = Math.Min(nItemsPerPage * (nPage + 1), options.Length);
-					for (int i = nItemsPerPage * nPage + CDock.m_nCurrentSelection; i < maxItems; ++i)
+					for (int i = CDock.m_nCurrentSelection; i < maxItems; ++i)
 					{
-						string option = options[i];
-						DrawIcon(nStartY + i - 1, i, option, iconColour);
+						DrawIcon(nStartY + i - (nPage * nItemsPerPage) - 1, i, options[i], null);
 					}
 				}
 			}

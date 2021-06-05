@@ -171,13 +171,15 @@ namespace GameLauncher_Console
 
 		public static void GetIconSize(int iconWidth, out Size iconSize)
 		{
+			/*
 			int iconHeight;
 			if (iconWidth % 2 == 0)
 				iconHeight = iconWidth / 2;
 			else
 				iconHeight = iconWidth / 2 + 1;
+			*/
 
-			iconSize = new Size(iconWidth, iconHeight);
+			iconSize = new Size(iconWidth, 1);
 		}
 
 		/// <summary>
@@ -235,7 +237,7 @@ namespace GameLauncher_Console
 			Console.SetCursorPosition(0, 0);
 		}
 
-		public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, ConsoleColor bg)
+		public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, ConsoleColor? bg)
         {
 			if (bPlatform)
 				title = title.Substring(0, title.LastIndexOf(':'));
@@ -258,7 +260,7 @@ namespace GameLauncher_Console
 				ShowGameImage(selection, size, location, imgPath, bg);
 		}
 
-		public static void ShowGameImage(int selection, Size size, Point point, string imgPath, ConsoleColor bg)
+		public static void ShowGameImage(int selection, Size size, Point point, string imgPath, ConsoleColor? bg)
 		{
 			//GetImageProperties((int)config.imageSize, (int)config.imagePosition, out Size imageSize, out Point location);
 			Size fontSize = GetConsoleFontSize();
@@ -342,11 +344,12 @@ namespace GameLauncher_Console
 								}
 							}
 						}
-						catch (Exception e)
+						//SHCreateItemFromParsingName() causes this catch fairly often
+						catch //(Exception e)
 						{
 							defaultIcon = true;
 							//ClearImage(size, point, bg);
-							CLogger.LogError(e);
+							//CLogger.LogError(e);
 						}
 					}
 
@@ -379,7 +382,7 @@ namespace GameLauncher_Console
 			//IsRunning = false;
 		}
 
-		public static void ShowPlatformImage(int selection, Size size, Point point, string platform, ConsoleColor bg)
+		public static void ShowPlatformImage(int selection, Size size, Point point, string platform, ConsoleColor? bg)
 		{
 			//GetImageProperties((int)config.imageSize, (int)config.imagePosition, out Size imageSize, out Point location);
 			Size fontSize = GetConsoleFontSize();
@@ -469,11 +472,11 @@ namespace GameLauncher_Console
 			}
 		}
 
-		public static void ClearImage(Size size, Point point, ConsoleColor bg)
+		public static void ClearImage(Size size, Point point, ConsoleColor? bg)
 		{
 			//GetImageProperties(imgWidth, imgPercent, out Size imageSize, out Point location);
 
-			if (size.Width > 0)
+			if (bg != null && size.Width > 0)
 			{
 				using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
 				{
@@ -485,18 +488,21 @@ namespace GameLauncher_Console
 						point.Y * fontSize.Height,
 						size.Width * fontSize.Width,
 						size.Height * fontSize.Height);
-					SolidBrush brush = new SolidBrush(ToGrColor(bg));
+					SolidBrush brush = new SolidBrush(ToGrColor((ConsoleColor)bg));
 					g.FillRectangle(brush, imageRect);
 				}
 			}
 		}
 
 		/// <summary>
-		/// Resize an image keeping its aspect ratio (cropping may occur).
+		/// Draw an image, optionally enforcing its aspect ratio (slight cropping may occur).
 		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="width"></param>
-		/// <param name="height"></param>
+		/// <param name="source">image</param>
+		/// <param name="x">x-position</param>
+		/// <param name="y">y-position</param>
+		/// <param name="w">width</param>
+		/// <param name="h">height</param>
+		/// <param name="ignoreRatio">ignore aspect ratio</param>
 		/// <returns></returns>
 		public static void DrawImage(Image source, int x, int y, int w, int h, bool ignoreRatio)
 		{

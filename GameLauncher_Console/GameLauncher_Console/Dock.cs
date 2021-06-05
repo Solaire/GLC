@@ -1194,7 +1194,7 @@ namespace GameLauncher_Console
 		{
 			if (CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light && bgLight > (ConsoleColor)(-1))
 				CConsoleImage.ClearImage(imgSize, imgLoc, bgLight);
-			else if (bgDark > (ConsoleColor)(-1))
+			else if (CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Dark && bgDark > (ConsoleColor)(-1))
 				CConsoleImage.ClearImage(imgSize, imgLoc, bgDark);
 			else
 				CConsoleImage.ClearImage(imgSize, imgLoc, ConsoleColor.Black);
