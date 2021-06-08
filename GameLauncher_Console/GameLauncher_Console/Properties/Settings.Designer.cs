@@ -38,12 +38,12 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool flag_dont_save_interface_changes {
+        public bool flag_do_not_save_interface_changes {
             get {
-                return ((bool)(this["flag_dont_save_interface_changes"]));
+                return ((bool)(this["flag_do_not_save_interface_changes"]));
             }
             set {
-                this["flag_dont_save_interface_changes"] = value;
+                this["flag_do_not_save_interface_changes"] = value;
             }
         }
         
@@ -170,12 +170,12 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool flag_dont_show_settings_in_platform_list {
+        public bool flag_do_not_show_settings_in_platform_list {
             get {
-                return ((bool)(this["flag_dont_show_settings_in_platform_list"]));
+                return ((bool)(this["flag_do_not_show_settings_in_platform_list"]));
             }
             set {
-                this["flag_dont_show_settings_in_platform_list"] = value;
+                this["flag_do_not_show_settings_in_platform_list"] = value;
             }
         }
         
@@ -218,12 +218,12 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool flag_image_dont_use_custom {
+        public bool flag_image_do_not_use_custom {
             get {
-                return ((bool)(this["flag_image_dont_use_custom"]));
+                return ((bool)(this["flag_image_do_not_use_custom"]));
             }
             set {
-                this["flag_image_dont_use_custom"] = value;
+                this["flag_image_do_not_use_custom"] = value;
             }
         }
         
@@ -236,6 +236,30 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["flag_image_ignore_custom_aspect_ratio"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_image_use_legacy_background_colours {
+            get {
+                return ((bool)(this["flag_image_use_legacy_background_colours"]));
+            }
+            set {
+                this["flag_image_use_legacy_background_colours"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_image_do_not_do_deep_scan_for_icons {
+            get {
+                return ((bool)(this["flag_image_do_not_do_deep_scan_for_icons"]));
+            }
+            set {
+                this["flag_image_do_not_do_deep_scan_for_icons"] = value;
             }
         }
         

@@ -71,9 +71,10 @@ namespace GameLauncher_Console
 		private static readonly string version		= Assembly.GetEntryAssembly().GetName().Version.ToString();
 
 		// Configuration data
-		public static bool ImportFromINI(out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches)
+		public static bool ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches)
         {
 			CConfig.config = new Dictionary<string, string>();
+			cfgv = new CConfig.ConfigVolatile();
 			keys = new CConfig.Hotkeys();
 			cols = new CConfig.Colours();
 			matches = new List<CGameData.CMatch>();
@@ -97,10 +98,12 @@ namespace GameLauncher_Console
 					}
 					else
 						CLogger.LogInfo("{0} is missing. Writing new defaults...", CFG_INI_FILE);
+
 					CreateNewConfigFile(configPath);
+					SetConfigVolatile(ref cfgv);
 					TranslateConfig(ref keys, ref cols);
 				}
-				else if (!ImportConfig(configPath, ref keys, ref cols))
+				else if (!ImportConfig(configPath, ref cfgv, ref keys, ref cols))
 					parseError = true;
 			}
 			catch (Exception e)
@@ -177,7 +180,7 @@ namespace GameLauncher_Console
 			{
 				CLogger.LogInfo("{0} is empty, corrupt, or outdated. Scanning for games...", GAME_JSON_FILE);
 				Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-				CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 || (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0);
+				CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), (bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
 			}
 
 			if (parseError)
@@ -803,7 +806,7 @@ namespace GameLauncher_Console
 		/// Import configuration items from the ini file and add them to the global configuration dictionary.
 		/// <returns>True if successful, otherwise false</returns>
 		/// </summary>
-		private static bool ImportConfig(string file, ref CConfig.Hotkeys hotkeys, ref CConfig.Colours colours)
+		private static bool ImportConfig(string file, ref CConfig.ConfigVolatile configv, ref CConfig.Hotkeys hotkeys, ref CConfig.Colours colours)
 		{
 			bool importError = false;
 			bool translateError = false;
@@ -845,9 +848,20 @@ namespace GameLauncher_Console
 				SetConfigDefaults(true);
 			}
 
+			SetConfigVolatile(ref configv);
 			translateError = !(TranslateConfig(ref hotkeys, ref colours));
 			return !(importError || translateError);
 		}
+
+		private static bool SetConfigVolatile(ref CConfig.ConfigVolatile configv)
+        {
+			configv.dontSaveChanges = (bool)CConfig.GetConfigBool(CConfig.CFG_USEFILE);
+			configv.typingInput = (bool)CConfig.GetConfigBool(CConfig.CFG_USETYPE);
+			configv.imageBorder = (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD);
+			configv.imageSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE);
+			configv.iconSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE);
+			return true;
+        }
 
 		/// <summary>
 		/// Translate configuration strings into ConsoleKey and ConsoleColor enums
@@ -1222,6 +1236,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_IMGBORD, force);
 			SetDefaultVal(CConfig.CFG_IMGCUST, force);
 			SetDefaultVal(CConfig.CFG_IMGRTIO, force);
+			SetDefaultVal(CConfig.CFG_IMGBGLEG, force);
+			SetDefaultVal(CConfig.CFG_IMGSCAN, force);
 		}
 		
 		/// <summary>

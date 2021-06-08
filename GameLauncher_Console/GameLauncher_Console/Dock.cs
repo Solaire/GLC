@@ -41,9 +41,9 @@ namespace GameLauncher_Console
 		public static int m_nCurrentSelection = 0;
 
 		public static bool noInteractive = false;
-		public static Size imgSize;
-		public static Size iconSize;
-		public static Point imgLoc;
+		public static Size sizeIcon;
+		public static Size sizeImage;
+		public static Point locImage;
 
 		/// <summary>
 		/// Array of string containing the content of the help screen.
@@ -73,7 +73,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		public void MainLoop(string[] args)
 		{
-			CJsonWrapper.ImportFromINI(out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches);
+			CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches);
 			CJsonWrapper.ImportFromJSON();
 			CGameFinder.CheckCustomFolder();
 
@@ -101,7 +101,7 @@ namespace GameLauncher_Console
 					{
 						CLogger.LogInfo("Scanning for games...");
 						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 || (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0);
+						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), (bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
 						return;
 					}
 					else if (gameSearch[0].Equals('c') || gameSearch[0].Equals('C'))
@@ -185,10 +185,10 @@ namespace GameLauncher_Console
 
 			int imgMargin = 0;
 
-			CheckShellCapabilities(out string parent);
+			CheckShellCapabilities(ref cfgv, out string parent);
 
-			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0)
-				imgMargin = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) + COLUMN_CUSHION + ((bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD) ? IMG_BORDER_X_CUSHION : 0);
+			if (cfgv.imageSize > 0)
+				imgMargin = cfgv.imageSize + COLUMN_CUSHION + (cfgv.imageBorder ? IMG_BORDER_X_CUSHION : 0);
 			try
 			{
 				/*
@@ -205,10 +205,9 @@ namespace GameLauncher_Console
 				if (nColumnCount <= 1) // shrink image to fit
 				{
 					nColumnCount = 1;
-					CConfig.SetConfigValue(CConfig.CFG_IMGBORD, false);
-					ushort imageSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE);
-					if (imageSize > 0)
-						CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, Math.Min(imageSize, ww / 2));
+					cfgv.imageBorder = false;
+					if (cfgv.imageSize > 0)
+						cfgv.imageSize = (ushort)Math.Min(cfgv.imageSize, ww / 2);
 				}
 			}
 			catch (Exception e)
@@ -238,11 +237,11 @@ namespace GameLauncher_Console
 				return;
 			}
 
-			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0)
-				CConsoleImage.GetImageProperties((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE), (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGPOS), out imgSize, out imgLoc);
-			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
-				CConsoleImage.GetIconSize((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE), out iconSize);
-			if ((bool)CConfig.GetConfigBool(CConfig.CFG_USETYPE) && CConsoleHelper.m_ConsoleState == CConsoleHelper.ConsoleState.cState_Unknown)
+			if (cfgv.imageSize > 0)
+				CConsoleImage.GetImageProperties(cfgv.imageSize, (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGPOS), out sizeImage, out locImage);
+			if (cfgv.iconSize > 0)
+				CConsoleImage.GetIconSize(cfgv.iconSize, out sizeIcon);
+			if (cfgv.typingInput && CConsoleHelper.m_ConsoleState == CConsoleHelper.ConsoleState.cState_Unknown)
 				CConsoleHelper.m_ConsoleState = CConsoleHelper.ConsoleState.cState_Insert;
 			else CConsoleHelper.m_ConsoleState = CConsoleHelper.ConsoleState.cState_Navigate;
 			if ((bool)CConfig.GetConfigBool(CConfig.CFG_USELIST) && CConsoleHelper.m_MenuType == CConsoleHelper.MenuType.cType_Unknown)
@@ -252,7 +251,7 @@ namespace GameLauncher_Console
 			if ((bool)CConfig.GetConfigBool(CConfig.CFG_USELITE) && CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Unknown)
 				CConsoleHelper.m_LightMode = CConsoleHelper.LightMode.cColour_Light;
 			else CConsoleHelper.m_LightMode = CConsoleHelper.LightMode.cColour_Dark;
-			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 || (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
+			if (cfgv.imageSize > 0 || cfgv.iconSize > 0)
 				CConsoleHelper.m_ImageMien = CConsoleHelper.ImageMien.cImage_Enabled;
 			else CConsoleHelper.m_ImageMien = CConsoleHelper.ImageMien.cImage_Disabled;
 			if ((bool)CConfig.GetConfigBool(CConfig.CFG_USEALPH))
@@ -269,7 +268,7 @@ namespace GameLauncher_Console
 
 				if (gameIndex < 1)
 				{
-					MenuSwitchboard(keys, cols, ref browse, ref path, ref gameSearch, ref nSelectionCode);
+					MenuSwitchboard(cfgv, keys, cols, ref browse, ref path, ref gameSearch, ref nSelectionCode);
 					CLogger.LogDebug("MenuSwitchboard:{0},{1}", nSelectionCode, m_nCurrentSelection);
 				}
 				else
@@ -292,7 +291,7 @@ namespace GameLauncher_Console
 						Console.CursorVisible = true;
 						if (!consoleOutput)
 						{
-							if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USEFILE)) CJsonWrapper.ExportConfig();
+							if (!cfgv.dontSaveChanges) CJsonWrapper.ExportConfig();
 							Console.Clear();
 						}
 						return;
@@ -331,7 +330,7 @@ namespace GameLauncher_Console
 							CLogger.LogError(e);
 						}
 						Console.Write("Scanning for games");
-						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 || CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0);
+						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), (bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
 						continue;
 
 					case CConsoleHelper.DockSelection.cSel_Input: // Toggle arrows/typing input
@@ -339,11 +338,13 @@ namespace GameLauncher_Console
 						{
 							CLogger.LogInfo("Switching to insert input...");
 							CConfig.SetConfigValue(CConfig.CFG_USETYPE, true);
+							cfgv.typingInput = true;
 						}
 						else
 						{
 							CLogger.LogInfo("Switching to navigate input...");
 							CConfig.SetConfigValue(CConfig.CFG_USETYPE, false);
+							cfgv.typingInput = false;
 						}
 						CConsoleHelper.SwitchState();
 						//m_dockConsole = new CConsoleHelper(nColumnCount, (Console.WindowWidth - imgMargin) / nColumnCount, Console.WindowHeight * nColumnCount);
@@ -363,12 +364,12 @@ namespace GameLauncher_Console
 						}
 						if (CConsoleHelper.m_MenuType == CConsoleHelper.MenuType.cType_Grid)
 						{
-							// Switch to single-column list (small icons possible)
+							// Switch to single-column list (with small icons possible)
 							CLogger.LogInfo("Switching to list menu type...");
 							CConfig.SetConfigValue(CConfig.CFG_USELIST, true);
 							nColumnCount = 1;
-							if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0)
-								CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, Math.Min((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE), ww / 2));
+							if (cfgv.imageSize > 0)
+								cfgv.imageSize = (ushort)Math.Min(cfgv.imageSize, ww / 2);
 							CConsoleHelper.m_nMaxItemsPerPage = Math.Max(1, wh);
 						}
 						else
@@ -380,9 +381,9 @@ namespace GameLauncher_Console
 							if (nColumnCount <= 1) // shrink image to fit
 							{
 								nColumnCount = 1;
-								CConfig.SetConfigValue(CConfig.CFG_IMGBORD, false);
-								if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0)
-									CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, Math.Min((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE), ww / 2));
+								cfgv.imageBorder = false;
+								if (cfgv.imageSize > 0)
+									cfgv.imageSize = (ushort)Math.Min(cfgv.imageSize, ww / 2);
 							}
 							CConsoleHelper.m_nMaxItemsPerPage = Math.Max(nColumnCount, wh * nColumnCount);
 						}
@@ -418,16 +419,35 @@ namespace GameLauncher_Console
 						if (CConsoleHelper.m_ImageMien == CConsoleHelper.ImageMien.cImage_Enabled)
 						{
 							CLogger.LogInfo("Disabling images...");
-							CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, 0);
-							CConfig.SetConfigValue(CConfig.CFG_ICONSIZE, 0);
+							if (!cfgv.dontSaveChanges)
+							{
+								CConfig.SetConfigValue(CConfig.CFG_ICONSIZE, 0);
+								CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, 0);
+							}
+							cfgv.iconSize = 0;
+							cfgv.imageSize = 0;
+							cfgv.imageBorder = (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD);
 							imgMargin = 0;
 						}
 						else
 						{
 							CLogger.LogInfo("Enabling images...");
-							CConfig.SetConfigDefault(CConfig.CFG_ICONSIZE);
-							CConfig.SetConfigDefault(CConfig.CFG_IMGSIZE);
-							imgMargin = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) + COLUMN_CUSHION + ((bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD) ? IMG_BORDER_X_CUSHION : 0);
+							if (!cfgv.dontSaveChanges)
+							{
+								CConfig.SetConfigDefault(CConfig.CFG_ICONSIZE);
+								cfgv.iconSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE);
+								CConfig.SetConfigDefault(CConfig.CFG_IMGSIZE);
+								cfgv.imageSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE);
+							}
+							else
+							{
+								if (!UInt16.TryParse(CConfig.GetConfigDefault(CConfig.CFG_ICONSIZE), out cfgv.iconSize))
+									cfgv.iconSize = 0;
+								if (!UInt16.TryParse(CConfig.GetConfigDefault(CConfig.CFG_IMGSIZE), out cfgv.imageSize))
+									cfgv.imageSize = 0;
+							}
+							cfgv.imageBorder = (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD);
+							imgMargin = cfgv.imageSize + COLUMN_CUSHION + (cfgv.imageBorder ? IMG_BORDER_X_CUSHION : 0);
 							m_nCurrentSelection = 0;
 						}
 						CConsoleHelper.SwitchMien();
@@ -438,9 +458,9 @@ namespace GameLauncher_Console
 							if (nColumnCount <= 1) // shrink image to fit
 							{
 								nColumnCount = 1;
-								CConfig.SetConfigValue(CConfig.CFG_IMGBORD, false);
-								if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0)
-									CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, Math.Min((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE), ww / 2));
+								cfgv.imageBorder = false;
+								if (cfgv.imageSize > 0)
+									cfgv.imageSize = (ushort)Math.Min(cfgv.imageSize, ww / 2);
 							}
 							m_dockConsole = new CConsoleHelper(nColumnCount, (ww - imgMargin) / nColumnCount, Console.WindowHeight * nColumnCount);
 						}
@@ -642,7 +662,7 @@ namespace GameLauncher_Console
 					CGameData.NormaliseFrequencies(selectedGame);
 					matches = new List<CGameData.CMatch>() { new CGameData.CMatch(selectedGame.Title, 1, 100) };
 					CJsonWrapper.ExportSearch(matches);
-					if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USEFILE)) CJsonWrapper.ExportConfig();
+					if (!cfgv.dontSaveChanges) CJsonWrapper.ExportConfig();
 
 					Console.ResetColor();
 					Console.CursorVisible = true;
@@ -672,26 +692,26 @@ namespace GameLauncher_Console
 					Console.WriteLine();
 					Console.WriteLine("DEBUG mode - game will not be launched; press Enter to exit...");
 					if (noInteractive)
-						CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, 0);
+						cfgv.imageSize = 0;
 					else
 					{
-						CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, 32);
+						cfgv.imageSize = 32;
 						CConfig.SetConfigValue(CConfig.CFG_IMGPOS, 100);
 						CConfig.SetConfigValue(CConfig.CFG_IMGRES, 256);
-						CConfig.SetConfigValue(CConfig.CFG_IMGBORD, true);
+						cfgv.imageBorder = true;
 						CConfig.SetConfigValue(CConfig.CFG_IMGRTIO, false);
 					}
-					if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0)
+					if (cfgv.imageSize > 0)
 					{
-						CConsoleImage.GetImageProperties((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE), (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGPOS), out imgSize, out imgLoc);
-						if ((bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD))
+						CConsoleImage.GetImageProperties(cfgv.imageSize, (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGPOS), out sizeImage, out locImage);
+						if (cfgv.imageBorder)
 						{
-							CConsoleImage.ShowImageBorder(imgSize, imgLoc, IMG_BORDER_X_CUSHION, IMG_BORDER_Y_CUSHION);
-							CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, imgSize, imgLoc, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+							CConsoleImage.ShowImageBorder(sizeImage, locImage, IMG_BORDER_X_CUSHION, IMG_BORDER_Y_CUSHION);
+							CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, sizeImage, locImage, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 							Console.SetCursorPosition(0, 8);
 						}
 						else
-							CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, imgSize, imgLoc, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+							CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, sizeImage, locImage, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 					}
 					Console.ReadLine();
 #endif
@@ -704,7 +724,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Display menu and handle the selection
 		/// </summary>
-		private void MenuSwitchboard(CConfig.Hotkeys keys, CConfig.Colours cols, ref bool browse, ref string path, ref string gameSearch, ref int nSelectionCode)
+		private void MenuSwitchboard(CConfig.ConfigVolatile cfgv, CConfig.Hotkeys keys, CConfig.Colours cols, ref bool browse, ref string path, ref string gameSearch, ref int nSelectionCode)
 		{
 			// Show initial options - platforms or all
 			// Take the selection as a string (we'll figure out the enum later)
@@ -731,19 +751,19 @@ namespace GameLauncher_Console
 			if (browse)                         // show filesystem browser
 			{
 				string oldPath = path;
-				int oldImgSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE);
-				CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, 0);
-				int oldIconSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE);
-				CConfig.SetConfigValue(CConfig.CFG_ICONSIZE, 0);
+				ushort oldImgSize = cfgv.imageSize;
+				cfgv.imageSize = 0;
+				ushort oldIconSize = cfgv.iconSize;
+				cfgv.iconSize = 0;
 
-				nSelectionCode = m_dockConsole.DisplayFS(keys, cols, ref browse, ref path);
+				nSelectionCode = m_dockConsole.DisplayFS(cfgv, keys, cols, ref browse, ref path);
 
 				if (!string.IsNullOrEmpty(path) && oldPath.Equals(path) && !path.Equals(CConfig.GetConfigString(CConfig.CFG_TXTROOT)))
 				{
 					int ww = 0;
 					string strPlatform = CGameData.GetPlatformString(m_nSelectedPlatform);
-					CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, oldImgSize);
-					CConfig.SetConfigValue(CConfig.CFG_ICONSIZE, oldIconSize);
+					cfgv.imageSize = oldImgSize;
+					cfgv.iconSize = oldIconSize;
 					string answer = InputPrompt($"Create shortcuts for \"{strPlatform}\" here [y/n]? >>> ", cols);
 					ClearInputLine(cols);
 					if (answer[0] == 'Y' || answer[0] == 'y')
@@ -786,9 +806,9 @@ namespace GameLauncher_Console
 				}
 			}
 			else if (m_nSelectedPlatform < 0)   // show main menu (platform list)
-				nSelectionCode = m_dockConsole.DisplayMenu(keys, cols, ref gameSearch, platforms.ToArray());
+				nSelectionCode = m_dockConsole.DisplayMenu(cfgv, keys, cols, ref gameSearch, platforms.ToArray());
 			else if (m_nSelectedGame < 0)       // show game list
-				nSelectionCode = m_dockConsole.DisplayMenu(keys, cols, ref gameSearch, CGameData.GetPlatformTitles((CGameData.GamePlatform)m_nSelectedPlatform).ToArray());
+				nSelectionCode = m_dockConsole.DisplayMenu(cfgv, keys, cols, ref gameSearch, CGameData.GetPlatformTitles((CGameData.GamePlatform)m_nSelectedPlatform).ToArray());
 		}
 
 		/// <summary>
@@ -1193,18 +1213,18 @@ namespace GameLauncher_Console
 		public static void ClearColour(ConsoleColor bgDark, ConsoleColor bgLight)
 		{
 			if (CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light && bgLight > (ConsoleColor)(-1))
-				CConsoleImage.ClearImage(imgSize, imgLoc, bgLight);
+				CConsoleImage.ClearImage(sizeImage, locImage, bgLight);
 			else if (CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Dark && bgDark > (ConsoleColor)(-1))
-				CConsoleImage.ClearImage(imgSize, imgLoc, bgDark);
+				CConsoleImage.ClearImage(sizeImage, locImage, bgDark);
 			else
-				CConsoleImage.ClearImage(imgSize, imgLoc, ConsoleColor.Black);
+				CConsoleImage.ClearImage(sizeImage, locImage, ConsoleColor.Black);
 		}
 
 		/// <summary>
 		/// Check whether current shell has known issues with interactive applications and image display
 		/// <returns>bool, whether interactive mode is supported</returns>
 		/// </summary>
-		public static void CheckShellCapabilities(out string parentName)
+		public static void CheckShellCapabilities(ref CConfig.ConfigVolatile cfgv, out string parentName)
 		{
 			parentName = "";
 			bool shellError = false;
@@ -1248,7 +1268,7 @@ namespace GameLauncher_Console
 								 parentParentName.Equals("ConEmuC64"))  // (though tcc is fine otherwise)
 						{
 							if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD) ||
-								(!(bool)CConfig.GetConfigBool(CConfig.CFG_USETYPE) &&
+								(!cfgv.typingInput &&
 								// This isn't really the best test, but it's for a corner case...
 								(CConfig.GetConfigString(CConfig.CFG_KEYUP1).Equals("UpArrow") ||
 								CConfig.GetConfigString(CConfig.CFG_KEYUP2).Equals("UpArrow"))))
@@ -1257,7 +1277,7 @@ namespace GameLauncher_Console
 								CLogger.LogWarn("WARNING: Many keys (arrows, F1-F12) do not work in {0} host with {1}.\nSwitching to typing input...", parentParentName, parentName);
 								Console.WriteLine("WARNING: Many keys (arrows, F1-F12) do not work in {0} host with {1}.\nSwitching to typing input...", parentParentName, parentName);
 								//Console.ResetColor();
-								CConfig.SetConfigValue(CConfig.CFG_USETYPE, true);
+								cfgv.typingInput = true;
 								shellError = true;
 							}
 						}
@@ -1276,7 +1296,7 @@ namespace GameLauncher_Console
 								CLogger.LogWarn("WARNING: {0} host does not support navigation mode.\nSwitching input state...", CConfig.CFG_USETYPE, parentParentName);
 								Console.WriteLine("WARNING: {0} == false, but your {1} host does not support this.\nSwitching input state...", CConfig.CFG_USETYPE, parentParentName);
 								//Console.ResetColor();
-								CConfig.SetConfigValue(CConfig.CFG_USETYPE, true);
+								cfgv.typingInput = true;
 								shellError = true;
 							}
 							if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 || (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
@@ -1285,9 +1305,8 @@ namespace GameLauncher_Console
 								CLogger.LogWarn("WARNING: {0} host does not support images.\nDisabling images...", parentParentName);
 								Console.WriteLine("WARNING: {0} or \n{1} > 0, but your {2} host does not support this.\nDisabling images...", CConfig.CFG_IMGSIZE, CConfig.CFG_ICONSIZE, parentParentName);
 								//Console.ResetColor();
-								CConfig.SetConfigValue(CConfig.CFG_ICONSIZE, 0);
-								CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, 0);
-								CConfig.SetConfigValue(CConfig.CFG_USEFILE, true);
+								cfgv.iconSize = 0;
+								cfgv.imageSize = 0;
 								shellError = true;
 							}
 						}
@@ -1317,9 +1336,8 @@ namespace GameLauncher_Console
 								CLogger.LogWarn("WARNING: {0} host does not support images.\nDisabling images...", parentParentName);
 								Console.WriteLine("WARNING: {0} or \n{1} > 0, but your {2} host does not support this.\nDisabling images...", CConfig.CFG_IMGSIZE, CConfig.CFG_ICONSIZE, parentParentName);
 								//Console.ResetColor();
-								CConfig.SetConfigValue(CConfig.CFG_ICONSIZE, 0);
-								CConfig.SetConfigValue(CConfig.CFG_IMGSIZE, 0);
-								CConfig.SetConfigValue(CConfig.CFG_USEFILE, true);
+								cfgv.iconSize = 0;
+								cfgv.imageSize = 0;
 								shellError = true;
 							}
 						}

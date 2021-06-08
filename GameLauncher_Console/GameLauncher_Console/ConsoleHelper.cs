@@ -211,7 +211,7 @@ namespace GameLauncher_Console
 
 		/// <summary
 		/// </summary>
-		public int DisplayFS(CConfig.Hotkeys keys, CConfig.Colours cols, ref bool browse, ref string path)
+		public int DisplayFS(CConfig.ConfigVolatile cfgv, CConfig.Hotkeys keys, CConfig.Colours cols, ref bool browse, ref string path)
 		{
 			int code;
 			string game = "";
@@ -282,12 +282,12 @@ namespace GameLauncher_Console
 			{
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
-					code = HandleInsertMenu(nStartY, nStopY, cols, true, ref game, options.ToArray());
+					code = HandleInsertMenu(nStartY, nStopY, cfgv, cols, true, ref game, options.ToArray());
 					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
 				{
-					code = HandleNavigationMenu(nStartY, nStopY, keys, cols, true, ref game, options.ToArray());
+					code = HandleNavigationMenu(nStartY, nStopY, cfgv, keys, cols, true, ref game, options.ToArray());
 					CLogger.LogDebug("HandleNavigationMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				if (options.Count() < 2)
@@ -360,7 +360,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="options">String array representing the available options</param>
 		/// <returns>Selection code</returns>
-		public int DisplayMenu(CConfig.Hotkeys keys, CConfig.Colours cols, ref string game, params string[] options)
+		public int DisplayMenu(CConfig.ConfigVolatile cfgv, CConfig.Hotkeys keys, CConfig.Colours cols, ref string game, params string[] options)
 		{
 			int code; //= -1;
 
@@ -380,12 +380,12 @@ namespace GameLauncher_Console
 			{
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
-					code = HandleInsertMenu(nStartY, nStopY, cols, false, ref game, options);
+					code = HandleInsertMenu(nStartY, nStopY, cfgv, cols, false, ref game, options);
 					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
 				{
-					code = HandleNavigationMenu(nStartY, nStopY, keys, cols, false, ref game, options);
+					code = HandleNavigationMenu(nStartY, nStopY, cfgv, keys, cols, false, ref game, options);
 					CLogger.LogDebug("HandleNavigationMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				if (code == (int)DockSelection.cSel_Exit ||
@@ -430,7 +430,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="options">Array of available options</param>
 		/// <returns>Selection code</returns>
-		public int HandleNavigationMenu(int nStartY, int nStopY, CConfig.Hotkeys keys, CConfig.Colours cols, bool browse, ref string game, params string[] options)
+		public int HandleNavigationMenu(int nStartY, int nStopY, CConfig.ConfigVolatile cfgv, CConfig.Hotkeys keys, CConfig.Colours cols, bool browse, ref string game, params string[] options)
 		{
 			Console.CursorVisible = false;
 
@@ -506,14 +506,14 @@ namespace GameLauncher_Console
 				game = "";
 			}
 
-			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 && (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD))
-				CConsoleImage.ShowImageBorder(CDock.imgSize, CDock.imgLoc, CDock.IMG_BORDER_X_CUSHION, CDock.IMG_BORDER_Y_CUSHION);
+			if (cfgv.imageSize > 0 && cfgv.imageBorder)
+				CConsoleImage.ShowImageBorder(CDock.sizeImage, CDock.locImage, CDock.IMG_BORDER_X_CUSHION, CDock.IMG_BORDER_Y_CUSHION);
 
 			if (m_MenuType == MenuType.cType_List)
-				DrawListMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cols, options);
+				DrawListMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cfgv, cols, options);
 			
 			else //if (m_MenuType == MenuType.cType_Grid)
-				DrawGridMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cols, options);
+				DrawGridMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cfgv, cols, options);
 			
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1 && nPage < pages - 1)
 			{
@@ -527,10 +527,10 @@ namespace GameLauncher_Console
 				if (CDock.m_nCurrentSelection != nLastSelection && IsSelectionValid(nLastSelection, options.Length) &&
 					IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
 					UpdateMenu(nLastSelection, nPage,
-						(ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0 ? CDock.ICON_LEFT_CUSHION + (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) + CDock.ICON_RIGHT_CUSHION: 0,
-						nStartY, itemsPerPage, cols, options);
+						cfgv.iconSize > 0 ? CDock.ICON_LEFT_CUSHION + cfgv.iconSize + CDock.ICON_RIGHT_CUSHION: 0,
+						nStartY, itemsPerPage, cfgv, cols, options);
 
-				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 && IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
+				if (cfgv.imageSize > 0 && IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
 				{
 					ConsoleColor imageColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 					var t = Task.Run(() =>
@@ -538,10 +538,10 @@ namespace GameLauncher_Console
 						if (CDock.m_nSelectedPlatform > -1)
 						{
 							CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
-							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.imgSize, CDock.imgLoc, imageColour);
+							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.sizeImage, CDock.locImage, imageColour);
 						}
 						else
-							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection], options[CDock.m_nCurrentSelection], true, CDock.imgSize, CDock.imgLoc, imageColour);
+							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection], options[CDock.m_nCurrentSelection], true, CDock.sizeImage, CDock.locImage, imageColour);
 					});
 				}
 
@@ -706,7 +706,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="options">List of menu items</param>
 		/// <returns>Index of the selected item from the options parameter</returns>
-		public int HandleInsertMenu(int nStartY, int nStopY, CConfig.Colours cols, bool browse, ref string game, params string[] options)
+		public int HandleInsertMenu(int nStartY, int nStopY, CConfig.ConfigVolatile cfgv, CConfig.Colours cols, bool browse, ref string game, params string[] options)
 		{
 			Console.CursorVisible = true;
 
@@ -782,14 +782,14 @@ namespace GameLauncher_Console
 				game = "";
 			}
 
-			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 && (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD))
-				CConsoleImage.ShowImageBorder(CDock.imgSize, CDock.imgLoc, CDock.IMG_BORDER_X_CUSHION, CDock.IMG_BORDER_Y_CUSHION);
+			if (cfgv.imageSize > 0 && cfgv.imageBorder)
+				CConsoleImage.ShowImageBorder(CDock.sizeImage, CDock.locImage, CDock.IMG_BORDER_X_CUSHION, CDock.IMG_BORDER_Y_CUSHION);
 			
 			if (m_MenuType == MenuType.cType_List)
-				DrawListMenu(nSelection, nPage, nStartY, nStopY, cols, options);
+				DrawListMenu(nSelection, nPage, nStartY, nStopY, cfgv, cols, options);
 
 			else //if (m_MenuType == MenuType.cType_Grid)
-				DrawGridMenu(nSelection, nPage, nStartY, nStopY, cols, options);
+				DrawGridMenu(nSelection, nPage, nStartY, nStopY, cfgv, cols, options);
 			
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1 && nPage < pages - 1)
 			{
@@ -879,10 +879,10 @@ namespace GameLauncher_Console
 				if (CDock.m_nSelectedPlatform > -1)
 				{
 					CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, nItem);
-					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.iconSize, iconPosition, iconColour);
+					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.sizeIcon, iconPosition, iconColour);
 				}
 				else
-					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, strItem, strItem, true, CDock.iconSize, iconPosition, iconColour);
+					CConsoleImage.ShowImage(CDock.m_nCurrentSelection, strItem, strItem, true, CDock.sizeIcon, iconPosition, iconColour);
 			});
 		}
 
@@ -893,7 +893,7 @@ namespace GameLauncher_Console
 		/// <param name="nCursorPosition">Current position, which will be printed in a highlight colour</param>
 		/// <param name="nStartY">Offset from the top of the window</param>
 		/// <param name="itemList">List of items to be displayed</param>
-		public void DrawGridMenu(int nCursorPosition, int nPage, int nStartY, int nStopY, CConfig.Colours cols, params string[] itemList)
+		public void DrawGridMenu(int nCursorPosition, int nPage, int nStartY, int nStopY, CConfig.ConfigVolatile cfgv, CConfig.Colours cols, params string[] itemList)
 		{
 			int itemsPerPage = m_nMaxItemsPerPage - (m_nOptionsPerLine * (nStartY + nStopY));
 			int startIndex = 0;
@@ -933,16 +933,22 @@ namespace GameLauncher_Console
 		/// <param name="nCursorPosition">Current position, which will be printed in a red colour</param>
 		/// <param name="nStartY">Offset from the top of the window</param>
 		/// <param name="itemList">List of items to be displayed</param>
-		public void DrawListMenu(int nSelection, int nPage, int nStartY, int nStopY, CConfig.Colours cols, params string[] itemList)
+		public void DrawListMenu(int nSelection, int nPage, int nStartY, int nStopY, CConfig.ConfigVolatile cfgv, CConfig.Colours cols, params string[] itemList)
 		{
 			int itemsPerPage = m_nMaxItemsPerPage - (nStartY + nStopY);
+			bool showIcons = (cfgv.iconSize > 0);
 			int startIndex = 0;
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE))
 				startIndex = nPage * itemsPerPage;
-
+			// for now, don't show small icons if paging is disabled and items exceed window size
+			else
+			{
+				if (showIcons && itemList.Length > itemsPerPage)
+					showIcons = false;
+			}
 			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 			//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
-			if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
+			if (cfgv.iconSize > 0)
 				Thread.Sleep(50);  // icons sometimes become hidden otherwise
 			for (int i = startIndex; i < itemList.Length; ++i)
 			{
@@ -950,7 +956,7 @@ namespace GameLauncher_Console
 					break;
 				try
 				{
-					Console.SetCursorPosition((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0 ? CDock.ICON_LEFT_CUSHION + (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) + CDock.ICON_RIGHT_CUSHION : 0,
+					Console.SetCursorPosition(cfgv.iconSize > 0 ? CDock.ICON_LEFT_CUSHION + cfgv.iconSize + CDock.ICON_RIGHT_CUSHION : 0,
 						nStartY + i - (nPage * itemsPerPage));
 				}
 				catch (Exception e)
@@ -966,7 +972,7 @@ namespace GameLauncher_Console
 				Console.WriteLine(itemList[i]);
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
 				CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
-				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
+				if (showIcons)
 					DrawIcon(Console.CursorTop - 2, i, itemList[i], null);
 			}
 		}
@@ -1104,7 +1110,7 @@ namespace GameLauncher_Console
 		/// <param name="nStartY">Starting Y position (places from top)</param>
 		/// <param name="strPreviousOption">String value of the previously selected option</param>
 		/// <param name="strCurrentOption">String value of the currently selected option</param>
-		public void UpdateMenu(int nPreviousSelection, int nPage, int nListStartX, int nStartY, int nItemsPerPage, CConfig.Colours cols, params string[] options)
+		public void UpdateMenu(int nPreviousSelection, int nPage, int nListStartX, int nStartY, int nItemsPerPage, CConfig.ConfigVolatile cfgv, CConfig.Colours cols, params string[] options)
 		{
 			string strPreviousOption = options[nPreviousSelection];
 			string strCurrentOption = options[CDock.m_nCurrentSelection];
@@ -1156,14 +1162,18 @@ namespace GameLauncher_Console
 				Console.Write(strPreviousOption);
 				
 				// Redraw all icons below current selection
-				if ((ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
+				if (cfgv.iconSize > 0)
 				{
-					Thread.Sleep(50);  // icons sometimes become hidden otherwise
-					//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
-					int maxItems = Math.Min(nItemsPerPage * (nPage + 1), options.Length);
-					for (int i = CDock.m_nCurrentSelection; i < maxItems; ++i)
+					// for now, don't show small icons if paging is disabled and items exceed window size
+					if (!((bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && options.Length > nItemsPerPage))
 					{
-						DrawIcon(nStartY + i - (nPage * nItemsPerPage) - 1, i, options[i], null);
+						Thread.Sleep(50);  // icons sometimes become hidden otherwise
+						int maxItems = Math.Min(nItemsPerPage * (nPage + 1), options.Length);
+						//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+						for (int i = CDock.m_nCurrentSelection; i < maxItems; ++i)
+						{
+							DrawIcon(nStartY + i - (nPage * nItemsPerPage) - 1, i, options[i], null);
+						}
 					}
 				}
 			}

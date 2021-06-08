@@ -21,6 +21,15 @@ namespace GameLauncher_Console
 		public const string COLFG_UNK2		= "Black";
 
 
+		public struct ConfigVolatile
+        {
+			public bool dontSaveChanges;
+			public bool typingInput;
+			public ushort iconSize;
+			public ushort imageSize;
+			public bool imageBorder;
+        }
+
 		public struct Hotkeys
         {
 			public ConsoleKey leftCK1;
@@ -105,7 +114,7 @@ namespace GameLauncher_Console
 		}
 
 		public const string CFG_NOQUIT		= "flag_prevent_exit";
-		public const string CFG_USEFILE		= "flag_dont_save_interface_changes";
+		public const string CFG_USEFILE		= "flag_do_not_save_interface_changes";
 		public const string CFG_USESCAN		= "flag_always_scan_for_new_games";
 		public const string CFG_USECMD		= "flag_only_allow_command_line";
 		public const string CFG_USETYPE		= "flag_typing_input_is_default";
@@ -116,12 +125,14 @@ namespace GameLauncher_Console
 		public const string CFG_USEFAVE		= "flag_sort_favourites_on_top";
 		public const string CFG_USELITE		= "flag_colour_light_mode_is_default";
 		public const string CFG_USEALL		= "flag_always_show_all_games";
-		public const string CFG_NOCFG		= "flag_dont_show_settings_in_platform_list";     // TODO
+		public const string CFG_NOCFG		= "flag_do_not_show_settings_in_platform_list";   // TODO
 		public const string CFG_USECUST		= "flag_only_scan_custom_games";
 		public const string CFG_USETEXT		= "flag_text_use_custom_text_values";
 		public const string CFG_IMGBORD		= "flag_image_draw_border_characters";
-		public const string CFG_IMGCUST		= "flag_image_dont_use_custom";
+		public const string CFG_IMGCUST		= "flag_image_do_not_use_custom";
 		public const string CFG_IMGRTIO		= "flag_image_ignore_custom_aspect_ratio";
+		public const string CFG_IMGBGLEG	= "flag_image_use_legacy_background_colours";
+		public const string CFG_IMGSCAN		= "flag_image_do_not_do_deep_scan_for_icons";
 		// images only work in conhost (cmd or PowerShell and some 3rd party shells), but not in others, e.g., Windows Terminal, TCC, etc.
 		public const string CFG_ICONSIZE	= "num_list_icons_max_size_in_characters";     // only in list mode, icons for all games on left; set to 0 to disable
 		public const string CFG_ICONRES		= "num_list_icons_resolution";                  // up to 256, but setting higher than 48 causes icons with 32x32 max size to have a border and become smaller by comparison
@@ -385,6 +396,7 @@ namespace GameLauncher_Console
 				case "BrightBrown":
 				case "DarkBrown":
 				case "LightBrown":
+				case "Gold":
 				case "Ochre":
 				case "Tan":
 				case "DarkTan":
@@ -402,7 +414,6 @@ namespace GameLauncher_Console
 				case "Fuchsia":
 				case "BrightMagenta":
 				case "LightMagenta":
-				case "Pink":
 				case "BrightPurple":
 				case "LightPurple":
 				case "PurpleRed":
@@ -415,6 +426,7 @@ namespace GameLauncher_Console
 				case "BrightRed":
 				case "LightRed":
 				case "Orange":
+				case "Pink":
 				case "Salmon":
 					return "Red";
 				case "BrightWhite":

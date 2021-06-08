@@ -5,7 +5,7 @@
     <Setting Name="flag_prevent_exit" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="flag_dont_save_interface_changes" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_do_not_save_interface_changes" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="flag_always_scan_for_new_games" Type="System.Boolean" Scope="User">
@@ -38,7 +38,7 @@
     <Setting Name="flag_always_show_all_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="flag_dont_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_do_not_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="flag_only_scan_custom_games" Type="System.Boolean" Scope="User">
@@ -50,10 +50,16 @@
     <Setting Name="flag_image_draw_border_characters" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="flag_image_dont_use_custom" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_image_do_not_use_custom" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="flag_image_ignore_custom_aspect_ratio" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="flag_image_use_legacy_background_colours" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="flag_image_do_not_do_deep_scan_for_icons" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="num_list_icons_max_size_in_characters" Type="System.UInt16" Scope="User">

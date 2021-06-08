@@ -40,7 +40,7 @@ namespace GameLauncher_Console
 			Bethesda = 8,
 			[Description("Battle.net")]
 			Battlenet = 9,
-			[Description("Rockstar")]
+			[Description("Rockstar")]		// TODO
 			Rockstar = 10,
 			[Description("Hidden games")]
 			Hidden = 11,
@@ -50,17 +50,17 @@ namespace GameLauncher_Console
 			Amazon = 13,
 			[Description("Big Fish")]
 			BigFish = 14,
-			[Description("Arc")]
+			[Description("Arc")]			// TODO
 			Arc = 15,
 			[Description("itch")]
 			Itch = 16,
-			[Description("Paradox")]
+			[Description("Paradox")]        // TODO
 			Paradox = 17,
-			[Description("Plarium Play")]
+			[Description("Plarium Play")]   // TODO
 			Plarium = 18,
-			[Description("Twitch")]
+			[Description("Twitch")]			// TODO
 			Twitch = 19,
-			[Description("Wargaming.net")]
+			[Description("Wargaming.net")]  // TODO
 			Wargaming = 20,
 			[Description("Indiegala Client")]
 			IGClient = 21
