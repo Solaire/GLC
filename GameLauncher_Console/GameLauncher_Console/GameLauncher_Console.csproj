@@ -148,9 +148,11 @@
     <Compile Include="Dock.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Game.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="GameFinder.cs" />
     <Compile Include="IniParser.cs" />
+    <Compile Include="Platform.cs" />
     <Compile Include="SqlDB.cs" />
     <Compile Include="SteamWrapper.cs" />
     <Compile Include="JsonWrapper.cs" />
