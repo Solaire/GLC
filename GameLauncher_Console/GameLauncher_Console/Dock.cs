@@ -73,9 +73,19 @@ namespace GameLauncher_Console
 		/// </summary>
 		public void MainLoop(string[] args)
 		{
-			CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches);
-			CJsonWrapper.ImportFromJSON();
+			bool import, parseError = false;
+			import = CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols);
+			if (!import) parseError = true;
+			import = CJsonWrapper.ImportFromJSON(out List<CGameData.CMatch> matches);
+			if (!import) parseError = true;
 			CGameFinder.CheckCustomFolder();
+
+			if (parseError)
+			{
+				Console.Write("Press any key to continue...");
+				Console.ReadKey();
+				Console.WriteLine();
+			}
 
 			bool consoleOutput = (bool)CConfig.GetConfigBool(CConfig.CFG_USECMD);
 			if (consoleOutput) noInteractive = true;
@@ -92,7 +102,7 @@ namespace GameLauncher_Console
 			}
 			if (args.Count() > 0)
 			{
-				if (gameSearch[0] == '/')
+				if (gameSearch[0] == '/' || gameSearch[0] == '-')
 				{
 					gameSearch = gameSearch.Substring(1);
 					if (gameSearch[0].Equals('?') || gameSearch[0].Equals('h') || gameSearch[0].Equals('H'))
@@ -233,7 +243,7 @@ namespace GameLauncher_Console
 					Console.ResetColor();
 				}
 				*/
-				DisplayUsage(cols, parent);
+				DisplayUsage(cols, parent, matches);
 				return;
 			}
 
@@ -303,7 +313,7 @@ namespace GameLauncher_Console
 						SetFgColour(cols.errorCC, cols.errorLtCC);
 						CLogger.LogWarn("ERROR: Console height too small to support interactive mode.");
 						Console.WriteLine("ERROR: Console height is too small to support interactive mode.");
-						DisplayUsage(cols, parent);
+						DisplayUsage(cols, parent, matches);
 						return;
 
 					case CConsoleHelper.DockSelection.cSel_Redraw:
@@ -1076,11 +1086,11 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Print usage screen
 		/// </summary>
-		public static void DisplayUsage(CConfig.Colours cols, string parent)
+		public static void DisplayUsage(CConfig.Colours cols, string parent, List<CGameData.CMatch> matches)
 		{
 			Console.WriteLine();
 			//				  0|-------|---------|---------|---------|---------|---------|---------|---------|80
-			SetFgColour(cols.titleCC, cols.titleLtCC);
+			SetFgColour(cols.titleCC);
 			Console.WriteLine("{0} version {1}",
 				Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product,
 				Assembly.GetEntryAssembly().GetName().Version.ToString());
@@ -1088,15 +1098,23 @@ namespace GameLauncher_Console
 			Console.WriteLine();
 			Console.WriteLine("Usage:");
 			Console.ResetColor();
-			Console.WriteLine("Launch a game by entering search on the command-line, e.g.:");
+			Console.WriteLine("Start in interactive mode by running with no parameters,");
+			Console.WriteLine("or launch a game by entering search on the command-line, e.g.:");
 			Console.WriteLine(" .\\{0} \"My Game\"", FILENAME);
-			Console.WriteLine("If there are multiple results, use number from prior search, e.g.:");
+			Console.WriteLine("If there are multiple results in command-line mode, to select an item from a");
+			Console.WriteLine("prior search, e.g.:");
 			Console.WriteLine(" .\\{0} /2", FILENAME);
 			Console.WriteLine();
-			SetFgColour(cols.titleCC, cols.titleLtCC);
+			SetFgColour(cols.titleCC);
 			Console.WriteLine("Other parameters:");
 			Console.ResetColor();
 			Console.WriteLine("   /1 : Replay the previously launched game");
+			if (matches.Count > 0)
+			{
+				SetFgColour(cols.titleCC);
+				Console.WriteLine("        [{0}]", matches[0].m_strTitle);
+				Console.ResetColor();
+			}
 			Console.WriteLine("   /S : Rescan your games");
 			//Console.WriteLine("/U \"My Game\": Uninstall game");
 			//Console.WriteLine("/A myalias \"My Game Name\": Change game's alias");
@@ -1145,7 +1163,11 @@ namespace GameLauncher_Console
 		/// </summary>
 		public static void SetFgColour(ConsoleColor colour)
 		{
-			if (colour > (ConsoleColor)(-1)) Console.ForegroundColor = colour;
+			if (colour > (ConsoleColor)(-1))
+			{
+				if (Console.BackgroundColor != colour)
+					Console.ForegroundColor = colour;
+			}
 		}
 
 		/// <summary>
@@ -1154,9 +1176,15 @@ namespace GameLauncher_Console
 		public static void SetFgColour(ConsoleColor colour, ConsoleColor lightColour)
 		{
 			if (CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light && lightColour > (ConsoleColor)(-1))
-				Console.ForegroundColor = lightColour;
+			{
+				if (Console.BackgroundColor != lightColour)
+					Console.ForegroundColor = lightColour;
+			}
 			else if (colour > (ConsoleColor)(-1))
-				Console.ForegroundColor = colour;
+			{
+				if (Console.BackgroundColor != colour)
+					Console.ForegroundColor = colour;
+			}
 		}
 
 		/// <summary>

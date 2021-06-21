@@ -53,7 +53,7 @@ namespace DataConversionTool
             }
 
             // Load and log all platforms and games from JSON
-            success = CJsonWrapper.ImportFromJSON(out CConfig.Configuration config, out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches);
+            success = CJsonWrapper.ImportFromJSON(out List<CGameData.CMatch> matches);
             if(!success)
             {
                 CInputOutput.Log("ERROR: Could not load games from the JSON file");

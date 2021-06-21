@@ -390,11 +390,11 @@ namespace GameLauncher_Console
 				}
 				if (code == (int)DockSelection.cSel_Exit ||
 					code == (int)DockSelection.cSel_Default)
-					return code;
+					break;
 				if (options.Length == 0)
 				{
 					CDock.m_nCurrentSelection = -1;
-					return code;
+					break;
 				}
 			} while (!IsSelectionValid(CDock.m_nCurrentSelection, options.Length));
 			return code;
@@ -458,7 +458,7 @@ namespace GameLauncher_Console
 
 			// Print the selections
 			int itemsPerPage = m_nMaxItemsPerPage - (m_nOptionsPerLine * (nStartY + nStopY));
-			if (itemsPerPage < 1)
+			if (itemsPerPage < 1 && (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD)))
 				return (int)DockSelection.cSel_Fail;
 			int nPage = 0;
 			if (CDock.m_nCurrentSelection >= itemsPerPage)
@@ -734,7 +734,7 @@ namespace GameLauncher_Console
 
 			// Print the selections
 			int itemsPerPage = m_nMaxItemsPerPage - (m_nOptionsPerLine * (nStartY + nStopY));
-			if (itemsPerPage < 1)
+			if (itemsPerPage < 1 && (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD)))
 				return (int)DockSelection.cSel_Fail;
 			int nPage = 0;
 			if (nSelection >= itemsPerPage)

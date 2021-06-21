@@ -71,13 +71,12 @@ namespace GameLauncher_Console
 		private static readonly string version		= Assembly.GetEntryAssembly().GetName().Version.ToString();
 
 		// Configuration data
-		public static bool ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches)
+		public static bool ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols)
         {
 			CConfig.config = new Dictionary<string, string>();
 			cfgv = new CConfig.ConfigVolatile();
 			keys = new CConfig.Hotkeys();
 			cols = new CConfig.Colours();
-			matches = new List<CGameData.CMatch>();
 			bool parseError = false;
 
 			// Set up default configuration
@@ -111,7 +110,17 @@ namespace GameLauncher_Console
 				CLogger.LogError(e);
             }
 
-			// TODO: Move matches to INI as well
+			return !parseError;
+		}
+
+		/// <summary>
+		/// Import games from the games json config file
+		/// </summary>
+		/// <returns>True if successful, otherwise false</returns>
+		public static bool ImportFromJSON(out List<CGameData.CMatch> matches)
+		{
+			bool parseError = false;
+			matches = new List<CGameData.CMatch>();
 
 			// Previous search matches
 			Version verSearch = System.Version.Parse("0.0");
@@ -130,23 +139,6 @@ namespace GameLauncher_Console
 
 			if (verSearch < MIN_LAST_VERSION)
 				matches = new List<CGameData.CMatch>();
-
-			if (parseError)
-			{
-				Console.Write("Press any key to continue...");
-				Console.ReadKey();
-				Console.WriteLine();
-			}
-			return true;
-		}
-
-		/// <summary>
-		/// Import games from the games json config file
-		/// </summary>
-		/// <returns>True if successful, otherwise false</returns>
-		public static bool ImportFromJSON()
-		{
-			bool parseError = false;
 
 			// Game data
 			int nGameCount = 0;
@@ -183,13 +175,7 @@ namespace GameLauncher_Console
 				CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), (bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
 			}
 
-			if (parseError)
-			{
-				Console.Write("Press any key to continue...");
-				Console.ReadKey();
-				Console.WriteLine();
-			}
-			return true;
+			return !parseError;
 		}
 
 		/// <summary>
