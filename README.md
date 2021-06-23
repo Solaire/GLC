@@ -25,7 +25,7 @@ An interactive console allows the user to navigate via menus using the arrows an
 - Flag as favourite;
 - Create Desktop shortcut;
 - Uninstall a game.
-  - Uninstall not currently available for Epic games.
+  - Uninstall not currently available for Epic, Indiagala, or itch games.
 
 ## Using
 The app does not require installation, simply download the .exe and run it, however we would recommend putting the executable in a dedicated folder because several support files and folders are automatically created in the same location.
@@ -103,68 +103,27 @@ NEW FEATURES:
   - Custom text;
   - Settings for input, layout, sorting, images, etc.
 
-## In progress changes:
+### Version 1.2.0 alpha
 - New platforms:
-  - IGClient (Indiegala);
+  - Indiegala Client;
   - itch.
-- Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible
-  - Fixed Epic, itch, and Steam
-  - Fixed the former issue for Origin, but if the uninstall entry doesn't exist, for now we must rely on problematic FindGameBinaryFile()
-  - Future Amazon and GOG Galaxy fixes will likely be the same as Origin
-  - I'm not sure if there is a solution possible for Battle.net, Bethesda.net, and Big Fish
-  - Haven't looked at Ubisoft Connect yet
-  - New IGClient has the same problem, except the games never end up in uninstall so we are always relying on FindGameBinaryFile()
+- New feature: Export all games of a platform as shortcuts to a given folder [ISSUE #9]
+- New feature: In-app search
+  - Working fairly well, but switching between grid and list after a search with no matches sometimes causes selection/keypress issues
+- Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible [ISSUE #18]
+  - Note: Migrating an Epic library requires you to move or update the .item files in "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests"
+- Better handling of missing/malformed configuration entries (including changes between revisions)
+  - Add missing entries and set to defaults;
+  - Note a version number has been added to aid in this;
+  - Ensure there are no duplicate/invalid titles, aliases, and hotkeys (also test for conflicts with built-ins, e.g., F11).
+- For configuration, switch to .ini instead of .json
+
+## In progress changes:
+- For games, switch to SQLite database instead of .json [ISSUE #6]
 - Small icons to left in single-column list mode
   - Disabled currently, as icons are randomly missing, especially after going to previous page or back to previous menu.
-- In-app search
-  - Working fairly well, but switching between grid and list after a search with no matches sometimes causes selection/keypress issues
 - Live switch between sorting modes
 - Hide/unhide game (instead of current behavior of removing it from the database)
   - Disabled currently, as hidden games mess up enumeration.
 - Remove article (a/an/the) for alphabetic sort
-- In-app change settings
-  - Partial Settings.settings alternative to .json config has been implemented; perhaps that would be easier?
-- Better handling of missing/malformed .json entries (including changes between revisions)
-  - Add missing entries and set to default;
-  - Note a version number has been added to .json files to aid in this;
-  - Ensure there are no duplicate/invalid titles, aliases, and hotkeys (also test for conflicts with built-ins, e.g., F11).
 - Code clean-up; better comments; finish updating function summaries
-
-## To-Do:
-- FindGameBinaryFile() should be smarter
-  - This is used when uninstall registry entries don't exist for certain platforms (though often just for icons)
-- New feature? In-app custom game add
-  - Since these would need to be added to .json, should other custom games from customGames folder be imported also? Maybe deleted afterwards?
-- New feature? In-app database entry revision (i.e., title, command line, icon)
-  - Need to rely on unique ID instead of title.
-- For searches (and typing input mode?) allow tab completion and/or live filtering as user types
-- Additional command-line parameters:
-  -  /U "My Game" : Uninstall game
-  -  /A "My Game" : Change alias
-- Do ScanGames()/ExportGames() without losing aliases/favourites/hidden items
-- More platforms, e.g.:
-  - Arc;
-  - Paradox;
-  - Plarium;
-  - Rockstar;
-  - Twitch;
-  - Wargaming.net.
-
-# Potential To-Do:
-- New feature? Tags (user-specified categories); these could be handled like custom platforms, or put in another layer
-  - Perhaps if custom games are put in a subfolder, they could automatically inherit the subfolder name as a tag.
-- New feature? Replace escape sequences in command-line with value provided at prompt
-  - e.g., User chooses "MAME" shortcut with the command-line "mame.exe {?}", causing a prompt to enter a rom name.
-- New feature? Change database for multiple entries, e.g., change emulator path
-- New feature? Export all games as shortcuts to a given folder
-- Allow fuzzy searches in typing input mode
-  - Or maybe just deprecate it altogether (is there a benefit to this instead of just using the non-interactive command-line)?
-- Support Xbox (Microsoft Store) apps
-  - Not sure how to determine whether a given UWP app is a game or not;
-  - Windows.Management.Deployment.PackageManager requires either a UWP or MSIX-packaged app;
-  - Alternatively, we could use PowerShell ReferenceAssemblies.
-- Support web-based platforms (like GOG Galaxy), e.g.:
-  - Fanatical;
-  - Humble Bundle;
-  - IndieGala;
-  - Riot Games.

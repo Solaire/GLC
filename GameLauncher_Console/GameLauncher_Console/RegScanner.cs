@@ -283,9 +283,11 @@ namespace GameLauncher_Console
 			}
 
 			string libFile = strClientPath + "\\" + STEAM_LIBFILE;
-			List<string> libs = new List<string>();
-			libs.Add(strClientPath);
-			int nLibs = 1;
+            List<string> libs = new List<string>
+            {
+                strClientPath
+            };
+            int nLibs = 1;
 
 			try
 			{
@@ -339,6 +341,8 @@ namespace GameLauncher_Console
 						ACF_Struct app = documentData.SubACF[STEAM_APPARR];
 
 						string id = app.SubItems["appid"];
+						if (id.Equals("228980"))  // Steamworks Common Redistributables
+							continue;
 
 						string strID = Path.GetFileName(file);
 						string strTitle = app.SubItems["name"];
@@ -514,7 +518,10 @@ namespace GameLauncher_Console
 			try
 			{
 				path = GetFolderPath(SpecialFolder.CommonApplicationData) + ORIGIN_CONTENT;
-				dirs = Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly);
+				if (Directory.Exists(path))
+				{
+					dirs = Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly);
+				}
 			}
 			catch (Exception e)
             {

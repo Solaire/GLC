@@ -2,76 +2,82 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GameLauncher_Console.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="prevent_exit" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_prevent_exit" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="dont_save_interface_changes" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_do_not_save_interface_changes" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="always_scan_for_new_games" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_always_scan_for_new_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="only_allow_command_line" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_only_allow_command_line" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="typing_input_is_default" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_typing_input_is_default" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="single_column_list_is_default" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_single_column_list_is_default" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="do_not_split_over_pages" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_do_not_split_over_pages" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="enlarge_height_to_fit" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_enlarge_height_to_fit" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="sort_alphabetically" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_sort_alphabetically" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="sort_favourites_on_top" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_sort_favourites_on_top" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="light_colour_is_default" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_colour_light_mode_is_default" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="always_show_all_games" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_always_show_all_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="dont_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_do_not_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="only_scan_custom_games" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_only_scan_custom_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="text_use_custom_text_values" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_text_use_custom_text_values" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="image_draw_border_characters" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_image_draw_border_characters" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="image_dont_use_custom" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_image_do_not_use_custom" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="image_ignore_custom_aspect_ratio" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_image_ignore_custom_aspect_ratio" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="list_icons_max_size_in_characters" Type="System.UInt16" Scope="User">
-      <Value Profile="(Default)">0</Value>
+    <Setting Name="flag_image_use_legacy_background_colours" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="list_icons_resolution" Type="System.UInt16" Scope="User">
+    <Setting Name="flag_image_do_not_do_deep_scan_for_icons" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="num_list_icons_max_size_in_characters" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="num_list_icons_resolution" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">16</Value>
     </Setting>
-    <Setting Name="selected_image_max_size_in_characters" Type="System.UInt16" Scope="User">
+    <Setting Name="num_selected_image_max_size_in_characters" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">16</Value>
     </Setting>
-    <Setting Name="selected_image_icon_resolution" Type="System.UInt16" Scope="User">
+    <Setting Name="num_selected_image_icon_resolution" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">96</Value>
     </Setting>
-    <Setting Name="selected_image_y_location_percent" Type="System.UInt16" Scope="User">
+    <Setting Name="num_selected_image_y_location_percent" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">10</Value>
     </Setting>
-    <Setting Name="grid_text_min_column_characters" Type="System.UInt16" Scope="User">
+    <Setting Name="num_grid_text_min_column_characters" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">25</Value>
     </Setting>
     <Setting Name="colour_background" Type="System.String" Scope="User">
@@ -109,6 +115,18 @@
     </Setting>
     <Setting Name="colour_highlight_text_lightmode" Type="System.String" Scope="User">
       <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="colour_input_background" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DarkGray</Value>
+    </Setting>
+    <Setting Name="colour_input_background_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Blue</Value>
+    </Setting>
+    <Setting Name="colour_input_prompt" Type="System.String" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="colour_input_prompt_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Yellow</Value>
     </Setting>
     <Setting Name="colour_error_background" Type="System.String" Scope="User">
       <Value Profile="(Default)">Black</Value>
@@ -218,16 +236,28 @@
     <Setting Name="key_cancel_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">NoName</Value>
     </Setting>
+    <Setting Name="key_new_game_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">OemPlus</Value>
+    </Setting>
+    <Setting Name="key_new_game_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">N</Value>
+    </Setting>
+    <Setting Name="key_delete_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Delete</Value>
+    </Setting>
+    <Setting Name="key_delete_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
     <Setting Name="key_uninstall_1" Type="System.String" Scope="User">
       <Value Profile="(Default)">F9</Value>
     </Setting>
     <Setting Name="key_uninstall_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">NoName</Value>
     </Setting>
-    <Setting Name="key_desktop_shortcut_1" Type="System.String" Scope="User">
+    <Setting Name="key_make_shortcuts_1" Type="System.String" Scope="User">
       <Value Profile="(Default)">F8</Value>
     </Setting>
-    <Setting Name="key_desktop_shortcut_2" Type="System.String" Scope="User">
+    <Setting Name="key_make_shortcuts_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">NoName</Value>
     </Setting>
     <Setting Name="key_hide_game_1" Type="System.String" Scope="User">
@@ -283,6 +313,18 @@
     </Setting>
     <Setting Name="text_settings_title" Type="System.String" Scope="User">
       <Value Profile="(Default)">Settings</Value>
+    </Setting>
+    <Setting Name="text_browse_title" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Browse for folder</Value>
+    </Setting>
+    <Setting Name="text_root_folder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">This PC</Value>
+    </Setting>
+    <Setting Name="text_select_folder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT THIS FOLDER</Value>
+    </Setting>
+    <Setting Name="text_create_folder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">CREATE FOLDER HERE</Value>
     </Setting>
     <Setting Name="text_instruct1_platforms_nav_custom_msg" Type="System.String" Scope="User">
       <Value Profile="(Default)"> Select a platform.</Value>
