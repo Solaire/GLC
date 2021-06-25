@@ -581,7 +581,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed Itch games
+		/// Find installed Amazon games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetAmazonGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)

@@ -111,20 +111,33 @@ NEW FEATURES:
 - New feature: Launch launchers [#31]
 - New feature: In-app search
   - Working fairly well, but switching between grid and list after a search with no matches sometimes causes selection/keypress issues
+- New feature: Small icons to left in single-column list mode [#32]
+  - Working fairly well, but icons from the previous menu or page will be shown if changed before icons have finished drawing
 - Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible [#18]
-  - Note: Migrating an Epic library requires you to move or update the .item files in "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests"
-- Better handling of missing/malformed configuration entries (including changes between revisions)
+  - Note: See migration hints in the FAQ below
+- Better handling of missing/malformed configuration entries (including changes between revisions) [#18]
   - Add missing entries and set to defaults;
   - Note a version number has been added to aid in this;
   - Ensure there are no duplicate/invalid titles, aliases, and hotkeys (also test for conflicts with built-ins, e.g., F11).
 - For configuration, switch to .ini instead of .json
 
-## In progress changes:
+### In progress changes:
 - For games, switch to SQLite database instead of .json [#6]
-- Small icons to left in single-column list mode
-  - Disabled currently, as icons are randomly missing, especially after going to previous page or back to previous menu.
+- In-game settings menu [#25]
 - Live switch between sorting modes
 - Hide/unhide game (instead of current behavior of removing it from the database)
   - Disabled currently, as hidden games mess up enumeration.
 - Remove article (a/an/the) for alphabetic sort
 - Code clean-up; better comments; finish updating function summaries
+
+## General FAQs:
+**Q:** How do I migrate libraries after reinstalling Windows?
+**A:** See below, but note if you use these techniques (vs reinstalling the game from scratch), scanning for your games will take longer, and the wrong icons might be displayed.
+<dl><dt>STEAM:</dt><dd>Add your Steam library folder (Steam > Settings > Downloads > STEAM LIBRARY FOLDERS).
+  If necessary, use a tool like [grepWin](https://tools.stefankueng.com/grepWin.html) to do a search & replace of the install locations in your steamapps\appmanifest_*.acf files.
+<dt>EPIC:</dt><dd>Transfer the .item files in "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests" from your old Windows install (and search & replace if necessary).
+<dt>AMAZON:</dt><dd>Transfer the folder %userprofile%\AppData\Local\Amazon Games\Data\Games from your old Windows install.
+  If necessary, use a tool like [DB Browser for SQLite](https://sqlitebrowser.org/) to change the install locations in Sql\GameInstallInfo.sqlite.
+<dt>ITCH:</dt><dd>Transfer the file %userprofile%\AppData\Roaming\itch\db\butler.db from your old Windows install (and edit in a SQLite browser if necessary)
+<dt>INDIEGALA:</dt><dd>Transfer the file %userprofile%\AppData\Roaming\IGClient\storage\installed.json from your old Windows install (and edit if necessary).
+---
