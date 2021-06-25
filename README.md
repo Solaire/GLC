@@ -107,10 +107,11 @@ NEW FEATURES:
 - New platforms:
   - Indiegala Client;
   - itch.
-- New feature: Export all games of a platform as shortcuts to a given folder [ISSUE #9]
+- New feature: Export all games of a platform as shortcuts to a given folder [#9]
 - New feature: In-app search
+- New feature: Launch launchers [#31]
   - Working fairly well, but switching between grid and list after a search with no matches sometimes causes selection/keypress issues
-- Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible [ISSUE #18]
+- Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible [#18]
   - Note: Migrating an Epic library requires you to move or update the .item files in "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests"
 - Better handling of missing/malformed configuration entries (including changes between revisions)
   - Add missing entries and set to defaults;
@@ -119,7 +120,7 @@ NEW FEATURES:
 - For configuration, switch to .ini instead of .json
 
 ## In progress changes:
-- For games, switch to SQLite database instead of .json [ISSUE #6]
+- For games, switch to SQLite database instead of .json [#6]
 - Small icons to left in single-column list mode
   - Disabled currently, as icons are randomly missing, especially after going to previous page or back to previous menu.
 - Live switch between sorting modes
