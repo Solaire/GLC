@@ -85,11 +85,6 @@ namespace GameLauncher_Console
 			SubItems = new Dictionary<string, string>();
 		}
 
-		public void WriteToFile(string File)
-		{
-
-		}
-
 		public override string ToString()
 		{
 			return ToString(0);

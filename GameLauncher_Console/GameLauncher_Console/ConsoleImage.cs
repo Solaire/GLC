@@ -232,8 +232,8 @@ namespace GameLauncher_Console
 		/// <param name="yCushion">Text mode spaces between image and border in y direction</param>
 		public static void ShowImageBorder(Size size, Point point, int xCushion, int yCushion)  // showing the border sometimes causes the image to disappear
 		{
-			int linePercent = 4;
-			try
+            int linePercent;
+            try
 			{
 				linePercent = 100 / Console.WindowHeight;
 			}

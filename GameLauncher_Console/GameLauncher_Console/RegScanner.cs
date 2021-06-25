@@ -375,6 +375,9 @@ namespace GameLauncher_Console
 							if (String.IsNullOrEmpty(strIconPath) && expensiveIcons)
 								strIconPath = CGameFinder.FindGameBinaryFile(lib + "\\common\\" + app.SubItems["installdir"], strTitle);
 							strUninstall = STEAM_UNINST + id;
+							strAlias = GetAlias(Path.GetFileNameWithoutExtension(strIconPath));
+							if (strAlias.Length > strTitle.Length)
+								strAlias = GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
 							gameDataList.Add(new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));

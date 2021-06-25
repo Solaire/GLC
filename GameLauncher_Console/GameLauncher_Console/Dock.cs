@@ -1133,23 +1133,27 @@ namespace GameLauncher_Console
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSEL2)), "[", "]", " | ", "N/A", 8));
 				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USEALL)) //&& !(bool)config.onlyCustom)
 					WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-						"            Back: " +
+					"            Back: " +
 						CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYBACK1)),
 						CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYBACK2)), "[", "]", " | ", "N/A", 8));
 				/*
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-					"        Settings: " + CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYCFG1)),
+					"        Settings: " +
+					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYCFG1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYCFG2)), "[", "]", " | ", "N/A", 8));
 				*/
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-					"          Search: " + CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYFIND1)),
+					"          Search: " +
+					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYFIND1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYFIND2)), "[", "]", " | ", "N/A", 8));
 				/*
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-					"Search Auto-Comp: " + CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYTAB1)),
+					"Search Auto-Comp: " +
+					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYTAB1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYTAB2)), "[", "]", " | ", "N/A", 8));
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-					"   Search Cancel: " + CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYESC1)),
+					"   Search Cancel: " +
+					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYESC1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYESC2)), "[", "]", " | ", "N/A", 8));
 				*/
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
@@ -1172,6 +1176,10 @@ namespace GameLauncher_Console
 					"    Rescan Games: " +
 					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSCAN1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSCAN2)), "[", "]", " | ", "N/A", 8));
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"  Start Launcher: " +
+					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYPLAT1)),
+					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYPLAT2)), "[", "]", " | ", "N/A", 8));
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
 					"Toggle Favourite: " +
 					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYFAVE1)),
