@@ -889,6 +889,54 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_launcher_1 {
+            get {
+                return ((string)(this["key_launcher_1"]));
+            }
+            set {
+                this["key_launcher_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("L")]
+        public string key_launcher_2 {
+            get {
+                return ((string)(this["key_launcher_2"]));
+            }
+            set {
+                this["key_launcher_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_settings_1 {
+            get {
+                return ((string)(this["key_settings_1"]));
+            }
+            set {
+                this["key_settings_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C")]
+        public string key_settings_2 {
+            get {
+                return ((string)(this["key_settings_2"]));
+            }
+            set {
+                this["key_settings_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("F3")]
         public string key_search_1 {
             get {

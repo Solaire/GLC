@@ -218,6 +218,18 @@
     <Setting Name="key_last_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">NumPad1</Value>
     </Setting>
+    <Setting Name="key_launcher_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_launcher_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">L</Value>
+    </Setting>
+    <Setting Name="key_settings_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_settings_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C</Value>
+    </Setting>
     <Setting Name="key_search_1" Type="System.String" Scope="User">
       <Value Profile="(Default)">F3</Value>
     </Setting>

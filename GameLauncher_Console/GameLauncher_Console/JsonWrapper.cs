@@ -172,7 +172,7 @@ namespace GameLauncher_Console
 			{
 				CLogger.LogInfo("{0} is empty, corrupt, or outdated. Scanning for games...", GAME_JSON_FILE);
 				Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-				CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), (bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
+				CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
 			}
 
 			return !parseError;
@@ -591,6 +591,8 @@ namespace GameLauncher_Console
 			const string AMAZON_NAME = "Amazon";
 			const string AMAZON_LAUNCH = "amazon-games://play/";
 			const string AMAZON_DB = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
+			//const string AMAZON_UNINST_EXE = @"\__InstallData__\Amazon Game Remover.exe";
+			//const string AMAZON_UNINST_SUFFIX = "-m Game -p";
 			string db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_DB;
 			if (!File.Exists(db))
 			{
@@ -843,6 +845,7 @@ namespace GameLauncher_Console
         {
 			configv.dontSaveChanges = (bool)CConfig.GetConfigBool(CConfig.CFG_USEFILE);
 			configv.typingInput = (bool)CConfig.GetConfigBool(CConfig.CFG_USETYPE);
+			configv.listView = (bool)CConfig.GetConfigBool(CConfig.CFG_USELIST);
 			configv.imageBorder = (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD);
 			configv.imageSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE);
 			configv.iconSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE);
@@ -915,6 +918,10 @@ namespace GameLauncher_Console
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHOME2), true, out hotkeys.firstCK2);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYEND1), true, out hotkeys.lastCK1);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYEND2), true, out hotkeys.lastCK2);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPLAT1), true, out hotkeys.launcherCK1);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPLAT2), true, out hotkeys.launcherCK2);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCFG1), true, out hotkeys.settingsCK1);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCFG2), true, out hotkeys.settingsCK2);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFIND1), true, out hotkeys.searchCK1);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFIND2), true, out hotkeys.searchCK2);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYTAB1), true, out hotkeys.completeCK1);
@@ -1297,6 +1304,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_KEYHOME2, force);
 			SetDefaultVal(CConfig.CFG_KEYEND1, force);
 			SetDefaultVal(CConfig.CFG_KEYEND2, force);
+			SetDefaultVal(CConfig.CFG_KEYCFG1, force);
+			SetDefaultVal(CConfig.CFG_KEYCFG2, force);
 			SetDefaultVal(CConfig.CFG_KEYFIND1, force);
 			SetDefaultVal(CConfig.CFG_KEYFIND2, force);
 			SetDefaultVal(CConfig.CFG_KEYTAB1, force);

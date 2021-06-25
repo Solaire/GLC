@@ -50,6 +50,8 @@ namespace GameLauncher_Console
 			Twitch = 14,
 			[Description("Wargaming.net")]
 			Wargaming = 15,
+			[Description("Indiegala Client")]
+			IGClient = 16
 		}
 
 		#region Query definitions

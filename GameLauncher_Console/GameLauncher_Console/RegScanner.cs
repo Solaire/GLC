@@ -23,17 +23,18 @@ namespace GameLauncher_Console
 		private const string STEAM_GAME_FOLDER		= "Steam App ";
 		private const string STEAM_LAUNCH			= "steam://rungameid/";
 		private const string STEAM_UNINST			= "steam://uninstall/";
-		private const string STEAM_REG				= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
 		private const string STEAM_PATH				= "steamapps";
 		private const string STEAM_LIBFILE			= "libraryfolders.vdf";
 		private const string STEAM_LIBARR			= "LibraryFolders";
 		private const string STEAM_APPARR			= "AppState";
+		//private const string STEAM_UNREG				= "Steam"; // HKLM32 Uninstall
+		private const string STEAM_REG				= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
 
 		// GOG Galaxy
 		private const string GOG_NAME				= "GOG";
 		private const string GOG_NAME_LONG			= "GOG Galaxy";
 		private const string GOG_REG_GAMES			= @"SOFTWARE\WOW6432Node\GOG.com\Games";
-		private const string GOG_REG_CLIENT			= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
+		public const string GOG_REG_CLIENT			= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
 		private const string GOG_CLIENT				= "client";
 		private const string GOG_GAME_ID			= "GameID";
 		private const string GOG_GAME_PATH			= "PATH";
@@ -42,22 +43,26 @@ namespace GameLauncher_Console
 		private const string GOG_LAUNCH				= " /command=runGame /gameId=";
 		private const string GOG_PATH				= " /path=";
 		private const string GOG_GALAXY_EXE			= "GalaxyClient.exe";
-		//private const string GOG_GALAXY_REG			= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
+		//private const string GOG_GALAXY_UNREG		= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
 
 		// Ubisoft Connect (formerly Uplay)
 		private const string UPLAY_NAME				= "Ubisoft";
 		private const string UPLAY_NAME_LONG		= "Ubisoft Connect";
 		private const string UPLAY_INSTALL			= "Uplay Install ";
 		private const string UPLAY_LAUNCH			= "uplay://launch/";
+		//private const string UPLAY_UNREG				= "Uplay" // HKLM32 Uninstall
 		//private const string UPLAY_REG				= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
 
 		// Origin (EA)
 		private const string ORIGIN_NAME			= "Origin";
 		private const string ORIGIN_NAME_LONG		= "Origin";
-		//private const string ORIGIN_REG_GAMES		= "Origin Games"; // HKLM32
 		private const string ORIGIN_CONTENT			= @"\Origin\LocalContent";
 		private const string ORIGIN_PATH			= "dipinstallpath=";
-		//private const string ORIGIN_REG				= @"SOFTWARE\WOW6432Node\Origin"; // HKLM32
+		/*
+		private const string ORIGIN_REG_GAMES		= "Origin Games"; // HKLM32
+		private const string ORIGIN_UNREG			= "Origin"; // HKLM32 Uninstall
+		private const string ORIGIN_REG				= @"SOFTWARE\WOW6432Node\Origin"; // HKLM32
+		*/
 
 		// Bethesda.net Launcher
 		private const string BETHESDA_NAME			= "Bethesda";
@@ -67,14 +72,14 @@ namespace GameLauncher_Console
 		private const string BETHESDA_CREATION_KIT	= "Creation Kit";
 		private const string BETHESDA_LAUNCH		= "bethesda://run/";
 		private const string BETHESDA_PRODUCT_ID	= "ProductID";
-		//private const string BETHESDA_REG			= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
+		//private const string BETHESDA_UNREG			= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
 		//private const string BETHESDA_REG			= @"SOFTWARE\WOW6432Node\Bethesda Softworks\Bethesda.net"; // HKLM32
 
 		// Battle.net (Blizzard)
 		private const string BATTLENET_NAME			= "Battlenet";
 		private const string BATTLENET_NAME_LONG	= "Battle.net";
-		private const string BATTLE_NET_REG			= "Battle.net";
-		//private const string BATTLE_NET_REG			= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
+		//private const string BATTLE_NET_UNREG		= "Battle.net"; // HKLM32 Uninstall
+		private const string BATTLE_NET_REG			= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
 
 		// Amazon Games
 		//private const string AMAZON_NAME			= "Amazon";
@@ -83,6 +88,7 @@ namespace GameLauncher_Console
 		private const string AMAZON_GAME_FOLDER		= "AmazonGames/";
 		private const string AMAZON_LAUNCH			= "amazon-games://play/";
 		private const string AMAZON_DB				= @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
+		private const string AMAZON_UNREG			= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
 		*/
 
 		// Big Fish Games
@@ -90,15 +96,13 @@ namespace GameLauncher_Console
 		private const string BIGFISH_NAME_LONG		= "Big Fish Games";
 		private const string BIGFISH_GAME_FOLDER	= "BFG-";
 		private const string BIGFISH_LAUNCH			= "LaunchGame.bfg";
-		//private const string BIGFISH_REG			= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
+		public const string BIGFISH_REG				= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
 
 		// Epic Games Launcher
 		//private const string EPIC_NAME				= "Epic";
 		private const string EPIC_NAME_LONG			= "Epic Games Launcher";
 		/*
 		private const string EPIC_GAMES_REG			= "Epic Games Launcher";
-		//private const string EPIC_GAMES_REG			= "{A2FB1E1A-55D9-4511-A0BF-DEAD0493FBBC}"; // HKLM32 Uninstall
-		//private const string EPIC_GAMES_REG			= @"SOFTWARE\WOW6432Node\Epic Games\EpicGamesLauncher"; // HKLM32
 		private const string EPIC_UNREAL_ENGINE		= "Unreal Engine";
 		private const string EPIC_ONLINE_SERVICES	= "Epic Online Services";
 		private const string EPIC_LAUNCHER			= "Launcher";
@@ -106,43 +110,48 @@ namespace GameLauncher_Console
 		private const string EPIC_ITEMS_FOLDER		= @"\Epic\EpicGamesLauncher\Data\Manifests";
 		private const string EPIC_LAUNCH			= "com.epicgames.launcher://apps/";
 		private const string EPIC_LAUNCH_POST		= "?action=launch&silent=true";
+		private const string EPIC_GAMES_REG			= @"SOFTWARE\WOW6432Node\Epic Games\EpicGamesLauncher"; // HKLM32
+		//private const string EPIC_GAMES_UNREG			= "{A2FB1E1A-55D9-4511-A0BF-DEAD0493FBBC}"; // HKLM32 Uninstall
+		//private const string EPIC_GAMES_UNREG			= "{A7BBC0A6-3DB0-41CC-BCED-DDFC5D4F3060}"; // HKLM32 Uninstall
 		*/
 
 		// Arc
-		//private const string ARC_REG				= "{CED8E25B-122A-4E80-B612-7F99B93284B3}"; // HKLM32 Uninstall
+		//private const string ARC_UNREG				= "{CED8E25B-122A-4E80-B612-7F99B93284B3}"; // HKLM32 Uninstall
 
 		// itch
 		//private const string ITCH_NAME				= "itch";
 		private const string ITCH_NAME_LONG			= "itch";
 		/*
 		private const string ITCH_DB				= @"\itch\db\butler.db";
-		private const string ITCH_REG				= "itch"; // HKCU64 Uninstall
 		private const string ITCH_GAME_FOLDER		= "apps";
 		private const string ITCH_METADATA			= ".itch\\receipt.json.gz";
+		private const string ITCH_UNREG				= "itch"; // HKCU64 Uninstall
 		*/
 
 		// Paradox Launcher
-		//private const string PARADOX_REG			= @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher"; // HKLM32
+		public const string PARADOX_REG				= @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; // HKLM32
 
 		// Plarium Play
-		//private const string PLARIUM_REG			= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
+		//private const string PLARIUM_UNREG			= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
 
 		// Rockstar
 		//private const string ROCKSTAR_REG			= @"SOFTWARE\WOW6432Node\Rockstar Games\Launcher"; // HKLM32
 
 		// Twitch
-		//private const string TWITCH_REG				= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
+		//private const string TWITCH_UNREG			= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
 
 		// Wargaming.net Game Center
-		//private const string WARGAMING_REG			= "Wargaming.net Game Center"; // HKCU64 Uninstall
+		//private const string WARGAMING_UNREG		= "Wargaming.net Game Center"; // HKCU64 Uninstall
 
 		// Indiegala
-		//const string IG_NAME = "IGClient";
-		const string IG_NAME_LONG = "IndieGala Client";
-		//const string IG_JSON_FILE = @"\IGClient\storage\installed.json";
+		//private const string IG_NAME				= "IGClient";
+		private const string IG_NAME_LONG			= "IndieGala Client";
+		//private const string IG_JSON_FILE			= @"\IGClient\storage\installed.json";
+		//private const string IG_UNREG				= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall
+		public const string IG_REG					= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
 
-		/*
 		// Xbox (Microsoft Store)
+		/*
 		private const string XBOX_NAME				= "Xbox";
 		private const string XBOX_NAME_LONG			= "Xbox";
 		private const string XBOX_LAUNCH_SUFFIX		= @":\\";
