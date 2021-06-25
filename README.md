@@ -108,8 +108,8 @@ NEW FEATURES:
   - Indiegala Client;
   - itch.
 - New feature: Export all games of a platform as shortcuts to a given folder [#9]
-- New feature: In-app search
 - New feature: Launch launchers [#31]
+- New feature: In-app search
   - Working fairly well, but switching between grid and list after a search with no matches sometimes causes selection/keypress issues
 - Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible [#18]
   - Note: Migrating an Epic library requires you to move or update the .item files in "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests"
