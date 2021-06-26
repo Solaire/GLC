@@ -3,8 +3,8 @@
 
 This is a simple program that will scan the system for video games, then allow the user to launch any of these games from a single location - without having to store the icons on the desktop, or launching a dedicated client such as Steam or Epic. The program supports the following platforms:
 - Amazon Games;
-- Battle.net;
-- Bethesda.net Launcher;
+- Battle&period;net;
+- Bethesda&period;net Launcher;
 - Big Fish Games;
 - Epic Games Launcher;
 - GOG Galaxy;
@@ -57,6 +57,8 @@ You can support the project in the following ways:
 - Raise suggestions;
 - Fork the repo, make some changes and submit a PR.
 
+---
+
 ## Changelog
 ### Version 1.1.0
 CHANGES:
@@ -80,7 +82,7 @@ NEW FEATURES:
   - PgUp/PgDn between pages.
 - New command-line parameters:
   - Enter a game name on the command-line to search (quotations marks not required for last parameter)
-  -  /<#>  : e.g., "/2"; if there were multiple results in the prior search, run the game with a specified number;
+  -  /<#>  : e.g., "/2"; if there were multiple results in the prior search in command-line mode, run the game with a specified number;
   -  /1    : Replay the previously launched game;
   -  /S    : Rescan your games;
   -  /C    : Toggle command-line only mode;
@@ -104,40 +106,47 @@ NEW FEATURES:
   - Settings for input, layout, sorting, images, etc.
 
 ### Version 1.2.0 alpha
-- New platforms:
-  - Indiegala Client;
-  - itch.
-- New feature: Export all games of a platform as shortcuts to a given folder [#9]
-- New feature: Launch launchers [#31]
-- New feature: In-app search
-  - Working fairly well, but switching between grid and list after a search with no matches sometimes causes selection/keypress issues
-- New feature: Small icons to left in single-column list mode [#32]
-  - Working fairly well, but icons from the previous menu or page will be shown if changed before icons have finished drawing
-- Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible [#18]
+CHANGES:
+- Ensure multiple library locations are supported and remove reliance on Windows uninstall registry where possible [[#18](issues/18)]
   - Note: See migration hints in the FAQ below
-- Better handling of missing/malformed configuration entries (including changes between revisions) [#18]
+- Better handling of missing/malformed configuration entries (including changes between revisions)
   - Add missing entries and set to defaults;
   - Note a version number has been added to aid in this;
   - Ensure there are no duplicate/invalid titles, aliases, and hotkeys (also test for conflicts with built-ins, e.g., F11).
 - For configuration, switch to .ini instead of .json
 
+NEW FEATURES:
+- New platforms:
+  - Indiegala Client;
+  - itch.
+- New function: Export all games of a platform as shortcuts to a given folder [[#9](issues/9)]
+- New function: Launch launchers [[#31](issues/31)]
+- New function: In-app search
+  - Working fairly well, but switching between grid and list after a search with no matches sometimes causes selection/keypress issues
+- New function: Small icons to left in single-column list mode [[#32(issues/32)]
+  - Working fairly well, but icons from the previous menu or page will be shown if changed before icons have finished drawing
+
 ### In progress changes:
-- For games, switch to SQLite database instead of .json [#6]
-- In-game settings menu [#25]
+- For games, switch to SQLite database instead of .json [[#6](issues/16)]
+- In-game settings menu [[#25](issues/25)]
 - Live switch between sorting modes
 - Hide/unhide game (instead of current behavior of removing it from the database)
   - Disabled currently, as hidden games mess up enumeration.
 - Remove article (a/an/the) for alphabetic sort
 - Code clean-up; better comments; finish updating function summaries
 
+---
+
 ## General FAQs:
 **Q:** How do I migrate libraries after reinstalling Windows?
+
 **A:** See below, but note if you use these techniques (vs reinstalling the game from scratch), scanning for your games will take longer, and the wrong icons might be displayed.
-<dl><dt>STEAM:</dt><dd>Add your Steam library folder (Steam > Settings > Downloads > STEAM LIBRARY FOLDERS).
-  If necessary, use a tool like [grepWin](https://tools.stefankueng.com/grepWin.html) to do a search & replace of the install locations in your steamapps\appmanifest_*.acf files.
-<dt>EPIC:</dt><dd>Transfer the .item files in "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests" from your old Windows install (and search & replace if necessary).
-<dt>AMAZON:</dt><dd>Transfer the folder %userprofile%\AppData\Local\Amazon Games\Data\Games from your old Windows install.
-  If necessary, use a tool like [DB Browser for SQLite](https://sqlitebrowser.org/) to change the install locations in Sql\GameInstallInfo.sqlite.
-<dt>ITCH:</dt><dd>Transfer the file %userprofile%\AppData\Roaming\itch\db\butler.db from your old Windows install (and edit in a SQLite browser if necessary)
-<dt>INDIEGALA:</dt><dd>Transfer the file %userprofile%\AppData\Roaming\IGClient\storage\installed.json from your old Windows install (and edit if necessary).
----
+<dl>
+  <dt>Steam:</dt><dd>Add your Steam library folder (Steam > Settings > Downloads > STEAM LIBRARY FOLDERS).<br/>
+  If necessary, use a tool like <a href="https://tools.stefankueng.com/grepWin.html">grepWin</a> to do a search & replace of the install locations in your steamapps\appmanifest_*.acf files.</dd>
+  <dt>Epic:</dt><dd>Transfer the .item files in "C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests" from your old Windows install (and search & replace if necessary).</dd>
+  <dt>Amazon:</dt><dd>Transfer the folder %userprofile%\AppData\Local\Amazon Games\Data\Games from your old Windows install.<br/>
+  If necessary, use a tool like <a href="https://sqlitebrowser.org/">DB Browser for SQLite</a> to change the install locations in Sql\GameInstallInfo.sqlite.</dd>
+  <dt>Itch:</dt><dd>Transfer the file %userprofile%\AppData\Roaming\itch\db\butler.db from your old Windows install (and edit in a SQLite browser if necessary)</dd>
+  <dt>Indiegala:</dt><dd>Transfer the file %userprofile%\AppData\Roaming\IGClient\storage\installed.json from your old Windows install (and edit if necessary).</dd>
+</dl>
