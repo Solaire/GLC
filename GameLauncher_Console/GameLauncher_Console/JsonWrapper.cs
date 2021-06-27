@@ -52,6 +52,7 @@ namespace GameLauncher_Console
 		private const string GAMES_ARRAY_UNINSTALLER		= "uninstaller";
 		private const string GAMES_ARRAY_PLATFORM			= "platform";
 		private const string GAMES_ARRAY_FAVOURITE			= "favourite";
+		private const string GAMES_ARRAY_NEW				= "new";
 		private const string GAMES_ARRAY_HIDDEN				= "hidden";
 		private const string GAMES_ARRAY_ALIAS				= "alias";
 		private const string GAMES_ARRAY_FREQUENCY			= "frequency";
@@ -418,12 +419,13 @@ namespace GameLauncher_Console
 						string strIconPath = GetStringProperty(jElement, GAMES_ARRAY_ICON);
 						string strUninstaller = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
 						bool   bIsFavourite = GetBoolProperty(jElement, GAMES_ARRAY_FAVOURITE);
+						bool   bIsNew = GetBoolProperty(jElement, GAMES_ARRAY_NEW);
 						bool   bIsHidden = GetBoolProperty(jElement, GAMES_ARRAY_HIDDEN);
 						string strAlias = GetStringProperty(jElement, GAMES_ARRAY_ALIAS);
 						string strPlatform = GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
 						double fOccurCount = GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
 
-						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsFavourite, bIsHidden, strAlias, strPlatform, fOccurCount);
+						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, fOccurCount);
 						nGameCount++;
 					}
 					CGameData.SortGames(alphaSort, faveSort, ignoreArticle);
@@ -980,6 +982,7 @@ namespace GameLauncher_Console
 			writer.WriteString(GAMES_ARRAY_UNINSTALLER	, data.Uninstaller);
 			writer.WriteString(GAMES_ARRAY_PLATFORM		, data.PlatformString);
 			writer.WriteBoolean(GAMES_ARRAY_FAVOURITE	, data.IsFavourite);
+			writer.WriteBoolean(GAMES_ARRAY_NEW			, data.IsNew);
 			writer.WriteBoolean(GAMES_ARRAY_HIDDEN		, data.IsHidden);
 			writer.WriteString(GAMES_ARRAY_ALIAS		, data.Alias);
 			writer.WriteNumber(GAMES_ARRAY_FREQUENCY	, data.Frequency);
