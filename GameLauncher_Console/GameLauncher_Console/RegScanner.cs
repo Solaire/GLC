@@ -202,14 +202,14 @@ namespace GameLauncher_Console
 			List<RegistryGameData> gameDataList = GetGames(bOnlyCustom, bExpensiveIcons);
 			foreach (RegistryGameData data in gameDataList)
 			{
-				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, false, false, data.m_strAlias, data.m_strPlatform, 0f);
+				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, false, true, false, data.m_strAlias, data.m_strPlatform, 0f);
 			}
 			Console.Write(".");
 			CLogger.LogInfo("Looking for {0} games...", CUSTOM_NAME.ToUpper());
 			CGameFinder.ImportFromFolder(ref tempGameSet);
-			CLogger.LogDebug("---------------------");
-			Console.WriteLine();
 			CGameData.MergeGameSets(tempGameSet);
+			CLogger.LogDebug("-----------------------");
+			Console.WriteLine();
 			CJsonWrapper.ExportGames(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 		}
 
@@ -365,7 +365,7 @@ namespace GameLauncher_Console
 						if (!string.IsNullOrEmpty(strLaunch))
 						{
 							using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
-												key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
+											   key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
 							{
 								if (key != null)
 									strIconPath = GetRegStrVal(key, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
@@ -446,8 +446,11 @@ namespace GameLauncher_Console
 							strIconPath = GetRegStrVal(subkey, GOG_GAME_LAUNCH).Trim(new char[] { ' ', '"' });
 							using (RegistryKey uninstKey = Registry.LocalMachine.OpenSubKey(strUninstKeyName, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 							{
-								strUninstall = GetRegStrVal(uninstKey, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
-								strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(uninstKey, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+								if (uninstKey != null)
+								{
+									strUninstall = GetRegStrVal(uninstKey, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
+									strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(uninstKey, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+								}
 							}
 							if (strAlias.Length > strTitle.Length)
 								strAlias = GetAlias(strTitle);
@@ -476,7 +479,11 @@ namespace GameLauncher_Console
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				if (key == null) return;
+				if (key == null)
+				{
+					CLogger.LogInfo("{0} client not found in the registry.", UPLAY_NAME.ToUpper());
+					return;
+				}
 
 				keyList = FindGameFolders(key, UPLAY_INSTALL);
 
@@ -625,7 +632,11 @@ namespace GameLauncher_Console
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				if (key == null) return;
+				if (key == null)
+				{
+					CLogger.LogInfo("{0} client not found in the registry.", BETHESDA_NAME.ToUpper());
+					return;
+				}
 
 				keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
 
@@ -678,7 +689,11 @@ namespace GameLauncher_Console
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				if (key == null) return;
+				if (key == null)
+				{
+					CLogger.LogInfo("{0} client not found in the registry.", BATTLENET_NAME.ToUpper());
+					return;
+				}
 
 				keyList = FindGameKeys(key, BATTLE_NET_REG, GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_REG });
 
@@ -726,7 +741,11 @@ namespace GameLauncher_Console
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				if (key == null) return;
+				if (key == null)
+				{
+					CLogger.LogInfo("{0} client not found in the registry.", BIGFISH_NAME.ToUpper());
+					return;
+				}
 
 				keyList = FindGameFolders(key, BIGFISH_GAME_FOLDER);
 

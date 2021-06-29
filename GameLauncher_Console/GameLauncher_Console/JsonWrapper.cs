@@ -187,7 +187,7 @@ namespace GameLauncher_Console
 		/// <returns>True is successful, otherwise false</returns>
 		public static bool ExportGames(List<CGameData.CGame> gameList)
 		{
-			CLogger.LogInfo("Save game data to JSON...");
+			CLogger.LogInfo("Saving {0} games to JSON...", gameList.Count);
 			var options = new JsonWriterOptions
 			{
 				Indented = true
@@ -234,7 +234,7 @@ namespace GameLauncher_Console
 		/// <returns>True is successful, otherwise false</returns>
 		public static bool ExportSearch(List<CGameData.CMatch> matchList)
 		{
-			CLogger.LogInfo("Save search data to JSON...");
+			CLogger.LogInfo("Saving search data to JSON...");
 			var options = new JsonWriterOptions
 			{
 				Indented = true
@@ -282,7 +282,7 @@ namespace GameLauncher_Console
 		/// <returns>True is successful, otherwise false</returns>
 		public static bool ExportConfig()
 		{
-			CLogger.LogInfo("Save configuration data to INI...");
+			CLogger.LogInfo("Saving configuration data to INI...");
 
 			try
 			{
@@ -626,8 +626,11 @@ namespace GameLauncher_Console
 
 								using (RegistryKey key = Registry.CurrentUser.OpenSubKey(NODE64_REG + "\\AmazonGames/" + strTitle, RegistryKeyPermissionCheck.ReadSubTree))
 								{
-									strIconPath = CRegScanner.GetRegStrVal(key, "DisplayIcon");
-									strUninstall = CRegScanner.GetRegStrVal(key, "UninstallString");
+									if (key != null)
+									{
+										strIconPath = CRegScanner.GetRegStrVal(key, "DisplayIcon");
+										strUninstall = CRegScanner.GetRegStrVal(key, "UninstallString");
+									}
 								}
 								if (string.IsNullOrEmpty(strIconPath))
 								{

@@ -106,6 +106,44 @@ namespace GameLauncher_Console
 			internal Coord dwFontSize;
 		}
 
+		[DllImport("kernel32.dll", SetLastError = true)]
+		public static extern IntPtr GetStdHandle(int nStdHandle);
+
+		[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+		public static extern bool GetCurrentConsoleFontEx(
+			IntPtr hConsoleOutput,
+			bool bMaximumWindow,
+			[In, Out] CONSOLE_FONT_INFO_EX lpConsoleCurrentFont);
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		public class CONSOLE_FONT_INFO_EX
+		{
+			private int cbSize;
+			public CONSOLE_FONT_INFO_EX()
+			{
+				cbSize = Marshal.SizeOf(typeof(CONSOLE_FONT_INFO_EX));
+			}
+			public int FontIndex;
+			public COORD dwFontSize;
+			public int FontFamily;
+			public int FontWeight;
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+			public string FaceName;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct COORD
+		{
+			public short X;
+			public short Y;
+
+			public COORD(short X, short Y)
+			{
+				this.X = X;
+				this.Y = Y;
+			}
+		};
+
 		[StructLayout(LayoutKind.Explicit)]
 		internal struct Coord
 		{
@@ -115,6 +153,7 @@ namespace GameLauncher_Console
 			internal short Y;
 		}
 
+		public const int STD_OUTPUT_HANDLE = -11;
 		private const int FILE_SHARE_READ = 1;
 		private const int FILE_SHARE_WRITE = 2;
 		private const int GENERIC_READ = unchecked((int)0x80000000);

@@ -49,7 +49,7 @@ namespace SqlDB
             }
             catch (SQLiteException e)
             {
-                CLogger.LogWarn("ERROR: Database connection could not be established: " + e.ResultCode);
+                CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
                 return null;
             }
             return connection;
@@ -101,7 +101,7 @@ namespace SqlDB
                 }
                 catch (SQLiteException e)
                 {
-                    CLogger.LogWarn("ERROR: Database connection could not be established: " + e.ResultCode);
+                    CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
                     return e.ResultCode;
                 }
             }

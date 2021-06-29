@@ -624,8 +624,6 @@ namespace GameLauncher_Console
 				foreach (CGame game in m_newGames)
 				{
 					string strTitle = game.Title;
-					if (game.IsFavourite)
-						strTitle += " [F]";
 					platformTitles.Add(strTitle);
 				}
 			}
@@ -850,6 +848,10 @@ namespace GameLauncher_Console
 		public static void ClearNewGames()
         {
 			m_newGames.Clear();
+			foreach (CGame game in m_allGames)
+			{
+				game.IsNew = false;
+			}
 		}
 
 		/// <summary>
@@ -878,9 +880,10 @@ namespace GameLauncher_Console
 				m_allGames.Remove(game);
 			}
 
-			foreach (CGame game in m_newGames)
+			foreach (CGame game in newGames)
 			{
 				m_allGames.Add(game);
+				m_newGames.Add(game);
 			}
 
 			foreach (CGame game in m_allGames)

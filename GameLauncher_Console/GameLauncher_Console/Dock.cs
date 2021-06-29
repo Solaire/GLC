@@ -143,7 +143,7 @@ namespace GameLauncher_Console
 						else
 						{
 							SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("ERROR: Unable to add program location to PATH!");
+							CLogger.LogWarn("Unable to add program location to PATH!");
 							Console.WriteLine("ERROR: Unable to add the program location to your PATH environment variable!");
 							Console.ResetColor();
 						}
@@ -160,7 +160,7 @@ namespace GameLauncher_Console
 							else
 							{
 								SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("ERROR: Invalid search index number!");
+								CLogger.LogWarn("Invalid search index number!");
 								Console.WriteLine($"ERROR: {gameIndex} is an invalid search index number!");
 								Console.ResetColor();
 								return;
@@ -169,7 +169,7 @@ namespace GameLauncher_Console
 						else
 						{
 							SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("ERROR: Invalid parameter!");
+							CLogger.LogWarn("Invalid parameter!");
 							Console.WriteLine($"ERROR: /{gameSearch}is an invalid parameter!"); // there's a trailing space
 							Console.ResetColor();
 							return;
@@ -226,7 +226,7 @@ namespace GameLauncher_Console
 				if (!consoleOutput)
 				{
 					SetFgColour(cols.errorCC, cols.errorLtCC);
-					CLogger.LogError(e, "ERROR: Couldn't get console width. Your terminal host does not support interactive mode.");
+					CLogger.LogError(e, "Couldn't get console width. Your terminal host does not support interactive mode.");
 					Console.WriteLine("ERROR: Your terminal host does not support interactive mode.");  // e.g., Git Bash, Mingw, MSYS2 (though strangely mintty works fine with Cygwin)
 					Console.ResetColor();
 					noInteractive = true;
@@ -239,7 +239,7 @@ namespace GameLauncher_Console
 				if (!consoleOutput)
 				{
 					SetFgColour(cols.errorCC, cols.errorLtCC);
-					CLogger.LogWarn("ERROR: Interactive mode is disabled.");
+					CLogger.LogWarn("Interactive mode is disabled.");
 					Console.WriteLine("ERROR: Interactive mode is disabled.");
 					Console.ResetColor();
 				}
@@ -303,6 +303,8 @@ namespace GameLauncher_Console
 						if (!consoleOutput)
 						{
 							if (!cfgv.dontSaveChanges) CJsonWrapper.ExportConfig();
+							CGameData.ClearNewGames();
+							CJsonWrapper.ExportGames(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 							Console.Clear();
 						}
 						return;
@@ -312,7 +314,7 @@ namespace GameLauncher_Console
 						Console.CursorVisible = true;
 						if (!consoleOutput) Console.Clear();
 						SetFgColour(cols.errorCC, cols.errorLtCC);
-						CLogger.LogWarn("ERROR: Console height too small to support interactive mode.");
+						CLogger.LogWarn("Console height too small to support interactive mode.");
 						Console.WriteLine("ERROR: Console height is too small to support interactive mode.");
 						DisplayUsage(cols, parent, matches);
 						return;
@@ -330,8 +332,6 @@ namespace GameLauncher_Console
 						continue;
 
 					case CConsoleHelper.DockSelection.cSel_Rescan: // Rescan the game list
-						Console.ResetColor();
-						CLogger.LogInfo("Scanning for games...");
 						try
 						{
 							Console.SetCursorPosition(0, Console.WindowHeight - INPUT_BOTTOM_CUSHION);
@@ -340,7 +340,9 @@ namespace GameLauncher_Console
 						{
 							CLogger.LogError(e);
 						}
-						Console.Write("Scanning for games");
+						Console.ResetColor();
+						CLogger.LogInfo("Scanning for games...");
+						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
 						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
 						continue;
 
@@ -616,6 +618,8 @@ namespace GameLauncher_Console
 							if (CGameData.GetPlatformGameList((CGameData.GamePlatform)m_nSelectedPlatform).ToList().Count < 1)
 								m_nSelectedPlatform = -1;
 							continue;
+
+						// TODO: Hide the game with a flag rather than removing the game from the database
 						case CConsoleHelper.DockSelection.cSel_Hide: // Remove from list
 							CLogger.LogInfo("Hiding game: {0}", selectedGame.Title);
 							CGameData.RemoveGame(selectedGame);
@@ -625,7 +629,6 @@ namespace GameLauncher_Console
 								m_nSelectedPlatform = -1;
 							continue;
 						/*
-						// Needs work
 						case CConsoleHelper.DockSelection.cSel_Hide: // Toggle game hidden
 							CLogger.LogInfo("Toggling hidden: {0}", selectedGame.Title);
 							CGameData.ToggleHidden(
@@ -843,6 +846,7 @@ namespace GameLauncher_Console
 					}
 					Console.ReadLine();
 #endif
+					CGameData.ClearNewGames();
 					CJsonWrapper.ExportGames(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
 					return;
 				}
@@ -863,6 +867,14 @@ namespace GameLauncher_Console
 			nSelectionCode = -1;
 
 			List<string> platforms = CConsoleHelper.GetPlatformNames();
+			if (platforms.Count < 1)
+			{
+				SetFgColour(cols.errorCC, cols.errorLtCC);
+				CLogger.LogWarn("No games found!");
+				Console.WriteLine("ERROR: No games found!");
+				Console.ResetColor();
+				System.Environment.Exit(-1);
+			}
 
 			if (!noInteractive)
 			{
@@ -1425,7 +1437,7 @@ namespace GameLauncher_Console
 						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 						{
 							//SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("ERROR: {0} host not supported.", parentParentName);
+							CLogger.LogWarn("{0} host not supported.", parentParentName);
 							Console.WriteLine("ERROR: Your {0} host is not not supported.", parentParentName);
 							Console.ResetColor();
 							shellError = true;
@@ -1444,7 +1456,7 @@ namespace GameLauncher_Console
 								CConfig.GetConfigString(CConfig.CFG_KEYUP2).Equals("UpArrow"))))
 							{
 								//SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("WARNING: Many keys (arrows, F1-F12) do not work in {0} host with {1}.\nSwitching to typing input...", parentParentName, parentName);
+								CLogger.LogWarn("Many keys (arrows, F1-F12) do not work in {0} host with {1}.\nSwitching to typing input...", parentParentName, parentName);
 								Console.WriteLine("WARNING: Many keys (arrows, F1-F12) do not work in {0} host with {1}.\nSwitching to typing input...", parentParentName, parentName);
 								//Console.ResetColor();
 								cfgv.typingInput = true;
@@ -1458,12 +1470,12 @@ namespace GameLauncher_Console
 							{
 								//SetFgColour(cols.errorCC, cols.errorLtCC);
 								/*
-								CLogger.LogWarn("ERROR: {0} host not supported.", parentParentName);
+								CLogger.LogWarn("{0} host not supported.", parentParentName);
 								Console.WriteLine("ERROR: Your {0} host is not supported.", parentParentName);
 								//Console.ResetColor();
 								return;
 								*/
-								CLogger.LogWarn("WARNING: {0} host does not support navigation mode.\nSwitching input state...", CConfig.CFG_USETYPE, parentParentName);
+								CLogger.LogWarn("{0} host does not support navigation mode.\nSwitching input state...", CConfig.CFG_USETYPE, parentParentName);
 								Console.WriteLine("WARNING: {0} == false, but your {1} host does not support this.\nSwitching input state...", CConfig.CFG_USETYPE, parentParentName);
 								//Console.ResetColor();
 								cfgv.typingInput = true;
@@ -1472,7 +1484,7 @@ namespace GameLauncher_Console
 							if ((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 || (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0)
 							{
 								//SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("WARNING: {0} host does not support images.\nDisabling images...", parentParentName);
+								CLogger.LogWarn("{0} host does not support images.\nDisabling images...", parentParentName);
 								Console.WriteLine("WARNING: {0} or \n{1} > 0, but your {2} host does not support this.\nDisabling images...", CConfig.CFG_IMGSIZE, CConfig.CFG_ICONSIZE, parentParentName);
 								//Console.ResetColor();
 								cfgv.iconSize = 0;
@@ -1484,7 +1496,7 @@ namespace GameLauncher_Console
 						else if (parentParentName.Equals("ZTW64"))		// I have inconsistently observed weird issues with newline characters
 						{
 							//SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("WARNING: {0} host sometimes has display issues.", parentParentName);
+							CLogger.LogWarn("{0} host sometimes has display issues.", parentParentName);
 							Console.WriteLine("WARNING: Your {0} host may have display issues.", parentParentName);
 							//Console.ResetColor();
 							shellError = true;
@@ -1494,16 +1506,18 @@ namespace GameLauncher_Console
 						{
 							// check for known non-conhost terminal hosts (images not supported)
 							if (((ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE) > 0 || (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0) &&
-								(parentParentName.Equals("WindowsTerminal") ||          // Windows Terminal
-								 parentParentName.StartsWith("ServiceHub.Host.CLR") ||  // Visual Studio 
-								 parentParentName.Equals("Code") ||                     // Visual Studio Code
-								 parentParentName.Equals("Hyper") ||                    // Hyper
-								 parentParentName.Equals("tcmd") ||                     // Take Command
-								 parentParentName.Equals("bash") ||                     // Cygwin Terminal (mintty), though this one may give false negatives (MSYS in 
-								 parentParentName.Equals("Console")))                   // Console2 or ConsoleZ
+								(parentParentName.Equals("WindowsTerminal") ||			// Windows Terminal
+								 parentParentName.StartsWith("ServiceHub.Host.CLR") ||	// Visual Studio 
+								 parentParentName.Equals("Code") ||						// Visual Studio Code
+								 parentParentName.Equals("Hyper") ||					// Hyper
+								 parentParentName.Equals("tcmd") ||						// Take Command
+								 parentParentName.Equals("bash") ||						// Cygwin Terminal (mintty), though this one may give false negatives (MSYS in 
+								 parentParentName.Equals("Console")))					// Console2 or ConsoleZ
 							{
+								//TODO: Show this warning only once?
+
 								//SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("WARNING: {0} host does not support images.\nDisabling images...", parentParentName);
+								CLogger.LogWarn("{0} host does not support images.\nDisabling images...", parentParentName);
 								Console.WriteLine("WARNING: {0} or \n{1} > 0, but your {2} host does not support this.\nDisabling images...", CConfig.CFG_IMGSIZE, CConfig.CFG_ICONSIZE, parentParentName);
 								//Console.ResetColor();
 								cfgv.iconSize = 0;
@@ -1513,6 +1527,21 @@ namespace GameLauncher_Console
 						}
 					}
 				}
+
+				//TODO: Enable this warning after we have a method to show it only once.
+
+				/*
+				CConsoleImage.CONSOLE_FONT_INFO_EX currentFont = new CConsoleImage.CONSOLE_FONT_INFO_EX();
+				CConsoleImage.GetCurrentConsoleFontEx(CConsoleImage.GetStdHandle(CConsoleImage.STD_OUTPUT_HANDLE), false, currentFont);
+				if (currentFont.FaceName.Equals("Terminal"))
+				{
+					//SetFgColour(cols.errorCC, cols.errorLtCC);
+					CLogger.LogWarn("Terminal set to \"Raster Fonts,\" which may display incorrect characters.");
+					Console.WriteLine("WARNING: Your terminal is set to \"Raster Fonts,\" which may display incorrect characters.");
+					//Console.ResetColor();
+					shellError = true;
+				}
+				*/
 			}
 			catch (Exception e)
 			{
@@ -1563,7 +1592,7 @@ namespace GameLauncher_Console
 					{
 						if (envKey == null)
 						{
-							CLogger.LogWarn("WARNING: Could not access environment!");
+							CLogger.LogWarn("Could not access environment!");
 							return false;
 						}
 						var oldPath = envKey.GetValue("PATH");

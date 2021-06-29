@@ -201,7 +201,7 @@ namespace GameLauncher_Console
 					string strAlias			= CRegScanner.GetAlias(strTitle);
 					if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 						strAlias = "";
-					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstaller, false, false, strAlias, CUSTOM_PLATFORM, 0f);
+					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstaller, false, true, false, strAlias, CUSTOM_PLATFORM, 0f);
 				}
 			}
 		}
@@ -226,7 +226,7 @@ namespace GameLauncher_Console
 				string strAlias			= CRegScanner.GetAlias(strTitle);
 				if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 					strAlias = "";
-				tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstaller, false, false, strAlias, CUSTOM_PLATFORM, 0f);
+				tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstaller, false, true, false, strAlias, CUSTOM_PLATFORM, 0f);
 			}
 		}
 
