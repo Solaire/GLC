@@ -56,6 +56,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 m_sqlRow["Launch"]          = new CSqlFieldString("Launch"      , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall"   , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["IsFavourite"]     = new CSqlFieldBoolean("IsFavourite", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["IsNew"]           = new CSqlFieldBoolean("IsNew"      , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden"   , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency"   , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating"     , QryFlag.cInsWrite | QryFlag.cSelRead);
@@ -102,6 +103,11 @@ namespace CGame_Test // TODO: GameLauncher_Console
             {
                 get { return m_sqlRow["IsFavourite"].Bool; }
                 set { m_sqlRow["IsFavourite"].Bool = value; }
+            }
+            public bool IsNew
+            {
+                get { return m_sqlRow["IsNew"].Bool; }
+                set { m_sqlRow["IsNew"].Bool = value; }
             }
             public bool IsHidden
             {
@@ -239,7 +245,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
             /// <returns>List of sorted games</returns>
             public List<int> SortGames(SortFlag flag, bool ascending, bool noArticle)
             {
-                // TODO. all, fav, hidden games
+                // TODO. all, fav, new, hidden games
                 // TODO. ignore article
                 List<int> outGameIDs = new List<int>();
 
@@ -302,6 +308,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 Uninstall       = qryGame.Uninstall;
                 Icon            = qryGame.Icon;
                 IsFavourite     = qryGame.IsFavourite;
+                IsNew           = qryGame.IsNew;
                 IsHidden        = qryGame.IsHidden;
                 Rating          = qryGame.Rating;
                 Frequency       = qryGame.Frequency;
@@ -331,6 +338,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 GameID          = 0;
                 Icon            = "";
                 IsFavourite     = false;
+                IsNew           = false;
                 IsHidden        = false;
                 Rating          = 0;
                 Frequency       = 0.0f;
@@ -347,6 +355,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
             public string Uninstall     { get; }
             public string Icon          { get; set; }
             public bool IsFavourite     { get; set; }
+            public bool IsNew           { get; set; }
             public bool IsHidden        { get; set; }
             public double Rating        { get; set; }
             public double Frequency     { get; private set; }
@@ -472,6 +481,29 @@ namespace CGame_Test // TODO: GameLauncher_Console
             {
                 // If the same platform as last query, switch object
                 if(m_currentGames.Platform == game.PlatformFK)
+                {
+                    m_currentGames[game.Title] = game;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Toggle the game's new flag and update the DB row
+        /// </summary>
+        /// <param name="game">The game object</param>
+        /// <param name="isNew">New flag</param>
+        /// <returns>True on update success, otherwise false</returns>
+        public static bool ToggleNew(GameObject game, bool isNew)
+        {
+            m_qryGame.MakeFieldsNull();
+            m_qryGame.GameID = game.GameID;
+            m_qryGame.IsNew = isNew;
+            if (m_qryGame.Update() == SQLiteErrorCode.Ok)
+            {
+                // If the same platform as last query, switch object
+                if (m_currentGames.Platform == game.PlatformFK)
                 {
                     m_currentGames[game.Title] = game;
                 }
