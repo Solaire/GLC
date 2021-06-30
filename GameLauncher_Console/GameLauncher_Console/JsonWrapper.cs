@@ -51,6 +51,7 @@ namespace GameLauncher_Console
 		private const string GAMES_ARRAY_ICON				= "icon";
 		private const string GAMES_ARRAY_UNINSTALLER		= "uninstaller";
 		private const string GAMES_ARRAY_PLATFORM			= "platform";
+		private const string GAMES_ARRAY_INSTALLED			= "installed";
 		private const string GAMES_ARRAY_FAVOURITE			= "favourite";
 		private const string GAMES_ARRAY_NEW				= "new";
 		private const string GAMES_ARRAY_HIDDEN				= "hidden";
@@ -418,6 +419,7 @@ namespace GameLauncher_Console
 						string strLaunch = GetStringProperty(jElement, GAMES_ARRAY_LAUNCH);
 						string strIconPath = GetStringProperty(jElement, GAMES_ARRAY_ICON);
 						string strUninstaller = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
+						bool   bIsInstalled = GetBoolProperty(jElement, GAMES_ARRAY_INSTALLED);
 						bool   bIsFavourite = GetBoolProperty(jElement, GAMES_ARRAY_FAVOURITE);
 						bool   bIsNew = GetBoolProperty(jElement, GAMES_ARRAY_NEW);
 						bool   bIsHidden = GetBoolProperty(jElement, GAMES_ARRAY_HIDDEN);
@@ -425,7 +427,7 @@ namespace GameLauncher_Console
 						string strPlatform = GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
 						double fOccurCount = GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
 
-						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, fOccurCount);
+						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, fOccurCount);
 						nGameCount++;
 					}
 					CGameData.SortGames(alphaSort, faveSort, ignoreArticle);
@@ -593,6 +595,7 @@ namespace GameLauncher_Console
 			const string AMAZON_NAME = "Amazon";
 			const string AMAZON_LAUNCH = "amazon-games://play/";
 			const string AMAZON_DB = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
+			//const string AMAZON_OWN_DB = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";  // Use this DB to get owned but not installed
 			//const string AMAZON_UNINST_EXE = @"\__InstallData__\Amazon Game Remover.exe";
 			//const string AMAZON_UNINST_SUFFIX = "-m Game -p";
 			string db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_DB;
@@ -984,6 +987,7 @@ namespace GameLauncher_Console
 			writer.WriteString(GAMES_ARRAY_ICON			, data.Icon);
 			writer.WriteString(GAMES_ARRAY_UNINSTALLER	, data.Uninstaller);
 			writer.WriteString(GAMES_ARRAY_PLATFORM		, data.PlatformString);
+			writer.WriteBoolean(GAMES_ARRAY_INSTALLED	, data.IsInstalled);
 			writer.WriteBoolean(GAMES_ARRAY_FAVOURITE	, data.IsFavourite);
 			writer.WriteBoolean(GAMES_ARRAY_NEW			, data.IsNew);
 			writer.WriteBoolean(GAMES_ARRAY_HIDDEN		, data.IsHidden);
@@ -1230,6 +1234,7 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_USELITE, force);
 			SetDefaultVal(CConfig.CFG_USEALL, force);
 			SetDefaultVal(CConfig.CFG_NOCFG, force);
+			SetDefaultVal(CConfig.CFG_INSTONLY, force);
 			SetDefaultVal(CConfig.CFG_USECUST, force);
 			SetDefaultVal(CConfig.CFG_USETEXT, force);
 			SetDefaultVal(CConfig.CFG_IMGBORD, force);

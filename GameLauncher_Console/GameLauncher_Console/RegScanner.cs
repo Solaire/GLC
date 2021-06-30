@@ -202,7 +202,7 @@ namespace GameLauncher_Console
 			List<RegistryGameData> gameDataList = GetGames(bOnlyCustom, bExpensiveIcons);
 			foreach (RegistryGameData data in gameDataList)
 			{
-				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, false, true, false, data.m_strAlias, data.m_strPlatform, 0f);
+				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, true, false, true, false, data.m_strAlias, data.m_strPlatform, 0f);
 			}
 			Console.Write(".");
 			CLogger.LogInfo("Looking for {0} games...", CUSTOM_NAME.ToUpper());

@@ -41,6 +41,9 @@
     <Setting Name="flag_do_not_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="flag_do_not_show_not_installed_in_platform_list" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
     <Setting Name="flag_only_scan_custom_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>

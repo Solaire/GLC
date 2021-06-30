@@ -55,6 +55,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 m_sqlRow["Alias"]           = new CSqlFieldString("Alias"       , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["Launch"]          = new CSqlFieldString("Launch"      , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall"   , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["IsInstalled"]     = new CSqlFieldBoolean("IsInstalled", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["IsFavourite"]     = new CSqlFieldBoolean("IsFavourite", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["IsNew"]           = new CSqlFieldBoolean("IsNew"      , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden"   , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
@@ -98,6 +99,11 @@ namespace CGame_Test // TODO: GameLauncher_Console
             {
                 get { return m_sqlRow["Uninstall"].String; }
                 set { m_sqlRow["Uninstall"].String = value; }
+            }
+            public bool IsInstalled
+            {
+                get { return m_sqlRow["IsInstalled"].Bool; }
+                set { m_sqlRow["IsInstalled"].Bool = value; }
             }
             public bool IsFavourite
             {
@@ -307,6 +313,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 Launch          = qryGame.Launch;
                 Uninstall       = qryGame.Uninstall;
                 Icon            = qryGame.Icon;
+                IsInstalled     = qryGame.IsInstalled;
                 IsFavourite     = qryGame.IsFavourite;
                 IsNew           = qryGame.IsNew;
                 IsHidden        = qryGame.IsHidden;
@@ -337,6 +344,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 // Default rest
                 GameID          = 0;
                 Icon            = "";
+                IsInstalled     = false;
                 IsFavourite     = false;
                 IsNew           = false;
                 IsHidden        = false;
@@ -354,6 +362,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
             public string Launch        { get; }
             public string Uninstall     { get; }
             public string Icon          { get; set; }
+            public bool IsInstalled     { get; set; }
             public bool IsFavourite     { get; set; }
             public bool IsNew           { get; set; }
             public bool IsHidden        { get; set; }
@@ -464,6 +473,29 @@ namespace CGame_Test // TODO: GameLauncher_Console
             m_qryGame.MakeFieldsNull();
             m_qryGame.GameID = gameID;
             return m_qryGame.Delete() == SQLiteErrorCode.Ok;
+        }
+
+        /// <summary>
+        /// Toggle the game's installed flag and update the DB row
+        /// </summary>
+        /// <param name="game">The game object</param>
+        /// <param name="isInstalled">Installed flag</param>
+        /// <returns>True on update success, otherwise false</returns>
+        public static bool ToggleInstalled(GameObject game, bool isInstalled)
+        {
+            m_qryGame.MakeFieldsNull();
+            m_qryGame.GameID = game.GameID;
+            m_qryGame.IsInstalled = isInstalled;
+            if (m_qryGame.Update() == SQLiteErrorCode.Ok)
+            {
+                // If the same platform as last query, switch object
+                if (m_currentGames.Platform == game.PlatformFK)
+                {
+                    m_currentGames[game.Title] = game;
+                }
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

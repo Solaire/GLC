@@ -64,8 +64,10 @@ namespace GameLauncher_Console
 			Wargaming = 20,
 			[Description("Indiegala Client")]
 			IGClient = 21,
-			[Description("New games")]		// TODO
+			[Description("New games")]
 			New = 22,
+			[Description("Not installed")]  // TODO
+			NotInstalled = 23,
 		}
 
 		public enum Match
@@ -112,6 +114,7 @@ namespace GameLauncher_Console
 			private readonly string m_strLaunch;
 			private readonly string m_strIcon;
 			private readonly string m_strUninstall;
+			private bool m_bIsInstalled;
 			private bool m_bIsFavourite;
 			private bool m_bIsNew;
 			private bool m_bIsHidden;
@@ -127,19 +130,21 @@ namespace GameLauncher_Console
 			/// <param name="strLaunch">Game's launch command</param>
 			/// <param name="strIconPath">Path to game's icon</param>
 			/// <param name="strUninstall">Path to game's uninstaller</param>
+			/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
 			/// <param name="bIsHidden">Flag indicating the game is hidden</param>
 			/// <param name="strAlias">Alias for command-line or insert mode, user-definable, defaults to exe name</param>
 			/// <param name="platformEnum">Game's platform enumerator</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			protected CGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
+			protected CGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
 			{
 				m_strID = strID;
 				m_strTitle = strTitle;
 				m_strLaunch = strLaunch;
 				m_strIcon = strIconPath;
 				m_strUninstall = strUninstaller;
+				m_bIsInstalled = bIsInstalled;
 				m_bIsFavourite = bIsFavourite;
 				m_bIsNew = bIsNew;
 				m_bIsHidden = bIsHidden;
@@ -220,6 +225,21 @@ namespace GameLauncher_Console
 				get
 				{
 					return m_strUninstall;
+				}
+			}
+
+			/// <summary>
+			/// Installed flag getter/setter
+			/// </summary>
+			public bool IsInstalled
+			{
+				get
+				{
+					return m_bIsInstalled;
+				}
+				set
+				{
+					m_bIsInstalled = value;
 				}
 			}
 
@@ -349,14 +369,15 @@ namespace GameLauncher_Console
 			/// <param name="strLaunch">Game's launch command</param>
 			/// <param name="strIconPath">Path to game's icon</param>
 			/// <param name="strUninstaller">Path to game's uninstaller</param>
+			/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
 			/// <param name="bIsHidden">Flag indicating the game is hidden</param>
 			/// <param name="strAlias">Alias for command-line or insert mode, user-definable, defaults to exe name</param>
 			/// <param name="platformEnum">Game's platform enumerator</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			public CGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
-				: base(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount)
+			public CGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
+				: base(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount)
 			{
 
 			}
@@ -384,13 +405,14 @@ namespace GameLauncher_Console
 			/// <param name="strLaunch">Game launch command</param>
 			/// <param name="strIconPath">Path to game's icon</param>
 			/// <param name="strUninstaller">Path to game's uninstaller</param>
-			/// <param name="bIsFavourite">Flag indicating if the game is favourite</param>
+			/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
+			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
 			/// <param name="bIsHidden">Flag indicating the game is hidden</param>
 			/// <param name="strAlias">Alias for command-line or insert mode, user-definable, defaults to exe name</param>
 			/// <param name="strPlatform">Game platform string</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			public void InsertGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, double fOccurCount)
+			public void InsertGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, double fOccurCount)
 			{
 				GamePlatform platformEnum;
 				// If platform is incorrect or unsupported, default to unknown.
@@ -399,7 +421,7 @@ namespace GameLauncher_Console
 				if (platformEnum < 0)
 					platformEnum = GamePlatform.Unknown;
 
-				this.Add(CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount));
+				this.Add(CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount));
 			}
 		}
 
@@ -411,6 +433,7 @@ namespace GameLauncher_Console
 		/// <param name="strLaunch">Game's launch command</param>
 		/// <param name="strIconPath">Path to game's icon</param>
 		/// <param name="strUninstaller">Path to game's uninstaller</param>
+		/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 		/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
 		/// <param name="bIsHidden">Flag indicating the game is hidden</param>
@@ -418,13 +441,14 @@ namespace GameLauncher_Console
 		/// <param name="platformEnum">Game's platform enumerator</param>
 		/// <param name="fOccurCount">Game's frequency counter</param>
 		/// <returns>Instance of CGame</returns>
-		private static CGame CreateGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
+		private static CGame CreateGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
 		{
-			return new CGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount);
+			return new CGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount);
 		}
 
 		private static readonly Dictionary<GamePlatform, HashSet<CGame>> m_gameDictionary = new Dictionary<GamePlatform, HashSet<CGame>>();
 		private static HashSet<CGame> m_searchResults = new HashSet<CGame>();
+		private static HashSet<CGame> m_notInstalled = new HashSet<CGame>();
 		private static HashSet<CGame> m_favourites = new HashSet<CGame>();
 		private static HashSet<CGame> m_allGames = new HashSet<CGame>();
 		private static HashSet<CGame> m_hidden = new HashSet<CGame>();
@@ -439,6 +463,9 @@ namespace GameLauncher_Console
 		{
 			if (platformEnum == GamePlatform.Search)
 				return m_searchResults;
+
+			else if (platformEnum == GamePlatform.NotInstalled)
+				return m_notInstalled;
 
 			else if (platformEnum == GamePlatform.Favourites)
 				return m_favourites;
@@ -564,6 +591,7 @@ namespace GameLauncher_Console
 			Dictionary<string, int> platformDict = new Dictionary<string, int>
 			{
 				{ GetPlatformString(GamePlatform.Search), m_searchResults.Count },
+				{ GetPlatformString(GamePlatform.NotInstalled), m_notInstalled.Count },
 				{ GetPlatformString(GamePlatform.Favourites), m_favourites.Count },
 				{ GetPlatformString(GamePlatform.All), m_allGames.Count },
 				{ GetPlatformString(GamePlatform.Hidden), m_hidden.Count },
@@ -590,6 +618,17 @@ namespace GameLauncher_Console
 			if (platformEnum == GamePlatform.Search)
 			{
 				foreach (CGame game in m_searchResults)
+				{
+					string strTitle = game.Title;
+					if (game.IsFavourite)
+						strTitle += " [F]";
+					if (!game.IsHidden)
+						platformTitles.Add(strTitle);
+				}
+			}
+			else if (platformEnum == GamePlatform.NotInstalled)
+			{
+				foreach (CGame game in m_notInstalled)
 				{
 					string strTitle = game.Title;
 					if (game.IsFavourite)
@@ -660,13 +699,14 @@ namespace GameLauncher_Console
 		/// <param name="strLaunch">Game's launch command</param>
 		/// <param name="strIconPath">Path to game's icon</param>
 		/// <param name="strUninstall">Path to game's uninstaller</param>
+		/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 		/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
 		/// <param name="bIsHidden">Flag indicating the game is hidden</param>
 		/// <param name="strAlias">Alias for command-line or insert mode, user-definable, defaults to exe name</param>
 		/// <param name="strPlatform">Game's platform as a string value</param>
 		/// <param name="fOccurCount">Game's frequency counter</param>
-		public static void AddGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, double fOccurCount)
+		public static void AddGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, double fOccurCount)
 		{
 			GamePlatform platformEnum;
 			// If platform is incorrect or unsupported, default to unknown.
@@ -679,8 +719,11 @@ namespace GameLauncher_Console
 			if (!m_gameDictionary.ContainsKey(platformEnum))
 				m_gameDictionary[platformEnum] = new HashSet<CGame>();
 
-			CGame game = CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount);
+			CGame game = CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount);
 			m_gameDictionary[platformEnum].Add(game);
+
+			if (!(game.IsInstalled))
+				m_notInstalled.Add(game);
 
 			if (game.IsFavourite)
 				m_favourites.Add(game);
@@ -707,6 +750,9 @@ namespace GameLauncher_Console
 					m_gameDictionary[game.Platform] = new HashSet<CGame>();
 
 				m_gameDictionary[game.Platform].Add(game);
+
+				if (!(game.IsInstalled))
+					m_notInstalled.Add(game);
 
 				if (game.IsFavourite)
 					m_favourites.Add(game);
@@ -735,6 +781,8 @@ namespace GameLauncher_Console
 						return m_searchResults.ElementAt(nGameIndex);
 					else if (platformEnum == GamePlatform.All)
 						return m_allGames.ElementAt(nGameIndex);
+					else if (platformEnum == GamePlatform.NotInstalled)
+						return m_notInstalled.ElementAt(nGameIndex);
 					else if (platformEnum == GamePlatform.Favourites)
 						return m_favourites.ElementAt(nGameIndex);
 					else if (platformEnum == GamePlatform.New)
@@ -764,6 +812,8 @@ namespace GameLauncher_Console
 				CGame gameCopy;
 				if (platformEnum == GamePlatform.Search)
 					gameCopy = m_searchResults.ElementAt(nGameIndex);
+				else if (platformEnum == GamePlatform.NotInstalled)
+					gameCopy = m_notInstalled.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.Favourites)
 					gameCopy = m_favourites.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.New)
@@ -801,6 +851,8 @@ namespace GameLauncher_Console
 				CGame gameCopy;
 				if (platformEnum == GamePlatform.Search)
 					gameCopy = m_searchResults.ElementAt(nGameIndex);
+				else if (platformEnum == GamePlatform.NotInstalled)
+					gameCopy = m_notInstalled.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.Favourites)
 					gameCopy = m_favourites.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.New)
@@ -834,6 +886,8 @@ namespace GameLauncher_Console
 		{
 			if (game != null)
 			{
+				if (!(game.IsInstalled))
+					m_notInstalled.Remove(game);
 				if (game.IsFavourite)
 					m_favourites.Remove(game);
 				if (game.IsNew)
@@ -862,6 +916,7 @@ namespace GameLauncher_Console
 		public static void MergeGameSets(CTempGameSet tempGameSet)
 		{
 			m_gameDictionary.Clear();
+			m_notInstalled.Clear();
 			m_favourites.Clear();
 			m_newGames.Clear();
 			m_hidden.Clear();
@@ -920,6 +975,7 @@ namespace GameLauncher_Console
 				SortGameSet(ref temp, alphaSort, faveSort, ignoreArticle);
 				m_gameDictionary[pair.Key] = temp;
 			}
+			SortGameSet(ref m_notInstalled, alphaSort, false, ignoreArticle);
 			SortGameSet(ref m_favourites, alphaSort, false, ignoreArticle);
 			SortGameSet(ref m_allGames, alphaSort, faveSort, ignoreArticle);
 			SortGameSet(ref m_hidden, alphaSort, false, ignoreArticle);

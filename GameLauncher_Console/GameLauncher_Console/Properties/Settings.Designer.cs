@@ -181,6 +181,18 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool flag_do_not_show_not_installed_in_platform_list {
+            get {
+                return ((bool)(this["flag_do_not_show_not_installed_in_platform_list"]));
+            }
+            set {
+                this["flag_do_not_show_not_installed_in_platform_list"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool flag_only_scan_custom_games {
             get {

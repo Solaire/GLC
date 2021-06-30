@@ -72,7 +72,9 @@ namespace DataConversionTool
                     if(platform.Key != "All games" 
                         && platform.Key != "Search results" 
                         && platform.Key != "Favourites"
-                        && platform.Key != "Hidden games")
+                        && platform.Key != "New games"
+                        && platform.Key != "Hidden games"
+                        && platform.Key != "Not installed")
                     {
                         CPlatform.InsertPlatform(platform.Key, "");
                     }
