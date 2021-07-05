@@ -104,6 +104,8 @@ namespace GameLauncher_Console
 			public ConsoleColor subLtCC;
 			public ConsoleColor entryCC;
 			public ConsoleColor entryLtCC;
+			public ConsoleColor uninstCC;
+			public ConsoleColor uninstLtCC;
 			public ConsoleColor highlightCC;
 			public ConsoleColor highlightLtCC;
 			public ConsoleColor highbgCC;
@@ -128,10 +130,11 @@ namespace GameLauncher_Console
 		public const string CFG_USESIZE		= "flag_enlarge_height_to_fit";
 		public const string CFG_USEALPH		= "flag_sort_alphabetically";
 		public const string CFG_USEFAVE		= "flag_sort_favourites_on_top";
+		public const string CFG_USEINST		= "flag_sort_not_installed_on_bottom";
 		public const string CFG_USELITE		= "flag_colour_light_mode_is_default";
 		public const string CFG_USEALL		= "flag_always_show_all_games";
 		public const string CFG_NOCFG		= "flag_do_not_show_settings_in_platform_list";			// TODO
-		public const string CFG_INSTONLY	= "flag_do_not_show_not_installed_in_platform_list";	// TODO
+		public const string CFG_INSTONLY	= "flag_do_not_scan_not_installed_games";				// TODO
 		public const string CFG_USECUST		= "flag_only_scan_custom_games";
 		public const string CFG_USETEXT		= "flag_text_use_custom_text_values";
 		public const string CFG_IMGBORD		= "flag_image_draw_border_characters";
@@ -154,6 +157,8 @@ namespace GameLauncher_Console
 		public const string CFG_COLSUB2		= "colour_subtitle_lightmode";
 		public const string CFG_COLENTRY1	= "colour_entries";
 		public const string CFG_COLENTRY2	= "colour_entries_lightmode";
+		public const string CFG_COLUNIN1	= "colour_entries_not_installed";
+		public const string CFG_COLUNIN2	= "colour_entries_not_installed_lightmode";
 		public const string CFG_COLHIBG1	= "colour_highlight_background";
 		public const string CFG_COLHIBG2	= "colour_highlight_background_lightmode";
 		public const string CFG_COLHILITE1	= "colour_highlight_text";

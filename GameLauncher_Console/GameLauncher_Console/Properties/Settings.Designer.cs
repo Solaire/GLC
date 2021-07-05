@@ -145,6 +145,18 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool flag_sort_not_installed_on_bottom {
+            get {
+                return ((bool)(this["flag_sort_not_installed_on_bottom"]));
+            }
+            set {
+                this["flag_sort_not_installed_on_bottom"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool flag_colour_light_mode_is_default {
             get {
@@ -182,12 +194,12 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool flag_do_not_show_not_installed_in_platform_list {
+        public bool flag_do_not_scan_not_installed_games {
             get {
-                return ((bool)(this["flag_do_not_show_not_installed_in_platform_list"]));
+                return ((bool)(this["flag_do_not_scan_not_installed_games"]));
             }
             set {
-                this["flag_do_not_show_not_installed_in_platform_list"] = value;
+                this["flag_do_not_scan_not_installed_games"] = value;
             }
         }
         
@@ -440,6 +452,30 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["colour_entries_lightmode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("DarkGray")]
+        public string colour_entries_not_installed {
+            get {
+                return ((string)(this["colour_entries_not_installed"]));
+            }
+            set {
+                this["colour_entries_not_installed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Gray")]
+        public string colour_entries_not_installed_lightmode {
+            get {
+                return ((string)(this["colour_entries_not_installed_lightmode"]));
+            }
+            set {
+                this["colour_entries_not_installed_lightmode"] = value;
             }
         }
         

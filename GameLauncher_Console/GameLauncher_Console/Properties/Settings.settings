@@ -32,6 +32,9 @@
     <Setting Name="flag_sort_favourites_on_top" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="flag_sort_not_installed_on_bottom" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
     <Setting Name="flag_colour_light_mode_is_default" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
@@ -41,7 +44,7 @@
     <Setting Name="flag_do_not_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="flag_do_not_show_not_installed_in_platform_list" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_do_not_scan_not_installed_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="flag_only_scan_custom_games" Type="System.Boolean" Scope="User">
@@ -106,6 +109,12 @@
     </Setting>
     <Setting Name="colour_entries_lightmode" Type="System.String" Scope="User">
       <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="colour_entries_not_installed" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DarkGray</Value>
+    </Setting>
+    <Setting Name="colour_entries_not_installed_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Gray</Value>
     </Setting>
     <Setting Name="colour_highlight_background" Type="System.String" Scope="User">
       <Value Profile="(Default)">DarkGray</Value>

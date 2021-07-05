@@ -18,8 +18,8 @@ namespace GameLauncher_Console
 
 		// Steam (Valve)
 		private const int    STEAM_MAX_LIBS			= 64;
-		private const string STEAM_NAME				= "Steam";
-		private const string STEAM_NAME_LONG		= "Steam";
+		public const string STEAM_NAME				= "Steam";
+		public const string STEAM_NAME_LONG			= "Steam";
 		private const string STEAM_GAME_FOLDER		= "Steam App ";
 		private const string STEAM_LAUNCH			= "steam://rungameid/";
 		private const string STEAM_UNINST			= "steam://uninstall/";
@@ -31,9 +31,9 @@ namespace GameLauncher_Console
 		private const string STEAM_REG				= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
 
 		// GOG Galaxy
-		private const string GOG_NAME				= "GOG";
-		private const string GOG_NAME_LONG			= "GOG Galaxy";
-		private const string GOG_REG_GAMES			= @"SOFTWARE\WOW6432Node\GOG.com\Games";
+		public const string GOG_NAME				= "GOG";
+		public const string GOG_NAME_LONG			= "GOG Galaxy";
+		public const string GOG_REG_GAMES			= @"SOFTWARE\WOW6432Node\GOG.com\Games";
 		public const string GOG_REG_CLIENT			= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
 		private const string GOG_CLIENT				= "client";
 		private const string GOG_GAME_ID			= "GameID";
@@ -46,27 +46,28 @@ namespace GameLauncher_Console
 		//private const string GOG_GALAXY_UNREG		= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
 
 		// Ubisoft Connect (formerly Uplay)
-		private const string UPLAY_NAME				= "Ubisoft";
-		private const string UPLAY_NAME_LONG		= "Ubisoft Connect";
+		public const string UPLAY_NAME				= "Ubisoft";
+		public const string UPLAY_NAME_LONG			= "Ubisoft Connect";
 		private const string UPLAY_INSTALL			= "Uplay Install ";
 		private const string UPLAY_LAUNCH			= "uplay://launch/";
 		//private const string UPLAY_UNREG				= "Uplay" // HKLM32 Uninstall
 		//private const string UPLAY_REG				= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
 
-		// Origin (EA)
-		private const string ORIGIN_NAME			= "Origin";
-		private const string ORIGIN_NAME_LONG		= "Origin";
+		// Origin [soon to be EA Desktop]
+		public const string ORIGIN_NAME				= "Origin"; //"EA"
+		public const string ORIGIN_NAME_LONG		= "Origin"; //"EA Desktop";
 		private const string ORIGIN_CONTENT			= @"\Origin\LocalContent";
 		private const string ORIGIN_PATH			= "dipinstallpath=";
 		/*
-		private const string ORIGIN_REG_GAMES		= "Origin Games"; // HKLM32
+		private const string ORIGIN_GAMES			= "Origin Games";
+		private const string EA_GAMES				= "EA Games";
 		private const string ORIGIN_UNREG			= "Origin"; // HKLM32 Uninstall
 		private const string ORIGIN_REG				= @"SOFTWARE\WOW6432Node\Origin"; // HKLM32
 		*/
 
 		// Bethesda.net Launcher
-		private const string BETHESDA_NAME			= "Bethesda";
-		private const string BETHESDA_NAME_LONG		= "Bethesda.net Launcher";
+		public const string BETHESDA_NAME			= "Bethesda";
+		public const string BETHESDA_NAME_LONG		= "Bethesda.net Launcher";
 		private const string BETHESDA_NET			= "bethesda.net";
 		private const string BETHESDA_PATH			= "Path";
 		private const string BETHESDA_CREATION_KIT	= "Creation Kit";
@@ -76,14 +77,14 @@ namespace GameLauncher_Console
 		//private const string BETHESDA_REG			= @"SOFTWARE\WOW6432Node\Bethesda Softworks\Bethesda.net"; // HKLM32
 
 		// Battle.net (Blizzard)
-		private const string BATTLENET_NAME			= "Battlenet";
-		private const string BATTLENET_NAME_LONG	= "Battle.net";
+		public const string BATTLENET_NAME			= "Battlenet";
+		public const string BATTLENET_NAME_LONG		= "Battle.net";
 		//private const string BATTLE_NET_UNREG		= "Battle.net"; // HKLM32 Uninstall
 		private const string BATTLE_NET_REG			= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
 
 		// Amazon Games
-		//private const string AMAZON_NAME			= "Amazon";
-		private const string AMAZON_NAME_LONG		= "Amazon Games";
+		//public const string AMAZON_NAME			= "Amazon";
+		public const string AMAZON_NAME_LONG		= "Amazon";
 		/*
 		private const string AMAZON_GAME_FOLDER		= "AmazonGames/";
 		private const string AMAZON_LAUNCH			= "amazon-games://play/";
@@ -92,15 +93,15 @@ namespace GameLauncher_Console
 		*/
 
 		// Big Fish Games
-		private const string BIGFISH_NAME			= "BigFish";
-		private const string BIGFISH_NAME_LONG		= "Big Fish Games";
+		public const string BIGFISH_NAME			= "BigFish";
+		public const string BIGFISH_NAME_LONG		= "Big Fish";
 		private const string BIGFISH_GAME_FOLDER	= "BFG-";
 		private const string BIGFISH_LAUNCH			= "LaunchGame.bfg";
 		public const string BIGFISH_REG				= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
 
 		// Epic Games Launcher
-		//private const string EPIC_NAME				= "Epic";
-		private const string EPIC_NAME_LONG			= "Epic Games Launcher";
+		//public const string EPIC_NAME				= "Epic";
+		public const string EPIC_NAME_LONG			= "Epic Games Launcher";
 		/*
 		private const string EPIC_GAMES_REG			= "Epic Games Launcher";
 		private const string EPIC_UNREAL_ENGINE		= "Unreal Engine";
@@ -116,11 +117,15 @@ namespace GameLauncher_Console
 		*/
 
 		// Arc
-		//private const string ARC_UNREG				= "{CED8E25B-122A-4E80-B612-7F99B93284B3}"; // HKLM32 Uninstall
+		/*
+		private const string ARC_NAME				= "Arc";
+		private const string ARC_NAME_LONG			= "Arc";
+		private const string ARC_UNREG				= "{CED8E25B-122A-4E80-B612-7F99B93284B3}"; // HKLM32 Uninstall
+		*/
 
 		// itch
-		//private const string ITCH_NAME				= "itch";
-		private const string ITCH_NAME_LONG			= "itch";
+		//public const string ITCH_NAME				= "itch";
+		public const string ITCH_NAME_LONG			= "itch";
 		/*
 		private const string ITCH_DB				= @"\itch\db\butler.db";
 		private const string ITCH_GAME_FOLDER		= "apps";
@@ -129,44 +134,66 @@ namespace GameLauncher_Console
 		*/
 
 		// Paradox Launcher
+		public const string PARADOX_NAME			= "Paradox";
+		public const string PARADOX_NAME_LONG		= "Paradox Launcher";
 		public const string PARADOX_REG				= @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; // HKLM32
+		public const string PARADOX_PATH			= "Path";
 
 		// Plarium Play
-		//private const string PLARIUM_UNREG			= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
+		/*
+		public const string PLARIUM_NAME			= "Plarium";
+		public const string PLARIUM_NAME_LONG		= "Plarium Play";
+		private const string PLARIUM_UNREG			= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
+		*/
 
-		// Rockstar
-		//private const string ROCKSTAR_REG			= @"SOFTWARE\WOW6432Node\Rockstar Games\Launcher"; // HKLM32
+		// Rockstar Games Launcher
+		/*
+		public const string ROCKSTAR_NAME			= "Rockstar";
+		public const string ROCKSTAR_NAME_LONG		= "Rockstar Games Launcher";
+		private const string ROCKSTAR_REG			= @"SOFTWARE\WOW6432Node\Rockstar Games\Launcher"; // HKLM32
+		*/
 
-		// Twitch
-		//private const string TWITCH_UNREG			= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
+		// Twitch [deprecated, now Amazon Games]
+		/*
+		public const string TWITCH_NAME				= "Twitch";
+		public const string TWITCH_NAME_LONG		= "Twitch";
+		private const string TWITCH_UNREG			= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
+		*/
 
 		// Wargaming.net Game Center
-		//private const string WARGAMING_UNREG		= "Wargaming.net Game Center"; // HKCU64 Uninstall
+		/*
+		public const string WARGAMING_NAME			= "Wargaming";
+		public const string WARGAMING_NAME_LONG		= "Wargaming.net Game Center";
+		private const string WARGAMING_UNREG		= "Wargaming.net Game Center"; // HKCU64 Uninstall
+		*/
 
 		// Indiegala
-		//private const string IG_NAME				= "IGClient";
-		private const string IG_NAME_LONG			= "IndieGala Client";
+		public const string IG_NAME					= "Indiegala"; //"IGClient";
+		public const string IG_NAME_LONG			= "Indiegala Client";
 		//private const string IG_JSON_FILE			= @"\IGClient\storage\installed.json";
 		//private const string IG_UNREG				= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall
 		public const string IG_REG					= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
 
 		// Xbox (Microsoft Store)
 		/*
-		private const string XBOX_NAME				= "Xbox";
-		private const string XBOX_NAME_LONG			= "Xbox";
+		public const string XBOX_NAME				= "Xbox";
+		public const string XBOX_NAME_LONG			= "Xbox Game Pass";
 		private const string XBOX_LAUNCH_SUFFIX		= @":\\";
 		*/
 
+		// Custom games
+		//public const string CUSTOM_NAME				= "Custom";
+		public const string CUSTOM_NAME_LONG		= "Custom";
+
 		// generic constants
-		private const string CUSTOM_NAME			= "CUSTOM";
-		private const string NODE64_REG				= @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-		private const string NODE32_REG				= @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-		private const string GAME_DISPLAY_NAME		= "DisplayName";
-		private const string GAME_DISPLAY_ICON		= "DisplayIcon";
-		private const string GAME_INSTALL_PATH		= "InstallPath";
-		private const string GAME_INSTALL_LOCATION	= "InstallLocation";
-		private const string GAME_UNINSTALL_STRING	= "UninstallString";
-		private const string INSTALLSHIELD			= "_is1";
+		public const string NODE64_REG				= @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+		public const string NODE32_REG				= @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+		public const string GAME_DISPLAY_NAME		= "DisplayName";
+		public const string GAME_DISPLAY_ICON		= "DisplayIcon";
+		public const string GAME_INSTALL_PATH		= "InstallPath";
+		public const string GAME_INSTALL_LOCATION	= "InstallLocation";
+		public const string GAME_UNINSTALL_STRING	= "UninstallString";
+		public const string INSTALLSHIELD			= "_is1";
 
 		/// <summary>
 		/// Collect data from the registry
@@ -179,9 +206,10 @@ namespace GameLauncher_Console
 			public string m_strIcon;
 			public string m_strUninstall;
 			public string m_strAlias;
+			public bool m_bInstalled;
 			public string m_strPlatform;
 
-			public RegistryGameData(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, string strAlias, string strPlatform)
+			public RegistryGameData(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, string strAlias, bool bInstalled, string strPlatform)
 			{
 				m_strID			= strID;
 				m_strTitle		= strTitle;
@@ -189,6 +217,7 @@ namespace GameLauncher_Console
 				m_strIcon		= strIconPath;
 				m_strUninstall	= strUninstall;
 				m_strAlias		= strAlias;
+				m_bInstalled	= bInstalled;
 				m_strPlatform	= strPlatform;
 			}
 		}
@@ -199,13 +228,14 @@ namespace GameLauncher_Console
 		public static void ScanGames(bool bOnlyCustom, bool bExpensiveIcons)
 		{
 			CGameData.CTempGameSet tempGameSet = new CGameData.CTempGameSet();
+			CLogger.LogDebug("-----------------------");
 			List<RegistryGameData> gameDataList = GetGames(bOnlyCustom, bExpensiveIcons);
 			foreach (RegistryGameData data in gameDataList)
 			{
-				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, true, false, true, false, data.m_strAlias, data.m_strPlatform, 0f);
+				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, data.m_bInstalled, false, true, false, data.m_strAlias, data.m_strPlatform, 0f);
 			}
 			Console.Write(".");
-			CLogger.LogInfo("Looking for {0} games...", CUSTOM_NAME.ToUpper());
+			CLogger.LogInfo("Looking for {0} games...", CUSTOM_NAME_LONG.ToUpper());
 			CGameFinder.ImportFromFolder(ref tempGameSet);
 			CGameData.MergeGameSets(tempGameSet);
 			CLogger.LogDebug("-----------------------");
@@ -250,6 +280,9 @@ namespace GameLauncher_Console
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", ORIGIN_NAME_LONG.ToUpper());
 				GetOriginGames(gameDataList);
+				Console.Write(".");
+				CLogger.LogInfo("Looking for {0} games...", PARADOX_NAME_LONG.ToUpper());
+				CJsonWrapper.GetParadoxGames(gameDataList);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", STEAM_NAME_LONG.ToUpper());
 				GetSteamGames(gameDataList, bExpensiveIcons);
@@ -380,7 +413,7 @@ namespace GameLauncher_Console
 								strAlias = GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
-							gameDataList.Add(new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+							gameDataList.Add(new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						}
 					}
 					catch (Exception e)
@@ -462,7 +495,7 @@ namespace GameLauncher_Console
 							CLogger.LogError(e);
                         }
 						if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+							new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 					}
 				}
 				CLogger.LogDebug("-------------------");
@@ -520,7 +553,7 @@ namespace GameLauncher_Console
 						CLogger.LogError(e);
 					}
 					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 				}
 				CLogger.LogDebug("-----------------------");
 			}
@@ -532,14 +565,15 @@ namespace GameLauncher_Console
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetOriginGames(List<RegistryGameData> gameDataList)
 		{
-			string[] dirs = { };
+			List<RegistryKey> keyList = new List<RegistryKey>();
+			List<string> dirs = new List<string>();
 			string path = "";
 			try
 			{
 				path = GetFolderPath(SpecialFolder.CommonApplicationData) + ORIGIN_CONTENT;
 				if (Directory.Exists(path))
 				{
-					dirs = Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly);
+					dirs.AddRange(Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly));
 				}
 			}
 			catch (Exception e)
@@ -565,7 +599,7 @@ namespace GameLauncher_Console
 				{
 					files = Directory.GetFiles(dir, "*.mfst", SearchOption.TopDirectoryOnly);
 				}
-                catch (Exception e)
+				catch (Exception e)
 				{
 					CLogger.LogError(e);
 				}
@@ -596,7 +630,7 @@ namespace GameLauncher_Console
 					{
 						if (key != null)
 						{
-							List<RegistryKey> keyList = FindGameKeys(key, install, GAME_INSTALL_LOCATION, new string[] { ORIGIN_NAME });
+							keyList = FindGameKeys(key, install, GAME_INSTALL_LOCATION, new string[] { ORIGIN_NAME });
 							foreach (var data in keyList)
 							{
 								strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
@@ -616,7 +650,7 @@ namespace GameLauncher_Console
 						strAlias = "";
 
 					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, strPlatform));
+						new RegistryGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
 				}
 			}
 			CLogger.LogDebug("----------------------");
@@ -673,7 +707,7 @@ namespace GameLauncher_Console
 						CLogger.LogError(e);
 					}
 					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 				}
 				CLogger.LogDebug("------------------------");
 			}
@@ -725,7 +759,7 @@ namespace GameLauncher_Console
 						CLogger.LogError(e);
 					}
 					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, strPlatform));
+						new RegistryGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
 				}
 				CLogger.LogDebug("--------------------------");
 			}
@@ -780,7 +814,7 @@ namespace GameLauncher_Console
 						CLogger.LogError(e);
 					}
 					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 				}
 				CLogger.LogDebug("------------------------");
 			}
@@ -958,7 +992,17 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Scan the key name and extract the game id
+		/// Scan the key name and extract the Steam game id
+		/// </summary>
+		/// <param name="key">The game string</param>
+		/// <returns>Steam game ID as string</returns>
+		public static string GetSteamGameID(string key)
+		{
+			return Path.GetFileNameWithoutExtension(key.Substring(key.LastIndexOf("_") + 1));
+		}
+
+		/// <summary>
+		/// Scan the key name and extract the Uplay game id
 		/// </summary>
 		/// <param name="key">The game string</param>
 		/// <returns>Uplay game ID as string</returns>
@@ -980,7 +1024,7 @@ namespace GameLauncher_Console
 
 		/*
 		/// <summary>
-		/// Scan the key name and extract the game id [no longer necessary after moving to SQLite method]
+		/// Scan the key name and extract the Amazon game id [no longer necessary after moving to SQLite method]
 		/// </summary>
 		/// <param name="key">The game string</param>
 		/// <returns>Amazon game ID as string</returns>
@@ -989,5 +1033,15 @@ namespace GameLauncher_Console
 			return key.Substring(key.LastIndexOf(" -p ") + 4);
 		}
 		*/
+
+		/// <summary>
+		/// Scan the key name and extract the Itch game id
+		/// </summary>
+		/// <param name="key">The game string</param>
+		/// <returns>itch game ID as string</returns>
+		public static string GetItchGameID(string key)
+		{
+			return key.Substring(5);
+		}
 	}
 }

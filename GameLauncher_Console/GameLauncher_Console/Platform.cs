@@ -57,7 +57,7 @@ namespace GameLauncher_Console
 		#region Query definitions
 
 		/// <summary>
-		/// Retrieve the platform information fromthe database
+		/// Retrieve the platform information from the database
 		/// Also returns the game count for each platform
 		/// </summary>
 		public class CQryReadPlatforms : CSqlQry

@@ -1032,7 +1032,6 @@ namespace GameLauncher_Console
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE))
 				startIndex = nPage * itemsPerPage;
 
-			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 			for (int i = startIndex; i < itemList.Length; ++i)
 			{
 				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && i >= itemsPerPage * (nPage + 1))
@@ -1051,6 +1050,13 @@ namespace GameLauncher_Console
 				{
 					CDock.SetBgColour(cols.highbgCC, cols.highbgLtCC);
 					CDock.SetFgColour(cols.highlightCC, cols.highlightLtCC);
+				}
+				else
+				{
+					if (itemList[i][0] == '*')
+						CDock.SetFgColour(cols.uninstCC, cols.uninstLtCC);
+					else
+						CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 				}
 				Console.WriteLine(itemList[i].Substring(0, Math.Min(itemList[i].Length, m_nSpacingPerLine - CDock.COLUMN_CUSHION)));
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
@@ -1078,7 +1084,6 @@ namespace GameLauncher_Console
 				if (showIcons && itemList.Length > itemsPerPage)
 					showIcons = false;
 			}
-			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 			//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 			if (cfgv.iconSize > 0)
 				Thread.Sleep(50);  // icons sometimes become hidden otherwise
@@ -1100,6 +1105,13 @@ namespace GameLauncher_Console
 				{
 					CDock.SetBgColour(cols.highbgCC, cols.highbgLtCC);
 					CDock.SetFgColour(cols.highlightCC, cols.highlightLtCC);
+				}
+				else
+				{
+					if (itemList[i][0] == '*')
+						CDock.SetFgColour(cols.uninstCC, cols.uninstLtCC);
+					else
+						CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 				}
 				Console.WriteLine(itemList[i]);
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
@@ -1288,11 +1300,14 @@ namespace GameLauncher_Console
 			}
 
 			CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
-			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
+			if (strPreviousOption[0] == '*')
+				CDock.SetFgColour(cols.uninstCC, cols.uninstLtCC);
+			else
+				CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 			if (m_MenuType == MenuType.cType_List)
 			{
 				Console.Write(strPreviousOption);
-				
+
 				// Redraw all icons below current selection
 				if (cfgv.iconSize > 0)
 				{
@@ -1311,6 +1326,7 @@ namespace GameLauncher_Console
 			}
 			else
 				Console.Write(strPreviousOption.Substring(0, Math.Min(strPreviousOption.Length, m_nSpacingPerLine - CDock.COLUMN_CUSHION)));
+			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 		}
 
 		/// <summary>

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 //using System.IO.Compression;
 using System.Linq;
@@ -161,7 +162,7 @@ namespace GameLauncher_Console
 				}
 				else if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USESCAN))
 				{
-					if (!ImportGames(gamesPath, ref nGameCount, ref verGames, (bool)CConfig.GetConfigBool(CConfig.CFG_USEALPH), (bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE), true))
+					if (!ImportGames(gamesPath, ref nGameCount, ref verGames, (bool)CConfig.GetConfigBool(CConfig.CFG_USEALPH), (bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE), (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true))
 						parseError = true;
 				}
 			}
@@ -386,7 +387,7 @@ namespace GameLauncher_Console
 		/// Import games from the json file and add them to the global game dictionary.
 		/// <returns>True if successful, otherwise false</returns>
 		/// </summary>
-		private static bool ImportGames(string file, ref int nGameCount, ref Version version, bool alphaSort, bool faveSort, bool ignoreArticle)
+		private static bool ImportGames(string file, ref int nGameCount, ref Version version, bool alphaSort, bool faveSort, bool instSort, bool ignoreArticle)
 		{
 			CLogger.LogInfo("Importing games from JSON...");
 			var options = new JsonDocumentOptions
@@ -418,7 +419,7 @@ namespace GameLauncher_Console
 
 						string strLaunch = GetStringProperty(jElement, GAMES_ARRAY_LAUNCH);
 						string strIconPath = GetStringProperty(jElement, GAMES_ARRAY_ICON);
-						string strUninstaller = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
+						string strUninstall = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
 						bool   bIsInstalled = GetBoolProperty(jElement, GAMES_ARRAY_INSTALLED);
 						bool   bIsFavourite = GetBoolProperty(jElement, GAMES_ARRAY_FAVOURITE);
 						bool   bIsNew = GetBoolProperty(jElement, GAMES_ARRAY_NEW);
@@ -427,15 +428,15 @@ namespace GameLauncher_Console
 						string strPlatform = GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
 						double fOccurCount = GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
 
-						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, fOccurCount);
+						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, fOccurCount);
 						nGameCount++;
 					}
-					CGameData.SortGames(alphaSort, faveSort, ignoreArticle);
+					CGameData.SortGames(alphaSort, faveSort, instSort, ignoreArticle);
 				}
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e);
+				CLogger.LogError(e, String.Format($"Malformed {file} file!"));
 				Console.WriteLine($"ERROR: Malformed {file} file!");
 				return false;
 			}
@@ -443,7 +444,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed Epic store games (unlike the other platforms, this is scraped from json files instead of the registry)
+		/// Find installed Epic store games (from json files)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetEpicGames(List<CRegScanner.RegistryGameData> gameDataList)
@@ -491,7 +492,7 @@ namespace GameLauncher_Console
 								strAlias = CRegScanner.GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
-							gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+							gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 						}
 					}
 				}
@@ -504,18 +505,152 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed Indiegala games
+		/// Find installed and owned Paradox games (latter from a json file)
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetParadoxGames(List<CRegScanner.RegistryGameData> gameDataList)
+		{
+			List<string> dirs = new List<string>();
+			const string PARADOX_NAME = "Paradox";
+			const string PARADOX_REG = @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; //HKLM32
+			const string PARADOX_PATH = "Path";
+			//const string PARADOX_UNREG = "{ED2CDA1D-39E4-4CBB-992C-5C1D08672128}"; //HKLM32
+			const string PARADOX_JSON_FOLDER = @"\Paradox Interactive\launcher";
+
+			// Get installed games
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(PARADOX_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			{
+				if (key == null)
+					CLogger.LogInfo("{0} client not found in the registry.", PARADOX_NAME.ToUpper());
+				else
+				{
+					string path = key.GetValue(PARADOX_PATH).ToString();
+
+					try
+					{
+						if (!path.Equals(null) && Directory.Exists(path))
+						{
+							dirs.AddRange(Directory.GetDirectories(Directory.GetParent(Directory.GetParent(path).ToString()) + "\\games", "*.*", SearchOption.TopDirectoryOnly));
+							foreach (string dir in dirs)
+							{
+								CultureInfo ci = new CultureInfo("en-GB");
+								TextInfo ti = ci.TextInfo;
+
+								string strID = Path.GetFileName(dir);
+								string strTitle = "";
+								string strLaunch = "";
+								string strAlias = "";
+								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
+
+								strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
+								CLogger.LogDebug($"* {strTitle}");
+								strLaunch = CGameFinder.FindGameBinaryFile(dir, strTitle);
+								strAlias = CRegScanner.GetAlias(strLaunch);
+								if (strAlias.Length > strTitle.Length)
+									strAlias = CRegScanner.GetAlias(strTitle);
+								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+									strAlias = "";
+								if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
+									new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+							}
+
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e);
+					}
+				}
+			}
+
+			// Get not-installed games
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				string folder = GetFolderPath(SpecialFolder.LocalApplicationData) + PARADOX_JSON_FOLDER;
+				if (!Directory.Exists(folder))
+				{
+					CLogger.LogInfo("{0} games not found in Local AppData.", PARADOX_NAME.ToUpper());
+				}
+				else
+				{
+					string[] files = Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly);
+
+					var options = new JsonDocumentOptions
+					{
+						AllowTrailingCommas = true
+					};
+
+					foreach (string file in files)
+					{
+						if (file.EndsWith("_installableGames.json") && !(file.StartsWith("_noUser")))
+						{
+							CLogger.LogInfo("{0} not-installed games:", PARADOX_NAME.ToUpper());
+							string strDocumentData = File.ReadAllText(file);
+
+							if (string.IsNullOrEmpty(strDocumentData))
+								continue;
+
+							try
+							{
+								using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+								{
+									document.RootElement.TryGetProperty("content", out JsonElement content);
+									if (!content.Equals(null))
+									{
+										foreach (JsonElement game in content.EnumerateArray())
+										{
+											game.TryGetProperty("_name", out JsonElement id);
+
+											// Check if game is already installed
+											bool found = false;
+											foreach (string dir in dirs)
+											{
+												if (id.ToString().Equals(Path.GetFileName(dir)))
+													found = true;
+											}
+											if (!found)
+											{
+												game.TryGetProperty("_displayName", out JsonElement title);
+												game.TryGetProperty("_owned", out JsonElement owned);
+												if (!id.Equals(null) && !title.Equals(null) && owned.ToString().ToLower().Equals("true"))
+												{
+													string strID = id.ToString();
+													string strTitle = title.ToString();
+													CLogger.LogDebug($"* {strTitle}*");
+													string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
+													gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+												}
+											}
+										}
+									}
+								}
+							}
+							catch (Exception e)
+							{
+								CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", PARADOX_NAME.ToUpper(), file));
+							}
+						}
+					}
+				}
+			}
+			CLogger.LogDebug("--------------------");
+		}
+
+		/// <summary>
+		/// Find installed and owned Indiegala games (from json files)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetIGGames(List<CRegScanner.RegistryGameData> gameDataList)
 		{
-			const string IG_NAME		= "IGClient";
-			const string IG_JSON_FILE	= @"\IGClient\storage\installed.json";
-			string file = GetFolderPath(SpecialFolder.ApplicationData) + IG_JSON_FILE;
+			const string IG_NAME			= "IGClient";
+			const string IG_JSON_FILE		= @"\IGClient\storage\installed.json";
+			const string IG_OWN_JSON_FILE	= @"\IGClient\config.json";
 
+			// Get installed games
+			string file = GetFolderPath(SpecialFolder.ApplicationData) + IG_JSON_FILE;
 			if (!File.Exists(file))
 			{
-				CLogger.LogInfo("{0} games not found in AppData", IG_NAME.ToUpper());
+				CLogger.LogInfo("{0} installed games not found in AppData", IG_NAME.ToUpper());
 				return;
 			}
 			else
@@ -528,64 +663,134 @@ namespace GameLauncher_Console
 				string strDocumentData = File.ReadAllText(file);
 
 				if (string.IsNullOrEmpty(strDocumentData))
-				{
 					CLogger.LogWarn(string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
-					return;
-				}
-
-				try
+				else
 				{
-					using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+					try
 					{
-						foreach (JsonElement element in document.RootElement.EnumerateArray())
+						using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
 						{
-							string strID = "";
-							string strTitle = "";
-							string strLaunch = "";
-							string strAlias = "";
-							string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.IGClient);
-
-							element.TryGetProperty("target", out JsonElement target);
-							if (!target.Equals(null))
+							foreach (JsonElement element in document.RootElement.EnumerateArray())
 							{
-								target.TryGetProperty("item_data", out JsonElement item);
-								if (!item.Equals(null))
+								string strID = "";
+								string strTitle = "";
+								string strLaunch = "";
+								string strAlias = "";
+								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.IGClient);
+
+								element.TryGetProperty("target", out JsonElement target);
+								if (!target.Equals(null))
 								{
-									strID = string.Format("ig_{0}", GetStringProperty(item, "slugged_name"));
-									strTitle = GetStringProperty(item, "name");
+									target.TryGetProperty("item_data", out JsonElement item);
+									if (!item.Equals(null))
+									{
+										strID = GetStringProperty(item, "id_key_name");
+										strTitle = GetStringProperty(item, "name");
+									}
 								}
-							}
-							element.TryGetProperty("path", out JsonElement paths);
-							if (!paths.Equals(null))
-							{
-								foreach (JsonElement path in paths.EnumerateArray())
-									strLaunch = CGameFinder.FindGameBinaryFile(path.ToString(), strTitle);
-							}
+								element.TryGetProperty("path", out JsonElement paths);
+								if (!paths.Equals(null))
+								{
+									foreach (JsonElement path in paths.EnumerateArray())
+										strLaunch = CGameFinder.FindGameBinaryFile(path.ToString(), strTitle);
+								}
 
-							CLogger.LogDebug($"* {strTitle}");
+								CLogger.LogDebug($"* {strTitle}");
 
-							if (!string.IsNullOrEmpty(strLaunch))
-							{
-								strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strLaunch));
-								if (strAlias.Length > strTitle.Length)
-									strAlias = CRegScanner.GetAlias(strTitle);
-								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-									strAlias = "";
-								gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+								if (!string.IsNullOrEmpty(strLaunch))
+								{
+									strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strLaunch));
+									if (strAlias.Length > strTitle.Length)
+										strAlias = CRegScanner.GetAlias(strTitle);
+									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+										strAlias = "";
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+								}
 							}
 						}
 					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+					}
 				}
-				catch (Exception e)
-				{
-					CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
-				}
-				CLogger.LogDebug("--------------------");
 			}
+
+			// Get not-installed games
+			file = GetFolderPath(SpecialFolder.ApplicationData) + IG_OWN_JSON_FILE;
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				if (!File.Exists(file))
+					CLogger.LogInfo("{0} not-installed games not found in AppData", IG_NAME.ToUpper());
+				else
+				{
+					CLogger.LogInfo("{0} not-installed games:", IG_NAME.ToUpper());
+					var options = new JsonDocumentOptions
+					{
+						AllowTrailingCommas = true
+					};
+
+					string strDocumentData = File.ReadAllText(file);
+
+					if (string.IsNullOrEmpty(strDocumentData))
+						CLogger.LogWarn(string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+					else
+					{
+						try
+						{
+							using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+							{
+								bool found = false;
+								JsonElement coll = new JsonElement();
+								document.RootElement.TryGetProperty("gala_data", out JsonElement gData);
+								if (!gData.Equals(null))
+								{
+									gData.TryGetProperty("data", out JsonElement data);
+									if (!data.Equals(null))
+									{
+										data.TryGetProperty("showcase_content", out JsonElement sContent);
+										if (!sContent.Equals(null))
+										{
+											sContent.TryGetProperty("content", out JsonElement content);
+											if (!content.Equals(null))
+											{
+												content.TryGetProperty("user_collection", out coll);
+												if (!coll.Equals(null))
+													found = true;
+											}
+										}
+									}
+								}
+
+								if (found)
+								{
+									foreach (JsonElement prod in coll.EnumerateArray())
+									{
+										string strID = GetStringProperty(prod, "prod_id_key_name");
+										if (!string.IsNullOrEmpty(strID))
+										{
+											string strTitle = GetStringProperty(prod, "prod_name");
+											//string strIconPath = GetStringProperty(prod, "prod_dev_image");  // TODO: Use prod_dev_image to download icon 
+											CLogger.LogDebug($"* {strTitle}");
+											string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.IGClient);
+											gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+										}
+									}
+								}
+							}
+						}
+						catch (Exception e)
+						{
+							CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+						}
+					}
+				}
+			}
+			CLogger.LogDebug("--------------------");
 		}
 
 		/// <summary>
-		/// Find installed Amazon games
+		/// Find installed and owned Amazon games (from SQLite database)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetAmazonGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
@@ -595,14 +800,16 @@ namespace GameLauncher_Console
 			const string AMAZON_NAME = "Amazon";
 			const string AMAZON_LAUNCH = "amazon-games://play/";
 			const string AMAZON_DB = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
-			//const string AMAZON_OWN_DB = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";  // Use this DB to get owned but not installed
+			const string AMAZON_OWN_DB = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";
 			//const string AMAZON_UNINST_EXE = @"\__InstallData__\Amazon Game Remover.exe";
 			//const string AMAZON_UNINST_SUFFIX = "-m Game -p";
+
+			// Get installed games
 			string db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_DB;
 			if (!File.Exists(db))
 			{
-				CLogger.LogInfo("{0} database not found.", AMAZON_NAME.ToUpper());
-				return;
+				CLogger.LogInfo("{0} installed game database not found.", AMAZON_NAME.ToUpper());
+				//return;
 			}
 
 			try
@@ -611,10 +818,7 @@ namespace GameLauncher_Console
 				{
 					con.Open();
 
-					// SELECT path FROM install_locations
-					// SELECT install_folder FROM downloads
-					// SELECT verdict FROM caves
-					using (var cmd = new SQLiteCommand("SELECT Id, InstallDirectory, ProductTitle FROM DbSet", con))
+					using (var cmd = new SQLiteCommand("SELECT Id, InstallDirectory, ProductTitle FROM DbSet;", con))
 					{
 						using (SQLiteDataReader rdr = cmd.ExecuteReader())
 						{
@@ -647,7 +851,7 @@ namespace GameLauncher_Console
 								{
 									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 										strAlias = "";
-									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 								}
 							}
 						}
@@ -657,19 +861,58 @@ namespace GameLauncher_Console
 			catch (Exception e)
 			{
 				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
-				return;
+			}
+
+			// Get not-installed games
+			db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_OWN_DB;
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				if (!File.Exists(db))
+					CLogger.LogInfo("{0} not-installed game database not found.", AMAZON_NAME.ToUpper());
+				else
+				{
+					CLogger.LogInfo("{0} not-installed games:", AMAZON_NAME.ToUpper());
+					try
+					{
+						using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+						{
+							con.Open();
+
+							using (var cmd = new SQLiteCommand("SELECT Id, ProductIconUrl, ProductIdStr, ProductTitle FROM DbSet;", con))  // TODO: Use ProductIconUrl to download icon
+							{
+								using (SQLiteDataReader rdr = cmd.ExecuteReader())
+								{
+									while (rdr.Read())
+									{
+										string strID = rdr.GetString(2); // TODO: Should I use Id or ProductIdStr?
+										string strTitle = rdr.GetString(3);
+										CLogger.LogDebug($"* {strTitle}");
+										string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Amazon);
+										gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+									}
+								}
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+					}
+				}
 			}
 			CLogger.LogDebug("-------------------");
 		}
 
 		/// <summary>
-		/// Find installed Itch games
+		/// Find installed and owned itch games (from SQLite database)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetItchGames(List<CRegScanner.RegistryGameData> gameDataList)
 		{
 			const string ITCH_NAME = "itch";
 			const string ITCH_DB = @"\itch\db\butler.db";
+
+			// Get installed games
 			string db = GetFolderPath(SpecialFolder.ApplicationData) + ITCH_DB;
 			if (!File.Exists(db))
 			{
@@ -683,71 +926,80 @@ namespace GameLauncher_Console
 				{
 					con.Open();
 
-					// SELECT path FROM install_locations
-					// SELECT install_folder FROM downloads
-					// SELECT verdict FROM caves
-					using (var cmd = new SQLiteCommand("SELECT game_id, verdict, install_folder_name FROM caves", con))
+					// Get both installed and not-installed games
+
+					// TODO: Use still_cover_url, or cover_url if it doesn't exist, to download not-installed icons
+					using (var cmd = new SQLiteCommand(string.Format("SELECT id, title, classification, cover_url, still_cover_url FROM games;"), con))
+					using (SQLiteDataReader rdr = cmd.ExecuteReader())
 					{
-						using (SQLiteDataReader rdr = cmd.ExecuteReader())
+						while (rdr.Read())
 						{
-							while (rdr.Read())
+							if (!rdr.GetString(2).Equals("assets"))  // i.e., just "game" or "tool"
 							{
 								int id = rdr.GetInt32(0);
 								string strID = string.Format($"itch_{id}");
-								string verdict = rdr.GetString(1);
-								string strTitle = rdr.GetString(2);
-								string strAlias = CRegScanner.GetAlias(strTitle);
+								string strTitle = rdr.GetString(1);
+								string strAlias = "";
 								string strLaunch = "";
 								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Itch);
 
-								var options = new JsonDocumentOptions
-								{
-									AllowTrailingCommas = true
-								};
-
-								using (JsonDocument document = JsonDocument.Parse(@verdict, options))
-								{
-									string basePath = GetStringProperty(document.RootElement, "basePath");
-									if (document.RootElement.TryGetProperty("candidates", out JsonElement candidates)) // 'candidates' object exists
-									{
-										if (!string.IsNullOrEmpty(candidates.ToString()))
-										{
-											foreach (JsonElement jElement in candidates.EnumerateArray())
-											{
-												strLaunch = string.Format("{0}\\{1}", basePath, GetStringProperty(jElement, "path"));
-											}
-										}
-									}
-								}
-								if (string.IsNullOrEmpty(strLaunch))
-									continue;
-
-								using (var cmd2 = new SQLiteCommand(string.Format($"SELECT title FROM games WHERE id={id};"), con))
+								// SELECT path FROM install_locations;
+								// SELECT install_folder FROM downloads;
+								// SELECT verdict FROM caves;
+								using (var cmd2 = new SQLiteCommand($"SELECT verdict, install_folder_name FROM caves WHERE game_id = {id};", con))
 								using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
 								{
 									while (rdr2.Read())
 									{
-										strTitle = rdr2.GetString(0);
+										string verdict = rdr2.GetString(0);
+										strAlias = CRegScanner.GetAlias(strTitle);
 										if (strAlias.Length > strTitle.Length)
 											strAlias = CRegScanner.GetAlias(strTitle);
-										break;
+										if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+											strAlias = "";
+
+										var options = new JsonDocumentOptions
+										{
+											AllowTrailingCommas = true
+										};
+
+										using (JsonDocument document = JsonDocument.Parse(@verdict, options))
+										{
+											string basePath = GetStringProperty(document.RootElement, "basePath");
+											if (document.RootElement.TryGetProperty("candidates", out JsonElement candidates)) // 'candidates' object exists
+											{
+												if (!string.IsNullOrEmpty(candidates.ToString()))
+												{
+													foreach (JsonElement jElement in candidates.EnumerateArray())
+													{
+														strLaunch = string.Format("{0}\\{1}", basePath, GetStringProperty(jElement, "path"));
+													}
+												}
+											}
+											// Add installed games
+											if (!string.IsNullOrEmpty(strLaunch))
+											{
+												CLogger.LogDebug($"* {strTitle}");
+												gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+											}
+										}
 									}
 								}
-								CLogger.LogDebug($"* {strTitle}");
-
-								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-									strAlias = "";
-								if (!string.IsNullOrEmpty(strLaunch))
-									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+								// Add not-installed games
+								if (string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+								{
+									CLogger.LogDebug($"* {strTitle}*");
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+								}
 							}
 						}
 					}
+					con.Close();
 				}
 			}
 			catch (Exception e)
 			{
 				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", ITCH_NAME.ToUpper()));
-				return;
 			}
 			CLogger.LogDebug("-------------------");
 		}
@@ -878,6 +1130,8 @@ namespace GameLauncher_Console
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLSUB2), true, out colours.subLtCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLENTRY1), true, out colours.entryCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLENTRY2), true, out colours.entryLtCC);
+				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLUNIN1), true, out colours.uninstCC);
+				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLUNIN2), true, out colours.uninstLtCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHIBG1), true, out colours.highbgCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHIBG2), true, out colours.highbgLtCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHILITE1), true, out colours.highlightCC);
@@ -1231,6 +1485,7 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_USESIZE, force);
 			SetDefaultVal(CConfig.CFG_USEALPH, force);
 			SetDefaultVal(CConfig.CFG_USEFAVE, force);
+			SetDefaultVal(CConfig.CFG_USEINST, force);
 			SetDefaultVal(CConfig.CFG_USELITE, force);
 			SetDefaultVal(CConfig.CFG_USEALL, force);
 			SetDefaultVal(CConfig.CFG_NOCFG, force);
@@ -1270,6 +1525,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_COLSUB2, force);
 			SetDefaultVal(CConfig.CFG_COLENTRY1, force);
 			SetDefaultVal(CConfig.CFG_COLENTRY2, force);
+			SetDefaultVal(CConfig.CFG_COLUNIN1, force);
+			SetDefaultVal(CConfig.CFG_COLUNIN2, force);
 			SetDefaultVal(CConfig.CFG_COLHIBG1, force);
 			SetDefaultVal(CConfig.CFG_COLHIBG2, force);
 			SetDefaultVal(CConfig.CFG_COLHILITE1, force);

@@ -32,7 +32,7 @@ namespace GameLauncher_Console
 			GOG = 4,
 			[Description("Ubisoft Connect")]
 			Uplay = 5,
-			[Description("Origin")]
+			[Description("Origin")]  // [soon to be "EA Desktop"]
 			Origin = 6,
 			[Description("Epic")]
 			Epic = 7,
@@ -137,13 +137,13 @@ namespace GameLauncher_Console
 			/// <param name="strAlias">Alias for command-line or insert mode, user-definable, defaults to exe name</param>
 			/// <param name="platformEnum">Game's platform enumerator</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			protected CGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
+			protected CGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
 			{
 				m_strID = strID;
 				m_strTitle = strTitle;
 				m_strLaunch = strLaunch;
 				m_strIcon = strIconPath;
-				m_strUninstall = strUninstaller;
+				m_strUninstall = strUninstall;
 				m_bIsInstalled = bIsInstalled;
 				m_bIsFavourite = bIsFavourite;
 				m_bIsNew = bIsNew;
@@ -368,7 +368,7 @@ namespace GameLauncher_Console
 			/// <param name="strTitle">Title of the game</param>
 			/// <param name="strLaunch">Game's launch command</param>
 			/// <param name="strIconPath">Path to game's icon</param>
-			/// <param name="strUninstaller">Path to game's uninstaller</param>
+			/// <param name="strUninstall">Path to game's uninstaller</param>
 			/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
@@ -376,8 +376,8 @@ namespace GameLauncher_Console
 			/// <param name="strAlias">Alias for command-line or insert mode, user-definable, defaults to exe name</param>
 			/// <param name="platformEnum">Game's platform enumerator</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			public CGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
-				: base(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount)
+			public CGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
+				: base(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount)
 			{
 
 			}
@@ -404,7 +404,7 @@ namespace GameLauncher_Console
 			/// <param name="strTitle">Game title</param>
 			/// <param name="strLaunch">Game launch command</param>
 			/// <param name="strIconPath">Path to game's icon</param>
-			/// <param name="strUninstaller">Path to game's uninstaller</param>
+			/// <param name="strUninstall">Path to game's uninstaller</param>
 			/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
 			/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 			/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
@@ -432,7 +432,7 @@ namespace GameLauncher_Console
 		/// <param name="strTitle">Title of the game</param>
 		/// <param name="strLaunch">Game's launch command</param>
 		/// <param name="strIconPath">Path to game's icon</param>
-		/// <param name="strUninstaller">Path to game's uninstaller</param>
+		/// <param name="strUninstall">Path to game's uninstaller</param>
 		/// <param name="bIsInstalled">Flag indicating if the game is installed</param>
 		/// <param name="bIsFavourite">Flag indicating if the game is in the favourite tab</param>
 		/// <param name="bIsNew">Flag indicating the game was just found in the latest scan</param>
@@ -441,18 +441,18 @@ namespace GameLauncher_Console
 		/// <param name="platformEnum">Game's platform enumerator</param>
 		/// <param name="fOccurCount">Game's frequency counter</param>
 		/// <returns>Instance of CGame</returns>
-		private static CGame CreateGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstaller, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
+		private static CGame CreateGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, double fOccurCount)
 		{
-			return new CGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount);
+			return new CGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount);
 		}
 
 		private static readonly Dictionary<GamePlatform, HashSet<CGame>> m_gameDictionary = new Dictionary<GamePlatform, HashSet<CGame>>();
 		private static HashSet<CGame> m_searchResults = new HashSet<CGame>();
-		private static HashSet<CGame> m_notInstalled = new HashSet<CGame>();
 		private static HashSet<CGame> m_favourites = new HashSet<CGame>();
+		private static HashSet<CGame> m_newGames = new HashSet<CGame>();
 		private static HashSet<CGame> m_allGames = new HashSet<CGame>();
 		private static HashSet<CGame> m_hidden = new HashSet<CGame>();
-		private static HashSet<CGame> m_newGames = new HashSet<CGame>();
+		private static HashSet<CGame> m_notInstalled = new HashSet<CGame>();
 
 		/// <summary>
 		/// Return the list of Game objects with specified platform
@@ -464,11 +464,11 @@ namespace GameLauncher_Console
 			if (platformEnum == GamePlatform.Search)
 				return m_searchResults;
 
-			else if (platformEnum == GamePlatform.NotInstalled)
-				return m_notInstalled;
-
 			else if (platformEnum == GamePlatform.Favourites)
 				return m_favourites;
+
+			else if (platformEnum == GamePlatform.New)
+				return m_newGames;
 
 			else if (platformEnum == GamePlatform.All)
 				return m_allGames;
@@ -476,8 +476,8 @@ namespace GameLauncher_Console
 			else if (platformEnum == GamePlatform.Hidden)
 				return m_hidden;
 
-			else if (platformEnum == GamePlatform.New)
-				return m_newGames;
+			else if (platformEnum == GamePlatform.NotInstalled)
+				return m_notInstalled;
 
 			else
 				return m_gameDictionary[platformEnum];
@@ -591,11 +591,11 @@ namespace GameLauncher_Console
 			Dictionary<string, int> platformDict = new Dictionary<string, int>
 			{
 				{ GetPlatformString(GamePlatform.Search), m_searchResults.Count },
-				{ GetPlatformString(GamePlatform.NotInstalled), m_notInstalled.Count },
 				{ GetPlatformString(GamePlatform.Favourites), m_favourites.Count },
+				{ GetPlatformString(GamePlatform.New), m_newGames.Count },
 				{ GetPlatformString(GamePlatform.All), m_allGames.Count },
 				{ GetPlatformString(GamePlatform.Hidden), m_hidden.Count },
-				{ GetPlatformString(GamePlatform.New), m_newGames.Count },
+				{ GetPlatformString(GamePlatform.NotInstalled), m_notInstalled.Count },
 			};
 
 			foreach (KeyValuePair<GamePlatform, HashSet<CGame>> platform in m_gameDictionary)
@@ -622,18 +622,9 @@ namespace GameLauncher_Console
 					string strTitle = game.Title;
 					if (game.IsFavourite)
 						strTitle += " [F]";
-					if (!game.IsHidden)
-						platformTitles.Add(strTitle);
-				}
-			}
-			else if (platformEnum == GamePlatform.NotInstalled)
-			{
-				foreach (CGame game in m_notInstalled)
-				{
-					string strTitle = game.Title;
-					if (game.IsFavourite)
-						strTitle += " [F]";
-					if (!game.IsHidden)
+					if (!(game.IsInstalled))
+						strTitle = "*" + strTitle;
+					if (!(game.IsHidden))
 						platformTitles.Add(strTitle);
 				}
 			}
@@ -642,8 +633,20 @@ namespace GameLauncher_Console
 				foreach (CGame game in m_favourites)
 				{
 					string strTitle = game.Title;
-					if (!game.IsHidden)  // If a game is faved *and* hidden, hide from platform lists but still show it in favourites
+					if (game.IsHidden)  // If a game is faved *and* hidden, hide from platform lists but still show it in favourites
 						strTitle += " [H]";
+					if (!(game.IsInstalled))
+						strTitle = "*" + strTitle;
+					platformTitles.Add(strTitle);
+				}
+			}
+			else if (platformEnum == GamePlatform.New)
+			{
+				foreach (CGame game in m_newGames)
+				{
+					string strTitle = game.Title;
+					if (!(game.IsInstalled))
+						strTitle = "*" + strTitle;
 					platformTitles.Add(strTitle);
 				}
 			}
@@ -654,16 +657,10 @@ namespace GameLauncher_Console
 					string strTitle = game.Title;
 					if (game.IsFavourite)
 						strTitle += " [F]";
-					if (!game.IsHidden)
+					if (!(game.IsInstalled))
+						strTitle = "*" + strTitle;
+					if (!(game.IsHidden))
 						platformTitles.Add(strTitle);
-				}
-			}
-			else if (platformEnum == GamePlatform.New)
-			{
-				foreach (CGame game in m_newGames)
-				{
-					string strTitle = game.Title;
-					platformTitles.Add(strTitle);
 				}
 			}
 			else if (platformEnum == GamePlatform.Hidden)
@@ -673,7 +670,20 @@ namespace GameLauncher_Console
 					string strTitle = game.Title;
 					if (game.IsFavourite)
 						strTitle += " [F]";
+					if (!(game.IsInstalled))
+						strTitle = "*" + strTitle;
 					platformTitles.Add(strTitle);
+				}
+			}
+			else if (platformEnum == GamePlatform.NotInstalled)
+			{
+				foreach (CGame game in m_notInstalled)
+				{
+					string strTitle = game.Title;
+					if (game.IsFavourite)
+						strTitle += " [F]";
+					if (!(game.IsHidden))
+						platformTitles.Add(strTitle);
 				}
 			}
 			else if (m_gameDictionary.ContainsKey(platformEnum))
@@ -683,6 +693,8 @@ namespace GameLauncher_Console
 					string strTitle = game.Title;
 					if (game.IsFavourite)
 						strTitle += " [F]";
+					if (!(game.IsInstalled))
+						strTitle = "*" + strTitle;
 					if (!game.IsHidden)
 						platformTitles.Add(strTitle);
 				}
@@ -722,19 +734,19 @@ namespace GameLauncher_Console
 			CGame game = CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, fOccurCount);
 			m_gameDictionary[platformEnum].Add(game);
 
-			if (!(game.IsInstalled))
-				m_notInstalled.Add(game);
-
 			if (game.IsFavourite)
 				m_favourites.Add(game);
+
+			if (game.IsNew)
+				m_newGames.Add(game);
 
 			m_allGames.Add(game);
 
 			if (game.IsHidden)
 				m_hidden.Add(game);
 
-			if (game.IsNew)
-				m_newGames.Add(game);
+			if (!(game.IsInstalled))
+				m_notInstalled.Add(game);
 		}
 
 		/// <summary>
@@ -751,9 +763,6 @@ namespace GameLauncher_Console
 
 				m_gameDictionary[game.Platform].Add(game);
 
-				if (!(game.IsInstalled))
-					m_notInstalled.Add(game);
-
 				if (game.IsFavourite)
 					m_favourites.Add(game);
 
@@ -762,6 +771,9 @@ namespace GameLauncher_Console
 
 				if (game.IsHidden)
 					m_hidden.Add(game);
+
+				if (!(game.IsInstalled))
+					m_notInstalled.Add(game);
 			}
 		}
 
@@ -779,16 +791,16 @@ namespace GameLauncher_Console
 				{
 					if (platformEnum == GamePlatform.Search)
 						return m_searchResults.ElementAt(nGameIndex);
-					else if (platformEnum == GamePlatform.All)
-						return m_allGames.ElementAt(nGameIndex);
-					else if (platformEnum == GamePlatform.NotInstalled)
-						return m_notInstalled.ElementAt(nGameIndex);
 					else if (platformEnum == GamePlatform.Favourites)
 						return m_favourites.ElementAt(nGameIndex);
 					else if (platformEnum == GamePlatform.New)
 						return m_newGames.ElementAt(nGameIndex);
+					else if (platformEnum == GamePlatform.All)
+						return m_allGames.ElementAt(nGameIndex);
 					else if (platformEnum == GamePlatform.Hidden)
 						return m_hidden.ElementAt(nGameIndex);
+					else if (platformEnum == GamePlatform.NotInstalled)
+						return m_notInstalled.ElementAt(nGameIndex);
 					else
 						return m_gameDictionary[platformEnum].ElementAt(nGameIndex);
 				}
@@ -805,23 +817,23 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="platformEnum">Game's platform enumerator</param>
 		/// <param name="nGameIndex">Index of the game list</param>
-		public static void ToggleFavourite(GamePlatform platformEnum, int nGameIndex, bool alphaSort, bool faveSort, bool ignoreArticle)
+		public static void ToggleFavourite(GamePlatform platformEnum, int nGameIndex, bool alphaSort, bool faveSort, bool instSort, bool ignoreArticle)
 		{
 			if (nGameIndex > -1)
 			{
 				CGame gameCopy;
 				if (platformEnum == GamePlatform.Search)
 					gameCopy = m_searchResults.ElementAt(nGameIndex);
-				else if (platformEnum == GamePlatform.NotInstalled)
-					gameCopy = m_notInstalled.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.Favourites)
 					gameCopy = m_favourites.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.New)
 					gameCopy = m_newGames.ElementAt(nGameIndex);
-				else if (platformEnum == GamePlatform.Hidden)
-					gameCopy = m_hidden.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.All)
 					gameCopy = m_allGames.ElementAt(nGameIndex);
+				else if (platformEnum == GamePlatform.Hidden)
+					gameCopy = m_hidden.ElementAt(nGameIndex);
+				else if (platformEnum == GamePlatform.NotInstalled)
+					gameCopy = m_notInstalled.ElementAt(nGameIndex);
 				else
 					gameCopy = m_gameDictionary[platformEnum].ElementAt(nGameIndex);
 
@@ -834,7 +846,7 @@ namespace GameLauncher_Console
 				{
 					gameCopy.IsFavourite = true;
 					m_favourites.Add(gameCopy);
-					SortGameSet(ref m_favourites, alphaSort, faveSort, ignoreArticle);
+					SortGameSet(ref m_favourites, alphaSort, faveSort, instSort, ignoreArticle);
 				}
 			}
 		}
@@ -844,23 +856,23 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="platformEnum">Game's platform enumerator</param>
 		/// <param name="nGameIndex">Index of the game list</param>
-		public static void ToggleHidden(GamePlatform platformEnum, int nGameIndex, bool alphaSort, bool faveSort, bool ignoreArticle)
+		public static void ToggleHidden(GamePlatform platformEnum, int nGameIndex, bool alphaSort, bool faveSort, bool instSort, bool ignoreArticle)
 		{
 			if (nGameIndex > -1)
 			{
 				CGame gameCopy;
 				if (platformEnum == GamePlatform.Search)
 					gameCopy = m_searchResults.ElementAt(nGameIndex);
-				else if (platformEnum == GamePlatform.NotInstalled)
-					gameCopy = m_notInstalled.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.Favourites)
 					gameCopy = m_favourites.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.New)
 					gameCopy = m_newGames.ElementAt(nGameIndex);
-				else if (platformEnum == GamePlatform.Hidden)
-					gameCopy = m_hidden.ElementAt(nGameIndex);
 				else if (platformEnum == GamePlatform.All)
 					gameCopy = m_allGames.ElementAt(nGameIndex);
+				else if (platformEnum == GamePlatform.Hidden)
+					gameCopy = m_hidden.ElementAt(nGameIndex);
+				else if (platformEnum == GamePlatform.NotInstalled)
+					gameCopy = m_notInstalled.ElementAt(nGameIndex);
 				else
 					gameCopy = m_gameDictionary[platformEnum].ElementAt(nGameIndex);
 
@@ -873,7 +885,7 @@ namespace GameLauncher_Console
 				{
 					gameCopy.IsHidden = true;
 					m_hidden.Add(gameCopy);
-					SortGameSet(ref m_hidden, alphaSort, faveSort, ignoreArticle);
+					SortGameSet(ref m_hidden, alphaSort, faveSort, instSort, ignoreArticle);
 				}
 			}
 		}
@@ -886,15 +898,15 @@ namespace GameLauncher_Console
 		{
 			if (game != null)
 			{
-				if (!(game.IsInstalled))
-					m_notInstalled.Remove(game);
 				if (game.IsFavourite)
 					m_favourites.Remove(game);
 				if (game.IsNew)
 					m_newGames.Remove(game);
+				m_allGames.Remove(game);
 				if (game.IsHidden)
 					m_hidden.Remove(game);
-				m_allGames.Remove(game);
+				if (!(game.IsInstalled))
+					m_notInstalled.Remove(game);
 				m_gameDictionary[game.Platform].Remove(game);
 			}
 		}
@@ -916,10 +928,10 @@ namespace GameLauncher_Console
 		public static void MergeGameSets(CTempGameSet tempGameSet)
 		{
 			m_gameDictionary.Clear();
-			m_notInstalled.Clear();
 			m_favourites.Clear();
 			m_newGames.Clear();
 			m_hidden.Clear();
+			m_notInstalled.Clear();
 
 			// Find games that are missing from tempGameSet and remove them from m_allGames
 			// Find games that are missing from m_allGames and add them to m_allGames
@@ -937,8 +949,8 @@ namespace GameLauncher_Console
 
 			foreach (CGame game in newGames)
 			{
-				m_allGames.Add(game);
 				m_newGames.Add(game);
+				m_allGames.Add(game);
 			}
 
 			foreach (CGame game in m_allGames)
@@ -966,27 +978,27 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Sort all game containers by the game frequency counters
 		/// </summary>
-		public static void SortGames(bool alphaSort, bool faveSort, bool ignoreArticle)
+		public static void SortGames(bool alphaSort, bool faveSort, bool instSort, bool ignoreArticle)
 		{
 			for (int i = 0; i < m_gameDictionary.Count; i++)
 			{
 				var pair = m_gameDictionary.ElementAt(i);
 				HashSet<CGame> temp = pair.Value;
-				SortGameSet(ref temp, alphaSort, faveSort, ignoreArticle);
+				SortGameSet(ref temp, alphaSort, faveSort, instSort, ignoreArticle);
 				m_gameDictionary[pair.Key] = temp;
 			}
-			SortGameSet(ref m_notInstalled, alphaSort, false, ignoreArticle);
-			SortGameSet(ref m_favourites, alphaSort, false, ignoreArticle);
-			SortGameSet(ref m_allGames, alphaSort, faveSort, ignoreArticle);
-			SortGameSet(ref m_hidden, alphaSort, false, ignoreArticle);
-			SortGameSet(ref m_newGames, alphaSort, false, ignoreArticle);
+			SortGameSet(ref m_favourites, alphaSort, false, instSort, ignoreArticle);
+			SortGameSet(ref m_newGames, alphaSort, faveSort, instSort, ignoreArticle);
+			SortGameSet(ref m_allGames, alphaSort, faveSort, instSort, ignoreArticle);
+			SortGameSet(ref m_hidden, alphaSort, faveSort, instSort, ignoreArticle);
+			SortGameSet(ref m_notInstalled, alphaSort, faveSort, false, ignoreArticle);
 		}
 
 		/// <summary>
 		/// Sort a game set by the game frequency counters
 		/// </summary>
 		/// <param name="gameSet">Set of games</param>
-		private static void SortGameSet(ref HashSet<CGame> gameSet, bool alphaSort, bool faveSort, bool ignoreArticle)
+		private static void SortGameSet(ref HashSet<CGame> gameSet, bool alphaSort, bool faveSort, bool instSort, bool ignoreArticle)
 		{
 			if (ignoreArticle)
 				articles = new List<string>() { };
@@ -994,17 +1006,39 @@ namespace GameLauncher_Console
 			IOrderedEnumerable<CGame> tempSet;
 			if (faveSort)
 			{
-				if (alphaSort) tempSet = gameSet.OrderByDescending(games => games.IsFavourite).ThenBy(games =>
-					string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
-				else tempSet = gameSet.OrderByDescending(games => games.IsFavourite).ThenByDescending(games => games.Frequency).ThenBy(games =>
-					string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+				if (alphaSort)
+				{
+					if (instSort)
+						tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games => games.IsFavourite).ThenBy(games =>
+							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+					else
+						tempSet = gameSet.OrderByDescending(games => games.IsFavourite).ThenBy(games =>
+							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+				}
+				else if (instSort)
+					tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games => games.IsFavourite).ThenByDescending(games =>
+						games.Frequency).ThenBy(games => string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+				else
+					tempSet = gameSet.OrderByDescending(games => games.IsFavourite).ThenByDescending(games => games.Frequency).ThenBy(games =>
+						string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 			}
 			else
 			{
-				if (alphaSort) tempSet = gameSet.OrderBy(games =>
-					string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
-				else tempSet = gameSet.OrderByDescending(games => games.Frequency).ThenBy(games =>
-					string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+				if (alphaSort)
+				{
+					if (instSort)
+						tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games =>
+							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+					else
+						tempSet = gameSet.OrderByDescending(games =>
+							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+				}
+				else if (instSort)
+					tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games => games.Frequency).ThenBy(games =>
+						string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
+				else
+					tempSet = gameSet.OrderByDescending(games => games.Frequency).ThenBy(games =>
+						string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 			}
 			gameSet = tempSet.ToHashSet();
 		}
@@ -1059,7 +1093,8 @@ namespace GameLauncher_Console
 			match = match.ToLower();
 			foreach (CGame game in m_allGames)
 			{
-				string fullTitle = game.Title.Contains(" [F]") || game.Title.Contains(" [H]") ? game.Title.ToLower().Substring(0, game.Title.Length - 4) : game.Title.ToLower();
+				string fullTitle = game.Title.StartsWith("*") ? game.Title.Substring(1) : game.Title;
+				fullTitle = fullTitle.EndsWith(" [F]") || fullTitle.EndsWith(" [H]") ? fullTitle.ToLower().Substring(0, fullTitle.Length - 4) : fullTitle.ToLower();
 				string shortTitle = fullTitle;
 				/*
 				foreach (string prep in new List<string> { "for", "of", "to" })
@@ -1145,7 +1180,8 @@ namespace GameLauncher_Console
 			match = match.ToLower();
 			foreach (CGame game in m_allGames)
 			{
-				string fullTitle = game.Title.Contains(" [F]") || game.Title.Contains(" [H]") ? game.Title.ToLower().Substring(0, game.Title.Length - 4) : game.Title.ToLower();
+				string fullTitle = game.Title.StartsWith("*") ? game.Title.Substring(1) : game.Title;
+				fullTitle = fullTitle.EndsWith(" [F]") || fullTitle.EndsWith(" [H]") ? fullTitle.ToLower().Substring(0, fullTitle.Length - 4) : fullTitle.ToLower();
 				string shortTitle = fullTitle;
 				/*
 				foreach (string prep in new List<string> { "for", "of", "to" })
