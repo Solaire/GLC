@@ -59,4 +59,5 @@ You can support the project in the following ways:
 
 ## [License](LICENSE)
 GNU General Public License v3.0
-See [LICENSE file](LICENSE).
+
+See [LICENSE](LICENSE) file.
