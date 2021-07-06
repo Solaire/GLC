@@ -112,7 +112,7 @@ namespace GameLauncher_Console
 					{
 						CLogger.LogInfo("Scanning for games...");
 						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
+						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
 						return;
 					}
 					else if (gameSearch[0].Equals('c') || gameSearch[0].Equals('C'))
@@ -343,7 +343,7 @@ namespace GameLauncher_Console
 						Console.ResetColor();
 						CLogger.LogInfo("Scanning for games...");
 						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
+						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
 						continue;
 
 					case CConsoleHelper.DockSelection.cSel_Input: // Toggle arrows/typing input
@@ -885,7 +885,7 @@ namespace GameLauncher_Console
 						else
 						{
 							CGameData.RemoveGame(selectedGame);
-							CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
+							CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
 							m_nCurrentSelection--;
 							if (CGameData.GetPlatformGameList((CGameData.GamePlatform)m_nSelectedPlatform).ToList().Count < 1)
 								m_nSelectedPlatform = -1;

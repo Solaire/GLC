@@ -225,7 +225,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Scan the registry for games, add new games to memory and export into JSON document
 		/// </summary>
-		public static void ScanGames(bool bOnlyCustom, bool bExpensiveIcons)
+		public static void ScanGames(bool bOnlyCustom, bool bExpensiveIcons, bool bFirstScan)
 		{
 			CGameData.CTempGameSet tempGameSet = new CGameData.CTempGameSet();
 			CLogger.LogDebug("-----------------------");
@@ -238,6 +238,8 @@ namespace GameLauncher_Console
 			CLogger.LogInfo("Looking for {0} games...", CUSTOM_NAME_LONG.ToUpper());
 			CGameFinder.ImportFromFolder(ref tempGameSet);
 			CGameData.MergeGameSets(tempGameSet);
+			if (bFirstScan)
+				CGameData.SortGames(true, false, (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true);
 			CLogger.LogDebug("-----------------------");
 			Console.WriteLine();
 			CJsonWrapper.ExportGames(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
