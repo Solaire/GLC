@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using static System.Environment;
 using Microsoft.Win32;
 using Logger;
-using static System.Environment;
 
 namespace GameLauncher_Console
 {
@@ -17,18 +17,9 @@ namespace GameLauncher_Console
 		// CONSTANTS
 
 		// Steam (Valve)
-		private const int    STEAM_MAX_LIBS			= 64;
 		public const string STEAM_NAME				= "Steam";
 		public const string STEAM_NAME_LONG			= "Steam";
-		private const string STEAM_GAME_FOLDER		= "Steam App ";
-		private const string STEAM_LAUNCH			= "steam://rungameid/";
-		private const string STEAM_UNINST			= "steam://uninstall/";
-		private const string STEAM_PATH				= "steamapps";
-		private const string STEAM_LIBFILE			= "libraryfolders.vdf";
-		private const string STEAM_LIBARR			= "LibraryFolders";
-		private const string STEAM_APPARR			= "AppState";
-		//private const string STEAM_UNREG				= "Steam"; // HKLM32 Uninstall
-		private const string STEAM_REG				= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
+		//private const string STEAM_UNREG			= "Steam"; // HKLM32 Uninstall
 
 		// GOG Galaxy
 		public const string GOG_NAME				= "GOG";
@@ -85,12 +76,7 @@ namespace GameLauncher_Console
 		// Amazon Games
 		//public const string AMAZON_NAME			= "Amazon";
 		public const string AMAZON_NAME_LONG		= "Amazon";
-		/*
-		private const string AMAZON_GAME_FOLDER		= "AmazonGames/";
-		private const string AMAZON_LAUNCH			= "amazon-games://play/";
-		private const string AMAZON_DB				= @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
-		private const string AMAZON_UNREG			= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
-		*/
+		//private const string AMAZON_UNREG			= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
 
 		// Big Fish Games
 		public const string BIGFISH_NAME			= "BigFish";
@@ -102,19 +88,8 @@ namespace GameLauncher_Console
 		// Epic Games Launcher
 		//public const string EPIC_NAME				= "Epic";
 		public const string EPIC_NAME_LONG			= "Epic Games Launcher";
-		/*
-		private const string EPIC_GAMES_REG			= "Epic Games Launcher";
-		private const string EPIC_UNREAL_ENGINE		= "Unreal Engine";
-		private const string EPIC_ONLINE_SERVICES	= "Epic Online Services";
-		private const string EPIC_LAUNCHER			= "Launcher";
-		private const string EPIC_DIRECT_X_REDIST	= "DirectXRedist";
-		private const string EPIC_ITEMS_FOLDER		= @"\Epic\EpicGamesLauncher\Data\Manifests";
-		private const string EPIC_LAUNCH			= "com.epicgames.launcher://apps/";
-		private const string EPIC_LAUNCH_POST		= "?action=launch&silent=true";
-		private const string EPIC_GAMES_REG			= @"SOFTWARE\WOW6432Node\Epic Games\EpicGamesLauncher"; // HKLM32
 		//private const string EPIC_GAMES_UNREG			= "{A2FB1E1A-55D9-4511-A0BF-DEAD0493FBBC}"; // HKLM32 Uninstall
 		//private const string EPIC_GAMES_UNREG			= "{A7BBC0A6-3DB0-41CC-BCED-DDFC5D4F3060}"; // HKLM32 Uninstall
-		*/
 
 		// Arc
 		/*
@@ -287,7 +262,7 @@ namespace GameLauncher_Console
 				CJsonWrapper.GetParadoxGames(gameDataList);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", STEAM_NAME_LONG.ToUpper());
-				GetSteamGames(gameDataList, bExpensiveIcons);
+				CJsonWrapper.GetSteamGames(gameDataList, bExpensiveIcons);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", UPLAY_NAME_LONG.ToUpper());
 				GetUplayGames(gameDataList, bExpensiveIcons);
@@ -299,134 +274,6 @@ namespace GameLauncher_Console
 			}
 
 			return gameDataList;
-		}
-
-		/// <summary>
-		/// Find installed Steam games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		public static void GetSteamGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			string strClientPath = "";
-
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-			{
-				if (key == null)
-				{
-					CLogger.LogInfo("{0} client not found in the registry.", STEAM_NAME.ToUpper());
-					return;
-				}
-
-				strClientPath = GetRegStrVal(key, GAME_INSTALL_PATH) + "\\" + STEAM_PATH;
-			}
-
-			if (!Directory.Exists(strClientPath))
-			{
-				CLogger.LogInfo("{0} library not found: {1}", STEAM_NAME.ToUpper(), strClientPath);
-				return;
-			}
-
-			string libFile = strClientPath + "\\" + STEAM_LIBFILE;
-            List<string> libs = new List<string>
-            {
-                strClientPath
-            };
-            int nLibs = 1;
-
-			try
-			{
-				if (File.Exists(libFile))
-				{
-					SteamWrapper document = new SteamWrapper(libFile);
-					ACF_Struct documentData = document.ACFFileToStruct();
-					ACF_Struct folders = documentData.SubACF[STEAM_LIBARR];
-
-					for (; nLibs <= STEAM_MAX_LIBS; ++nLibs)
-					{
-						folders.SubItems.TryGetValue(nLibs.ToString(), out string library);
-						if (string.IsNullOrEmpty(library))
-						{
-							nLibs--;
-							break;
-						}
-						library += "\\" + STEAM_PATH;
-						if (Directory.Exists(library))
-							libs.Add(library);
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), libFile));
-				nLibs--;
-			}
-
-			int i = 0;
-			foreach (string lib in libs)
-			{
-				string[] libFiles;
-				try
-				{
-					libFiles = Directory.GetFiles(lib, "appmanifest_*.acf", SearchOption.TopDirectoryOnly);
-					CLogger.LogInfo("{0} {1} games found in library {2}", libFiles.Count(), STEAM_NAME.ToUpper(), lib);
-				}
-				catch (Exception e)
-				{
-					CLogger.LogError(e, string.Format("ERROR: {0} directory read error: ", STEAM_NAME.ToUpper(), lib));
-					continue;
-				}
-
-				foreach (string file in libFiles)
-				{
-					try
-					{
-						SteamWrapper document = new SteamWrapper(file);
-						ACF_Struct documentData = document.ACFFileToStruct();
-						ACF_Struct app = documentData.SubACF[STEAM_APPARR];
-
-						string id = app.SubItems["appid"];
-						if (id.Equals("228980"))  // Steamworks Common Redistributables
-							continue;
-
-						string strID = Path.GetFileName(file);
-						string strTitle = app.SubItems["name"];
-						CLogger.LogDebug($"* {strTitle}");
-						string strLaunch = STEAM_LAUNCH + id;
-						string strIconPath = "";
-						string strUninstall = "";
-						string strAlias = "";
-						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
-
-						if (!string.IsNullOrEmpty(strLaunch))
-						{
-							using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
-											   key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
-							{
-								if (key != null)
-									strIconPath = GetRegStrVal(key, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-								else if (key2 != null)
-									strIconPath = GetRegStrVal(key2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-							}
-							if (String.IsNullOrEmpty(strIconPath) && expensiveIcons)
-								strIconPath = CGameFinder.FindGameBinaryFile(lib + "\\common\\" + app.SubItems["installdir"], strTitle);
-							strUninstall = STEAM_UNINST + id;
-							strAlias = GetAlias(Path.GetFileNameWithoutExtension(strIconPath));
-							if (strAlias.Length > strTitle.Length)
-								strAlias = GetAlias(strTitle);
-							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-								strAlias = "";
-							gameDataList.Add(new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-						}
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), file));
-					}
-				}
-				i++;
-				if (i > nLibs)
-					CLogger.LogDebug("---------------------");
-			}
 		}
 
 		/// <summary>
@@ -456,7 +303,7 @@ namespace GameLauncher_Console
 					return;
 				}
 
-				CLogger.LogInfo("{0} {1} games found", key.GetSubKeyNames().Count(), GOG_NAME.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", key.GetSubKeyNames().Length, GOG_NAME.ToUpper());
 				foreach(string strSubkeyName in key.GetSubKeyNames())
 				{
 					using (RegistryKey subkey = key.OpenSubKey(strSubkeyName, RegistryKeyPermissionCheck.ReadSubTree))
@@ -562,7 +409,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed Origin games
+		/// Find installed EA Desktop/Origin games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetOriginGames(List<RegistryGameData> gameDataList)
@@ -583,7 +430,7 @@ namespace GameLauncher_Console
 				CLogger.LogError(e, string.Format("ERROR: {0} directory read error: ", ORIGIN_NAME.ToUpper(), path));
 			}
 
-			CLogger.LogInfo("{0} {1} games found", dirs.Count(), ORIGIN_NAME.ToUpper());
+			CLogger.LogInfo("{0} {1} games found", dirs.Count, ORIGIN_NAME.ToUpper());
 			foreach (string dir in dirs)
 			{
 				string[] files = { };
@@ -850,6 +697,17 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetItchGames(List<RegistryGameData> gameDataList)
+		{
+			// moved to JsonWrapper.cs
+		}
+		*/
+
+		/*
+		/// <summary>
+		/// Find installed Steam games
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		private static void GetSteamGames(List<RegistryGameData> gameDataList)
 		{
 			// moved to JsonWrapper.cs
 		}

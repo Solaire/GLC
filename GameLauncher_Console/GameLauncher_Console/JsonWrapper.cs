@@ -1,4 +1,5 @@
-﻿using IniParser;
+﻿using HtmlAgilityPack;
+using IniParser;
 using Logger;
 using Microsoft.Win32;
 using System;
@@ -10,6 +11,7 @@ using System.Globalization;
 using System.IO;
 //using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -436,11 +438,316 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, String.Format($"Malformed {file} file!"));
+				CLogger.LogError(e, string.Format($"Malformed {file} file!"));
 				Console.WriteLine($"ERROR: Malformed {file} file!");
 				return false;
 			}
 			return true;
+		}
+
+		/// <summary>
+		/// Find installed and not-installed Steam games (latter from an html file; requires public profile)
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetSteamGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
+		{
+			const string NODE64_REG			= @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+			const string NODE32_REG			= @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+			const string GAME_DISPLAY_ICON	= "DisplayIcon";
+			const string GAME_INSTALL_PATH	= "InstallPath";
+			const string STEAM_NAME			= "Steam";
+			//const string STEAM_NAME_LONG	= "Steam";
+			const int STEAM_MAX_LIBS		= 64;
+			const string STEAM_GAME_FOLDER	= "Steam App ";
+			const string STEAM_LAUNCH		= "steam://rungameid/";
+			const string STEAM_UNINST		= "steam://uninstall/";
+			const string STEAM_PATH			= "steamapps";
+			const string STEAM_LIBFILE		= "libraryfolders.vdf";
+			const string STEAM_APPFILE		= "SteamAppData.vdf";
+			const string STEAM_USRFILE		= "loginusers.vdf";
+			const string STEAM_LIBARR		= "LibraryFolders";
+			const string STEAM_APPDATA		= "SteamAppData";
+			const string STEAM_APPARR		= "AppState";
+			const string STEAM_USRARR		= "users";
+			const string STEAM_REG			= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
+			
+			string strInstallPath = "";
+			string strClientPath = "";
+
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			{
+				if (key == null)
+				{
+					CLogger.LogInfo("{0} client not found in the registry.", STEAM_NAME.ToUpper());
+					return;
+				}
+
+				strInstallPath = CRegScanner.GetRegStrVal(key, GAME_INSTALL_PATH);
+				strClientPath = strInstallPath + "\\" + STEAM_PATH;
+			}
+
+			if (!Directory.Exists(strClientPath))
+			{
+				CLogger.LogInfo("{0} library not found: {1}", STEAM_NAME.ToUpper(), strClientPath);
+				return;
+			}
+
+			string libFile = strClientPath + "\\" + STEAM_LIBFILE;
+			List<string> libs = new List<string>
+			{
+				strClientPath
+			};
+			int nLibs = 1;
+
+			try
+			{
+				if (File.Exists(libFile))
+				{
+					SteamWrapper document = new SteamWrapper(libFile);
+					ACF_Struct documentData = document.ACFFileToStruct();
+					ACF_Struct folders = documentData.SubACF[STEAM_LIBARR];
+
+					for (; nLibs <= STEAM_MAX_LIBS; ++nLibs)
+					{
+						folders.SubItems.TryGetValue(nLibs.ToString(), out string library);
+						if (string.IsNullOrEmpty(library))
+						{
+							nLibs--;
+							break;
+						}
+						library += "\\" + STEAM_PATH;
+						if (Directory.Exists(library))
+							libs.Add(library);
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), libFile));
+				nLibs--;
+			}
+
+			int i = 0;
+			List<string> allFiles = new List<string>();
+			foreach (string lib in libs)
+			{
+				List<string> libFiles = new List<string>();
+				try
+				{
+					libFiles = Directory.GetFiles(lib, "appmanifest_*.acf", SearchOption.TopDirectoryOnly).ToList();
+					allFiles.AddRange(libFiles);
+					CLogger.LogInfo("{0} {1} games found in library {2}", libFiles.Count, STEAM_NAME.ToUpper(), lib);
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e, string.Format("ERROR: {0} directory read error: ", STEAM_NAME.ToUpper(), lib));
+					continue;
+				}
+
+				foreach (string file in libFiles)
+				{
+					try
+					{
+						SteamWrapper document = new SteamWrapper(file);
+						ACF_Struct documentData = document.ACFFileToStruct();
+						ACF_Struct app = documentData.SubACF[STEAM_APPARR];
+
+						string id = app.SubItems["appid"];
+						if (id.Equals("228980"))  // Steamworks Common Redistributables
+							continue;
+
+						string strID = Path.GetFileName(file);
+						string strTitle = app.SubItems["name"];
+						CLogger.LogDebug($"* {strTitle}");
+						string strLaunch = STEAM_LAUNCH + id;
+						string strIconPath = "";
+						string strUninstall = "";
+						string strAlias = "";
+						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+
+						if (!string.IsNullOrEmpty(strLaunch))
+						{
+							using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
+											   key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
+							{
+								if (key != null)
+									strIconPath = CRegScanner.GetRegStrVal(key, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+								else if (key2 != null)
+									strIconPath = CRegScanner.GetRegStrVal(key2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+							}
+							if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
+								strIconPath = CGameFinder.FindGameBinaryFile(lib + "\\common\\" + app.SubItems["installdir"], strTitle);
+							strUninstall = STEAM_UNINST + id;
+							strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strIconPath));
+							if (strAlias.Length > strTitle.Length)
+								strAlias = CRegScanner.GetAlias(strTitle);
+							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+								strAlias = "";
+							gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), file));
+					}
+				}
+				i++;
+				if (i > nLibs)
+					CLogger.LogDebug("---------------------");
+			}
+
+			// Get not-installed games
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				// First get Steam user ID
+				ulong userId = (ulong)CConfig.GetConfigULong(CConfig.CFG_STEAMID);
+
+				if (userId < 1)
+				{
+					try
+					{
+						ulong userIdTmp = 0;
+						string userName = "";
+						string userNameTmp = "";
+						string appFile = strInstallPath + "\\config\\" + STEAM_APPFILE;
+
+						if (File.Exists(appFile))
+						{
+							SteamWrapper appDoc = new SteamWrapper(appFile);
+							ACF_Struct appDocData = appDoc.ACFFileToStruct();
+							ACF_Struct appData = appDocData.SubACF[STEAM_APPDATA];
+
+							appData.SubItems.TryGetValue("AutoLoginUser", out userName);
+
+							SteamWrapper usrDoc = new SteamWrapper(strInstallPath + "\\config\\" + STEAM_USRFILE);
+							ACF_Struct usrDocData = usrDoc.ACFFileToStruct();
+							ACF_Struct usrData = usrDocData.SubACF[STEAM_USRARR];
+
+							foreach (KeyValuePair<string, ACF_Struct> user in usrData.SubACF)
+							{
+								ulong.TryParse(user.Key, out userIdTmp);
+
+								foreach (KeyValuePair<string, string> userVal in user.Value.SubItems)
+								{
+									if (userVal.Key.Equals("AccountName"))
+									{
+										userNameTmp = userVal.Value;
+										if (userNameTmp.Equals(userName))
+                                            ulong.TryParse(user.Key, out userId);
+									}
+									if (userVal.Key.Equals("MostRecent") && userVal.Value.Equals("1") && string.IsNullOrEmpty(userName))
+									{
+										userId = userIdTmp;
+										userName = userNameTmp;
+										break;
+									}
+								}
+							}
+							if (userId < 1)
+							{
+								userId = userIdTmp;
+								userName = userNameTmp;
+							}
+						}
+						if (userId > 0)
+						{
+							CConfig.SetConfigValue(CConfig.CFG_STEAMID, userId);
+							ExportConfig();
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1} or {2}", STEAM_NAME.ToUpper(), STEAM_APPFILE, STEAM_USRFILE));
+					}
+				}
+
+				if (userId > 0)
+				{
+					// Download game list from public user profile
+					try
+					{
+						string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", CConfig.GetConfigULong(CConfig.CFG_STEAMID));
+/*
+#if DEBUG
+						string tmpfile = $"tmp_{STEAM_NAME}.html";
+						if (!File.Exists(tmpfile))
+						{
+							using (var client = new WebClient())
+							{
+								client.DownloadFile(url, tmpfile);
+							}
+						}
+						HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument
+						{
+							OptionUseIdAttribute = true
+						};
+						doc.Load(tmpfile);
+#else
+*/
+						HtmlWeb web = new HtmlWeb();
+						HtmlAgilityPack.HtmlDocument doc = web.Load(url);
+						doc.OptionUseIdAttribute = true;
+//#endif
+						HtmlNode gameList = doc.DocumentNode.SelectSingleNode("//script[@language='javascript']");
+						if (gameList != null)
+						{
+							CLogger.LogInfo("{0} not-installed games:", STEAM_NAME.ToUpper());
+
+							var options = new JsonDocumentOptions
+							{
+								AllowTrailingCommas = true
+							};
+							string rgGames = gameList.InnerText.Remove(0, gameList.InnerText.IndexOf('['));
+							rgGames = rgGames.Remove(rgGames.IndexOf(';'));
+
+							using (JsonDocument document = JsonDocument.Parse(@rgGames, options))
+							{
+								foreach (JsonElement game in document.RootElement.EnumerateArray())
+								{
+									ulong id = GetULongProperty(game, "appid");
+									if (id > 0)
+									{
+										// Check if game is already installed
+										string strID = $"appmanifest_{id}.acf";
+										bool found = false;
+										foreach (string file in allFiles)
+										{
+											if (file.EndsWith(strID))
+												found = true;
+										}
+										if (!found)
+										{
+											string strTitle = GetStringProperty(game, "name");
+											//string strIconPath = GetStringProperty(game, "logo");  // TODO: Use logo to download icon
+											string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+
+											// Add installed games
+											CLogger.LogDebug($"* {strTitle}");
+											gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+										}
+									}
+								}
+							}
+						}
+						else
+                        {
+							CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
+											"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
+								STEAM_NAME.ToUpper());
+						}
+/*
+#if DEBUG
+						File.Delete(tmpfile);
+#endif
+*/
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e);
+					}
+					CLogger.LogDebug("---------------------");
+				}
+			}
 		}
 
 		/// <summary>
@@ -584,12 +891,13 @@ namespace GameLauncher_Console
 					{
 						if (file.EndsWith("_installableGames.json") && !(file.StartsWith("_noUser")))
 						{
-							CLogger.LogInfo("{0} not-installed games:", PARADOX_NAME.ToUpper());
 							string strDocumentData = File.ReadAllText(file);
 
 							if (string.IsNullOrEmpty(strDocumentData))
 								continue;
 
+							CLogger.LogDebug("{0} not-installed games:", PARADOX_NAME.ToUpper());
+							
 							try
 							{
 								using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
@@ -717,14 +1025,14 @@ namespace GameLauncher_Console
 			}
 
 			// Get not-installed games
-			file = GetFolderPath(SpecialFolder.ApplicationData) + IG_OWN_JSON_FILE;
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
 			{
+				file = GetFolderPath(SpecialFolder.ApplicationData) + IG_OWN_JSON_FILE;
 				if (!File.Exists(file))
 					CLogger.LogInfo("{0} not-installed games not found in AppData", IG_NAME.ToUpper());
 				else
 				{
-					CLogger.LogInfo("{0} not-installed games:", IG_NAME.ToUpper());
+					CLogger.LogDebug("{0} not-installed games:", IG_NAME.ToUpper());
 					var options = new JsonDocumentOptions
 					{
 						AllowTrailingCommas = true
@@ -864,14 +1172,14 @@ namespace GameLauncher_Console
 			}
 
 			// Get not-installed games
-			db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_OWN_DB;
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
 			{
+				db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_OWN_DB;
 				if (!File.Exists(db))
 					CLogger.LogInfo("{0} not-installed game database not found.", AMAZON_NAME.ToUpper());
 				else
 				{
-					CLogger.LogInfo("{0} not-installed games:", AMAZON_NAME.ToUpper());
+					CLogger.LogDebug("{0} not-installed games:", AMAZON_NAME.ToUpper());
 					try
 					{
 						using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
@@ -1150,7 +1458,7 @@ namespace GameLauncher_Console
 				CLogger.LogError(e);
 				Console.WriteLine($"ERROR: Bad colour value. Resetting defaults...");
 				parseError = true;
-				SetConfigDefaults(false, false, false, true, false, false);
+				SetConfigDefaults(false, false, false, false, true, false, false);
 			}
 			try
 			{
@@ -1220,7 +1528,7 @@ namespace GameLauncher_Console
 				CLogger.LogError(e);
 				Console.WriteLine($"ERROR: Bad hotkey value. Resetting defaults...");
 				parseError = true;
-				SetConfigDefaults(false, false, false, false, true, false);
+				SetConfigDefaults(false, false, false, false, false, true, false);
 			}
 			return !parseError;
 		}
@@ -1359,7 +1667,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Retrieve int value from the JSON element
+		/// Retrieve integer value from the JSON element
 		/// </summary>
 		/// <param name="strPropertyName">Name of the property</param>
 		/// <param name="jElement">Source JSON element</param>
@@ -1374,6 +1682,28 @@ namespace GameLauncher_Console
 				}
 			}
 			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+			return 0;
+		}
+
+		/// <summary>
+		/// Retrieve unsigned long value from the JSON element
+		/// </summary>
+		/// <param name="strPropertyName">Name of the property</param>
+		/// <param name="jElement">Source JSON element</param>
+		/// <returns>Value of the property as a ulong or 0 if not found</returns>
+		private static ulong GetULongProperty(JsonElement jElement, string strPropertyName)
+		{
+			try
+			{
+				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
+				{
+					if (jValue.TryGetUInt64(out ulong nOut)) return (ulong)nOut;
+				}
+			}
+			catch (Exception e)
             {
 				CLogger.LogError(e);
             }
@@ -1381,7 +1711,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Retrieve int value from the JSON element
+		/// Retrieve unsigned short value from the JSON element
 		/// </summary>
 		/// <param name="strPropertyName">Name of the property</param>
 		/// <param name="jElement">Source JSON element</param>
@@ -1392,7 +1722,7 @@ namespace GameLauncher_Console
 			{
 				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
 				{
-					if (jValue.TryGetUInt16(out ushort nOut)) return nOut;
+					if (jValue.TryGetUInt16(out ushort nOut)) return (ushort)nOut;
 				}
 			}
 			catch (Exception e)
@@ -1432,12 +1762,13 @@ namespace GameLauncher_Console
 		/// <param name="colourOnly">Only affects colour values, and override with defaults</param>
 		/// <param name="keyOnly">Only affects hotkey values, and override with defaults</param>
 		/// <param name="textOnly">Only affects text values, and override with defaults</param>
-		private static void SetConfigDefaults(bool forceAll, bool boolOnly, bool numOnly, bool colourOnly, bool keyOnly, bool textOnly)
+		private static void SetConfigDefaults(bool forceAll, bool boolOnly, bool numOnly, bool longOnly, bool colourOnly, bool keyOnly, bool textOnly)
 		{
 			if (forceAll)
             {
 				SetBoolDefaults(true);
 				SetNumberDefaults(true);
+				SetLongDefaults(true);
 				SetColourDefaults(true);
 				SetKeyDefaults(true);
 				SetTextDefaults(true);
@@ -1446,6 +1777,8 @@ namespace GameLauncher_Console
 				SetBoolDefaults(true);
 			else if (numOnly)
 				SetNumberDefaults(true);
+			else if (longOnly)
+				SetLongDefaults(true);
 			else if (colourOnly)
 				SetColourDefaults(true);
 			else if (keyOnly)
@@ -1456,6 +1789,7 @@ namespace GameLauncher_Console
             {
 				SetBoolDefaults(false);
 				SetNumberDefaults(false);
+				SetLongDefaults(false);
 				SetColourDefaults(false);
 				SetKeyDefaults(false);
 				SetTextDefaults(false);
@@ -1467,7 +1801,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private static void SetConfigDefaults(bool forceAll)
 		{
-			SetConfigDefaults(forceAll, false, false, false, false, false);
+			SetConfigDefaults(forceAll, false, false, false, false, false, false);
         }
 
 		/// <summary>
@@ -1510,6 +1844,14 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_IMGRES, force);
 			SetDefaultVal(CConfig.CFG_IMGPOS, force);
 			SetDefaultVal(CConfig.CFG_COLSIZE, force);
+		}
+
+		/// <summary>
+		/// Set the default unsigned long integer configuration values
+		/// </summary>
+		private static void SetLongDefaults(bool force)
+		{
+			SetDefaultVal(CConfig.CFG_STEAMID, force);
 		}
 
 		/// <summary>

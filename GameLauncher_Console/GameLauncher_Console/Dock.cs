@@ -22,7 +22,7 @@ namespace GameLauncher_Console
 	{
 		public const int COLUMN_CUSHION = 2;
 		public const int INPUT_BOTTOM_CUSHION = 2;
-		public const int INPUT_ITEM_CUSHION = 2;
+		public const int INPUT_ITEM_CUSHION = 1;
 		public const int INSTRUCT_CUSHION = 1;
 		public const int IMG_BORDER_X_CUSHION = 1;
 		public const int IMG_BORDER_Y_CUSHION = 0;
@@ -880,7 +880,7 @@ namespace GameLauncher_Console
 					}
 					else  // game not installed
                     {
-						if (!InstallGame(selectedGame))
+						if (!InstallGame(selectedGame, cols))
 							Thread.Sleep(4000);
 						else
 						{
@@ -1020,7 +1020,7 @@ namespace GameLauncher_Console
 		/// Install the game
 		/// </summary>
 		/// <param name="game"></param>
-		private bool InstallGame(CGameData.CGame game)
+		private bool InstallGame(CGameData.CGame game, CConfig.Colours cols)
 		{
 			try
 			{
@@ -1035,26 +1035,41 @@ namespace GameLauncher_Console
 				switch (game.Platform)
 				{
 					case CGameData.GamePlatform.Steam:
-						Console.ResetColor();
-						Console.Clear();
-						CLogger.LogInfo($"Installing game: {game.Title}");
-						Console.WriteLine($"Installing game: {game.Title}");
-						Process.Start(string.Format("steam://install/{0}", CRegScanner.GetSteamGameID(game.ID)));
-						return true;
+						string answerSteam = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+						ClearInputLine(cols);
+						if (answerSteam[0] == 'Y' || answerSteam[0] == 'y')
+						{
+							Console.ResetColor();
+							Console.Clear();
+							CLogger.LogInfo($"Installing game: {game.Title}");
+							Process.Start(string.Format("steam://install/{0}", CRegScanner.GetSteamGameID(game.ID)));
+							return true;
+						}
+						return false;
 					case CGameData.GamePlatform.Amazon:
-						Console.ResetColor();
-						Console.Clear();
-						CLogger.LogInfo($"Installing game: {game.Title}");
-						Console.WriteLine($"Installing game: {game.Title}");
-						Process.Start(string.Format($"amazon-games://play/{game.ID}"));
-						return true;
+						string answerAmazon = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+						ClearInputLine(cols);
+						if (answerAmazon[0] == 'Y' || answerAmazon[0] == 'y')
+						{
+							Console.ResetColor();
+							Console.Clear();
+							CLogger.LogInfo($"Installing game: {game.Title}");
+							Process.Start(string.Format($"amazon-games://play/{game.ID}"));
+							return true;
+						}
+						return false;
 					case CGameData.GamePlatform.Itch:
-						Console.ResetColor();
-						Console.Clear();
-						CLogger.LogInfo($"Installing game: {game.Title}");
-						Console.WriteLine($"Installing game: {game.Title}");
-						Process.Start(string.Format("itch://games/{0}", CRegScanner.GetItchGameID(game.ID)));
-						return true;
+						string answerItch = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+						ClearInputLine(cols);
+						if (answerItch[0] == 'Y' || answerItch[0] == 'y')
+						{
+							Console.ResetColor();
+							Console.Clear();
+							CLogger.LogInfo($"Installing game: {game.Title}");
+							Process.Start(string.Format("itch://games/{0}", CRegScanner.GetItchGameID(game.ID)));
+							return true;
+						}
+						return false;
 					case CGameData.GamePlatform.IGClient:
 						using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.IG_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM64
 						{
@@ -1062,12 +1077,18 @@ namespace GameLauncher_Console
 							string launcherPath = key.GetValue("InstallLocation") + "\\IGClient.exe";
 							if (File.Exists(launcherPath))
 							{
-								igcProcess.StartInfo.FileName = launcherPath;
-								igcProcess.StartInfo.UseShellExecute = false;
-								igcProcess.StartInfo.RedirectStandardOutput = true;
-								igcProcess.StartInfo.RedirectStandardError = true;
-								igcProcess.Start();
-								return true;
+								string answerIG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+								ClearInputLine(cols);
+								if (answerIG[0] == 'Y' || answerIG[0] == 'y')
+								{
+									CLogger.LogInfo($"Installing game: {game.Title}");
+									igcProcess.StartInfo.FileName = launcherPath;
+									igcProcess.StartInfo.UseShellExecute = false;
+									igcProcess.StartInfo.RedirectStandardOutput = true;
+									igcProcess.StartInfo.RedirectStandardError = true;
+									igcProcess.Start();
+									return true;
+								}
 							}
 							else
 							{
@@ -1084,8 +1105,13 @@ namespace GameLauncher_Console
 							string launcherPath = key.GetValue(CRegScanner.PARADOX_PATH) + "\\Paradox Launcher.exe";
 							if (File.Exists(launcherPath))
 							{
-								Process.Start(launcherPath);
-								return true;
+								string answerParadox = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+								ClearInputLine(cols);
+								if (answerParadox[0] == 'Y' || answerParadox[0] == 'y')
+								{
+									Process.Start(launcherPath);
+									return true;
+								}
 							}
 							else
 							{
@@ -1245,25 +1271,27 @@ namespace GameLauncher_Console
 					"         /nav | /n");
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
 					"        /scan | /s");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	("    /alias | /a");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	("/uninstall | /uninst | /u");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	"     /view | /v");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	"     /grid | /g");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	"     /list | /l");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	"   /colour | /color | /col");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	"    /light | /lt");
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	"     /dark | /dk");
+				/*
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					("    /alias | /a");
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					("/uninstall | /uninst | /u");
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"     /view | /v");
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"     /grid | /g");
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"     /list | /l");
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"   /colour | /color | /col");
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"    /light | /lt");
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"     /dark | /dk");
+				*/
 				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT))
 					WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-						"     /exit | /x | /quit | /q");
+						"   /exit | /x | /quit | /q");
 				else
 					WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
 						"     [Ctrl]+[C] to quit.");
@@ -1381,10 +1409,12 @@ namespace GameLauncher_Console
 					"   Toggle Images: " +
 					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYIMG1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYIMG2)), "[", "]", " | ", "N/A", 8));
-				//WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
-				//	"     Sort Method: " +
-				//	CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSORT1)),
-				//	CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSORT2)), "[", "]", " | ", "N/A", 8));
+				/*
+				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
+					"     Sort Method: " +
+					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSORT1)),
+					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYSORT2)), "[", "]", " | ", "N/A", 8));
+				*/
 				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT))
 					WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
 						"            Quit: " +

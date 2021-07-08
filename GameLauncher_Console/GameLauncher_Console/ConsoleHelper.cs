@@ -234,9 +234,7 @@ namespace GameLauncher_Console
 			DrawCfgMenu(cols, string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)) ? Properties.Settings.Default.text_settings_title : CConfig.GetConfigString(CConfig.CFG_TXTCFGT));
 
 			int nStartY = Console.CursorTop + CDock.INSTRUCT_CUSHION;
-			int nStopY = CDock.INPUT_BOTTOM_CUSHION;
-			if (m_ConsoleState == ConsoleState.cState_Insert)
-				nStopY += CDock.INPUT_ITEM_CUSHION;
+			int nStopY = CDock.INPUT_BOTTOM_CUSHION + CDock.INPUT_ITEM_CUSHION;
 
 			List<string> options = new List<string>();
 			Dictionary<string, OptionVal> optionsDict = new Dictionary<string, OptionVal>();
@@ -263,15 +261,17 @@ namespace GameLauncher_Console
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
 					code = HandleInsertMenu(nStartY, nStopY, cfgv, cols, true, false, ref game, options.ToArray());
+					if (code > -1)
+						CDock.m_nCurrentSelection = code;
 					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
 				{
 					code = HandleNavigationMenu(nStartY, nStopY, cfgv, keys, cols, true, false, ref game, options.ToArray());
 					CLogger.LogDebug("HandleNavigationMenu:{0},{1}", code, CDock.m_nCurrentSelection);
+					if (options.Count() < 2)
+						CDock.m_nCurrentSelection = -1;
 				}
-				if (options.Count() < 2)
-					CDock.m_nCurrentSelection = -1;
 			} while (!IsSelectionValid(CDock.m_nCurrentSelection, options.Count()));
 
 			if (CDock.m_nCurrentSelection == -1) // quit
@@ -348,9 +348,7 @@ namespace GameLauncher_Console
 			DrawFSMenu(cols, string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTFILET)) ? Properties.Settings.Default.text_browse_title : CConfig.GetConfigString(CConfig.CFG_TXTFILET));
 
 			int nStartY = Console.CursorTop + CDock.INSTRUCT_CUSHION;
-			int nStopY = CDock.INPUT_BOTTOM_CUSHION;
-			if (m_ConsoleState == ConsoleState.cState_Insert)
-				nStopY += CDock.INPUT_ITEM_CUSHION;
+			int nStopY = CDock.INPUT_BOTTOM_CUSHION + CDock.INPUT_ITEM_CUSHION;
 
 			List<string> options = new List<string>();
 			List<string> dirs = new List<string>();
@@ -406,15 +404,17 @@ namespace GameLauncher_Console
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
 					code = HandleInsertMenu(nStartY, nStopY, cfgv, cols, false, true, ref game, options.ToArray());
+					if (code > -1)
+						CDock.m_nCurrentSelection = code;
 					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
 				{
 					code = HandleNavigationMenu(nStartY, nStopY, cfgv, keys, cols, false, true, ref game, options.ToArray());
 					CLogger.LogDebug("HandleNavigationMenu:{0},{1}", code, CDock.m_nCurrentSelection);
+					if (options.Count() < 2)
+						CDock.m_nCurrentSelection = -1;
 				}
-				if (options.Count() < 2)
-					CDock.m_nCurrentSelection = -1;
 			} while (!IsFSSelectionValid(CDock.m_nCurrentSelection, dirs.Count()));
 
 			if (path == rootName)
@@ -495,15 +495,15 @@ namespace GameLauncher_Console
 			if (IsSelectionValid(CDock.m_nSelectedPlatform, options.Length)) DrawInstruct(cols, true);
 			else DrawInstruct(cols, false);
 			int nStartY = Console.CursorTop + CDock.INSTRUCT_CUSHION;
-			int nStopY = CDock.INPUT_BOTTOM_CUSHION;
-			if (m_ConsoleState == ConsoleState.cState_Insert)
-				nStopY += CDock.INPUT_ITEM_CUSHION;
+			int nStopY = CDock.INPUT_BOTTOM_CUSHION + CDock.INPUT_ITEM_CUSHION;
 
 			do
 			{
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
 					code = HandleInsertMenu(nStartY, nStopY, cfgv, cols, false, false, ref game, options);
+					if (code > -1)
+						CDock.m_nCurrentSelection = code;
 					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
@@ -637,11 +637,22 @@ namespace GameLauncher_Console
 			
 			else //if (m_MenuType == MenuType.cType_Grid)
 				DrawGridMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cfgv, cols, options);
-			
+
+			CDock.SetFgColour(cols.subCC, cols.subLtCC);
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1 && nPage < pages - 1)
-			{
-				CDock.SetFgColour(cols.subCC, cols.subLtCC);
 				Console.WriteLine("... ({0}/{1})", nPage + 1, pages);
+			if (m_MenuType == MenuType.cType_Grid)
+			{
+				try
+				{
+					Console.SetCursorPosition(0, Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
+					CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
+					Console.WriteLine("│ {0} │", options[CDock.m_nCurrentSelection]);
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e);
+				}
 			}
 
 			do
@@ -829,7 +840,7 @@ namespace GameLauncher_Console
 
 			} while (key != keys.selectCK1 && key != keys.selectCK2);
 			
-			return -1;
+			return (int)DockSelection.cSel_Default;
 		}
 
 		/// <summary>
@@ -922,12 +933,10 @@ namespace GameLauncher_Console
 
 			else //if (m_MenuType == MenuType.cType_Grid)
 				DrawGridMenu(nSelection, nPage, nStartY, nStopY, cfgv, cols, options);
-			
+
+			CDock.SetFgColour(cols.subCC, cols.subLtCC);
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1 && nPage < pages - 1)
-			{
-				CDock.SetFgColour(cols.subCC, cols.subLtCC);
 				Console.WriteLine("... ({0}/{1})", nPage + 1, pages);
-			}
 
 			do
 			{
@@ -956,12 +965,12 @@ namespace GameLauncher_Console
 				else if (strInput.Equals("/grid", CDock.IGNORE_CASE) || strInput.Equals("/g", CDock.IGNORE_CASE))
 				{
 					m_MenuType = (MenuType)MenuType.cType_Grid;
-					return -1;
+					return (int)DockSelection.cSel_Default;
 				}
 				else if (strInput.Equals("/list", CDock.IGNORE_CASE) || strInput.Equals("/l", CDock.IGNORE_CASE))
 				{
 					m_MenuType = (MenuType)MenuType.cType_List;
-					return -1;
+					return (int)DockSelection.cSel_Default;
 				}
 				else if (strInput.Equals("/icon", CDock.IGNORE_CASE))
 					return (int)DockSelection.cSel_Image;
@@ -972,12 +981,12 @@ namespace GameLauncher_Console
 				else if (strInput.Equals("/alpha", CDock.IGNORE_CASE))
 				{
 					m_SortMethod = (SortMethod)SortMethod.cSort_Alpha;
-					return -1;
+					return (int)DockSelection.cSel_Default;
 				}
 				else if (strInput.Equals("/freq", CDock.IGNORE_CASE))
 				{
 					m_SortMethod = (SortMethod)SortMethod.cSort_Freq;
-					return -1;
+					return (int)DockSelection.cSel_Default;
 				}
 				else if (strInput.Equals("/colour", CDock.IGNORE_CASE) || strInput.Equals("/color", CDock.IGNORE_CASE) ||
 					strInput.Equals("/col", CDock.IGNORE_CASE) || strInput.Equals("/mode", CDock.IGNORE_CASE))
@@ -986,16 +995,22 @@ namespace GameLauncher_Console
 				else if (strInput.Equals("/dark", CDock.IGNORE_CASE) || strInput.Equals("/dk", CDock.IGNORE_CASE))
 				{
 					m_LightMode = (LightMode)LightMode.cColour_Dark;
-					return -1;
+					return (int)DockSelection.cSel_Default;
 				}
 				else if (strInput.Equals("/light", CDock.IGNORE_CASE) || strInput.Equals("/li", CDock.IGNORE_CASE))
 				{
 					m_LightMode = (LightMode)LightMode.cColour_Light;
-					return -1;
+					return (int)DockSelection.cSel_Default;
 				}
 				else if (strInput.Equals("/exit", CDock.IGNORE_CASE) || strInput.Equals("/x", CDock.IGNORE_CASE) ||
 					strInput.Equals("/quit", CDock.IGNORE_CASE) || strInput.Equals("/q", CDock.IGNORE_CASE))
 					return (int)DockSelection.cSel_Exit;
+
+				else
+				{
+					nSelection = Array.FindIndex(options, s => s.StartsWith(strInput, CDock.IGNORE_CASE));
+					if (nSelection >= 0) bIsValidSelection = true;
+				}
 
 			} while (!bIsValidSelection);
 
@@ -1279,8 +1294,22 @@ namespace GameLauncher_Console
 			CDock.SetFgColour(cols.highlightCC, cols.highlightLtCC);
 			if (m_MenuType == MenuType.cType_List)
 				Console.Write(strCurrentOption);
-			else
+			else if (m_ConsoleState == ConsoleState.cState_Navigate)
+			{
 				Console.Write(strCurrentOption.Substring(0, Math.Min(strCurrentOption.Length, m_nSpacingPerLine - CDock.COLUMN_CUSHION)));
+				try
+                {
+					Console.SetCursorPosition(0, Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
+					CDock.ClearInputLine(cols);
+					CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
+					Console.WriteLine($"│ {strCurrentOption} │");
+					Thread.Sleep(5);
+                }
+				catch (Exception e)
+                {
+					CLogger.LogError(e);
+                }
+			}
 
 			try
 			{
@@ -1293,39 +1322,40 @@ namespace GameLauncher_Console
 					Console.SetCursorPosition(
 						(nPreviousSelection % m_nOptionsPerLine) * m_nSpacingPerLine,
 						nStartY + ((nPreviousSelection - (nPage * nItemsPerPage)) / m_nOptionsPerLine));
+
+				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
+				if (strPreviousOption[0] == '*')
+					CDock.SetFgColour(cols.uninstCC, cols.uninstLtCC);
+				else
+					CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
+				if (m_MenuType == MenuType.cType_List)
+				{
+					Console.Write(strPreviousOption);
+
+					// Redraw all icons below current selection
+					if (cfgv.iconSize > 0)
+					{
+						// for now, don't show small icons if paging is disabled and items exceed window size
+						if (!((bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && options.Length > nItemsPerPage))
+						{
+							Thread.Sleep(50);  // icons sometimes become hidden otherwise
+							int maxItems = Math.Min(nItemsPerPage * (nPage + 1), options.Length);
+							//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
+							for (int i = CDock.m_nCurrentSelection; i < maxItems; ++i)
+							{
+								DrawIcon(nStartY + i - (nPage * nItemsPerPage) - 1, i, options[i], null);
+							}
+						}
+					}
+				}
+				else
+					Console.Write(strPreviousOption.Substring(0, Math.Min(strPreviousOption.Length, m_nSpacingPerLine - CDock.COLUMN_CUSHION)));
 			}
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
 			}
 
-			CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
-			if (strPreviousOption[0] == '*')
-				CDock.SetFgColour(cols.uninstCC, cols.uninstLtCC);
-			else
-				CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
-			if (m_MenuType == MenuType.cType_List)
-			{
-				Console.Write(strPreviousOption);
-
-				// Redraw all icons below current selection
-				if (cfgv.iconSize > 0)
-				{
-					// for now, don't show small icons if paging is disabled and items exceed window size
-					if (!((bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && options.Length > nItemsPerPage))
-					{
-						Thread.Sleep(50);  // icons sometimes become hidden otherwise
-						int maxItems = Math.Min(nItemsPerPage * (nPage + 1), options.Length);
-						//ConsoleColor iconColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
-						for (int i = CDock.m_nCurrentSelection; i < maxItems; ++i)
-						{
-							DrawIcon(nStartY + i - (nPage * nItemsPerPage) - 1, i, options[i], null);
-						}
-					}
-				}
-			}
-			else
-				Console.Write(strPreviousOption.Substring(0, Math.Min(strPreviousOption.Length, m_nSpacingPerLine - CDock.COLUMN_CUSHION)));
 			CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
 		}
 
@@ -1653,20 +1683,18 @@ namespace GameLauncher_Console
 					}
 					else
 					{
-						/*
 						if (subMenu)
 						{
 							Console.WriteLine(((bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT) ? String.Empty :
 								" Enter \'/exit\' to quit;\n") +
-								" Enter \'/help\' for more commands.");
+								" Enter \'/back\' to return to previous.");
 						}
 						else  // main menu
 						{
-						*/
 						Console.WriteLine(((bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT) ? String.Empty :
 							" Enter \'/exit\' to quit;\n") +
 							" Enter \'/help\' for more commands.");
-						//}
+						}
 					}
 				}
 				else // Navigate

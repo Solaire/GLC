@@ -695,7 +695,7 @@ namespace GameLauncher_Console
 						strTitle += " [F]";
 					if (!(game.IsInstalled))
 						strTitle = "*" + strTitle;
-					if (!game.IsHidden)
+					if (!(game.IsHidden))
 						platformTitles.Add(strTitle);
 				}
 			}
@@ -1034,7 +1034,7 @@ namespace GameLauncher_Console
 							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 				}
 				else if (instSort)
-					tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games => games.Frequency).ThenBy(games =>
+					tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenByDescending(games => games.Frequency).ThenBy(games =>
 						string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 				else
 					tempSet = gameSet.OrderByDescending(games => games.Frequency).ThenBy(games =>

@@ -49,7 +49,8 @@ To customise an image, place files with the same titles in the ".\customImages" 
 ## Building from source
 Clone the repo and build. The program uses following nuGet packages:
 - System.Text.Json for JSON parsing;
-- System.Data.SQLite for parsing the itch database;
+- System.Data.SQLite for database parsing (Amazon and itch);
+- HtmlAgilityPack for HTML parsing (Steam not-installed games);
 - Costura.Fody for merging the binary file with dlls.
 
 ## Contributing

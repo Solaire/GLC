@@ -193,7 +193,7 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool flag_do_not_scan_not_installed_games {
             get {
                 return ((bool)(this["flag_do_not_scan_not_installed_games"]));
@@ -356,6 +356,18 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["num_grid_text_min_column_characters"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int num_steam_id {
+            get {
+                return ((int)(this["num_steam_id"]));
+            }
+            set {
+                this["num_steam_id"] = value;
             }
         }
         
@@ -1502,7 +1514,7 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(" Enter \\\'/exit\\\' to quit;\\n Enter \\\'/help\\\' for more commands.")]
+        [global::System.Configuration.DefaultSettingValueAttribute(" Enter \\\'/exit\\\' to quit;\\n Enter \\\'/back\\\' to return to previous.")]
         public string text_instruct2_games_type_custom_msg {
             get {
                 return ((string)(this["text_instruct2_games_type_custom_msg"]));

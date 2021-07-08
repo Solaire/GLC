@@ -149,6 +149,7 @@ namespace GameLauncher_Console
 		public const string CFG_IMGRES		= "num_selected_image_icon_resolution";			// up to 256 [same as above]
 		public const string CFG_IMGPOS		= "num_selected_image_y_location_percent";
 		public const string CFG_COLSIZE		= "num_grid_text_min_column_characters";
+		public const string CFG_STEAMID		= "num_steam_id";
 		public const string CFG_COLBG1		= "colour_background";
 		public const string CFG_COLBG2		= "colour_background_lightmode";
 		public const string CFG_COLTITLE1	= "colour_title";
@@ -281,6 +282,19 @@ namespace GameLauncher_Console
 			return null;
 		}
 
+		public static int? GetConfigInt(string property)
+		{
+			int iVal;
+			if (config.TryGetValue(property, out string strVal))
+			{
+				if (int.TryParse(strVal, out iVal))
+					return iVal;
+			}
+			if (int.TryParse(GetConfigDefault(property), out iVal))
+				return iVal;
+			return null;
+		}
+
 		public static ushort? GetConfigNum(string property)
 		{
 			ushort nVal;
@@ -294,16 +308,16 @@ namespace GameLauncher_Console
 			return null;
 		}
 
-		public static int? GetConfigInt(string property)
+		public static ulong? GetConfigULong(string property)
 		{
-			int iVal;
+			ulong nVal;
 			if (config.TryGetValue(property, out string strVal))
 			{
-				if (int.TryParse(strVal, out iVal))
-					return iVal;
+				if (ulong.TryParse(strVal, out nVal))
+					return nVal;
 			}
-			if (int.TryParse(GetConfigDefault(property), out iVal))
-				return iVal;
+			if (ulong.TryParse(GetConfigDefault(property), out nVal))
+				return nVal;
 			return null;
 		}
 
@@ -345,13 +359,17 @@ namespace GameLauncher_Console
         {
 			return SetConfigValue(property, bVal.ToString(), ref config);
 		}
-		public static bool SetConfigValue(string property, ushort nVal)
-        {
-			return SetConfigValue(property, nVal.ToString(), ref config);
-		}
 		public static bool SetConfigValue(string property, int iVal)
 		{
 			return SetConfigValue(property, iVal.ToString(), ref config);
+		}
+		public static bool SetConfigValue(string property, ushort nVal)
+		{
+			return SetConfigValue(property, nVal.ToString(), ref config);
+		}
+		public static bool SetConfigValue(string property, ulong nVal)
+		{
+			return SetConfigValue(property, nVal.ToString(), ref config);
 		}
 
 		/// <summary>
@@ -618,9 +636,9 @@ namespace GameLauncher_Console
 				case "VolumeUp":
 					return "Vol+";
 				case "MediaNext":
-					return "►|";
+					return "►│";
 				case "MediaPrevious":
-					return "|◄";
+					return "│◄";
 				case "MediaStop":
 					return "■";
 				case "MediaPlay":

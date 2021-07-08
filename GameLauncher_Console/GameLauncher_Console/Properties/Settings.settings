@@ -45,7 +45,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="flag_do_not_scan_not_installed_games" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="flag_only_scan_custom_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -85,6 +85,9 @@
     </Setting>
     <Setting Name="num_grid_text_min_column_characters" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">25</Value>
+    </Setting>
+    <Setting Name="num_steam_id" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="colour_background" Type="System.String" Scope="User">
       <Value Profile="(Default)">Black</Value>
@@ -372,7 +375,7 @@
       <Value Profile="(Default)"> Type title of a game.</Value>
     </Setting>
     <Setting Name="text_instruct2_games_type_custom_msg" Type="System.String" Scope="User">
-      <Value Profile="(Default)"> Enter \'/exit\' to quit;\n Enter \'/help\' for more commands.</Value>
+      <Value Profile="(Default)"> Enter \'/exit\' to quit;\n Enter \'/back\' to return to previous.</Value>
     </Setting>
   </Settings>
 </SettingsFile>
