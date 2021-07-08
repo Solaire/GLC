@@ -55,7 +55,7 @@ Clone the repo and build. The program uses following nuGet packages:
 
 ## Contributing
 You can support the project in the following ways:
-- Go to [Issues](../../issues) to identify bugs or make suggestions;
+- Go to [Issues](/Solaire/GLC/issues) to identify bugs or make suggestions;
 - Fork the repo, make some changes, and submit a pull request.
 
 ## [License](LICENSE)
