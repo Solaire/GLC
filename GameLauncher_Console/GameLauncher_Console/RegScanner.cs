@@ -323,7 +323,7 @@ namespace GameLauncher_Console
 
 							strID = Path.GetFileName(subkey.Name);
 							strTitle = GetRegStrVal(subkey, GOG_GAME_NAME);
-							CLogger.LogDebug($"* {strTitle}");
+							CLogger.LogDebug($"- {strTitle}");
 							strLaunch = strClientPath + GOG_LAUNCH + strGameID + GOG_PATH + strGamePath;
 							strIconPath = GetRegStrVal(subkey, GOG_GAME_LAUNCH).Trim(new char[] { ' ', '"' });
 							using (RegistryKey uninstKey = Registry.LocalMachine.OpenSubKey(strUninstKeyName, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
@@ -385,7 +385,7 @@ namespace GameLauncher_Console
 					{
 						strID = Path.GetFileName(data.Name);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"* {strTitle}");
+						CLogger.LogDebug($"- {strTitle}");
 						strLaunch = UPLAY_LAUNCH + GetUplayGameID(Path.GetFileNameWithoutExtension(data.Name));
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
@@ -489,7 +489,7 @@ namespace GameLauncher_Console
 						}
 					}
 
-					CLogger.LogDebug($"* {strTitle}");
+					CLogger.LogDebug($"- {strTitle}");
 					if (string.IsNullOrEmpty(strLaunch))
 						strLaunch = CGameFinder.FindGameBinaryFile(install, strTitle);
 					strAlias = GetAlias(Path.GetFileNameWithoutExtension(install));
@@ -539,7 +539,7 @@ namespace GameLauncher_Console
 					{
 						strID = Path.GetFileName(data.Name);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"* {strTitle}");
+						CLogger.LogDebug($"- {strTitle}");
 						strLaunch = BETHESDA_LAUNCH + GetRegStrVal(data, BETHESDA_PRODUCT_ID) + ".exe";
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						if (string.IsNullOrEmpty(strIconPath))
@@ -594,7 +594,7 @@ namespace GameLauncher_Console
 					{
 						strID = Path.GetFileName(data.Name);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"* {strTitle}");
+						CLogger.LogDebug($"- {strTitle}");
 						strLaunch = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
 						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
@@ -648,7 +648,7 @@ namespace GameLauncher_Console
 					{
 						strID = Path.GetFileName(data.Name);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"* {strTitle}");
+						CLogger.LogDebug($"- {strTitle}");
 						strLaunch = loc + "\\" + BIGFISH_LAUNCH;
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });

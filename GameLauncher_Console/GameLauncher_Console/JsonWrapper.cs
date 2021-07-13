@@ -558,7 +558,7 @@ namespace GameLauncher_Console
 
 						string strID = Path.GetFileName(file);
 						string strTitle = app.SubItems["name"];
-						CLogger.LogDebug($"* {strTitle}");
+						CLogger.LogDebug($"- {strTitle}");
 						string strLaunch = STEAM_LAUNCH + id;
 						string strIconPath = "";
 						string strUninstall = "";
@@ -576,13 +576,17 @@ namespace GameLauncher_Console
 									strIconPath = CRegScanner.GetRegStrVal(key2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 							}
 							if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
+							{
 								strIconPath = CGameFinder.FindGameBinaryFile(lib + "\\common\\" + app.SubItems["installdir"], strTitle);
-							strUninstall = STEAM_UNINST + id;
-							strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strIconPath));
+								strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strIconPath));
+							}
+							else
+								strAlias = CRegScanner.GetAlias(strTitle);
 							if (strAlias.Length > strTitle.Length)
 								strAlias = CRegScanner.GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
+							strUninstall = STEAM_UNINST + id;
 							gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						}
 					}
@@ -685,6 +689,7 @@ namespace GameLauncher_Console
 #else
 */
 						HtmlWeb web = new HtmlWeb();
+						web.UseCookies = true;
 						HtmlAgilityPack.HtmlDocument doc = web.Load(url);
 						doc.OptionUseIdAttribute = true;
 //#endif
@@ -721,8 +726,8 @@ namespace GameLauncher_Console
 											//string strIconPath = GetStringProperty(game, "logo");  // TODO: Use logo to download icon
 											string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
 
-											// Add installed games
-											CLogger.LogDebug($"* {strTitle}");
+											// Add not-installed games
+											CLogger.LogDebug($"- *{strTitle}");
 											gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 										}
 									}
@@ -786,7 +791,7 @@ namespace GameLauncher_Console
 					{
 						string strID = Path.GetFileName(file);
 						string strTitle = GetStringProperty(document.RootElement, "DisplayName");
-						CLogger.LogDebug($"* {strTitle}");
+						CLogger.LogDebug($"- {strTitle}");
 						string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
 						string strAlias = "";
 						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Epic);
@@ -850,7 +855,7 @@ namespace GameLauncher_Console
 								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
 
 								strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
-								CLogger.LogDebug($"* {strTitle}");
+								CLogger.LogDebug($"- {strTitle}");
 								strLaunch = CGameFinder.FindGameBinaryFile(dir, strTitle);
 								strAlias = CRegScanner.GetAlias(strLaunch);
 								if (strAlias.Length > strTitle.Length)
@@ -924,7 +929,7 @@ namespace GameLauncher_Console
 												{
 													string strID = id.ToString();
 													string strTitle = title.ToString();
-													CLogger.LogDebug($"* {strTitle}*");
+													CLogger.LogDebug($"- *{strTitle}");
 													string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
 													gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 												}
@@ -1003,7 +1008,7 @@ namespace GameLauncher_Console
 										strLaunch = CGameFinder.FindGameBinaryFile(path.ToString(), strTitle);
 								}
 
-								CLogger.LogDebug($"* {strTitle}");
+								CLogger.LogDebug($"- {strTitle}");
 
 								if (!string.IsNullOrEmpty(strLaunch))
 								{
@@ -1079,7 +1084,7 @@ namespace GameLauncher_Console
 										{
 											string strTitle = GetStringProperty(prod, "prod_name");
 											//string strIconPath = GetStringProperty(prod, "prod_dev_image");  // TODO: Use prod_dev_image to download icon 
-											CLogger.LogDebug($"* {strTitle}");
+											CLogger.LogDebug($"- *{strTitle}");
 											string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.IGClient);
 											gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 										}
@@ -1134,7 +1139,7 @@ namespace GameLauncher_Console
 							{
 								string strID = rdr.GetString(0);
 								string strTitle = rdr.GetString(2);
-								CLogger.LogDebug($"* {strTitle}");
+								CLogger.LogDebug($"- {strTitle}");
 								string strLaunch = AMAZON_LAUNCH + strID;
 								string strIconPath = "";
 								string strUninstall = "";
@@ -1194,7 +1199,7 @@ namespace GameLauncher_Console
 									{
 										string strID = rdr.GetString(2); // TODO: Should I use Id or ProductIdStr?
 										string strTitle = rdr.GetString(3);
-										CLogger.LogDebug($"* {strTitle}");
+										CLogger.LogDebug($"- *{strTitle}");
 										string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Amazon);
 										gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 									}
@@ -1287,7 +1292,7 @@ namespace GameLauncher_Console
 											// Add installed games
 											if (!string.IsNullOrEmpty(strLaunch))
 											{
-												CLogger.LogDebug($"* {strTitle}");
+												CLogger.LogDebug($"- {strTitle}");
 												gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 											}
 										}
@@ -1296,7 +1301,7 @@ namespace GameLauncher_Console
 								// Add not-installed games
 								if (string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
 								{
-									CLogger.LogDebug($"* {strTitle}*");
+									CLogger.LogDebug($"- *{strTitle}");
 									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 								}
 							}

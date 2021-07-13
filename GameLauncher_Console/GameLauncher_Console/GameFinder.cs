@@ -195,7 +195,7 @@ namespace GameLauncher_Console
 					Shell32.ShellLinkObject link = (Shell32.ShellLinkObject)folderItem.GetLink;
 					string strID			= Path.GetFileNameWithoutExtension(file);
 					string strTitle			= strID;
-					CLogger.LogDebug($"* {strTitle}");
+					CLogger.LogDebug($"- {strTitle}");
 					string strLaunch		= link.Path;
 					string strUninstall		= "";  // N/A
 					string strAlias			= CRegScanner.GetAlias(strTitle);
@@ -220,7 +220,7 @@ namespace GameLauncher_Console
 			{
 				string strID			= Path.GetFileNameWithoutExtension(file);
 				string strTitle			= strID;
-				CLogger.LogDebug($"* {strTitle}");
+				CLogger.LogDebug($"- {strTitle}");
 				string strLaunch		= Path.GetFullPath(file);
 				string strUninstall		= ""; // N/A
 				string strAlias			= CRegScanner.GetAlias(strTitle);

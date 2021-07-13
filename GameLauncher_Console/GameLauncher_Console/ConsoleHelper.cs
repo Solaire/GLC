@@ -647,7 +647,36 @@ namespace GameLauncher_Console
 				{
 					Console.SetCursorPosition(0, Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
 					CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
-					Console.WriteLine("│ {0} │", options[CDock.m_nCurrentSelection]);
+					string left = "│";
+					string right = "│";
+					if (CDock.m_nSelectedPlatform > -1)
+					{
+						CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
+						/*
+						if (selectedGame.Alias.Length > 0)
+							left = string.Format("│ {0} │ [{1}] │", selectedGame.Title, selectedGame.Alias);
+						else
+						*/
+							left = string.Format("│ {0} │", selectedGame.Title);
+						/*
+						if (CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.All ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Favourites ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Hidden ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.New ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.NotInstalled ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Search ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Unknown)
+						*/
+							right = string.Format("│ {0} │", selectedGame.PlatformString);
+					}
+					else
+                    {
+						//int platform = CGameData.GetPlatformString(CGameData.GetPlatformEnum(platform));
+						string platform = options[CDock.m_nCurrentSelection];
+						platform = platform.Substring(0, platform.IndexOf(": "));
+						left = string.Format("│ {0} │", platform);
+					}
+					Console.WriteLine(left + right.PadLeft(Console.WindowWidth - left.Length - 1));
 				}
 				catch (Exception e)
 				{
@@ -1300,11 +1329,39 @@ namespace GameLauncher_Console
 				try
                 {
 					Console.SetCursorPosition(0, Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
-					CDock.ClearInputLine(cols);
+					//CDock.ClearInputLine(cols);
+					CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
 					CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
-					Console.WriteLine($"│ {strCurrentOption} │");
-					Thread.Sleep(5);
-                }
+					string left = "│";
+					string right = "│";
+					if (CDock.m_nSelectedPlatform > -1)
+					{
+						CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
+						/*
+						if (selectedGame.Alias.Length > 0)
+							left = string.Format("│ {0} │ [{1}] │", selectedGame.Title, selectedGame.Alias);
+						else
+						*/
+							left = string.Format("│ {0} │", selectedGame.Title);
+						/*
+						if (CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.All ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Favourites ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Hidden ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.New ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.NotInstalled ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Search ||
+							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Unknown)
+						*/
+							right = string.Format("│ {0} │", selectedGame.PlatformString);
+					}
+					else
+                    {
+						//int platform = CGameData.GetPlatformString(CGameData.GetPlatformEnum(platform));
+						left = string.Format("│ {0} │", strCurrentOption.Substring(0, strCurrentOption.IndexOf(": ")));
+					}
+					Console.WriteLine(left + right.PadLeft(Console.WindowWidth - left.Length - 1));
+					Thread.Sleep(5);  // image sometimes become written over otherwise
+				}
 				catch (Exception e)
                 {
 					CLogger.LogError(e);
@@ -1436,7 +1493,7 @@ namespace GameLauncher_Console
 					optionsNew = new string[nMatches];
 					foreach (var match in matches.OrderByDescending(j => j.Value))
 					{
-						CLogger.LogInfo("* [{0}%] {1}. {2}", match.Value, i, match.Key);
+						CLogger.LogInfo("- [{0}%] {1}. {2}", match.Value, i, match.Key);
 						if (i == 0 && match.Value >= (int)CGameData.Match.ExactAlias)
 						{
 							optionsNew = new string[1];
@@ -1445,9 +1502,9 @@ namespace GameLauncher_Console
 							if (consoleOutput)
 							{
 								if (match.Value == (int)CGameData.Match.ExactTitle)
-									Console.WriteLine("* {0}: {1}", CGameData.GetDescription(CGameData.Match.ExactTitle), match.Key);
+									Console.WriteLine("- {0}: {1}", CGameData.GetDescription(CGameData.Match.ExactTitle), match.Key);
 								else
-									Console.WriteLine("* {0}: {1}", CGameData.GetDescription(CGameData.Match.ExactAlias), match.Key);
+									Console.WriteLine("- {0}: {1}", CGameData.GetDescription(CGameData.Match.ExactAlias), match.Key);
 								break;
 							}
 						}
