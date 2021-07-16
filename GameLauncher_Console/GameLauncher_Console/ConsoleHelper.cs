@@ -643,45 +643,7 @@ namespace GameLauncher_Console
 				Console.WriteLine("... ({0}/{1})", nPage + 1, pages);
 			if (m_MenuType == MenuType.cType_Grid)
 			{
-				try
-				{
-					Console.SetCursorPosition(0, Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
-					CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
-					string left = "│";
-					string right = "│";
-					if (CDock.m_nSelectedPlatform > -1)
-					{
-						CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
-						/*
-						if (selectedGame.Alias.Length > 0)
-							left = string.Format("│ {0} │ [{1}] │", selectedGame.Title, selectedGame.Alias);
-						else
-						*/
-							left = string.Format("│ {0} │", selectedGame.Title);
-						/*
-						if (CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.All ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Favourites ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Hidden ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.New ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.NotInstalled ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Search ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Unknown)
-						*/
-							right = string.Format("│ {0} │", selectedGame.PlatformString);
-					}
-					else
-                    {
-						//int platform = CGameData.GetPlatformString(CGameData.GetPlatformEnum(platform));
-						string platform = options[CDock.m_nCurrentSelection];
-						platform = platform.Substring(0, platform.IndexOf(": "));
-						left = string.Format("│ {0} │", platform);
-					}
-					Console.WriteLine(left + right.PadLeft(Console.WindowWidth - left.Length - 1));
-				}
-				catch (Exception e)
-				{
-					CLogger.LogError(e);
-				}
+				DrawInfoBar(options[CDock.m_nCurrentSelection], cols);
 			}
 
 			do
@@ -1046,6 +1008,52 @@ namespace GameLauncher_Console
 			return nSelection;
 		}
 
+		public void DrawInfoBar(string selection, CConfig.Colours cols)
+        {
+			try
+			{
+				Console.SetCursorPosition(0, Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
+				//CDock.ClearInputLine(cols);
+				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
+				CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
+				string left = "│";
+				string right = "│";
+				if (CDock.m_nSelectedPlatform > -1)
+				{
+					CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
+					/*
+					if (selectedGame.Alias.Length > 0)
+						left = string.Format("│ {0} │ [{1}] │", selectedGame.Title, selectedGame.Alias);
+					else
+					*/
+					left = string.Format("│ {0} │", selectedGame.Title);
+					/*
+					if (CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.All ||
+						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Favourites ||
+						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Hidden ||
+						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.New ||
+						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.NotInstalled ||
+						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Search ||
+						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Unknown)
+					*/
+					right = string.Format("│ {0} │", selectedGame.PlatformString);
+				}
+				else
+				{
+					//int platform = CGameData.GetPlatformString(CGameData.GetPlatformEnum(platform));
+					//left = string.Format("│ {0} │", strCurrentOption.Substring(0, strCurrentOption.IndexOf(": ")));
+					selection = selection.Substring(0, selection.IndexOf(": "));
+					left = string.Format("│ {0} │", selection);
+				}
+				Console.WriteLine(left + right.PadLeft(Console.WindowWidth - left.Length - 1));
+				Thread.Sleep(5);  // image sometimes become written over otherwise
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+		}
+
 		public void DrawIcon(int nY, int nItem, string strItem, ConsoleColor? iconColour)
         {
 			var t = Task.Run(() =>
@@ -1323,49 +1331,10 @@ namespace GameLauncher_Console
 			CDock.SetFgColour(cols.highlightCC, cols.highlightLtCC);
 			if (m_MenuType == MenuType.cType_List)
 				Console.Write(strCurrentOption);
-			else if (m_ConsoleState == ConsoleState.cState_Navigate)
+			else if (m_ConsoleState == ConsoleState.cState_Navigate)  // if (m_MenuType == MenuType.cType_Grid &&
 			{
 				Console.Write(strCurrentOption.Substring(0, Math.Min(strCurrentOption.Length, m_nSpacingPerLine - CDock.COLUMN_CUSHION)));
-				try
-                {
-					Console.SetCursorPosition(0, Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
-					//CDock.ClearInputLine(cols);
-					CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
-					CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
-					string left = "│";
-					string right = "│";
-					if (CDock.m_nSelectedPlatform > -1)
-					{
-						CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
-						/*
-						if (selectedGame.Alias.Length > 0)
-							left = string.Format("│ {0} │ [{1}] │", selectedGame.Title, selectedGame.Alias);
-						else
-						*/
-							left = string.Format("│ {0} │", selectedGame.Title);
-						/*
-						if (CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.All ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Favourites ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Hidden ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.New ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.NotInstalled ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Search ||
-							CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Unknown)
-						*/
-							right = string.Format("│ {0} │", selectedGame.PlatformString);
-					}
-					else
-                    {
-						//int platform = CGameData.GetPlatformString(CGameData.GetPlatformEnum(platform));
-						left = string.Format("│ {0} │", strCurrentOption.Substring(0, strCurrentOption.IndexOf(": ")));
-					}
-					Console.WriteLine(left + right.PadLeft(Console.WindowWidth - left.Length - 1));
-					Thread.Sleep(5);  // image sometimes become written over otherwise
-				}
-				catch (Exception e)
-                {
-					CLogger.LogError(e);
-                }
+				DrawInfoBar(strCurrentOption, cols);
 			}
 
 			try
