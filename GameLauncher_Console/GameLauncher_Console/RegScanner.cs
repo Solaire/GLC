@@ -247,7 +247,7 @@ namespace GameLauncher_Console
 				CJsonWrapper.GetEpicGames(gameDataList);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", GOG_NAME_LONG.ToUpper());
-				GetGogGames(gameDataList);
+				CJsonWrapper.GetGogGames(gameDataList);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", IG_NAME_LONG.ToUpper());
 				CJsonWrapper.GetIGGames(gameDataList);
@@ -274,81 +274,6 @@ namespace GameLauncher_Console
 			}
 
 			return gameDataList;
-		}
-
-		/// <summary>
-		/// Find installed GOG games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetGogGames(List<RegistryGameData> gameDataList)
-		{
-			string strClientPath = "";
-
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM
-			{
-				if (key == null)
-				{
-					CLogger.LogInfo("{0} client not found in the registry.", GOG_NAME.ToUpper());
-					return;
-				}
-
-				strClientPath = GetRegStrVal(key, GOG_CLIENT) + "\\" + GOG_GALAXY_EXE;
-			}
-
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_GAMES, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM
-			{
-				if(key == null)
-				{
-					CLogger.LogInfo("{0} folder not found in the registry.", GOG_NAME.ToUpper());
-					return;
-				}
-
-				CLogger.LogInfo("{0} {1} games found", key.GetSubKeyNames().Length, GOG_NAME.ToUpper());
-				foreach(string strSubkeyName in key.GetSubKeyNames())
-				{
-					using (RegistryKey subkey = key.OpenSubKey(strSubkeyName, RegistryKeyPermissionCheck.ReadSubTree))
-					{
-						string strID = "";
-						string strTitle = "";
-						string strLaunch = "";
-						string strIconPath = "";
-						string strUninstall = "";
-						string strAlias = "";
-						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.GOG);
-						try
-						{
-							string strGameID = GetRegStrVal(subkey, GOG_GAME_ID);
-							string strGamePath = GetRegStrVal(subkey, GOG_GAME_PATH);
-							string strUninstKeyName = NODE32_REG + "\\" + strGameID + INSTALLSHIELD;
-
-							strID = Path.GetFileName(subkey.Name);
-							strTitle = GetRegStrVal(subkey, GOG_GAME_NAME);
-							CLogger.LogDebug($"- {strTitle}");
-							strLaunch = strClientPath + GOG_LAUNCH + strGameID + GOG_PATH + strGamePath;
-							strIconPath = GetRegStrVal(subkey, GOG_GAME_LAUNCH).Trim(new char[] { ' ', '"' });
-							using (RegistryKey uninstKey = Registry.LocalMachine.OpenSubKey(strUninstKeyName, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-							{
-								if (uninstKey != null)
-								{
-									strUninstall = GetRegStrVal(uninstKey, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
-									strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(uninstKey, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
-								}
-							}
-							if (strAlias.Length > strTitle.Length)
-								strAlias = GetAlias(strTitle);
-							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-								strAlias = "";
-						}
-						catch (Exception e)
-                        {
-							CLogger.LogError(e);
-                        }
-						if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-					}
-				}
-				CLogger.LogDebug("-------------------");
-			}
 		}
 
 		/// <summary>
@@ -686,6 +611,17 @@ namespace GameLauncher_Console
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetEpicGames(List<RegistryGameData> gameDataList)
+		{
+			// moved to JsonWrapper.cs
+		}
+		*/
+
+		/*
+		/// <summary>
+		/// Find installed GOG games
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		private static void GetGogGames(List<RegistryGameData> gameDataList)
 		{
 			// moved to JsonWrapper.cs
 		}

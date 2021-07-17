@@ -438,7 +438,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format($"Malformed {file} file!"));
+				CLogger.LogError(e, $"Malformed {file} file!");
 				Console.WriteLine($"ERROR: Malformed {file} file!");
 				return false;
 			}
@@ -1127,7 +1127,7 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+				using (var con = new SQLiteConnection($"Data Source={db}"))
 				{
 					con.Open();
 
@@ -1173,7 +1173,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
 			}
 
 			// Get not-installed games
@@ -1187,7 +1187,7 @@ namespace GameLauncher_Console
 					CLogger.LogDebug("{0} not-installed games:", AMAZON_NAME.ToUpper());
 					try
 					{
-						using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+						using (var con = new SQLiteConnection($"Data Source={db}"))
 						{
 							con.Open();
 
@@ -1209,9 +1209,148 @@ namespace GameLauncher_Console
 					}
 					catch (Exception e)
 					{
-						CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
 					}
 				}
+			}
+			CLogger.LogDebug("-------------------");
+		}
+
+		/// <summary>
+		/// Find installed and owned GOG games (from SQLite database)
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetGogGames(List<CRegScanner.RegistryGameData> gameDataList)
+		{
+			const string GOG_NAME = "GOG";
+			const string GOG_DB = @"\GOG.com\Galaxy\storage\galaxy-2.0.db";
+
+			/*
+			productId from ProductAuthorizations
+			productId, installationPath from InstalledBaseProducts
+			productId, images, title from LimitedDetails
+			//images = icon from json
+			id, gameReleaseKey from PlayTasks
+			playTaskId, executablePath, commandLineArgs from PlayTaskLaunchParameters
+			
+			*/
+
+			// Get installed games
+			string db = GetFolderPath(SpecialFolder.CommonApplicationData) + GOG_DB;
+			if (!File.Exists(db))
+            {
+				CLogger.LogInfo("{0} database not found.", GOG_NAME.ToUpper());
+				return;
+            }
+
+			try
+			{
+				using (var con = new SQLiteConnection($"Data Source={db}"))
+				{
+					con.Open();
+
+					// Get both installed and not-installed games
+
+					using (var cmd = new SQLiteCommand(string.Format("SELECT productId from ProductAuthorizations"), con))
+					using (SQLiteDataReader rdr = cmd.ExecuteReader())
+					{
+						while (rdr.Read())
+						{
+							int id = rdr.GetInt32(0);
+
+							using (var cmd2 = new SQLiteCommand($"SELECT images, title from LimitedDetails WHERE productId = {id};", con))
+							using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
+							{
+								while (rdr2.Read())
+								{
+									// To be safe, we should probably confirm "gog_{id}" is correct here with
+									// "SELECT releaseKey FROM ProductsToReleaseKeys WHERE gogId = {id};"
+									string strID = $"gog_{id}";
+									string strTitle = rdr2.GetString(1);
+									string strAlias = "";
+									string strLaunch = "";
+									string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.GOG);
+
+									strAlias = CRegScanner.GetAlias(strTitle);
+									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+										strAlias = "";
+
+									using (var cmd3 = new SQLiteCommand($"SELECT installationPath FROM InstalledBaseProducts WHERE productId = {id};", con))
+									using (SQLiteDataReader rdr3 = cmd3.ExecuteReader())
+									{
+										while (rdr3.Read())
+										{
+											using (var cmd4 = new SQLiteCommand($"SELECT id FROM PlayTasks WHERE gameReleaseKey = '{strID}';", con))
+											using (SQLiteDataReader rdr4 = cmd4.ExecuteReader())
+											{
+												while (rdr4.Read())
+												{
+													int task = rdr4.GetInt32(0);
+
+													using (var cmd5 = new SQLiteCommand($"SELECT executablePath, commandLineArgs FROM PlayTaskLaunchParameters WHERE playTaskId = {task};", con))
+													using (SQLiteDataReader rdr5 = cmd5.ExecuteReader())
+													{
+														while (rdr5.Read())
+														{
+															// Add installed games
+															strLaunch = rdr5.GetString(0);
+															string args = rdr5.GetString(1);
+															if (!string.IsNullOrEmpty(strLaunch))
+															{
+																if (!string.IsNullOrEmpty(args))
+																{
+																	strLaunch += " " + args;
+																}
+																CLogger.LogDebug($"- {strTitle}");
+																gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+
+									// Add not-installed games
+									if (string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+									{
+										// TODO: Use icon from images (json) to download icons
+										/*
+										string images = rdr2.GetString(0);
+										string iconUrl = "";
+
+										var options = new JsonDocumentOptions
+										{
+											AllowTrailingCommas = true
+										};
+
+										using (JsonDocument document = JsonDocument.Parse(@images, options))
+										{
+											iconUrl = GetStringProperty(document.RootElement, "icon");
+										}
+
+										if (!string.IsNullOrEmpty(iconUrl))
+										{
+											string iconFile = string.Format("{0}.{1}", strTitle, Path.GetExtension(iconUrl))
+											using (var client = new WebClient())
+											{
+												client.DownloadFile(iconUrl, $"customImages\\{iconFile}");
+											}
+										}
+										*/
+										CLogger.LogDebug($"- *{strTitle}");
+										gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+									}
+								}
+							}
+						}
+					}
+					con.Close();
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", GOG_NAME.ToUpper()));
 			}
 			CLogger.LogDebug("-------------------");
 		}
@@ -1235,7 +1374,7 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+				using (var con = new SQLiteConnection($"Data Source={db}"))
 				{
 					con.Open();
 
@@ -1250,7 +1389,7 @@ namespace GameLauncher_Console
 							if (!rdr.GetString(2).Equals("assets"))  // i.e., just "game" or "tool"
 							{
 								int id = rdr.GetInt32(0);
-								string strID = string.Format($"itch_{id}");
+								string strID = $"itch_{id}";
 								string strTitle = rdr.GetString(1);
 								string strAlias = "";
 								string strLaunch = "";
@@ -1266,8 +1405,6 @@ namespace GameLauncher_Console
 									{
 										string verdict = rdr2.GetString(0);
 										strAlias = CRegScanner.GetAlias(strTitle);
-										if (strAlias.Length > strTitle.Length)
-											strAlias = CRegScanner.GetAlias(strTitle);
 										if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 											strAlias = "";
 
@@ -1312,7 +1449,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", ITCH_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", ITCH_NAME.ToUpper()));
 			}
 			CLogger.LogDebug("-------------------");
 		}
@@ -1357,7 +1494,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format($"ERROR: Malformed {file} file!"));
+				CLogger.LogError(e, $"ERROR: Malformed {file} file!");
 				return false;
 			}
 			return true;

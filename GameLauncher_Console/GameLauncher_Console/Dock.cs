@@ -1054,7 +1054,7 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
-							Process.Start(string.Format($"amazon-games://play/{game.ID}"));
+							Process.Start($"amazon-games://play/{game.ID}");
 							return true;
 						}
 						return false;
