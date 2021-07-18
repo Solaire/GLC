@@ -82,8 +82,14 @@ namespace GameLauncher_Console
 		public const string BIGFISH_NAME			= "BigFish";
 		public const string BIGFISH_NAME_LONG		= "Big Fish";
 		private const string BIGFISH_GAME_FOLDER	= "BFG-";
-		private const string BIGFISH_LAUNCH			= "LaunchGame.bfg";
+		//private const string BIGFISH_LAUNCH			= "LaunchGame.bfg";
 		public const string BIGFISH_REG				= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
+		private const string BIGFISH_GAMES			= @"SOFTWARE\WOW6432Node\Big Fish Games\Persistence\GameDB"; // HKLM32
+		private const string BIGFISH_ID				= "WrapID";
+		private const string BIGFISH_PATH			= "ExecutablePath";
+		private const string BIGFISH_ACTIV			= "Activated";
+		private const string BIGFISH_DAYS			= "DaysLeft";
+		private const string BIGFISH_TIME			= "TimeLeft";
 
 		// Epic Games Launcher
 		//public const string EPIC_NAME				= "Epic";
@@ -241,7 +247,7 @@ namespace GameLauncher_Console
 				GetBethesdaGames(gameDataList);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", BIGFISH_NAME_LONG.ToUpper());
-				GetBigFishGames(gameDataList);
+				GetBigFishGames(gameDataList, bExpensiveIcons);
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", EPIC_NAME_LONG.ToUpper());
 				CJsonWrapper.GetEpicGames(gameDataList);
@@ -543,11 +549,11 @@ namespace GameLauncher_Console
 		/// Find installed Big Fish games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetBigFishGames(List<RegistryGameData> gameDataList)
+		private static void GetBigFishGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
 		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
+			List<RegistryKey> keyList;
 
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(BIGFISH_GAMES, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
 				if (key == null)
 				{
@@ -555,14 +561,16 @@ namespace GameLauncher_Console
 					return;
 				}
 
-				keyList = FindGameFolders(key, BIGFISH_GAME_FOLDER);
+				keyList = FindGameFolders(key, "");
 
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, BIGFISH_NAME.ToUpper());
 				foreach (var data in keyList)
 				{
-					string loc = GetRegStrVal(data, GAME_INSTALL_PATH);
+					string wrap = Path.GetFileName(data.Name);
+					if (wrap.Equals("F7315T1L1"))  // Big Fish Casino
+						continue;
 
-					string strID = "";
+					string strID = "bfg_" + wrap;
 					string strTitle = "";
 					string strLaunch = "";
 					string strIconPath = "";
@@ -571,24 +579,55 @@ namespace GameLauncher_Console
 					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.BigFish);
 					try
 					{
-						strID = Path.GetFileName(data.Name);
-						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = loc + "\\" + BIGFISH_LAUNCH;
-						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
-						if (strAlias.Length > strTitle.Length)
+						bool found = false;
+						strTitle = GetRegStrVal(data, "Name");
+
+						// If this is an expired trial, count it as not-installed
+						int activated = (int)GetRegDWORDVal(data, BIGFISH_ACTIV);
+						int daysLeft = (int)GetRegDWORDVal(data, BIGFISH_DAYS);
+						int timeLeft = (int)GetRegDWORDVal(data, BIGFISH_TIME);
+						if (activated > 0 || timeLeft > 0 || daysLeft > 0)
+						{
+							found = true;
+							CLogger.LogDebug($"- {strTitle}");
+							strLaunch = GetRegStrVal(data, BIGFISH_PATH);
 							strAlias = GetAlias(strTitle);
-						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-							strAlias = "";
+							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+								strAlias = "";
+
+							List<RegistryKey> unKeyList;
+							using (RegistryKey key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+							{
+								if (key2 != null)
+								{
+									unKeyList = FindGameFolders(key2, BIGFISH_GAME_FOLDER);
+									foreach (var data2 in unKeyList)
+									{
+										if (GetRegStrVal(data2, BIGFISH_ID).Equals(wrap))
+										{
+											strIconPath = GetRegStrVal(data2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+											strUninstall = GetRegStrVal(data2, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
+										}
+									}
+								}
+							}
+							if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
+								strIconPath = CGameFinder.FindGameBinaryFile(Path.GetDirectoryName(strLaunch), strTitle);
+							if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
+								new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+						}
+
+						// Add not-installed games
+						if (!found)
+						{
+							CLogger.LogDebug($"- *{strTitle}");
+							gameDataList.Add(new RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+						}
 					}
 					catch (Exception e)
 					{
 						CLogger.LogError(e);
 					}
-					if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 				}
 				CLogger.LogDebug("------------------------");
 			}
@@ -732,9 +771,10 @@ namespace GameLauncher_Console
 				{
 					foreach(var sub in root.GetSubKeyNames())
 					{
-						if(!(sub.Equals("Microsoft")) && sub.IndexOf(strFolder, StringComparison.OrdinalIgnoreCase) >= 0)
+						if(!(sub.Equals("Microsoft")))
 						{
-							gameKeys.Add(root.OpenSubKey(sub, RegistryKeyPermissionCheck.ReadSubTree));
+							if (string.IsNullOrEmpty(strFolder) || sub.IndexOf(strFolder, StringComparison.OrdinalIgnoreCase) >= 0)
+								gameKeys.Add(root.OpenSubKey(sub, RegistryKeyPermissionCheck.ReadSubTree));
 						}
 					}
 				}
@@ -761,6 +801,33 @@ namespace GameLauncher_Console
 				CLogger.LogError(e);
             }
 			return String.Empty;
+		}
+
+		/// <summary>
+		/// Get a value from the registry if it exists
+		/// </summary>
+		/// <param name="key">The registry key</param>
+		/// <param name="valName">The registry value name</param>
+		/// <returns>the value's DWORD (UInt32) data</returns>
+		public static int? GetRegDWORDVal(RegistryKey key, string valName)
+		{
+			try
+			{
+				object valData = key.GetValue(valName);
+				/*
+				Type valType = valData.GetType();
+				if (valData != null && valType == typeof(int))
+				{
+				*/
+					if (int.TryParse(valData.ToString(), out int result))
+						return result;
+				//}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+			return null;
 		}
 
 		/// <summary>

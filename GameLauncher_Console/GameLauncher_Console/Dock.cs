@@ -1058,6 +1058,32 @@ namespace GameLauncher_Console
 							return true;
 						}
 						return false;
+					case CGameData.GamePlatform.BigFish:
+						using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.BIGFISH_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+						{
+							string launcherPath = key.GetValue("InstallationPath") + "\\bfgclient.exe";
+							if (File.Exists(launcherPath))
+							{
+								/*
+								string answerBFG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+								ClearInputLine(cols);
+								if (answerBFG[0] == 'Y' || answerBFG[0] == 'y')
+								{
+									CLogger.LogInfo($"Installing game: {game.Title}");
+								*/
+									Process.Start(launcherPath);
+									return true;
+								//}
+							}
+							else
+							{
+								//SetFgColour(cols.errorCC, cols.errorLtCC);
+								CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.BIGFISH_NAME.ToUpper());
+								Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
+								//Console.ResetColor();
+							}
+						}
+						return false;
 					case CGameData.GamePlatform.Itch:
 						string answerItch = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
@@ -1077,18 +1103,20 @@ namespace GameLauncher_Console
 							string launcherPath = key.GetValue("InstallLocation") + "\\IGClient.exe";
 							if (File.Exists(launcherPath))
 							{
+								/*
 								string answerIG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 								ClearInputLine(cols);
 								if (answerIG[0] == 'Y' || answerIG[0] == 'y')
 								{
 									CLogger.LogInfo($"Installing game: {game.Title}");
+								*/
 									igcProcess.StartInfo.FileName = launcherPath;
 									igcProcess.StartInfo.UseShellExecute = false;
 									igcProcess.StartInfo.RedirectStandardOutput = true;
 									igcProcess.StartInfo.RedirectStandardError = true;
 									igcProcess.Start();
 									return true;
-								}
+								//}
 							}
 							else
 							{
@@ -1105,13 +1133,16 @@ namespace GameLauncher_Console
 							string launcherPath = key.GetValue(CRegScanner.PARADOX_PATH) + "\\Paradox Launcher.exe";
 							if (File.Exists(launcherPath))
 							{
+								/*
 								string answerParadox = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 								ClearInputLine(cols);
 								if (answerParadox[0] == 'Y' || answerParadox[0] == 'y')
 								{
+									CLogger.LogInfo($"Installing game: {game.Title}");
+								*/
 									Process.Start(launcherPath);
 									return true;
-								}
+								//}
 							}
 							else
 							{
