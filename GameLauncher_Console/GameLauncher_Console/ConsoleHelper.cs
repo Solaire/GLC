@@ -1046,7 +1046,7 @@ namespace GameLauncher_Console
 					left = string.Format("│ {0} │", selection);
 				}
 				Console.WriteLine(left + right.PadLeft(Console.WindowWidth - left.Length - 1));
-				Thread.Sleep(5);  // image sometimes become written over otherwise
+				Thread.Sleep(50);  // image sometimes become written over otherwise
 			}
 			catch (Exception e)
 			{
