@@ -32,7 +32,7 @@ namespace GameLauncher_Console
 			GOG = 4,
 			[Description("Ubisoft Connect")]
 			Uplay = 5,
-			[Description("Origin")]  // [soon to be "EA Desktop"]
+			[Description("Origin")]			// [soon to be "EA Desktop"]
 			Origin = 6,
 			[Description("Epic")]
 			Epic = 7,
@@ -54,20 +54,22 @@ namespace GameLauncher_Console
 			Arc = 15,
 			[Description("itch")]
 			Itch = 16,
-			[Description("Paradox")]        // TODO
+			[Description("Paradox")]
 			Paradox = 17,
-			[Description("Plarium Play")]   // TODO
+			[Description("Plarium Play")]	// TODO
 			Plarium = 18,
 			[Description("Twitch")]			// TODO
 			Twitch = 19,
-			[Description("Wargaming.net")]  // TODO
+			[Description("Wargaming.net")]	// TODO
 			Wargaming = 20,
 			[Description("Indiegala Client")]
 			IGClient = 21,
 			[Description("New games")]
 			New = 22,
-			[Description("Not installed")]  // TODO
+			[Description("Not installed")]	// TODO
 			NotInstalled = 23,
+			[Description("Microsoft Store")] // TODO
+			MicrosoftStore = 24
 		}
 
 		public enum Match

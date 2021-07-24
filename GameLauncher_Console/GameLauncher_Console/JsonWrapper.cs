@@ -505,18 +505,26 @@ namespace GameLauncher_Console
 				{
 					SteamWrapper document = new SteamWrapper(libFile);
 					ACF_Struct documentData = document.ACFFileToStruct();
-					ACF_Struct folders = documentData.SubACF[STEAM_LIBARR];
-
+					ACF_Struct folders = new ACF_Struct();
+					if (documentData.SubACF.ContainsKey(STEAM_LIBARR))
+						folders = documentData.SubACF[STEAM_LIBARR];
+					else if (documentData.SubACF.ContainsKey(STEAM_LIBARR.ToLower()))
+						folders = documentData.SubACF[STEAM_LIBARR.ToLower()];
 					for (; nLibs <= STEAM_MAX_LIBS; ++nLibs)
 					{
 						folders.SubItems.TryGetValue(nLibs.ToString(), out string library);
 						if (string.IsNullOrEmpty(library))
 						{
-							nLibs--;
-							break;
+							if (folders.SubACF.ContainsKey(nLibs.ToString()))
+								folders.SubACF[nLibs.ToString()].SubItems.TryGetValue("path", out library);
+							if (string.IsNullOrEmpty(library))
+							{
+								nLibs--;
+								break;
+							}
 						}
 						library += "\\" + STEAM_PATH;
-						if (Directory.Exists(library))
+						if (!library.Equals(strClientPath) && Directory.Exists(library))
 							libs.Add(library);
 					}
 				}

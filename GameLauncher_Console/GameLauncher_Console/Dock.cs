@@ -798,6 +798,8 @@ namespace GameLauncher_Console
 										}
 									}
 									break;
+								//case CGameData.GamePlatform.MicrosoftStore: // TODO?
+								//	break;
 								default:
 									break;
 							}

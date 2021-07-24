@@ -155,12 +155,10 @@ namespace GameLauncher_Console
 		//private const string IG_UNREG				= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall
 		public const string IG_REG					= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
 
-		// Xbox (Microsoft Store)
-		/*
-		public const string XBOX_NAME				= "Xbox";
-		public const string XBOX_NAME_LONG			= "Xbox Game Pass";
-		private const string XBOX_LAUNCH_SUFFIX		= @":\\";
-		*/
+		// Microsoft Store/Xbox Game Pass
+		public const string MS_NAME					= "Microsoft";
+		public const string MS_NAME_LONG			= "Microsoft Store";
+		private const string MS_LAUNCH_SUFFIX		= @":\\";
 
 		// Custom games
 		//public const string CUSTOM_NAME				= "Custom";
@@ -260,6 +258,11 @@ namespace GameLauncher_Console
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", ITCH_NAME_LONG.ToUpper());
 				CJsonWrapper.GetItchGames(gameDataList);
+#if DEBUG
+				Console.Write(".");
+				CLogger.LogInfo("Looking for {0} games...", MS_NAME_LONG.ToUpper());
+				CStoreScanner.GetMSStoreGames(gameDataList);
+#endif
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", ORIGIN_NAME_LONG.ToUpper());
 				GetOriginGames(gameDataList);
@@ -272,11 +275,6 @@ namespace GameLauncher_Console
 				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", UPLAY_NAME_LONG.ToUpper());
 				GetUplayGames(gameDataList, bExpensiveIcons);
-				/*
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", XBOX_NAME_LONG.ToUpper());
-				CStoreScanner.GetXboxGames(gameDataList);
-				*/
 			}
 
 			return gameDataList;

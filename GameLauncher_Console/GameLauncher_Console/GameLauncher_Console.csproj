@@ -175,6 +175,7 @@
     </Compile>
     <Compile Include="RegScanner.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="StoreScanner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -237,6 +238,8 @@
     <Content Include="Resources\20.ico" />
     <Content Include="Resources\21.ico" />
     <Content Include="Resources\22.ico" />
+    <Content Include="Resources\23.ico" />
+    <Content Include="Resources\24.ico" />
     <Content Include="Resources\3.ico" />
     <Content Include="Resources\4.ico" />
     <Content Include="Resources\5.ico" />
