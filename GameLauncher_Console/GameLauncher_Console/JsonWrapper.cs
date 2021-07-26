@@ -1232,6 +1232,9 @@ namespace GameLauncher_Console
 		{
 			const string GOG_NAME = "GOG";
 			const string GOG_DB = @"\GOG.com\Galaxy\storage\galaxy-2.0.db";
+			const string GOG_LAUNCH = " /command=runGame /gameId=";
+			const string GOG_PATH = " /path=";
+			const string GOG_GALAXY_EXE = "\\GalaxyClient.exe";
 
 			/*
 			productId from ProductAuthorizations
@@ -1240,7 +1243,6 @@ namespace GameLauncher_Console
 			//images = icon from json
 			id, gameReleaseKey from PlayTasks
 			playTaskId, executablePath, commandLineArgs from PlayTaskLaunchParameters
-			
 			*/
 
 			// Get installed games
@@ -1250,6 +1252,13 @@ namespace GameLauncher_Console
 				CLogger.LogInfo("{0} database not found.", GOG_NAME.ToUpper());
 				return;
             }
+			string launcherPath = "";
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			{
+				launcherPath = key.GetValue("client") + GOG_GALAXY_EXE;
+				if (!File.Exists(launcherPath))
+					launcherPath = "";
+			}
 
 			try
 			{
@@ -1277,6 +1286,7 @@ namespace GameLauncher_Console
 									string strTitle = rdr2.GetString(1);
 									string strAlias = "";
 									string strLaunch = "";
+									string strIconPath = "";
 									string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.GOG);
 
 									strAlias = CRegScanner.GetAlias(strTitle);
@@ -1301,17 +1311,26 @@ namespace GameLauncher_Console
 														while (rdr5.Read())
 														{
 															// Add installed games
-															strLaunch = rdr5.GetString(0);
-															string args = rdr5.GetString(1);
-															if (!string.IsNullOrEmpty(strLaunch))
+															strIconPath = rdr5.GetString(0);
+															if (string.IsNullOrEmpty(launcherPath))
 															{
-																if (!string.IsNullOrEmpty(args))
+																string args = rdr5.GetString(1);
+																if (!string.IsNullOrEmpty(strLaunch))
 																{
-																	strLaunch += " " + args;
+																	if (!string.IsNullOrEmpty(args))
+																	{
+																		strLaunch += " " + args;
+																	}
 																}
-																CLogger.LogDebug($"- {strTitle}");
-																gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 															}
+															else
+															{
+																strLaunch = "\"" + launcherPath + "\"" + GOG_LAUNCH + id + GOG_PATH + "\"" + Path.GetDirectoryName(strIconPath) + "\" /urlProtocol=\"minimizeClient\"";
+																if (strLaunch.Length > 8191)
+																	strLaunch = "\"" + launcherPath + "\"" + GOG_LAUNCH + id;
+															}
+															CLogger.LogDebug($"- {strTitle}");
+															gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
 														}
 													}
 												}

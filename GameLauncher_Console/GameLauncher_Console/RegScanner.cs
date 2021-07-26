@@ -26,14 +26,7 @@ namespace GameLauncher_Console
 		public const string GOG_NAME_LONG			= "GOG Galaxy";
 		public const string GOG_REG_GAMES			= @"SOFTWARE\WOW6432Node\GOG.com\Games";
 		public const string GOG_REG_CLIENT			= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
-		private const string GOG_CLIENT				= "client";
-		private const string GOG_GAME_ID			= "GameID";
-		private const string GOG_GAME_PATH			= "PATH";
-		private const string GOG_GAME_NAME			= "GAMENAME";
-		private const string GOG_GAME_LAUNCH		= "LAUNCHCOMMAND";
-		private const string GOG_LAUNCH				= " /command=runGame /gameId=";
-		private const string GOG_PATH				= " /path=";
-		private const string GOG_GALAXY_EXE			= "GalaxyClient.exe";
+		public const string GOG_GALAXY_EXE			= "\\GalaxyClient.exe";
 		//private const string GOG_GALAXY_UNREG		= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
 
 		// Ubisoft Connect (formerly Uplay)
@@ -860,6 +853,16 @@ namespace GameLauncher_Console
 		public static string GetSteamGameID(string key)
 		{
 			return Path.GetFileNameWithoutExtension(key.Substring(key.LastIndexOf("_") + 1));
+		}
+
+		/// <summary>
+		/// Scan the key name and extract the Steam game id
+		/// </summary>
+		/// <param name="key">The game string</param>
+		/// <returns>Steam game ID as string</returns>
+		public static string GetGOGGameID(string key)
+		{
+			return key.Substring(4);
 		}
 
 		/// <summary>

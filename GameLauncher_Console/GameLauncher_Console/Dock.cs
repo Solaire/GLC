@@ -696,9 +696,11 @@ namespace GameLauncher_Console
 									Process.Start("steam://open/games");
 									break;
 								case CGameData.GamePlatform.GOG:
+									Process.Start("goggalaxy://");
+									/*
 									using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 									{
-										string launcherPath = key.GetValue("client") + "\\GalaxyClient.exe";
+										string launcherPath = key.GetValue("client") + CRegScanner.GOG_GALAXY_EXE;
 										if (File.Exists(launcherPath))
 											Process.Start(launcherPath);
 										else
@@ -709,6 +711,7 @@ namespace GameLauncher_Console
 											//Console.ResetColor();
 										}
 									}
+									*/
 									break;
 								case CGameData.GamePlatform.Uplay:
 									Process.Start("uplay://");
@@ -1045,6 +1048,18 @@ namespace GameLauncher_Console
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
 							Process.Start(string.Format("steam://install/{0}", CRegScanner.GetSteamGameID(game.ID)));
+							return true;
+						}
+						return false;
+					case CGameData.GamePlatform.GOG:
+						string answerGOG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+						ClearInputLine(cols);
+						if (answerGOG[0] == 'Y' || answerGOG[0] == 'y')
+						{
+							Console.ResetColor();
+							Console.Clear();
+							CLogger.LogInfo($"Installing game: {game.Title}");
+							Process.Start(string.Format("goggalaxy://openGameView/{0}", CRegScanner.GetGOGGameID(game.ID)));
 							return true;
 						}
 						return false;
