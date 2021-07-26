@@ -106,6 +106,44 @@ namespace GameLauncher_Console
 			internal Coord dwFontSize;
 		}
 
+		[DllImport("kernel32.dll", SetLastError = true)]
+		public static extern IntPtr GetStdHandle(int nStdHandle);
+
+		[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+		public static extern bool GetCurrentConsoleFontEx(
+			IntPtr hConsoleOutput,
+			bool bMaximumWindow,
+			[In, Out] CONSOLE_FONT_INFO_EX lpConsoleCurrentFont);
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		public class CONSOLE_FONT_INFO_EX
+		{
+			private int cbSize;
+			public CONSOLE_FONT_INFO_EX()
+			{
+				cbSize = Marshal.SizeOf(typeof(CONSOLE_FONT_INFO_EX));
+			}
+			public int FontIndex;
+			public COORD dwFontSize;
+			public int FontFamily;
+			public int FontWeight;
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+			public string FaceName;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct COORD
+		{
+			public short X;
+			public short Y;
+
+			public COORD(short X, short Y)
+			{
+				this.X = X;
+				this.Y = Y;
+			}
+		};
+
 		[StructLayout(LayoutKind.Explicit)]
 		internal struct Coord
 		{
@@ -115,6 +153,7 @@ namespace GameLauncher_Console
 			internal short Y;
 		}
 
+		public const int STD_OUTPUT_HANDLE = -11;
 		private const int FILE_SHARE_READ = 1;
 		private const int FILE_SHARE_WRITE = 2;
 		private const int GENERIC_READ = unchecked((int)0x80000000);
@@ -232,8 +271,8 @@ namespace GameLauncher_Console
 		/// <param name="yCushion">Text mode spaces between image and border in y direction</param>
 		public static void ShowImageBorder(Size size, Point point, int xCushion, int yCushion)  // showing the border sometimes causes the image to disappear
 		{
-			int linePercent = 4;
-			try
+            int linePercent;
+            try
 			{
 				linePercent = 100 / Console.WindowHeight;
 			}
@@ -292,14 +331,16 @@ namespace GameLauncher_Console
 			if (bPlatform)
 				title = title.Substring(0, title.LastIndexOf(':'));
 
+			string titleFile = string.Concat(title.Split(Path.GetInvalidFileNameChars()));
+
 			if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGCUST)) && !string.IsNullOrEmpty(title))
 			{
 				foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF" })
 				{
-					if (File.Exists(@".\CustomImages\" + title + "." + ext))
+					if (File.Exists(@".\CustomImages\" + titleFile + "." + ext))
 					{
 						bPlatform = false;
-						imgPath = @".\CustomImages\" + title + "." + ext;
+						imgPath = @".\CustomImages\" + titleFile + "." + ext;
 						break;
 					}
 				}
@@ -499,6 +540,12 @@ namespace GameLauncher_Console
 							icon = new Icon(Properties.Resources._20, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(21)))
 							icon = new Icon(Properties.Resources._21, res, res);
+						else if (platform.StartsWith(CGameData.GetPlatformString(22)))          // New
+							icon = new Icon(Properties.Resources._22, res, res);
+						else if (platform.StartsWith(CGameData.GetPlatformString(23)))          // Not installed
+							icon = new Icon(Properties.Resources._23, res, res);
+						else if (platform.StartsWith(CGameData.GetPlatformString(24)))
+							icon = new Icon(Properties.Resources._24, res, res);
 						else if (platform.Equals(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)))	// Settings
 							icon = new Icon(Properties.Resources.settings, res, res);
 						else

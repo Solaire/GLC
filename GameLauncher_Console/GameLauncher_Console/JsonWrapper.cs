@@ -1,4 +1,5 @@
-﻿using IniParser;
+﻿using HtmlAgilityPack;
+using IniParser;
 using Logger;
 using Microsoft.Win32;
 using System;
@@ -6,9 +7,11 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 //using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -51,7 +54,9 @@ namespace GameLauncher_Console
 		private const string GAMES_ARRAY_ICON				= "icon";
 		private const string GAMES_ARRAY_UNINSTALLER		= "uninstaller";
 		private const string GAMES_ARRAY_PLATFORM			= "platform";
+		private const string GAMES_ARRAY_INSTALLED			= "installed";
 		private const string GAMES_ARRAY_FAVOURITE			= "favourite";
+		private const string GAMES_ARRAY_NEW				= "new";
 		private const string GAMES_ARRAY_HIDDEN				= "hidden";
 		private const string GAMES_ARRAY_ALIAS				= "alias";
 		private const string GAMES_ARRAY_FREQUENCY			= "frequency";
@@ -63,11 +68,11 @@ namespace GameLauncher_Console
 		private const string LAST_ARRAY_PERCENT				= "percent";
 
 		private static readonly string currentPath	= Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-		private static readonly string configPath	= currentPath + "\\" + CFG_INI_FILE;
-		private static readonly string configOldPath = currentPath + "\\" + CFGOLD_JSON_FILE;
-		private static readonly string searchPath	= currentPath + "\\" + LAST_JSON_FILE;
-		private static readonly string gamesPath	= currentPath + "\\" + GAME_JSON_FILE;
-		private static readonly string gamesOldPath	= currentPath + "\\" + GAMEOLD_JSON_FILE;
+		private static readonly string configPath	= Path.Combine(currentPath, CFG_INI_FILE);
+		private static readonly string configOldPath = Path.Combine(currentPath, CFGOLD_JSON_FILE);
+		private static readonly string searchPath	= Path.Combine(currentPath, LAST_JSON_FILE);
+		private static readonly string gamesPath	= Path.Combine(currentPath, GAME_JSON_FILE);
+		private static readonly string gamesOldPath	= Path.Combine(currentPath, GAMEOLD_JSON_FILE);
 		private static readonly string version		= Assembly.GetEntryAssembly().GetName().Version.ToString();
 
 		// Configuration data
@@ -159,7 +164,7 @@ namespace GameLauncher_Console
 				}
 				else if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USESCAN))
 				{
-					if (!ImportGames(gamesPath, ref nGameCount, ref verGames, (bool)CConfig.GetConfigBool(CConfig.CFG_USEALPH), (bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE), true))
+					if (!ImportGames(gamesPath, ref nGameCount, ref verGames, (bool)CConfig.GetConfigBool(CConfig.CFG_USEALPH), (bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE), (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true))
 						parseError = true;
 				}
 			}
@@ -172,7 +177,7 @@ namespace GameLauncher_Console
 			{
 				CLogger.LogInfo("{0} is empty, corrupt, or outdated. Scanning for games...", GAME_JSON_FILE);
 				Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-				CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), (bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN));
+				CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), true);
 			}
 
 			return !parseError;
@@ -186,7 +191,7 @@ namespace GameLauncher_Console
 		/// <returns>True is successful, otherwise false</returns>
 		public static bool ExportGames(List<CGameData.CGame> gameList)
 		{
-			CLogger.LogInfo("Save game data to JSON...");
+			CLogger.LogInfo("Saving {0} games to JSON...", gameList.Count);
 			var options = new JsonWriterOptions
 			{
 				Indented = true
@@ -233,7 +238,7 @@ namespace GameLauncher_Console
 		/// <returns>True is successful, otherwise false</returns>
 		public static bool ExportSearch(List<CGameData.CMatch> matchList)
 		{
-			CLogger.LogInfo("Save search data to JSON...");
+			CLogger.LogInfo("Saving search data to JSON...");
 			var options = new JsonWriterOptions
 			{
 				Indented = true
@@ -281,7 +286,7 @@ namespace GameLauncher_Console
 		/// <returns>True is successful, otherwise false</returns>
 		public static bool ExportConfig()
 		{
-			CLogger.LogInfo("Save configuration data to INI...");
+			CLogger.LogInfo("Saving configuration data to INI...");
 
 			try
 			{
@@ -384,7 +389,7 @@ namespace GameLauncher_Console
 		/// Import games from the json file and add them to the global game dictionary.
 		/// <returns>True if successful, otherwise false</returns>
 		/// </summary>
-		private static bool ImportGames(string file, ref int nGameCount, ref Version version, bool alphaSort, bool faveSort, bool ignoreArticle)
+		private static bool ImportGames(string file, ref int nGameCount, ref Version version, bool alphaSort, bool faveSort, bool instSort, bool ignoreArticle)
 		{
 			CLogger.LogInfo("Importing games from JSON...");
 			var options = new JsonDocumentOptions
@@ -416,22 +421,24 @@ namespace GameLauncher_Console
 
 						string strLaunch = GetStringProperty(jElement, GAMES_ARRAY_LAUNCH);
 						string strIconPath = GetStringProperty(jElement, GAMES_ARRAY_ICON);
-						string strUninstaller = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
+						string strUninstall = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
+						bool   bIsInstalled = GetBoolProperty(jElement, GAMES_ARRAY_INSTALLED);
 						bool   bIsFavourite = GetBoolProperty(jElement, GAMES_ARRAY_FAVOURITE);
+						bool   bIsNew = GetBoolProperty(jElement, GAMES_ARRAY_NEW);
 						bool   bIsHidden = GetBoolProperty(jElement, GAMES_ARRAY_HIDDEN);
 						string strAlias = GetStringProperty(jElement, GAMES_ARRAY_ALIAS);
 						string strPlatform = GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
 						double fOccurCount = GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
 
-						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstaller, bIsFavourite, bIsHidden, strAlias, strPlatform, fOccurCount);
+						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, fOccurCount);
 						nGameCount++;
 					}
-					CGameData.SortGames(alphaSort, faveSort, ignoreArticle);
+					CGameData.SortGames(alphaSort, faveSort, instSort, ignoreArticle);
 				}
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e);
+				CLogger.LogError(e, $"Malformed {file} file!");
 				Console.WriteLine($"ERROR: Malformed {file} file!");
 				return false;
 			}
@@ -439,7 +446,326 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed Epic store games (unlike the other platforms, this is scraped from json files instead of the registry)
+		/// Find installed and not-installed Steam games (latter from an html file; requires public profile)
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetSteamGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
+		{
+			const string NODE64_REG			= @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+			const string NODE32_REG			= @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+			const string GAME_DISPLAY_ICON	= "DisplayIcon";
+			const string GAME_INSTALL_PATH	= "InstallPath";
+			const string STEAM_NAME			= "Steam";
+			//const string STEAM_NAME_LONG	= "Steam";
+			const int STEAM_MAX_LIBS		= 64;
+			const string STEAM_GAME_FOLDER	= "Steam App ";
+			const string STEAM_LAUNCH		= "steam://rungameid/";
+			const string STEAM_UNINST		= "steam://uninstall/";
+			const string STEAM_PATH			= "steamapps";
+			const string STEAM_LIBFILE		= "libraryfolders.vdf";
+			const string STEAM_APPFILE		= "SteamAppData.vdf";
+			const string STEAM_USRFILE		= "loginusers.vdf";
+			const string STEAM_LIBARR		= "LibraryFolders";
+			const string STEAM_APPDATA		= "SteamAppData";
+			const string STEAM_APPARR		= "AppState";
+			const string STEAM_USRARR		= "users";
+			const string STEAM_REG			= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
+			
+			string strInstallPath = "";
+			string strClientPath = "";
+
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			{
+				if (key == null)
+				{
+					CLogger.LogInfo("{0} client not found in the registry.", STEAM_NAME.ToUpper());
+					return;
+				}
+
+				strInstallPath = CRegScanner.GetRegStrVal(key, GAME_INSTALL_PATH);
+				strClientPath = Path.Combine(strInstallPath, STEAM_PATH);
+			}
+
+			if (!Directory.Exists(strClientPath))
+			{
+				CLogger.LogInfo("{0} library not found: {1}", STEAM_NAME.ToUpper(), strClientPath);
+				return;
+			}
+
+			string libFile = Path.Combine(strClientPath, STEAM_LIBFILE);
+			List<string> libs = new List<string>
+			{
+				strClientPath
+			};
+			int nLibs = 1;
+
+			try
+			{
+				if (File.Exists(libFile))
+				{
+					SteamWrapper document = new SteamWrapper(libFile);
+					ACF_Struct documentData = document.ACFFileToStruct();
+					ACF_Struct folders = new ACF_Struct();
+					if (documentData.SubACF.ContainsKey(STEAM_LIBARR))
+						folders = documentData.SubACF[STEAM_LIBARR];
+					else if (documentData.SubACF.ContainsKey(STEAM_LIBARR.ToLower()))
+						folders = documentData.SubACF[STEAM_LIBARR.ToLower()];
+					for (; nLibs <= STEAM_MAX_LIBS; ++nLibs)
+					{
+						folders.SubItems.TryGetValue(nLibs.ToString(), out string library);
+						if (string.IsNullOrEmpty(library))
+						{
+							if (folders.SubACF.ContainsKey(nLibs.ToString()))
+								folders.SubACF[nLibs.ToString()].SubItems.TryGetValue("path", out library);
+							if (string.IsNullOrEmpty(library))
+							{
+								nLibs--;
+								break;
+							}
+						}
+						library = Path.Combine(library, STEAM_PATH);
+						if (!library.Equals(strClientPath) && Directory.Exists(library))
+							libs.Add(library);
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), libFile));
+				nLibs--;
+			}
+
+			int i = 0;
+			List<string> allFiles = new List<string>();
+			foreach (string lib in libs)
+			{
+				List<string> libFiles = new List<string>();
+				try
+				{
+					libFiles = Directory.GetFiles(lib, "appmanifest_*.acf", SearchOption.TopDirectoryOnly).ToList();
+					allFiles.AddRange(libFiles);
+					CLogger.LogInfo("{0} {1} games found in library {2}", libFiles.Count, STEAM_NAME.ToUpper(), lib);
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e, string.Format("ERROR: {0} directory read error: ", STEAM_NAME.ToUpper(), lib));
+					continue;
+				}
+
+				foreach (string file in libFiles)
+				{
+					try
+					{
+						SteamWrapper document = new SteamWrapper(file);
+						ACF_Struct documentData = document.ACFFileToStruct();
+						ACF_Struct app = documentData.SubACF[STEAM_APPARR];
+
+						string id = app.SubItems["appid"];
+						if (id.Equals("228980"))  // Steamworks Common Redistributables
+							continue;
+
+						string strID = Path.GetFileName(file);
+						string strTitle = app.SubItems["name"];
+						CLogger.LogDebug($"- {strTitle}");
+						string strLaunch = STEAM_LAUNCH + id;
+						string strIconPath = "";
+						string strUninstall = "";
+						string strAlias = "";
+						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+
+						if (!string.IsNullOrEmpty(strLaunch))
+						{
+							using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE64_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
+											   key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG + "\\" + STEAM_GAME_FOLDER + id, RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
+							{
+								if (key != null)
+									strIconPath = CRegScanner.GetRegStrVal(key, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+								else if (key2 != null)
+									strIconPath = CRegScanner.GetRegStrVal(key2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+							}
+							if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
+							{
+								strIconPath = CGameFinder.FindGameBinaryFile(Path.Combine(Path.Combine(lib, "common"), app.SubItems["installdir"]), strTitle);
+								strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strIconPath));
+							}
+							else
+								strAlias = CRegScanner.GetAlias(strTitle);
+							if (strAlias.Length > strTitle.Length)
+								strAlias = CRegScanner.GetAlias(strTitle);
+							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+								strAlias = "";
+							strUninstall = STEAM_UNINST + id;
+							gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), file));
+					}
+				}
+				i++;
+				if (i > nLibs)
+					CLogger.LogDebug("---------------------");
+			}
+
+			// Get not-installed games
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				// First get Steam user ID
+				ulong userId = (ulong)CConfig.GetConfigULong(CConfig.CFG_STEAMID);
+
+				if (userId < 1)
+				{
+					try
+					{
+						ulong userIdTmp = 0;
+						string userName = "";
+						string userNameTmp = "";
+						string strConfigPath = Path.Combine(strInstallPath, "config");
+						string appFile = Path.Combine(strConfigPath, STEAM_APPFILE);
+
+						if (File.Exists(appFile))
+						{
+							SteamWrapper appDoc = new SteamWrapper(appFile);
+							ACF_Struct appDocData = appDoc.ACFFileToStruct();
+							ACF_Struct appData = appDocData.SubACF[STEAM_APPDATA];
+
+							appData.SubItems.TryGetValue("AutoLoginUser", out userName);
+
+							SteamWrapper usrDoc = new SteamWrapper(Path.Combine(strConfigPath, STEAM_USRFILE));
+							ACF_Struct usrDocData = usrDoc.ACFFileToStruct();
+							ACF_Struct usrData = usrDocData.SubACF[STEAM_USRARR];
+
+							foreach (KeyValuePair<string, ACF_Struct> user in usrData.SubACF)
+							{
+								ulong.TryParse(user.Key, out userIdTmp);
+
+								foreach (KeyValuePair<string, string> userVal in user.Value.SubItems)
+								{
+									if (userVal.Key.Equals("AccountName"))
+									{
+										userNameTmp = userVal.Value;
+										if (userNameTmp.Equals(userName))
+                                            ulong.TryParse(user.Key, out userId);
+									}
+									if (userVal.Key.Equals("MostRecent") && userVal.Value.Equals("1") && string.IsNullOrEmpty(userName))
+									{
+										userId = userIdTmp;
+										userName = userNameTmp;
+										break;
+									}
+								}
+							}
+							if (userId < 1)
+							{
+								userId = userIdTmp;
+								userName = userNameTmp;
+							}
+						}
+						if (userId > 0)
+						{
+							CConfig.SetConfigValue(CConfig.CFG_STEAMID, userId);
+							ExportConfig();
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1} or {2}", STEAM_NAME.ToUpper(), STEAM_APPFILE, STEAM_USRFILE));
+					}
+				}
+
+				if (userId > 0)
+				{
+					// Download game list from public user profile
+					try
+					{
+						string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", CConfig.GetConfigULong(CConfig.CFG_STEAMID));
+/*
+#if DEBUG
+						string tmpfile = $"tmp_{STEAM_NAME}.html";
+						if (!File.Exists(tmpfile))
+						{
+							using (var client = new WebClient())
+							{
+								client.DownloadFile(url, tmpfile);
+							}
+						}
+						HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument
+						{
+							OptionUseIdAttribute = true
+						};
+						doc.Load(tmpfile);
+#else
+*/
+						HtmlWeb web = new HtmlWeb();
+						web.UseCookies = true;
+						HtmlAgilityPack.HtmlDocument doc = web.Load(url);
+						doc.OptionUseIdAttribute = true;
+//#endif
+						HtmlNode gameList = doc.DocumentNode.SelectSingleNode("//script[@language='javascript']");
+						if (gameList != null)
+						{
+							CLogger.LogInfo("{0} not-installed games:", STEAM_NAME.ToUpper());
+
+							var options = new JsonDocumentOptions
+							{
+								AllowTrailingCommas = true
+							};
+							string rgGames = gameList.InnerText.Remove(0, gameList.InnerText.IndexOf('['));
+							rgGames = rgGames.Remove(rgGames.IndexOf(';'));
+
+							using (JsonDocument document = JsonDocument.Parse(@rgGames, options))
+							{
+								foreach (JsonElement game in document.RootElement.EnumerateArray())
+								{
+									ulong id = GetULongProperty(game, "appid");
+									if (id > 0)
+									{
+										// Check if game is already installed
+										string strID = $"appmanifest_{id}.acf";
+										bool found = false;
+										foreach (string file in allFiles)
+										{
+											if (file.EndsWith(strID))
+												found = true;
+										}
+										if (!found)
+										{
+											string strTitle = GetStringProperty(game, "name");
+											//string strIconPath = GetStringProperty(game, "logo");  // TODO: Use logo to download icon
+											string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+
+											// Add not-installed games
+											CLogger.LogDebug($"- *{strTitle}");
+											gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+										}
+									}
+								}
+							}
+						}
+						else
+                        {
+							CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
+											"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
+								STEAM_NAME.ToUpper());
+						}
+/*
+#if DEBUG
+						File.Delete(tmpfile);
+#endif
+*/
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e);
+					}
+					CLogger.LogDebug("---------------------");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Find installed Epic store games (from json files)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetEpicGames(List<CRegScanner.RegistryGameData> gameDataList)
@@ -474,20 +800,20 @@ namespace GameLauncher_Console
 					{
 						string strID = Path.GetFileName(file);
 						string strTitle = GetStringProperty(document.RootElement, "DisplayName");
-						CLogger.LogDebug($"* {strTitle}");
+						CLogger.LogDebug($"- {strTitle}");
 						string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
 						string strAlias = "";
 						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Epic);
 
 						if (!string.IsNullOrEmpty(strLaunch))
 						{
-							strLaunch = GetStringProperty(document.RootElement, "InstallLocation") + "\\" + strLaunch;
+							strLaunch = Path.Combine(GetStringProperty(document.RootElement, "InstallLocation"), strLaunch);
 							strAlias = CRegScanner.GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
 							if (strAlias.Length > strTitle.Length)
 								strAlias = CRegScanner.GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
-							gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+							gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 						}
 					}
 				}
@@ -500,18 +826,153 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed Indiegala games
+		/// Find installed and owned Paradox games (latter from a json file)
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetParadoxGames(List<CRegScanner.RegistryGameData> gameDataList)
+		{
+			List<string> dirs = new List<string>();
+			const string PARADOX_NAME = "Paradox";
+			const string PARADOX_REG = @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; //HKLM32
+			const string PARADOX_PATH = "Path";
+			//const string PARADOX_UNREG = "{ED2CDA1D-39E4-4CBB-992C-5C1D08672128}"; //HKLM32
+			const string PARADOX_JSON_FOLDER = @"\Paradox Interactive\launcher";
+
+			// Get installed games
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(PARADOX_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			{
+				if (key == null)
+					CLogger.LogInfo("{0} client not found in the registry.", PARADOX_NAME.ToUpper());
+				else
+				{
+					string path = key.GetValue(PARADOX_PATH).ToString();
+
+					try
+					{
+						if (!path.Equals(null) && Directory.Exists(path))
+						{
+							dirs.AddRange(Directory.GetDirectories(Directory.GetParent(Directory.GetParent(path).ToString()) + "\\games", "*.*", SearchOption.TopDirectoryOnly));
+							foreach (string dir in dirs)
+							{
+								CultureInfo ci = new CultureInfo("en-GB");
+								TextInfo ti = ci.TextInfo;
+
+								string strID = Path.GetFileName(dir);
+								string strTitle = "";
+								string strLaunch = "";
+								string strAlias = "";
+								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
+
+								strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
+								CLogger.LogDebug($"- {strTitle}");
+								strLaunch = CGameFinder.FindGameBinaryFile(dir, strTitle);
+								strAlias = CRegScanner.GetAlias(strLaunch);
+								if (strAlias.Length > strTitle.Length)
+									strAlias = CRegScanner.GetAlias(strTitle);
+								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+									strAlias = "";
+								if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
+									new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+							}
+
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e);
+					}
+				}
+			}
+
+			// Get not-installed games
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				string folder = GetFolderPath(SpecialFolder.LocalApplicationData) + PARADOX_JSON_FOLDER;
+				if (!Directory.Exists(folder))
+				{
+					CLogger.LogInfo("{0} games not found in Local AppData.", PARADOX_NAME.ToUpper());
+				}
+				else
+				{
+					string[] files = Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly);
+
+					var options = new JsonDocumentOptions
+					{
+						AllowTrailingCommas = true
+					};
+
+					foreach (string file in files)
+					{
+						if (file.EndsWith("_installableGames.json") && !(file.StartsWith("_noUser")))
+						{
+							string strDocumentData = File.ReadAllText(file);
+
+							if (string.IsNullOrEmpty(strDocumentData))
+								continue;
+
+							CLogger.LogDebug("{0} not-installed games:", PARADOX_NAME.ToUpper());
+							
+							try
+							{
+								using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+								{
+									document.RootElement.TryGetProperty("content", out JsonElement content);
+									if (!content.Equals(null))
+									{
+										foreach (JsonElement game in content.EnumerateArray())
+										{
+											game.TryGetProperty("_name", out JsonElement id);
+
+											// Check if game is already installed
+											bool found = false;
+											foreach (string dir in dirs)
+											{
+												if (id.ToString().Equals(Path.GetFileName(dir)))
+													found = true;
+											}
+											if (!found)
+											{
+												game.TryGetProperty("_displayName", out JsonElement title);
+												game.TryGetProperty("_owned", out JsonElement owned);
+												if (!id.Equals(null) && !title.Equals(null) && owned.ToString().ToLower().Equals("true"))
+												{
+													string strID = id.ToString();
+													string strTitle = title.ToString();
+													CLogger.LogDebug($"- *{strTitle}");
+													string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
+													gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+												}
+											}
+										}
+									}
+								}
+							}
+							catch (Exception e)
+							{
+								CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", PARADOX_NAME.ToUpper(), file));
+							}
+						}
+					}
+				}
+			}
+			CLogger.LogDebug("--------------------");
+		}
+
+		/// <summary>
+		/// Find installed and owned Indiegala games (from json files)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetIGGames(List<CRegScanner.RegistryGameData> gameDataList)
 		{
-			const string IG_NAME		= "IGClient";
-			const string IG_JSON_FILE	= @"\IGClient\storage\installed.json";
-			string file = GetFolderPath(SpecialFolder.ApplicationData) + IG_JSON_FILE;
+			const string IG_NAME			= "IGClient";
+			const string IG_JSON_FILE		= @"\IGClient\storage\installed.json";
+			const string IG_OWN_JSON_FILE	= @"\IGClient\config.json";
 
+			// Get installed games
+			string file = GetFolderPath(SpecialFolder.ApplicationData) + IG_JSON_FILE;
 			if (!File.Exists(file))
 			{
-				CLogger.LogInfo("{0} games not found in AppData", IG_NAME.ToUpper());
+				CLogger.LogInfo("{0} installed games not found in AppData", IG_NAME.ToUpper());
 				return;
 			}
 			else
@@ -524,64 +985,134 @@ namespace GameLauncher_Console
 				string strDocumentData = File.ReadAllText(file);
 
 				if (string.IsNullOrEmpty(strDocumentData))
-				{
 					CLogger.LogWarn(string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
-					return;
-				}
-
-				try
+				else
 				{
-					using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+					try
 					{
-						foreach (JsonElement element in document.RootElement.EnumerateArray())
+						using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
 						{
-							string strID = "";
-							string strTitle = "";
-							string strLaunch = "";
-							string strAlias = "";
-							string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.IGClient);
-
-							element.TryGetProperty("target", out JsonElement target);
-							if (!target.Equals(null))
+							foreach (JsonElement element in document.RootElement.EnumerateArray())
 							{
-								target.TryGetProperty("item_data", out JsonElement item);
-								if (!item.Equals(null))
+								string strID = "";
+								string strTitle = "";
+								string strLaunch = "";
+								string strAlias = "";
+								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.IGClient);
+
+								element.TryGetProperty("target", out JsonElement target);
+								if (!target.Equals(null))
 								{
-									strID = string.Format("ig_{0}", GetStringProperty(item, "slugged_name"));
-									strTitle = GetStringProperty(item, "name");
+									target.TryGetProperty("item_data", out JsonElement item);
+									if (!item.Equals(null))
+									{
+										strID = GetStringProperty(item, "id_key_name");
+										strTitle = GetStringProperty(item, "name");
+									}
 								}
-							}
-							element.TryGetProperty("path", out JsonElement paths);
-							if (!paths.Equals(null))
-							{
-								foreach (JsonElement path in paths.EnumerateArray())
-									strLaunch = CGameFinder.FindGameBinaryFile(path.ToString(), strTitle);
-							}
+								element.TryGetProperty("path", out JsonElement paths);
+								if (!paths.Equals(null))
+								{
+									foreach (JsonElement path in paths.EnumerateArray())
+										strLaunch = CGameFinder.FindGameBinaryFile(path.ToString(), strTitle);
+								}
 
-							CLogger.LogDebug($"* {strTitle}");
+								CLogger.LogDebug($"- {strTitle}");
 
-							if (!string.IsNullOrEmpty(strLaunch))
-							{
-								strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strLaunch));
-								if (strAlias.Length > strTitle.Length)
-									strAlias = CRegScanner.GetAlias(strTitle);
-								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-									strAlias = "";
-								gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+								if (!string.IsNullOrEmpty(strLaunch))
+								{
+									strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strLaunch));
+									if (strAlias.Length > strTitle.Length)
+										strAlias = CRegScanner.GetAlias(strTitle);
+									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+										strAlias = "";
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+								}
 							}
 						}
 					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+					}
 				}
-				catch (Exception e)
-				{
-					CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
-				}
-				CLogger.LogDebug("--------------------");
 			}
+
+			// Get not-installed games
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				file = GetFolderPath(SpecialFolder.ApplicationData) + IG_OWN_JSON_FILE;
+				if (!File.Exists(file))
+					CLogger.LogInfo("{0} not-installed games not found in AppData", IG_NAME.ToUpper());
+				else
+				{
+					CLogger.LogDebug("{0} not-installed games:", IG_NAME.ToUpper());
+					var options = new JsonDocumentOptions
+					{
+						AllowTrailingCommas = true
+					};
+
+					string strDocumentData = File.ReadAllText(file);
+
+					if (string.IsNullOrEmpty(strDocumentData))
+						CLogger.LogWarn(string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+					else
+					{
+						try
+						{
+							using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+							{
+								bool found = false;
+								JsonElement coll = new JsonElement();
+								document.RootElement.TryGetProperty("gala_data", out JsonElement gData);
+								if (!gData.Equals(null))
+								{
+									gData.TryGetProperty("data", out JsonElement data);
+									if (!data.Equals(null))
+									{
+										data.TryGetProperty("showcase_content", out JsonElement sContent);
+										if (!sContent.Equals(null))
+										{
+											sContent.TryGetProperty("content", out JsonElement content);
+											if (!content.Equals(null))
+											{
+												content.TryGetProperty("user_collection", out coll);
+												if (!coll.Equals(null))
+													found = true;
+											}
+										}
+									}
+								}
+
+								if (found)
+								{
+									foreach (JsonElement prod in coll.EnumerateArray())
+									{
+										string strID = GetStringProperty(prod, "prod_id_key_name");
+										if (!string.IsNullOrEmpty(strID))
+										{
+											string strTitle = GetStringProperty(prod, "prod_name");
+											//string strIconPath = GetStringProperty(prod, "prod_dev_image");  // TODO: Use prod_dev_image to download icon 
+											CLogger.LogDebug($"- *{strTitle}");
+											string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.IGClient);
+											gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+										}
+									}
+								}
+							}
+						}
+						catch (Exception e)
+						{
+							CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+						}
+					}
+				}
+			}
+			CLogger.LogDebug("--------------------");
 		}
 
 		/// <summary>
-		/// Find installed Itch games
+		/// Find installed and owned Amazon games (from SQLite database)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetAmazonGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
@@ -591,23 +1122,25 @@ namespace GameLauncher_Console
 			const string AMAZON_NAME = "Amazon";
 			const string AMAZON_LAUNCH = "amazon-games://play/";
 			const string AMAZON_DB = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
+			const string AMAZON_OWN_DB = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";
+			//const string AMAZON_UNINST_EXE = @"\__InstallData__\Amazon Game Remover.exe";
+			//const string AMAZON_UNINST_SUFFIX = "-m Game -p";
+
+			// Get installed games
 			string db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_DB;
 			if (!File.Exists(db))
 			{
-				CLogger.LogInfo("{0} database not found.", AMAZON_NAME.ToUpper());
-				return;
+				CLogger.LogInfo("{0} installed game database not found.", AMAZON_NAME.ToUpper());
+				//return;
 			}
 
 			try
 			{
-				using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+				using (var con = new SQLiteConnection($"Data Source={db}"))
 				{
 					con.Open();
 
-					// SELECT path FROM install_locations
-					// SELECT install_folder FROM downloads
-					// SELECT verdict FROM caves
-					using (var cmd = new SQLiteCommand("SELECT Id, InstallDirectory, ProductTitle FROM DbSet", con))
+					using (var cmd = new SQLiteCommand("SELECT Id, InstallDirectory, ProductTitle FROM DbSet;", con))
 					{
 						using (SQLiteDataReader rdr = cmd.ExecuteReader())
 						{
@@ -615,15 +1148,18 @@ namespace GameLauncher_Console
 							{
 								string strID = rdr.GetString(0);
 								string strTitle = rdr.GetString(2);
-								CLogger.LogDebug($"* {strTitle}");
+								CLogger.LogDebug($"- {strTitle}");
 								string strLaunch = AMAZON_LAUNCH + strID;
 								string strIconPath = "";
 								string strUninstall = "";
 
 								using (RegistryKey key = Registry.CurrentUser.OpenSubKey(NODE64_REG + "\\AmazonGames/" + strTitle, RegistryKeyPermissionCheck.ReadSubTree))
 								{
-									strIconPath = CRegScanner.GetRegStrVal(key, "DisplayIcon");
-									strUninstall = CRegScanner.GetRegStrVal(key, "UninstallString");
+									if (key != null)
+									{
+										strIconPath = CRegScanner.GetRegStrVal(key, "DisplayIcon");
+										strUninstall = CRegScanner.GetRegStrVal(key, "UninstallString");
+									}
 								}
 								if (string.IsNullOrEmpty(strIconPath))
 								{
@@ -637,7 +1173,7 @@ namespace GameLauncher_Console
 								{
 									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 										strAlias = "";
-									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, strPlatform));
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 								}
 							}
 						}
@@ -646,20 +1182,217 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
-				return;
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+			}
+
+			// Get not-installed games
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			{
+				db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_OWN_DB;
+				if (!File.Exists(db))
+					CLogger.LogInfo("{0} not-installed game database not found.", AMAZON_NAME.ToUpper());
+				else
+				{
+					CLogger.LogDebug("{0} not-installed games:", AMAZON_NAME.ToUpper());
+					try
+					{
+						using (var con = new SQLiteConnection($"Data Source={db}"))
+						{
+							con.Open();
+
+							using (var cmd = new SQLiteCommand("SELECT Id, ProductIconUrl, ProductIdStr, ProductTitle FROM DbSet;", con))  // TODO: Use ProductIconUrl to download icon
+							{
+								using (SQLiteDataReader rdr = cmd.ExecuteReader())
+								{
+									while (rdr.Read())
+									{
+										string strID = rdr.GetString(2); // TODO: Should I use Id or ProductIdStr?
+										string strTitle = rdr.GetString(3);
+										CLogger.LogDebug($"- *{strTitle}");
+										string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Amazon);
+										gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+									}
+								}
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+					}
+				}
 			}
 			CLogger.LogDebug("-------------------");
 		}
 
 		/// <summary>
-		/// Find installed Itch games
+		/// Find installed and owned GOG games (from SQLite database)
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetGogGames(List<CRegScanner.RegistryGameData> gameDataList)
+		{
+			const string GOG_NAME = "GOG";
+			const string GOG_DB = @"\GOG.com\Galaxy\storage\galaxy-2.0.db";
+			const string GOG_LAUNCH = " /command=runGame /gameId=";
+			const string GOG_PATH = " /path=";
+			const string GOG_GALAXY_EXE = "\\GalaxyClient.exe";
+
+			/*
+			productId from ProductAuthorizations
+			productId, installationPath from InstalledBaseProducts
+			productId, images, title from LimitedDetails
+			//images = icon from json
+			id, gameReleaseKey from PlayTasks
+			playTaskId, executablePath, commandLineArgs from PlayTaskLaunchParameters
+			*/
+
+			// Get installed games
+			string db = GetFolderPath(SpecialFolder.CommonApplicationData) + GOG_DB;
+			if (!File.Exists(db))
+            {
+				CLogger.LogInfo("{0} database not found.", GOG_NAME.ToUpper());
+				return;
+            }
+			string launcherPath = "";
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			{
+				launcherPath = key.GetValue("client") + GOG_GALAXY_EXE;
+				if (!File.Exists(launcherPath))
+					launcherPath = "";
+			}
+
+			try
+			{
+				using (var con = new SQLiteConnection($"Data Source={db}"))
+				{
+					con.Open();
+
+					// Get both installed and not-installed games
+
+					using (var cmd = new SQLiteCommand(string.Format("SELECT productId from ProductAuthorizations"), con))
+					using (SQLiteDataReader rdr = cmd.ExecuteReader())
+					{
+						while (rdr.Read())
+						{
+							int id = rdr.GetInt32(0);
+
+							using (var cmd2 = new SQLiteCommand($"SELECT images, title from LimitedDetails WHERE productId = {id};", con))
+							using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
+							{
+								while (rdr2.Read())
+								{
+									// To be safe, we should probably confirm "gog_{id}" is correct here with
+									// "SELECT releaseKey FROM ProductsToReleaseKeys WHERE gogId = {id};"
+									string strID = $"gog_{id}";
+									string strTitle = rdr2.GetString(1);
+									string strAlias = "";
+									string strLaunch = "";
+									string strIconPath = "";
+									string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.GOG);
+
+									strAlias = CRegScanner.GetAlias(strTitle);
+									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+										strAlias = "";
+
+									using (var cmd3 = new SQLiteCommand($"SELECT installationPath FROM InstalledBaseProducts WHERE productId = {id};", con))
+									using (SQLiteDataReader rdr3 = cmd3.ExecuteReader())
+									{
+										while (rdr3.Read())
+										{
+											using (var cmd4 = new SQLiteCommand($"SELECT id FROM PlayTasks WHERE gameReleaseKey = '{strID}';", con))
+											using (SQLiteDataReader rdr4 = cmd4.ExecuteReader())
+											{
+												while (rdr4.Read())
+												{
+													int task = rdr4.GetInt32(0);
+
+													using (var cmd5 = new SQLiteCommand($"SELECT executablePath, commandLineArgs FROM PlayTaskLaunchParameters WHERE playTaskId = {task};", con))
+													using (SQLiteDataReader rdr5 = cmd5.ExecuteReader())
+													{
+														while (rdr5.Read())
+														{
+															// Add installed games
+															strIconPath = rdr5.GetString(0);
+															if (string.IsNullOrEmpty(launcherPath))
+															{
+																string args = rdr5.GetString(1);
+																if (!string.IsNullOrEmpty(strLaunch))
+																{
+																	if (!string.IsNullOrEmpty(args))
+																	{
+																		strLaunch += " " + args;
+																	}
+																}
+															}
+															else
+															{
+																strLaunch = launcherPath + GOG_LAUNCH + id + GOG_PATH + "\"" + Path.GetDirectoryName(strIconPath) + "\"";
+																if (strLaunch.Length > 8191)
+																	strLaunch = launcherPath + GOG_LAUNCH + id;
+															}
+															CLogger.LogDebug($"- {strTitle}");
+															gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
+														}
+													}
+												}
+											}
+										}
+									}
+
+									// Add not-installed games
+									if (string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+									{
+										// TODO: Use icon from images (json) to download icons
+										/*
+										string images = rdr2.GetString(0);
+										string iconUrl = "";
+
+										var options = new JsonDocumentOptions
+										{
+											AllowTrailingCommas = true
+										};
+
+										using (JsonDocument document = JsonDocument.Parse(@images, options))
+										{
+											iconUrl = GetStringProperty(document.RootElement, "icon");
+										}
+
+										if (!string.IsNullOrEmpty(iconUrl))
+										{
+											string iconFile = string.Format("{0}.{1}", strTitle, Path.GetExtension(iconUrl))
+											using (var client = new WebClient())
+											{
+												client.DownloadFile(iconUrl, $"customImages\\{iconFile}");
+											}
+										}
+										*/
+										CLogger.LogDebug($"- *{strTitle}");
+										gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+									}
+								}
+							}
+						}
+					}
+					con.Close();
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", GOG_NAME.ToUpper()));
+			}
+			CLogger.LogDebug("-------------------");
+		}
+
+		/// <summary>
+		/// Find installed and owned itch games (from SQLite database)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetItchGames(List<CRegScanner.RegistryGameData> gameDataList)
 		{
 			const string ITCH_NAME = "itch";
 			const string ITCH_DB = @"\itch\db\butler.db";
+
+			// Get installed games
 			string db = GetFolderPath(SpecialFolder.ApplicationData) + ITCH_DB;
 			if (!File.Exists(db))
 			{
@@ -669,75 +1402,82 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using (var con = new SQLiteConnection(string.Format($"Data Source={db}")))
+				using (var con = new SQLiteConnection($"Data Source={db}"))
 				{
 					con.Open();
 
-					// SELECT path FROM install_locations
-					// SELECT install_folder FROM downloads
-					// SELECT verdict FROM caves
-					using (var cmd = new SQLiteCommand("SELECT game_id, verdict, install_folder_name FROM caves", con))
+					// Get both installed and not-installed games
+
+					// TODO: Use still_cover_url, or cover_url if it doesn't exist, to download not-installed icons
+					using (var cmd = new SQLiteCommand(string.Format("SELECT id, title, classification, cover_url, still_cover_url FROM games;"), con))
+					using (SQLiteDataReader rdr = cmd.ExecuteReader())
 					{
-						using (SQLiteDataReader rdr = cmd.ExecuteReader())
+						while (rdr.Read())
 						{
-							while (rdr.Read())
+							if (!rdr.GetString(2).Equals("assets"))  // i.e., just "game" or "tool"
 							{
 								int id = rdr.GetInt32(0);
-								string strID = string.Format($"itch_{id}");
-								string verdict = rdr.GetString(1);
-								string strTitle = rdr.GetString(2);
-								string strAlias = CRegScanner.GetAlias(strTitle);
+								string strID = $"itch_{id}";
+								string strTitle = rdr.GetString(1);
+								string strAlias = "";
 								string strLaunch = "";
 								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Itch);
 
-								var options = new JsonDocumentOptions
-								{
-									AllowTrailingCommas = true
-								};
-
-								using (JsonDocument document = JsonDocument.Parse(@verdict, options))
-								{
-									string basePath = GetStringProperty(document.RootElement, "basePath");
-									if (document.RootElement.TryGetProperty("candidates", out JsonElement candidates)) // 'candidates' object exists
-									{
-										if (!string.IsNullOrEmpty(candidates.ToString()))
-										{
-											foreach (JsonElement jElement in candidates.EnumerateArray())
-											{
-												strLaunch = string.Format("{0}\\{1}", basePath, GetStringProperty(jElement, "path"));
-											}
-										}
-									}
-								}
-								if (string.IsNullOrEmpty(strLaunch))
-									continue;
-
-								using (var cmd2 = new SQLiteCommand(string.Format($"SELECT title FROM games WHERE id={id};"), con))
+								// SELECT path FROM install_locations;
+								// SELECT install_folder FROM downloads;
+								// SELECT verdict FROM caves;
+								using (var cmd2 = new SQLiteCommand($"SELECT verdict, install_folder_name FROM caves WHERE game_id = {id};", con))
 								using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
 								{
 									while (rdr2.Read())
 									{
-										strTitle = rdr2.GetString(0);
-										if (strAlias.Length > strTitle.Length)
-											strAlias = CRegScanner.GetAlias(strTitle);
-										break;
+										string verdict = rdr2.GetString(0);
+										strAlias = CRegScanner.GetAlias(strTitle);
+										if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+											strAlias = "";
+
+										var options = new JsonDocumentOptions
+										{
+											AllowTrailingCommas = true
+										};
+
+										using (JsonDocument document = JsonDocument.Parse(@verdict, options))
+										{
+											string basePath = GetStringProperty(document.RootElement, "basePath");
+											if (document.RootElement.TryGetProperty("candidates", out JsonElement candidates)) // 'candidates' object exists
+											{
+												if (!string.IsNullOrEmpty(candidates.ToString()))
+												{
+													foreach (JsonElement jElement in candidates.EnumerateArray())
+													{
+														strLaunch = string.Format("{0}\\{1}", basePath, GetStringProperty(jElement, "path"));
+													}
+												}
+											}
+											// Add installed games
+											if (!string.IsNullOrEmpty(strLaunch))
+											{
+												CLogger.LogDebug($"- {strTitle}");
+												gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+											}
+										}
 									}
 								}
-								CLogger.LogDebug($"* {strTitle}");
-
-								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-									strAlias = "";
-								if (!string.IsNullOrEmpty(strLaunch))
-									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, strPlatform));
+								// Add not-installed games
+								if (string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+								{
+									CLogger.LogDebug($"- *{strTitle}");
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+								}
 							}
 						}
 					}
+					con.Close();
 				}
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format($"ERROR: Malformed {0} database output!", ITCH_NAME.ToUpper()));
-				return;
+				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", ITCH_NAME.ToUpper()));
 			}
 			CLogger.LogDebug("-------------------");
 		}
@@ -782,7 +1522,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format($"ERROR: Malformed {file} file!"));
+				CLogger.LogError(e, $"ERROR: Malformed {file} file!");
 				return false;
 			}
 			return true;
@@ -843,6 +1583,7 @@ namespace GameLauncher_Console
         {
 			configv.dontSaveChanges = (bool)CConfig.GetConfigBool(CConfig.CFG_USEFILE);
 			configv.typingInput = (bool)CConfig.GetConfigBool(CConfig.CFG_USETYPE);
+			configv.listView = (bool)CConfig.GetConfigBool(CConfig.CFG_USELIST);
 			configv.imageBorder = (bool)CConfig.GetConfigBool(CConfig.CFG_IMGBORD);
 			configv.imageSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGSIZE);
 			configv.iconSize = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE);
@@ -867,6 +1608,8 @@ namespace GameLauncher_Console
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLSUB2), true, out colours.subLtCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLENTRY1), true, out colours.entryCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLENTRY2), true, out colours.entryLtCC);
+				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLUNIN1), true, out colours.uninstCC);
+				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLUNIN2), true, out colours.uninstLtCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHIBG1), true, out colours.highbgCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHIBG2), true, out colours.highbgLtCC);
 				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHILITE1), true, out colours.highlightCC);
@@ -885,7 +1628,7 @@ namespace GameLauncher_Console
 				CLogger.LogError(e);
 				Console.WriteLine($"ERROR: Bad colour value. Resetting defaults...");
 				parseError = true;
-				SetConfigDefaults(false, false, false, true, false, false);
+				SetConfigDefaults(false, false, false, false, true, false, false);
 			}
 			try
 			{
@@ -915,6 +1658,10 @@ namespace GameLauncher_Console
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHOME2), true, out hotkeys.firstCK2);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYEND1), true, out hotkeys.lastCK1);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYEND2), true, out hotkeys.lastCK2);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPLAT1), true, out hotkeys.launcherCK1);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPLAT2), true, out hotkeys.launcherCK2);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCFG1), true, out hotkeys.settingsCK1);
+				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCFG2), true, out hotkeys.settingsCK2);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFIND1), true, out hotkeys.searchCK1);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFIND2), true, out hotkeys.searchCK2);
 				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYTAB1), true, out hotkeys.completeCK1);
@@ -951,7 +1698,7 @@ namespace GameLauncher_Console
 				CLogger.LogError(e);
 				Console.WriteLine($"ERROR: Bad hotkey value. Resetting defaults...");
 				parseError = true;
-				SetConfigDefaults(false, false, false, false, true, false);
+				SetConfigDefaults(false, false, false, false, false, true, false);
 			}
 			return !parseError;
 		}
@@ -972,7 +1719,9 @@ namespace GameLauncher_Console
 			writer.WriteString(GAMES_ARRAY_ICON			, data.Icon);
 			writer.WriteString(GAMES_ARRAY_UNINSTALLER	, data.Uninstaller);
 			writer.WriteString(GAMES_ARRAY_PLATFORM		, data.PlatformString);
+			writer.WriteBoolean(GAMES_ARRAY_INSTALLED	, data.IsInstalled);
 			writer.WriteBoolean(GAMES_ARRAY_FAVOURITE	, data.IsFavourite);
+			writer.WriteBoolean(GAMES_ARRAY_NEW			, data.IsNew);
 			writer.WriteBoolean(GAMES_ARRAY_HIDDEN		, data.IsHidden);
 			writer.WriteString(GAMES_ARRAY_ALIAS		, data.Alias);
 			writer.WriteNumber(GAMES_ARRAY_FREQUENCY	, data.Frequency);
@@ -1088,7 +1837,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Retrieve int value from the JSON element
+		/// Retrieve integer value from the JSON element
 		/// </summary>
 		/// <param name="strPropertyName">Name of the property</param>
 		/// <param name="jElement">Source JSON element</param>
@@ -1103,6 +1852,28 @@ namespace GameLauncher_Console
 				}
 			}
 			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+			return 0;
+		}
+
+		/// <summary>
+		/// Retrieve unsigned long value from the JSON element
+		/// </summary>
+		/// <param name="strPropertyName">Name of the property</param>
+		/// <param name="jElement">Source JSON element</param>
+		/// <returns>Value of the property as a ulong or 0 if not found</returns>
+		private static ulong GetULongProperty(JsonElement jElement, string strPropertyName)
+		{
+			try
+			{
+				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
+				{
+					if (jValue.TryGetUInt64(out ulong nOut)) return (ulong)nOut;
+				}
+			}
+			catch (Exception e)
             {
 				CLogger.LogError(e);
             }
@@ -1110,7 +1881,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Retrieve int value from the JSON element
+		/// Retrieve unsigned short value from the JSON element
 		/// </summary>
 		/// <param name="strPropertyName">Name of the property</param>
 		/// <param name="jElement">Source JSON element</param>
@@ -1121,7 +1892,7 @@ namespace GameLauncher_Console
 			{
 				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
 				{
-					if (jValue.TryGetUInt16(out ushort nOut)) return nOut;
+					if (jValue.TryGetUInt16(out ushort nOut)) return (ushort)nOut;
 				}
 			}
 			catch (Exception e)
@@ -1161,12 +1932,13 @@ namespace GameLauncher_Console
 		/// <param name="colourOnly">Only affects colour values, and override with defaults</param>
 		/// <param name="keyOnly">Only affects hotkey values, and override with defaults</param>
 		/// <param name="textOnly">Only affects text values, and override with defaults</param>
-		private static void SetConfigDefaults(bool forceAll, bool boolOnly, bool numOnly, bool colourOnly, bool keyOnly, bool textOnly)
+		private static void SetConfigDefaults(bool forceAll, bool boolOnly, bool numOnly, bool longOnly, bool colourOnly, bool keyOnly, bool textOnly)
 		{
 			if (forceAll)
             {
 				SetBoolDefaults(true);
 				SetNumberDefaults(true);
+				SetLongDefaults(true);
 				SetColourDefaults(true);
 				SetKeyDefaults(true);
 				SetTextDefaults(true);
@@ -1175,6 +1947,8 @@ namespace GameLauncher_Console
 				SetBoolDefaults(true);
 			else if (numOnly)
 				SetNumberDefaults(true);
+			else if (longOnly)
+				SetLongDefaults(true);
 			else if (colourOnly)
 				SetColourDefaults(true);
 			else if (keyOnly)
@@ -1185,6 +1959,7 @@ namespace GameLauncher_Console
             {
 				SetBoolDefaults(false);
 				SetNumberDefaults(false);
+				SetLongDefaults(false);
 				SetColourDefaults(false);
 				SetKeyDefaults(false);
 				SetTextDefaults(false);
@@ -1196,7 +1971,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private static void SetConfigDefaults(bool forceAll)
 		{
-			SetConfigDefaults(forceAll, false, false, false, false, false);
+			SetConfigDefaults(forceAll, false, false, false, false, false, false);
         }
 
 		/// <summary>
@@ -1214,9 +1989,11 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_USESIZE, force);
 			SetDefaultVal(CConfig.CFG_USEALPH, force);
 			SetDefaultVal(CConfig.CFG_USEFAVE, force);
+			SetDefaultVal(CConfig.CFG_USEINST, force);
 			SetDefaultVal(CConfig.CFG_USELITE, force);
 			SetDefaultVal(CConfig.CFG_USEALL, force);
 			SetDefaultVal(CConfig.CFG_NOCFG, force);
+			SetDefaultVal(CConfig.CFG_INSTONLY, force);
 			SetDefaultVal(CConfig.CFG_USECUST, force);
 			SetDefaultVal(CConfig.CFG_USETEXT, force);
 			SetDefaultVal(CConfig.CFG_IMGBORD, force);
@@ -1240,6 +2017,14 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Set the default unsigned long integer configuration values
+		/// </summary>
+		private static void SetLongDefaults(bool force)
+		{
+			SetDefaultVal(CConfig.CFG_STEAMID, force);
+		}
+
+		/// <summary>
 		/// Set the default colour configuration values
 		/// </summary>
 		private static void SetColourDefaults(bool force)
@@ -1252,6 +2037,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_COLSUB2, force);
 			SetDefaultVal(CConfig.CFG_COLENTRY1, force);
 			SetDefaultVal(CConfig.CFG_COLENTRY2, force);
+			SetDefaultVal(CConfig.CFG_COLUNIN1, force);
+			SetDefaultVal(CConfig.CFG_COLUNIN2, force);
 			SetDefaultVal(CConfig.CFG_COLHIBG1, force);
 			SetDefaultVal(CConfig.CFG_COLHIBG2, force);
 			SetDefaultVal(CConfig.CFG_COLHILITE1, force);
@@ -1297,6 +2084,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_KEYHOME2, force);
 			SetDefaultVal(CConfig.CFG_KEYEND1, force);
 			SetDefaultVal(CConfig.CFG_KEYEND2, force);
+			SetDefaultVal(CConfig.CFG_KEYCFG1, force);
+			SetDefaultVal(CConfig.CFG_KEYCFG2, force);
 			SetDefaultVal(CConfig.CFG_KEYFIND1, force);
 			SetDefaultVal(CConfig.CFG_KEYFIND2, force);
 			SetDefaultVal(CConfig.CFG_KEYTAB1, force);

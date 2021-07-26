@@ -25,6 +25,7 @@ namespace GameLauncher_Console
         {
 			public bool dontSaveChanges;
 			public bool typingInput;
+			public bool listView;
 			public ushort iconSize;
 			public ushort imageSize;
 			public bool imageBorder;
@@ -58,6 +59,10 @@ namespace GameLauncher_Console
 			public ConsoleKey firstCK2;
 			public ConsoleKey lastCK1;
 			public ConsoleKey lastCK2;
+			public ConsoleKey launcherCK1;
+			public ConsoleKey launcherCK2;
+			public ConsoleKey settingsCK1;
+			public ConsoleKey settingsCK2;
 			public ConsoleKey searchCK1;
 			public ConsoleKey searchCK2;
 			public ConsoleKey completeCK1;
@@ -99,6 +104,8 @@ namespace GameLauncher_Console
 			public ConsoleColor subLtCC;
 			public ConsoleColor entryCC;
 			public ConsoleColor entryLtCC;
+			public ConsoleColor uninstCC;
+			public ConsoleColor uninstLtCC;
 			public ConsoleColor highlightCC;
 			public ConsoleColor highlightLtCC;
 			public ConsoleColor highbgCC;
@@ -123,9 +130,11 @@ namespace GameLauncher_Console
 		public const string CFG_USESIZE		= "flag_enlarge_height_to_fit";
 		public const string CFG_USEALPH		= "flag_sort_alphabetically";
 		public const string CFG_USEFAVE		= "flag_sort_favourites_on_top";
+		public const string CFG_USEINST		= "flag_sort_not_installed_on_bottom";
 		public const string CFG_USELITE		= "flag_colour_light_mode_is_default";
 		public const string CFG_USEALL		= "flag_always_show_all_games";
-		public const string CFG_NOCFG		= "flag_do_not_show_settings_in_platform_list";   // TODO
+		public const string CFG_NOCFG		= "flag_do_not_show_settings_in_platform_list";			// TODO
+		public const string CFG_INSTONLY	= "flag_do_not_scan_not_installed_games";				// TODO
 		public const string CFG_USECUST		= "flag_only_scan_custom_games";
 		public const string CFG_USETEXT		= "flag_text_use_custom_text_values";
 		public const string CFG_IMGBORD		= "flag_image_draw_border_characters";
@@ -134,12 +143,13 @@ namespace GameLauncher_Console
 		public const string CFG_IMGBGLEG	= "flag_image_use_legacy_background_colours";
 		public const string CFG_IMGSCAN		= "flag_image_do_not_do_deep_scan_for_icons";
 		// images only work in conhost (cmd or PowerShell and some 3rd party shells), but not in others, e.g., Windows Terminal, TCC, etc.
-		public const string CFG_ICONSIZE	= "num_list_icons_max_size_in_characters";     // only in list mode, icons for all games on left; set to 0 to disable
-		public const string CFG_ICONRES		= "num_list_icons_resolution";                  // up to 256, but setting higher than 48 causes icons with 32x32 max size to have a border and become smaller by comparison
-		public const string CFG_IMGSIZE		= "num_selected_image_max_size_in_characters";  // the icon for the selected game on right; set to 0 to disable
-		public const string CFG_IMGRES		= "num_selected_image_icon_resolution";          // up to 256 [same as above]
+		public const string CFG_ICONSIZE	= "num_list_icons_max_size_in_characters";		// only in list mode, icons for all games on left; set to 0 to disable
+		public const string CFG_ICONRES		= "num_list_icons_resolution";					// up to 256, but setting higher than 48 causes icons with 32x32 max size to have a border and become smaller by comparison
+		public const string CFG_IMGSIZE		= "num_selected_image_max_size_in_characters";	// the icon for the selected game on right; set to 0 to disable
+		public const string CFG_IMGRES		= "num_selected_image_icon_resolution";			// up to 256 [same as above]
 		public const string CFG_IMGPOS		= "num_selected_image_y_location_percent";
 		public const string CFG_COLSIZE		= "num_grid_text_min_column_characters";
+		public const string CFG_STEAMID		= "num_steam_id";
 		public const string CFG_COLBG1		= "colour_background";
 		public const string CFG_COLBG2		= "colour_background_lightmode";
 		public const string CFG_COLTITLE1	= "colour_title";
@@ -148,6 +158,8 @@ namespace GameLauncher_Console
 		public const string CFG_COLSUB2		= "colour_subtitle_lightmode";
 		public const string CFG_COLENTRY1	= "colour_entries";
 		public const string CFG_COLENTRY2	= "colour_entries_lightmode";
+		public const string CFG_COLUNIN1	= "colour_entries_not_installed";
+		public const string CFG_COLUNIN2	= "colour_entries_not_installed_lightmode";
 		public const string CFG_COLHIBG1	= "colour_highlight_background";
 		public const string CFG_COLHIBG2	= "colour_highlight_background_lightmode";
 		public const string CFG_COLHILITE1	= "colour_highlight_text";
@@ -186,35 +198,39 @@ namespace GameLauncher_Console
 		public const string CFG_KEYHOME2	= "key_first_2";
 		public const string CFG_KEYEND1		= "key_last_1";
 		public const string CFG_KEYEND2		= "key_last_2";
-		public const string CFG_KEYFIND1	= "key_search_1";                              // TODO
+		public const string CFG_KEYPLAT1	= "key_launcher_1";								// TODO
+		public const string CFG_KEYPLAT2	= "key_launcher_2";
+		public const string CFG_KEYCFG1		= "key_settings_1";								// TODO
+		public const string CFG_KEYCFG2		= "key_settings_2";
+		public const string CFG_KEYFIND1	= "key_search_1";
 		public const string CFG_KEYFIND2	= "key_search_2";
-		public const string CFG_KEYTAB1		= "key_autocomplete_1";                         // TODO
+		public const string CFG_KEYTAB1		= "key_autocomplete_1";							// TODO
 		public const string CFG_KEYTAB2		= "key_autocomplete_2";
-		public const string CFG_KEYESC1		= "key_cancel_1";                               // TODO
+		public const string CFG_KEYESC1		= "key_cancel_1";								// TODO
 		public const string CFG_KEYESC2		= "key_cancel_2";
-		public const string CFG_KEYNEW1		= "key_new_game_1";                             // TODO
+		public const string CFG_KEYNEW1		= "key_new_game_1";								// TODO
 		public const string CFG_KEYNEW2		= "key_new_game_2";
-		public const string CFG_KEYDEL1		= "key_delete_1";                               // TODO
+		public const string CFG_KEYDEL1		= "key_delete_1";								// TODO
 		public const string CFG_KEYDEL2		= "key_delete_2";
 		public const string CFG_KEYUNIN1	= "key_uninstall_1";
 		public const string CFG_KEYUNIN2	= "key_uninstall_2";
 		public const string CFG_KEYCUT1		= "key_make_shortcuts_1";
 		public const string CFG_KEYCUT2		= "key_make_shortcuts_2";
-		public const string CFG_KEYHIDE1	= "key_hide_game_1";
+		public const string CFG_KEYHIDE1	= "key_hide_game_1";							// TODO
 		public const string CFG_KEYHIDE2	= "key_hide_game_2";
 		public const string CFG_KEYFAVE1	= "key_favourite_1";
 		public const string CFG_KEYFAVE2	= "key_favourite_2";
 		public const string CFG_KEYALIAS1	= "key_set_alias_1";
 		public const string CFG_KEYALIAS2	= "key_set_alias_2";
-		public const string CFG_KEYTYPE1	= "key_input_type_1";                          // toggle Navigate/Insert
+		public const string CFG_KEYTYPE1	= "key_input_type_1";							// toggle Navigate/Insert
 		public const string CFG_KEYTYPE2	= "key_input_type_2";
-		public const string CFG_KEYVIEW1	= "key_grid_view_1";                           // toggle Grid/List
+		public const string CFG_KEYVIEW1	= "key_grid_view_1";							// toggle Grid/List
 		public const string CFG_KEYVIEW2	= "key_grid_view_2";
-		public const string CFG_KEYMODE1	= "key_light_mode_1";                          // toggle Dark/Light
+		public const string CFG_KEYMODE1	= "key_light_mode_1";							// toggle Dark/Light
 		public const string CFG_KEYMODE2	= "key_light_mode_2";
-		public const string CFG_KEYIMG1		= "key_image_display_1";                        // toggle Images/Icons
+		public const string CFG_KEYIMG1		= "key_image_display_1";						// toggle Images/Icons
 		public const string CFG_KEYIMG2		= "key_image_display_2";
-		public const string CFG_KEYSORT1	= "key_sort_method_1";                         // toggle Freq/Alpha
+		public const string CFG_KEYSORT1	= "key_sort_method_1";							// toggle Freq/Alpha
 		public const string CFG_KEYSORT2	= "key_sort_method_2";
 		public const string CFG_TXTMAINT	= "text_main_menu_title";
 		public const string CFG_TXTCFGT		= "text_settings_title";
@@ -258,24 +274,11 @@ namespace GameLauncher_Console
 			bool bVal;
 			if (config.TryGetValue(property, out string strVal))
 			{
-				if (Boolean.TryParse(strVal, out bVal))
+				if (bool.TryParse(strVal, out bVal))
 					return bVal;
 			}
-			if (Boolean.TryParse(GetConfigDefault(property), out bVal))
+			if (bool.TryParse(GetConfigDefault(property), out bVal))
 				return bVal;
-			return null;
-		}
-
-		public static ushort? GetConfigNum(string property)
-		{
-			ushort nVal;
-			if (config.TryGetValue(property, out string strVal))
-			{
-				if (UInt16.TryParse(strVal, out nVal))
-					return nVal;
-			}
-			if (UInt16.TryParse(GetConfigDefault(property), out nVal))
-				return nVal;
 			return null;
 		}
 
@@ -284,11 +287,37 @@ namespace GameLauncher_Console
 			int iVal;
 			if (config.TryGetValue(property, out string strVal))
 			{
-				if (Int32.TryParse(strVal, out iVal))
+				if (int.TryParse(strVal, out iVal))
 					return iVal;
 			}
-			if (Int32.TryParse(GetConfigDefault(property), out iVal))
+			if (int.TryParse(GetConfigDefault(property), out iVal))
 				return iVal;
+			return null;
+		}
+
+		public static ushort? GetConfigNum(string property)
+		{
+			ushort nVal;
+			if (config.TryGetValue(property, out string strVal))
+			{
+				if (ushort.TryParse(strVal, out nVal))
+					return nVal;
+			}
+			if (ushort.TryParse(GetConfigDefault(property), out nVal))
+				return nVal;
+			return null;
+		}
+
+		public static ulong? GetConfigULong(string property)
+		{
+			ulong nVal;
+			if (config.TryGetValue(property, out string strVal))
+			{
+				if (ulong.TryParse(strVal, out nVal))
+					return nVal;
+			}
+			if (ulong.TryParse(GetConfigDefault(property), out nVal))
+				return nVal;
 			return null;
 		}
 
@@ -330,13 +359,17 @@ namespace GameLauncher_Console
         {
 			return SetConfigValue(property, bVal.ToString(), ref config);
 		}
-		public static bool SetConfigValue(string property, ushort nVal)
-        {
-			return SetConfigValue(property, nVal.ToString(), ref config);
-		}
 		public static bool SetConfigValue(string property, int iVal)
 		{
 			return SetConfigValue(property, iVal.ToString(), ref config);
+		}
+		public static bool SetConfigValue(string property, ushort nVal)
+		{
+			return SetConfigValue(property, nVal.ToString(), ref config);
+		}
+		public static bool SetConfigValue(string property, ulong nVal)
+		{
+			return SetConfigValue(property, nVal.ToString(), ref config);
 		}
 
 		/// <summary>
@@ -603,9 +636,9 @@ namespace GameLauncher_Console
 				case "VolumeUp":
 					return "Vol+";
 				case "MediaNext":
-					return "►|";
+					return "►│";
 				case "MediaPrevious":
-					return "|◄";
+					return "│◄";
 				case "MediaStop":
 					return "■";
 				case "MediaPlay":

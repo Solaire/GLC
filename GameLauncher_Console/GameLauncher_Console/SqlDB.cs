@@ -49,7 +49,7 @@ namespace SqlDB
             }
             catch (SQLiteException e)
             {
-                CLogger.LogWarn("ERROR: Database connection could not be established: " + e.ResultCode);
+                CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
                 return null;
             }
             return connection;
@@ -101,7 +101,7 @@ namespace SqlDB
                 }
                 catch (SQLiteException e)
                 {
-                    CLogger.LogWarn("ERROR: Database connection could not be established: " + e.ResultCode);
+                    CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
                     return e.ResultCode;
                 }
             }
@@ -257,8 +257,7 @@ namespace SqlDB
         {
             get
             {
-                int i;
-                Int32.TryParse(m_value, out i);
+                int.TryParse(m_value, out int i);
                 return i;
             }
             set { m_value = value.ToString(); }
@@ -268,8 +267,7 @@ namespace SqlDB
         {
             get
             {
-                double d;
-                double.TryParse(m_value, out d);
+                double.TryParse(m_value, out double d);
                 return d;
             }
             set { m_value = value.ToString(); }
@@ -349,7 +347,7 @@ namespace SqlDB
         /// </summary>
         /// <param name="key">Field column name</param>
         /// <returns>CSqlField</returns>
-        public CSqlField this[string key]
+        new public CSqlField this[string key]
         {
             get { return base[key]; }
             set
@@ -786,7 +784,7 @@ namespace SqlDB
             m_qry.AttributeName     = attributeName;
             m_qry.AttributeIndex    = attributeIndex;
             m_qry.Select();
-            return (m_qry.AttributeValue == null) ? "" : m_qry.AttributeValue;
+            return m_qry.AttributeValue ?? "";
         }
 
         /// <summary>
@@ -807,7 +805,7 @@ namespace SqlDB
 
             do
             {
-                response.Add((m_qry.AttributeValue == null) ? "" : m_qry.AttributeValue);
+                response.Add(m_qry.AttributeValue ?? "");
             } while(m_qry.Fetch());
             return response.ToArray();
         }

@@ -145,6 +145,18 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool flag_sort_not_installed_on_bottom {
+            get {
+                return ((bool)(this["flag_sort_not_installed_on_bottom"]));
+            }
+            set {
+                this["flag_sort_not_installed_on_bottom"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool flag_colour_light_mode_is_default {
             get {
@@ -176,6 +188,18 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["flag_do_not_show_settings_in_platform_list"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_do_not_scan_not_installed_games {
+            get {
+                return ((bool)(this["flag_do_not_scan_not_installed_games"]));
+            }
+            set {
+                this["flag_do_not_scan_not_installed_games"] = value;
             }
         }
         
@@ -337,6 +361,18 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int num_steam_id {
+            get {
+                return ((int)(this["num_steam_id"]));
+            }
+            set {
+                this["num_steam_id"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Black")]
         public string colour_background {
             get {
@@ -428,6 +464,30 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["colour_entries_lightmode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("DarkGray")]
+        public string colour_entries_not_installed {
+            get {
+                return ((string)(this["colour_entries_not_installed"]));
+            }
+            set {
+                this["colour_entries_not_installed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Gray")]
+        public string colour_entries_not_installed_lightmode {
+            get {
+                return ((string)(this["colour_entries_not_installed_lightmode"]));
+            }
+            set {
+                this["colour_entries_not_installed_lightmode"] = value;
             }
         }
         
@@ -884,6 +944,54 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["key_last_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_launcher_1 {
+            get {
+                return ((string)(this["key_launcher_1"]));
+            }
+            set {
+                this["key_launcher_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("L")]
+        public string key_launcher_2 {
+            get {
+                return ((string)(this["key_launcher_2"]));
+            }
+            set {
+                this["key_launcher_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_settings_1 {
+            get {
+                return ((string)(this["key_settings_1"]));
+            }
+            set {
+                this["key_settings_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C")]
+        public string key_settings_2 {
+            get {
+                return ((string)(this["key_settings_2"]));
+            }
+            set {
+                this["key_settings_2"] = value;
             }
         }
         
@@ -1406,7 +1514,7 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(" Enter \\\'/exit\\\' to quit;\\n Enter \\\'/help\\\' for more commands.")]
+        [global::System.Configuration.DefaultSettingValueAttribute(" Enter \\\'/exit\\\' to quit;\\n Enter \\\'/back\\\' to return to previous.")]
         public string text_instruct2_games_type_custom_msg {
             get {
                 return ((string)(this["text_instruct2_games_type_custom_msg"]));

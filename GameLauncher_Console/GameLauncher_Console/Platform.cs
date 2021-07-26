@@ -50,12 +50,14 @@ namespace GameLauncher_Console
 			Twitch = 14,
 			[Description("Wargaming.net")]
 			Wargaming = 15,
+			[Description("Indiegala Client")]
+			IGClient = 16
 		}
 
 		#region Query definitions
 
 		/// <summary>
-		/// Retrieve the platform information fromthe database
+		/// Retrieve the platform information from the database
 		/// Also returns the game count for each platform
 		/// </summary>
 		public class CQryReadPlatforms : CSqlQry

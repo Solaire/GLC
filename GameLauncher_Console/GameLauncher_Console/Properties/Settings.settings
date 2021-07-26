@@ -32,6 +32,9 @@
     <Setting Name="flag_sort_favourites_on_top" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="flag_sort_not_installed_on_bottom" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
     <Setting Name="flag_colour_light_mode_is_default" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
@@ -40,6 +43,9 @@
     </Setting>
     <Setting Name="flag_do_not_show_settings_in_platform_list" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="flag_do_not_scan_not_installed_games" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="flag_only_scan_custom_games" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -80,6 +86,9 @@
     <Setting Name="num_grid_text_min_column_characters" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">25</Value>
     </Setting>
+    <Setting Name="num_steam_id" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
     <Setting Name="colour_background" Type="System.String" Scope="User">
       <Value Profile="(Default)">Black</Value>
     </Setting>
@@ -103,6 +112,12 @@
     </Setting>
     <Setting Name="colour_entries_lightmode" Type="System.String" Scope="User">
       <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="colour_entries_not_installed" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DarkGray</Value>
+    </Setting>
+    <Setting Name="colour_entries_not_installed_lightmode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Gray</Value>
     </Setting>
     <Setting Name="colour_highlight_background" Type="System.String" Scope="User">
       <Value Profile="(Default)">DarkGray</Value>
@@ -217,6 +232,18 @@
     </Setting>
     <Setting Name="key_last_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">NumPad1</Value>
+    </Setting>
+    <Setting Name="key_launcher_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_launcher_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">L</Value>
+    </Setting>
+    <Setting Name="key_settings_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_settings_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C</Value>
     </Setting>
     <Setting Name="key_search_1" Type="System.String" Scope="User">
       <Value Profile="(Default)">F3</Value>
@@ -348,7 +375,7 @@
       <Value Profile="(Default)"> Type title of a game.</Value>
     </Setting>
     <Setting Name="text_instruct2_games_type_custom_msg" Type="System.String" Scope="User">
-      <Value Profile="(Default)"> Enter \'/exit\' to quit;\n Enter \'/help\' for more commands.</Value>
+      <Value Profile="(Default)"> Enter \'/exit\' to quit;\n Enter \'/back\' to return to previous.</Value>
     </Setting>
   </Settings>
 </SettingsFile>
