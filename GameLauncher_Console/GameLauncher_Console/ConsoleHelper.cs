@@ -417,7 +417,7 @@ namespace GameLauncher_Console
 				}
 			} while (!IsFSSelectionValid(CDock.m_nCurrentSelection, dirs.Count()));
 
-			if (path == rootName)
+			if (path.Equals(rootName))
             {
 				path = dirs[CDock.m_nCurrentSelection];
 			}
@@ -439,7 +439,7 @@ namespace GameLauncher_Console
 					{
 						try
 						{
-							Directory.CreateDirectory(path + "\\" + dir);
+							Directory.CreateDirectory(Path.Combine(path, dir));
 						}
 						catch (Exception e)
 						{

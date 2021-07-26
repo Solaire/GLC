@@ -1052,6 +1052,7 @@ namespace GameLauncher_Console
 						}
 						return false;
 					case CGameData.GamePlatform.GOG:
+						/*
 						string answerGOG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
 						if (answerGOG[0] == 'Y' || answerGOG[0] == 'y')
@@ -1059,10 +1060,11 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
+						*/
 							Process.Start(string.Format("goggalaxy://openGameView/{0}", CRegScanner.GetGOGGameID(game.ID)));
 							return true;
-						}
-						return false;
+						//}
+						//return false;
 					case CGameData.GamePlatform.Amazon:
 						string answerAmazon = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
@@ -1102,6 +1104,7 @@ namespace GameLauncher_Console
 						}
 						return false;
 					case CGameData.GamePlatform.Itch:
+						/*
 						string answerItch = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
 						if (answerItch[0] == 'Y' || answerItch[0] == 'y')
@@ -1109,10 +1112,11 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
+						*/
 							Process.Start(string.Format("itch://games/{0}", CRegScanner.GetItchGameID(game.ID)));
-							return true;
-						}
-						return false;
+							return true;		
+						//}
+						//return false;
 					case CGameData.GamePlatform.IGClient:
 						using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.IG_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM64
 						{
@@ -1246,9 +1250,17 @@ namespace GameLauncher_Console
 						ProcessStartInfo gogProcess = new ProcessStartInfo();
 						string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
 						string gogArguments = game.Launch.Contains(".") ? game.Launch.Substring(game.Launch.IndexOf('.') + 4) : String.Empty;
+						CLogger.LogInfo($"gogClientPath: {gogClientPath}");
+						CLogger.LogInfo($"gogArguments: {gogArguments}");
 						gogProcess.FileName = gogClientPath;
 						gogProcess.Arguments = gogArguments;
 						Process.Start(gogProcess);
+						Thread.Sleep(4000);
+						Process[] procs = Process.GetProcessesByName("GalaxyClient");
+						foreach (Process proc in procs)
+						{
+							WindowMessage.ShowWindowAsync(procs[0].MainWindowHandle, WindowMessage.SW_FORCEMINIMIZE);
+						}
 						break;
 					default:
 						Process.Start(game.Launch);
@@ -1511,8 +1523,8 @@ namespace GameLauncher_Console
 				Console.ResetColor();
 			}
 			Console.WriteLine("   /S : Rescan your games");
-			//Console.WriteLine("/U \"My Game\": Uninstall game");
-			//Console.WriteLine("/A myalias \"My Game Name\": Change game's alias");
+			//Console.WriteLine("/U \"My Game\": Uninstall game");						// TODO
+			//Console.WriteLine("/A myalias \"My Game Name\": Change game's alias");	// TODO
 			Console.WriteLine("   /C : Toggle command-line only mode");
 			Console.WriteLine("   /P : Add {0}.exe location to your path", FILENAME);
 			Console.WriteLine("/?|/H : Display this help");
@@ -1780,6 +1792,32 @@ namespace GameLauncher_Console
 			}
 			if (shellError)
 				Thread.Sleep(4000);
+		}
+
+		/// <summary>
+		/// A utility class to minimize/restore/maximize windows.
+		/// </summary>
+		public struct WindowMessage
+        {
+			public const int SW_HIDE = 0;
+			public const int SW_NORMAL = 1;
+			public const int SW_SHOWMINIMIZED = 2;
+			public const int SW_MAXIMIZE = 3;
+			public const int SW_SHOWNOACTIVATE = 4;
+			public const int SW_SHOW = 5;
+			public const int SW_MINIMIZE = 6;
+			public const int SW_SHOWMINNOACTIVE = 7;
+			public const int SW_SHOWNA = 8;
+			public const int SW_RESTORE = 9;
+			public const int SW_SHOWDEFAULT = 10;
+			public const int SW_FORCEMINIMIZE = 11;
+
+			[DllImport("user32.dll")]
+			[return: MarshalAs(UnmanagedType.Bool)]
+			public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+			[DllImport("user32.dll")]
+			public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 		}
 
 		/// <summary>

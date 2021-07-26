@@ -331,14 +331,16 @@ namespace GameLauncher_Console
 			if (bPlatform)
 				title = title.Substring(0, title.LastIndexOf(':'));
 
+			string titleFile = string.Concat(title.Split(Path.GetInvalidFileNameChars()));
+
 			if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGCUST)) && !string.IsNullOrEmpty(title))
 			{
 				foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF" })
 				{
-					if (File.Exists(@".\CustomImages\" + title + "." + ext))
+					if (File.Exists(@".\CustomImages\" + titleFile + "." + ext))
 					{
 						bPlatform = false;
-						imgPath = @".\CustomImages\" + title + "." + ext;
+						imgPath = @".\CustomImages\" + titleFile + "." + ext;
 						break;
 					}
 				}

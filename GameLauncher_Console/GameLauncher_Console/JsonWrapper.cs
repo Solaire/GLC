@@ -68,11 +68,11 @@ namespace GameLauncher_Console
 		private const string LAST_ARRAY_PERCENT				= "percent";
 
 		private static readonly string currentPath	= Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-		private static readonly string configPath	= currentPath + "\\" + CFG_INI_FILE;
-		private static readonly string configOldPath = currentPath + "\\" + CFGOLD_JSON_FILE;
-		private static readonly string searchPath	= currentPath + "\\" + LAST_JSON_FILE;
-		private static readonly string gamesPath	= currentPath + "\\" + GAME_JSON_FILE;
-		private static readonly string gamesOldPath	= currentPath + "\\" + GAMEOLD_JSON_FILE;
+		private static readonly string configPath	= Path.Combine(currentPath, CFG_INI_FILE);
+		private static readonly string configOldPath = Path.Combine(currentPath, CFGOLD_JSON_FILE);
+		private static readonly string searchPath	= Path.Combine(currentPath, LAST_JSON_FILE);
+		private static readonly string gamesPath	= Path.Combine(currentPath, GAME_JSON_FILE);
+		private static readonly string gamesOldPath	= Path.Combine(currentPath, GAMEOLD_JSON_FILE);
 		private static readonly string version		= Assembly.GetEntryAssembly().GetName().Version.ToString();
 
 		// Configuration data
@@ -483,7 +483,7 @@ namespace GameLauncher_Console
 				}
 
 				strInstallPath = CRegScanner.GetRegStrVal(key, GAME_INSTALL_PATH);
-				strClientPath = strInstallPath + "\\" + STEAM_PATH;
+				strClientPath = Path.Combine(strInstallPath, STEAM_PATH);
 			}
 
 			if (!Directory.Exists(strClientPath))
@@ -492,7 +492,7 @@ namespace GameLauncher_Console
 				return;
 			}
 
-			string libFile = strClientPath + "\\" + STEAM_LIBFILE;
+			string libFile = Path.Combine(strClientPath, STEAM_LIBFILE);
 			List<string> libs = new List<string>
 			{
 				strClientPath
@@ -523,7 +523,7 @@ namespace GameLauncher_Console
 								break;
 							}
 						}
-						library += "\\" + STEAM_PATH;
+						library = Path.Combine(library, STEAM_PATH);
 						if (!library.Equals(strClientPath) && Directory.Exists(library))
 							libs.Add(library);
 					}
@@ -585,7 +585,7 @@ namespace GameLauncher_Console
 							}
 							if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
 							{
-								strIconPath = CGameFinder.FindGameBinaryFile(lib + "\\common\\" + app.SubItems["installdir"], strTitle);
+								strIconPath = CGameFinder.FindGameBinaryFile(Path.Combine(Path.Combine(lib, "common"), app.SubItems["installdir"]), strTitle);
 								strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(strIconPath));
 							}
 							else
@@ -621,7 +621,8 @@ namespace GameLauncher_Console
 						ulong userIdTmp = 0;
 						string userName = "";
 						string userNameTmp = "";
-						string appFile = strInstallPath + "\\config\\" + STEAM_APPFILE;
+						string strConfigPath = Path.Combine(strInstallPath, "config");
+						string appFile = Path.Combine(strConfigPath, STEAM_APPFILE);
 
 						if (File.Exists(appFile))
 						{
@@ -631,7 +632,7 @@ namespace GameLauncher_Console
 
 							appData.SubItems.TryGetValue("AutoLoginUser", out userName);
 
-							SteamWrapper usrDoc = new SteamWrapper(strInstallPath + "\\config\\" + STEAM_USRFILE);
+							SteamWrapper usrDoc = new SteamWrapper(Path.Combine(strConfigPath, STEAM_USRFILE));
 							ACF_Struct usrDocData = usrDoc.ACFFileToStruct();
 							ACF_Struct usrData = usrDocData.SubACF[STEAM_USRARR];
 
@@ -806,7 +807,7 @@ namespace GameLauncher_Console
 
 						if (!string.IsNullOrEmpty(strLaunch))
 						{
-							strLaunch = GetStringProperty(document.RootElement, "InstallLocation") + "\\" + strLaunch;
+							strLaunch = Path.Combine(GetStringProperty(document.RootElement, "InstallLocation"), strLaunch);
 							strAlias = CRegScanner.GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
 							if (strAlias.Length > strTitle.Length)
 								strAlias = CRegScanner.GetAlias(strTitle);
@@ -1325,9 +1326,9 @@ namespace GameLauncher_Console
 															}
 															else
 															{
-																strLaunch = "\"" + launcherPath + "\"" + GOG_LAUNCH + id + GOG_PATH + "\"" + Path.GetDirectoryName(strIconPath) + "\" /urlProtocol=\"minimizeClient\"";
+																strLaunch = launcherPath + GOG_LAUNCH + id + GOG_PATH + "\"" + Path.GetDirectoryName(strIconPath) + "\"";
 																if (strLaunch.Length > 8191)
-																	strLaunch = "\"" + launcherPath + "\"" + GOG_LAUNCH + id;
+																	strLaunch = launcherPath + GOG_LAUNCH + id;
 															}
 															CLogger.LogDebug($"- {strTitle}");
 															gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));

@@ -144,7 +144,6 @@ namespace GameLauncher_Console
 		// Indiegala
 		public const string IG_NAME					= "Indiegala"; //"IGClient";
 		public const string IG_NAME_LONG			= "Indiegala Client";
-		//private const string IG_JSON_FILE			= @"\IGClient\storage\installed.json";
 		//private const string IG_UNREG				= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall
 		public const string IG_REG					= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
 
@@ -313,7 +312,7 @@ namespace GameLauncher_Console
 						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
 							strIconPath = CGameFinder.FindGameBinaryFile(loc, strTitle);
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -462,12 +461,12 @@ namespace GameLauncher_Console
 						strID = Path.GetFileName(data.Name);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
 						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = BETHESDA_LAUNCH + GetRegStrVal(data, BETHESDA_PRODUCT_ID) + ".exe";
+						strLaunch = BETHESDA_LAUNCH + GetRegStrVal(data, BETHESDA_PRODUCT_ID);
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						if (string.IsNullOrEmpty(strIconPath))
-							strIconPath = loc.Trim(new char[] { ' ', '"' }) + "\\" + strTitle + ".exe";
+							strIconPath = Path.Combine(loc.Trim(new char[] { ' ', '"' }), string.Concat(strTitle.Split(Path.GetInvalidFileNameChars())) + ".exe");
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -519,7 +518,7 @@ namespace GameLauncher_Console
 						CLogger.LogDebug($"- {strTitle}");
 						strLaunch = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"', '\\', '/' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
