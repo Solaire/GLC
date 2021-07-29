@@ -1052,7 +1052,6 @@ namespace GameLauncher_Console
 						}
 						return false;
 					case CGameData.GamePlatform.GOG:
-						/*
 						string answerGOG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
 						if (answerGOG[0] == 'Y' || answerGOG[0] == 'y')
@@ -1060,11 +1059,33 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
-						*/
 							Process.Start(string.Format("goggalaxy://openGameView/{0}", CRegScanner.GetGOGGameID(game.ID)));
 							return true;
-						//}
-						//return false;
+						}
+						return false;
+					case CGameData.GamePlatform.Uplay:
+						// Some games don't provide a valid ID; provide an error in that case
+						if (game.ID.StartsWith(CRegScanner.UPLAY_INSTALL))
+						{
+							string answerUplay = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+							ClearInputLine(cols);
+							if (answerUplay[0] == 'Y' || answerUplay[0] == 'y')
+							{
+								Console.ResetColor();
+								Console.Clear();
+								CLogger.LogInfo($"Installing game: {game.Title}");
+								Process.Start(string.Format("uplay://launch/{0}", CRegScanner.GetUplayGameID(game.ID)));
+								return true;
+							}
+						}
+						else
+						{
+							//SetFgColour(cols.errorCC, cols.errorLtCC);
+							CLogger.LogWarn("Cannot get {0} ID for this title.", CRegScanner.UPLAY_NAME.ToUpper());
+							Console.WriteLine("ERROR: Couldn't get ID for this title.");
+							//Console.ResetColor();
+						}
+						return false;
 					case CGameData.GamePlatform.Amazon:
 						string answerAmazon = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
@@ -1104,7 +1125,6 @@ namespace GameLauncher_Console
 						}
 						return false;
 					case CGameData.GamePlatform.Itch:
-						/*
 						string answerItch = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
 						if (answerItch[0] == 'Y' || answerItch[0] == 'y')
@@ -1112,11 +1132,10 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
-						*/
 							Process.Start(string.Format("itch://games/{0}", CRegScanner.GetItchGameID(game.ID)));
 							return true;		
-						//}
-						//return false;
+						}
+						return false;
 					case CGameData.GamePlatform.IGClient:
 						using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.IG_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM64
 						{

@@ -57,8 +57,9 @@ namespace GameLauncher_Console
 				{
 					CLogger.LogError(e);
 				}
-				if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-					new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+				if (!(string.IsNullOrEmpty(strLaunch)))
+					gameDataList.Add(
+						new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 			}
 			*/
 
@@ -104,7 +105,7 @@ namespace GameLauncher_Console
 
 				if (gameList != null)
 				{
-					CLogger.LogInfo("{0} not-installed games:", CRegScanner.MS_NAME.ToUpper());
+					CLogger.LogDebug("{0} not-installed games:", CRegScanner.MS_NAME.ToUpper());
 
 					var options = new JsonDocumentOptions
 					{

@@ -446,7 +446,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed and not-installed Steam games (latter from an html file; requires public profile)
+		/// Find installed and owned Steam games (latter from an html file; requires public profile)
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		public static void GetSteamGames(List<CRegScanner.RegistryGameData> gameDataList, bool expensiveIcons)
@@ -531,7 +531,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), libFile));
+				CLogger.LogError(e, string.Format("Malformed {0} file: {1}", STEAM_NAME.ToUpper(), libFile));
 				nLibs--;
 			}
 
@@ -548,7 +548,7 @@ namespace GameLauncher_Console
 				}
 				catch (Exception e)
 				{
-					CLogger.LogError(e, string.Format("ERROR: {0} directory read error: ", STEAM_NAME.ToUpper(), lib));
+					CLogger.LogError(e, string.Format("{0} directory read error: ", STEAM_NAME.ToUpper(), lib));
 					continue;
 				}
 
@@ -600,7 +600,7 @@ namespace GameLauncher_Console
 					}
 					catch (Exception e)
 					{
-						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", STEAM_NAME.ToUpper(), file));
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", STEAM_NAME.ToUpper(), file));
 					}
 				}
 				i++;
@@ -664,13 +664,14 @@ namespace GameLauncher_Console
 						}
 						if (userId > 0)
 						{
+							CLogger.LogInfo("Setting default {0} user to {1} #{2}", STEAM_NAME.ToUpper(), userName, userId);
 							CConfig.SetConfigValue(CConfig.CFG_STEAMID, userId);
 							ExportConfig();
 						}
 					}
 					catch (Exception e)
 					{
-						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1} or {2}", STEAM_NAME.ToUpper(), STEAM_APPFILE, STEAM_USRFILE));
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1} or {2}", STEAM_NAME.ToUpper(), STEAM_APPFILE, STEAM_USRFILE));
 					}
 				}
 
@@ -679,7 +680,7 @@ namespace GameLauncher_Console
 					// Download game list from public user profile
 					try
 					{
-						string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", CConfig.GetConfigULong(CConfig.CFG_STEAMID));
+						string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", userId);
 /*
 #if DEBUG
 						string tmpfile = $"tmp_{STEAM_NAME}.html";
@@ -705,7 +706,7 @@ namespace GameLauncher_Console
 						HtmlNode gameList = doc.DocumentNode.SelectSingleNode("//script[@language='javascript']");
 						if (gameList != null)
 						{
-							CLogger.LogInfo("{0} not-installed games:", STEAM_NAME.ToUpper());
+							CLogger.LogDebug("{0} not-installed games (user #{1}):", STEAM_NAME.ToUpper(), userId);
 
 							var options = new JsonDocumentOptions
 							{
@@ -819,7 +820,7 @@ namespace GameLauncher_Console
 				}
 				catch (Exception e)
 				{
-					CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", EPIC_NAME.ToUpper(), file));
+					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", EPIC_NAME.ToUpper(), file));
 				}
 			}
 			CLogger.LogDebug("--------------------");
@@ -871,8 +872,9 @@ namespace GameLauncher_Console
 									strAlias = CRegScanner.GetAlias(strTitle);
 								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 									strAlias = "";
-								if (!string.IsNullOrEmpty(strLaunch)) gameDataList.Add(
-									new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+								if (!(string.IsNullOrEmpty(strLaunch)))
+									gameDataList.Add(
+										new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 							}
 
 						}
@@ -949,7 +951,7 @@ namespace GameLauncher_Console
 							}
 							catch (Exception e)
 							{
-								CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", PARADOX_NAME.ToUpper(), file));
+								CLogger.LogError(e, string.Format("Malformed {0} file: {1}", PARADOX_NAME.ToUpper(), file));
 							}
 						}
 					}
@@ -985,7 +987,7 @@ namespace GameLauncher_Console
 				string strDocumentData = File.ReadAllText(file);
 
 				if (string.IsNullOrEmpty(strDocumentData))
-					CLogger.LogWarn(string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+					CLogger.LogWarn(string.Format("Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
 				else
 				{
 					try
@@ -1033,7 +1035,7 @@ namespace GameLauncher_Console
 					}
 					catch (Exception e)
 					{
-						CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
 					}
 				}
 			}
@@ -1055,7 +1057,7 @@ namespace GameLauncher_Console
 					string strDocumentData = File.ReadAllText(file);
 
 					if (string.IsNullOrEmpty(strDocumentData))
-						CLogger.LogWarn(string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+						CLogger.LogWarn(string.Format("Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
 					else
 					{
 						try
@@ -1103,7 +1105,7 @@ namespace GameLauncher_Console
 						}
 						catch (Exception e)
 						{
-							CLogger.LogError(e, string.Format("ERROR: Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+							CLogger.LogError(e, string.Format("Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
 						}
 					}
 				}
@@ -1182,7 +1184,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", AMAZON_NAME.ToUpper()));
 			}
 
 			// Get not-installed games
@@ -1218,7 +1220,7 @@ namespace GameLauncher_Console
 					}
 					catch (Exception e)
 					{
-						CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+						CLogger.LogError(e, string.Format("Malformed {0} database output!", AMAZON_NAME.ToUpper()));
 					}
 				}
 			}
@@ -1378,7 +1380,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", GOG_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", GOG_NAME.ToUpper()));
 			}
 			CLogger.LogDebug("-------------------");
 		}
@@ -1477,7 +1479,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format("ERROR: Malformed {0} database output!", ITCH_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", ITCH_NAME.ToUpper()));
 			}
 			CLogger.LogDebug("-------------------");
 		}
@@ -1522,7 +1524,7 @@ namespace GameLauncher_Console
 			}
 			catch (Exception e)
 			{
-				CLogger.LogError(e, $"ERROR: Malformed {file} file!");
+				CLogger.LogError(e, $"Malformed {file} file!");
 				return false;
 			}
 			return true;
@@ -1561,7 +1563,7 @@ namespace GameLauncher_Console
 				}
 				else
 				{
-					CLogger.LogWarn("ERROR: Outdated configuration file. Resetting defaults...");
+					CLogger.LogWarn("Outdated configuration file. Resetting defaults...");
 					Console.WriteLine($"ERROR: Outdated {file} file. Resetting defaults...");
 					CreateNewConfigFile(file);
 				}
