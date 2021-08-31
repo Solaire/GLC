@@ -9,6 +9,7 @@ This is a simple console program that will scan the system for video games, then
 - GOG Galaxy;
 - Indiegala Client;
 - itch;
+- Oculus;
 - Origin (soon to be EA Desktop);
 - Paradox Launcher;
 - Steam;
