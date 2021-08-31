@@ -51,7 +51,11 @@ namespace GameLauncher_Console
 			[Description("Wargaming.net")]
 			Wargaming = 15,
 			[Description("Indiegala Client")]
-			IGClient = 16
+			IGClient = 16,
+			[Description("Microsoft Store")]
+			MicrosoftStore = 17,
+			[Description("Oculus")]
+			Oculus = 18
 		}
 
 		#region Query definitions
