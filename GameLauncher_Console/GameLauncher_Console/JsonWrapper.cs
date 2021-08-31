@@ -548,7 +548,7 @@ namespace GameLauncher_Console
 				}
 				catch (Exception e)
 				{
-					CLogger.LogError(e, string.Format("{0} directory read error: ", STEAM_NAME.ToUpper(), lib));
+					CLogger.LogError(e, string.Format("{0} directory read error: {1}", STEAM_NAME.ToUpper(), lib));
 					continue;
 				}
 
@@ -954,6 +954,100 @@ namespace GameLauncher_Console
 								CLogger.LogError(e, string.Format("Malformed {0} file: {1}", PARADOX_NAME.ToUpper(), file));
 							}
 						}
+					}
+				}
+			}
+			CLogger.LogDebug("--------------------");
+		}
+
+		/// <summary>
+		/// Find installed Oculus games (from json files)
+		/// </summary>
+		/// <param name="gameDataList">List of game data objects</param>
+		public static void GetOculusGames(List<CRegScanner.RegistryGameData> gameDataList)
+		{
+			const string OCULUS_NAME = "Oculus";
+			const string OCULUS_LIBS = @"SOFTWARE\Oculus VR, LLC\Oculus\Libraries"; // HKCU64
+			const string OCULUS_LIBPATH = "OriginalPath"; // "Path" might be better, but may require converting "\\?\Volume{guid}\" to drive letter
+
+			// Get installed games
+			List<string> libPaths = new List<string>();
+
+			using (RegistryKey key = Registry.CurrentUser.OpenSubKey(OCULUS_LIBS, RegistryKeyPermissionCheck.ReadSubTree))
+			{
+				if (key != null)
+				{
+					foreach (string lib in key.GetSubKeyNames())
+					{
+						using (RegistryKey key2 = Registry.CurrentUser.OpenSubKey(OCULUS_LIBS + "\\" + lib, RegistryKeyPermissionCheck.ReadSubTree))
+						{
+							libPaths.Add(CRegScanner.GetRegStrVal(key2, OCULUS_LIBPATH));
+						}
+					}
+				}
+			}
+			foreach (string lib in libPaths)
+			{
+				List<string> libFiles = new List<string>();
+				try
+				{
+					string manifestPath = Path.Combine(lib, "Manifests");
+					libFiles = Directory.GetFiles(manifestPath, "*.json.mini", SearchOption.TopDirectoryOnly).ToList();
+					CLogger.LogInfo("{0} {1} games found in library {2}", libFiles.Count, OCULUS_NAME.ToUpper(), lib);
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e, string.Format("{0} directory read error: {1}", OCULUS_NAME.ToUpper(), lib));
+					continue;
+				}
+
+				foreach (string file in libFiles)
+				{
+					try
+					{
+						var options = new JsonDocumentOptions
+						{
+							AllowTrailingCommas = true
+						};
+
+						string strDocumentData = File.ReadAllText(file);
+
+						if (string.IsNullOrEmpty(strDocumentData))
+							CLogger.LogWarn(string.Format("Malformed {0} file: {1}", OCULUS_NAME.ToUpper(), file));
+						else
+						{
+							using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+							{
+								CultureInfo ci = new CultureInfo("en-GB");
+								TextInfo ti = ci.TextInfo;
+
+								string strID = "";
+								string strTitle = "";
+								string strLaunch = "";
+								string strAlias = "";
+								string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Oculus);
+
+								strID = GetStringProperty(document.RootElement, "appId");
+								if (!string.IsNullOrEmpty(strID))
+								{
+									string name = GetStringProperty(document.RootElement, "canonicalName");
+									string exefile = GetStringProperty(document.RootElement, "launchFile");
+									strTitle = ti.ToTitleCase(name.Replace('-', ' '));
+									CLogger.LogDebug($"- {strTitle}");
+									strLaunch = Path.Combine(lib, "Software", name, exefile);
+									strAlias = CRegScanner.GetAlias(Path.GetFileNameWithoutExtension(exefile));
+									if (strAlias.Length > strTitle.Length)
+										strAlias = CRegScanner.GetAlias(strTitle);
+									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+										strAlias = "";
+									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+								}
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", OCULUS_NAME.ToUpper(), file));
 					}
 				}
 			}

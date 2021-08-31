@@ -54,7 +54,7 @@ namespace GameLauncher_Console
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
 			" * Amazon * Battle.net * Bethesda * Big Fish * Epic * GOG * Indiegala * itch",
-			" * Origin * Paradox * Steam * Ubisoft * custom",
+			" * Oculus * Origin * Paradox * Steam * Ubisoft * custom",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
@@ -803,6 +803,9 @@ namespace GameLauncher_Console
 									break;
 								//case CGameData.GamePlatform.MicrosoftStore: // TODO?
 								//	break;
+								case CGameData.GamePlatform.Oculus:
+									Process.Start("oculus://");
+									break;
 								default:
 									break;
 							}

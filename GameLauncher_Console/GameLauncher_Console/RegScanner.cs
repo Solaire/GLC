@@ -152,6 +152,11 @@ namespace GameLauncher_Console
 		public const string MS_NAME_LONG			= "Microsoft Store";
 		private const string MS_LAUNCH_SUFFIX		= @":\\";
 
+		// Oculus
+		public const string OCULUS_NAME				= "Oculus";
+		public const string OCULUS_NAME_LONG		= "Oculus";
+		//private const string OCULUS_UNREG			= "Oculus"; // HKLM64 Uninstall
+
 		// Custom games
 		//public const string CUSTOM_NAME				= "Custom";
 		public const string CUSTOM_NAME_LONG		= "Custom";
@@ -256,6 +261,9 @@ namespace GameLauncher_Console
 				CStoreScanner.GetMSStoreGames(gameDataList);
 #endif
 				Console.Write(".");
+				CLogger.LogInfo("Looking for {0} games...", OCULUS_NAME_LONG.ToUpper());
+				CJsonWrapper.GetOculusGames(gameDataList);
+				Console.Write(".");
 				CLogger.LogInfo("Looking for {0} games...", ORIGIN_NAME_LONG.ToUpper());
 				GetOriginGames(gameDataList);
 				Console.Write(".");
@@ -273,7 +281,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed and not-installed Ubisoft Connect (formerly Uplay) games
+		/// Find installed and owned Ubisoft Connect (formerly Uplay) games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetUplayGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
@@ -645,7 +653,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Find installed and not-installed Big Fish games
+		/// Find installed and owned Big Fish games
 		/// </summary>
 		/// <param name="gameDataList">List of game data objects</param>
 		private static void GetBigFishGames(List<RegistryGameData> gameDataList, bool expensiveIcons)

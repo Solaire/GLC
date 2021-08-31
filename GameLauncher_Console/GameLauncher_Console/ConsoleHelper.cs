@@ -596,6 +596,8 @@ namespace GameLauncher_Console
 				if (DoGameSearch(game, maxTitles, options, out string[] optionsNew, out int nMatches) && nMatches > 0)
 				{
 					CDock.m_nSelectedPlatform = (int)CGameData.GamePlatform.Search;
+					CDock.m_nSelectedGame = 0;
+					nPage = 0;
 					options = optionsNew;
 					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{

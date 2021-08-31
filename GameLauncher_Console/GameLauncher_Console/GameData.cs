@@ -69,7 +69,9 @@ namespace GameLauncher_Console
 			[Description("Not installed")]	// TODO
 			NotInstalled = 23,
 			[Description("Microsoft Store")] // TODO
-			MicrosoftStore = 24
+			MicrosoftStore = 24,
+			[Description("Oculus")]			// TODO
+			Oculus = 25
 		}
 
 		public enum Match
