@@ -344,7 +344,7 @@ namespace GameLauncher_Console
 			Console.Clear();
 			CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
 			Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - CDock.INPUT_BOTTOM_CUSHION);
-			Console.WriteLine($"{mask} in {path}");
+			Console.WriteLine(mask + " in " + path);
 			DrawFSMenu(cols, string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTFILET)) ? Properties.Settings.Default.text_browse_title : CConfig.GetConfigString(CConfig.CFG_TXTFILET));
 
 			int nStartY = Console.CursorTop + CDock.INSTRUCT_CUSHION;
@@ -641,11 +641,12 @@ namespace GameLauncher_Console
 				DrawGridMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cfgv, cols, options);
 
 			CDock.SetFgColour(cols.subCC, cols.subLtCC);
-			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && pages > 1 && nPage < pages - 1)
-				Console.WriteLine("... ({0}/{1})", nPage + 1, pages);
-			if (m_MenuType == MenuType.cType_Grid)
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE))
 			{
-				DrawInfoBar(options[CDock.m_nCurrentSelection], cols);
+				if (pages > 1 && nPage < pages - 1)
+					Console.WriteLine("... ({0}/{1})", nPage + 1, pages);
+				if (!(m_MenuType == MenuType.cType_List && (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0))
+					DrawInfoBar(options[CDock.m_nCurrentSelection], cols);
 			}
 
 			do
@@ -1018,17 +1019,18 @@ namespace GameLauncher_Console
 				//CDock.ClearInputLine(cols);
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
 				CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
-				string left = "│";
-				string right = "│";
+				string separator = "│";
+				string leftSide = separator;
+				string rightSide = separator;
 				if (CDock.m_nSelectedPlatform > -1)
 				{
 					CGameData.CGame selectedGame = CGameData.GetPlatformGame((CGameData.GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
 					/*
 					if (selectedGame.Alias.Length > 0)
-						left = string.Format("│ {0} │ [{1}] │", selectedGame.Title, selectedGame.Alias);
+						leftSide = string.Format("{0} {1} {0} [{2}] {0}", separator, selectedGame.Title, selectedGame.Alias);
 					else
 					*/
-					left = string.Format("│ {0} │", selectedGame.Title);
+					leftSide = string.Format("{0} {1} {0}", separator, selectedGame.Title);
 					/*
 					if (CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.All ||
 						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Favourites ||
@@ -1038,16 +1040,16 @@ namespace GameLauncher_Console
 						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Search ||
 						CDock.m_nSelectedPlatform == (int)CGameData.GamePlatform.Unknown)
 					*/
-					right = string.Format("│ {0} │", selectedGame.PlatformString);
+					rightSide = string.Format("{0} {1} {0}", separator, selectedGame.PlatformString);
 				}
 				else
 				{
 					//int platform = CGameData.GetPlatformString(CGameData.GetPlatformEnum(platform));
-					//left = string.Format("│ {0} │", strCurrentOption.Substring(0, strCurrentOption.IndexOf(": ")));
+					//leftSide = string.Format("{0} {1} {0}", separator, strCurrentOption.Substring(0, strCurrentOption.IndexOf(": ")));
 					selection = selection.Substring(0, selection.IndexOf(": "));
-					left = string.Format("│ {0} │", selection);
+					leftSide = string.Format("{0} {1} {0}", separator, selection);
 				}
-				Console.WriteLine(left + right.PadLeft(Console.WindowWidth - left.Length - 1));
+				Console.WriteLine(leftSide + rightSide.PadLeft(Console.WindowWidth - leftSide.Length - 1));
 				Thread.Sleep(50);  // image sometimes become written over otherwise
 			}
 			catch (Exception e)
@@ -1334,10 +1336,9 @@ namespace GameLauncher_Console
 			if (m_MenuType == MenuType.cType_List)
 				Console.Write(strCurrentOption);
 			else if (m_ConsoleState == ConsoleState.cState_Navigate)  // if (m_MenuType == MenuType.cType_Grid &&
-			{
 				Console.Write(strCurrentOption.Substring(0, Math.Min(strCurrentOption.Length, m_nSpacingPerLine - CDock.COLUMN_CUSHION)));
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && !(m_MenuType == MenuType.cType_List && (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE) > 0))
 				DrawInfoBar(strCurrentOption, cols);
-			}
 
 			try
 			{
@@ -1392,15 +1393,15 @@ namespace GameLauncher_Console
 		/// </summary>
 		public static List<string> GetPlatformNames()
 		{
-			List<string> platforms = new List<string>();
+			List<string> platformList = new List<string>();
 
 			foreach (var platformPair in CGameData.GetPlatforms())
 			{
 				if (platformPair.Value > 0)
-					platforms.Add(platformPair.Key + ": " + platformPair.Value);
+					platformList.Add(platformPair.Key + ": " + platformPair.Value);
 			}
-			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOCFG)) platforms.Add(string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)) ? Properties.Settings.Default.text_settings_title : CConfig.GetConfigString(CConfig.CFG_TXTCFGT));
-			return platforms;
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOCFG)) platformList.Add(string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)) ? Properties.Settings.Default.text_settings_title : CConfig.GetConfigString(CConfig.CFG_TXTCFGT));
+			return platformList;
 		}
 
 		/// <summary>

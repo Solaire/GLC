@@ -42,7 +42,7 @@ You can edit glc.ini (or glc-cfg.json in v1.1) to change the default configurati
 
 To manually add programs, place file shortcuts or .exe executables in the ".\customGames" folder found in the same directory as the application, and use the rescan feature to load them into the program. It is recommended to use shortcuts instead of executables, as .exe files often require external assets and therefore may not work properly.
 
-To customise an image, place files with the same titles in the ".\customImages" folder (supports ICO, BMP, PNG, GIF, JPEG, and TIFF formats).
+To customise an image, place files with the same titles in the ".\customImages" folder (supports ICO, BMP, PNG, GIF, JPEG, TIFF, and EPRT formats).
 
 ## [GLC Wiki](../../wiki)
 ***See the [wiki](../../wiki) for [Known Issues](../../wiki/Known-Issues), [Changelog](../../wiki/Changelog), and more information.***

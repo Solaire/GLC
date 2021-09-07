@@ -70,7 +70,7 @@ namespace GameLauncher_Console
 			NotInstalled = 23,
 			[Description("Microsoft Store")] // TODO
 			MicrosoftStore = 24,
-			[Description("Oculus")]			// TODO
+			[Description("Oculus")]
 			Oculus = 25
 		}
 
@@ -1013,14 +1013,14 @@ namespace GameLauncher_Console
 				if (alphaSort)
 				{
 					if (instSort)
-						tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games => games.IsFavourite).ThenBy(games =>
+						tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenByDescending(games => games.IsFavourite).ThenBy(games =>
 							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 					else
 						tempSet = gameSet.OrderByDescending(games => games.IsFavourite).ThenBy(games =>
 							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 				}
 				else if (instSort)
-					tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games => games.IsFavourite).ThenByDescending(games =>
+					tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenByDescending(games => games.IsFavourite).ThenByDescending(games =>
 						games.Frequency).ThenBy(games => string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 				else
 					tempSet = gameSet.OrderByDescending(games => games.IsFavourite).ThenByDescending(games => games.Frequency).ThenBy(games =>
@@ -1034,7 +1034,7 @@ namespace GameLauncher_Console
 						tempSet = gameSet.OrderByDescending(games => games.IsInstalled).ThenBy(games =>
 							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 					else
-						tempSet = gameSet.OrderByDescending(games =>
+						tempSet = gameSet.OrderBy(games =>
 							string.Join(" ", games.Title.Split(' ').SkipWhile(s => articles.Any(x => Equals(s, CDock.IGNORE_ALL)))));
 				}
 				else if (instSort)

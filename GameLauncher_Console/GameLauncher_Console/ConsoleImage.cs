@@ -335,12 +335,13 @@ namespace GameLauncher_Console
 
 			if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGCUST)) && !string.IsNullOrEmpty(title))
 			{
-				foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF" })
+				foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" })
 				{
-					if (File.Exists(@".\CustomImages\" + titleFile + "." + ext))
+					string imgPathChk = Path.Combine(CDock.currentPath, CDock.IMAGE_FOLDER_NAME, titleFile + "." + ext);
+					if (File.Exists(imgPathChk))
 					{
 						bPlatform = false;
-						imgPath = @".\CustomImages\" + titleFile + "." + ext;
+						imgPath = imgPathChk;
 						break;
 					}
 				}
@@ -370,7 +371,7 @@ namespace GameLauncher_Console
 					int w = size.Width * fontSize.Width;
 					int h = size.Height * fontSize.Height;
 
-					foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF" })
+					foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" })
 					{
 						if (Path.GetExtension(imgPath).Equals("." + ext, CDock.IGNORE_CASE))
 						{

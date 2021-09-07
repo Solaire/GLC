@@ -7,11 +7,17 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Permissions;
+using System.Text;
 using System.Threading;
 using Logger;
 using Microsoft.Win32;
+using Microsoft.Win32.SafeHandles;
 
 namespace GameLauncher_Console
 {
@@ -30,6 +36,7 @@ namespace GameLauncher_Console
 		public const int ICON_RIGHT_CUSHION = 1;
 		public const CompareOptions IGNORE_ALL = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreSymbols;
 		public const StringComparison IGNORE_CASE = StringComparison.CurrentCultureIgnoreCase;
+		public const string IMAGE_FOLDER_NAME = "CustomImages";
 
 		public static readonly string FILENAME = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
 
@@ -40,6 +47,8 @@ namespace GameLauncher_Console
 		public static int m_nSelectedGame = -1;
 		public static int m_nCurrentSelection = 0;
 
+		public static readonly string currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+		public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
 		public static bool noInteractive = false;
 		public static Size sizeIcon;
 		public static Size sizeImage;
@@ -58,7 +67,7 @@ namespace GameLauncher_Console
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
-			" the \'customGames\' subfolder."
+			" the \'CustomGames\' subfolder."
 		};
 
 		/// <summary>
@@ -73,12 +82,29 @@ namespace GameLauncher_Console
 		/// </summary>
 		public void MainLoop(string[] args)
 		{
+			CPlatform platforms = new CPlatform();
+			platforms.AddSupportedPlatform(new PlatformAmazon());
+			platforms.AddSupportedPlatform(new PlatformBattlenet());
+			platforms.AddSupportedPlatform(new PlatformBethesda());
+			platforms.AddSupportedPlatform(new PlatformBigFish());
+			//platforms.AddSupportedPlatform(new PlatformCustom());
+			platforms.AddSupportedPlatform(new PlatformEpic());
+			platforms.AddSupportedPlatform(new PlatformGOG());
+			platforms.AddSupportedPlatform(new PlatformIGClient());
+			platforms.AddSupportedPlatform(new PlatformItch());
+#if DEBUG
+			platforms.AddSupportedPlatform(new PlatformMicrosoftStore());
+#endif
+			platforms.AddSupportedPlatform(new PlatformOculus());
+			platforms.AddSupportedPlatform(new PlatformOrigin());
+			platforms.AddSupportedPlatform(new PlatformParadox());
+			platforms.AddSupportedPlatform(new PlatformSteam());
+			platforms.AddSupportedPlatform(new PlatformUplay());
 			bool import, parseError = false;
 			import = CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols);
 			if (!import) parseError = true;
-			import = CJsonWrapper.ImportFromJSON(out List<CGameData.CMatch> matches);
+			import = CJsonWrapper.ImportFromJSON(platforms, out List<CGameData.CMatch> matches);
 			if (!import) parseError = true;
-			CGameFinder.CheckCustomFolder();
 
 			if (parseError)
 			{
@@ -97,6 +123,7 @@ namespace GameLauncher_Console
 
 			int gameIndex = -1;
 			string gameSearch = "";
+
 			foreach (string arg in args)
 			{
 				gameSearch += arg + " ";
@@ -112,7 +139,7 @@ namespace GameLauncher_Console
 					{
 						CLogger.LogInfo("Scanning for games...");
 						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
+						platforms.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
 						return;
 					}
 					else if (gameSearch[0].Equals('c') || gameSearch[0].Equals('C'))
@@ -343,7 +370,7 @@ namespace GameLauncher_Console
 						Console.ResetColor();
 						CLogger.LogInfo("Scanning for games...");
 						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
-						CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
+						platforms.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
 						continue;
 
 					case CConsoleHelper.DockSelection.cSel_Input: // Toggle arrows/typing input
@@ -565,10 +592,10 @@ namespace GameLauncher_Console
 				CLogger.LogDebug("Platform {0}, Game {1}, Selection {2}", m_nSelectedPlatform, m_nSelectedGame, m_nCurrentSelection); //, m_nSelectedCategory
 				if (m_nSelectedPlatform < 0)
 				{
-					List<string> platforms = CConsoleHelper.GetPlatformNames();
-					if (!noInteractive && CConsoleHelper.IsSelectionValid(m_nCurrentSelection, platforms.Count))
+					List<string> platformList = CConsoleHelper.GetPlatformNames();
+					if (!noInteractive && CConsoleHelper.IsSelectionValid(m_nCurrentSelection, platformList.Count))
 					{
-						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOCFG) && m_nCurrentSelection == platforms.Count - 1)
+						if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOCFG) && m_nCurrentSelection == platformList.Count - 1)
 						{
 							// calling directly won't work currently, as all of these functions aren't static
 							//CConsoleHelper.DisplayCfg(cfgv, keys, cols, ref setup);
@@ -576,7 +603,7 @@ namespace GameLauncher_Console
 						}
 						else
 						{
-							m_nSelectedPlatform = CGameData.GetPlatformEnum(platforms[m_nCurrentSelection], true);
+							m_nSelectedPlatform = CGameData.GetPlatformEnum(platformList[m_nCurrentSelection], true);
 							m_nSelectedGame = -1;
 							m_nCurrentSelection = 0;
 						}
@@ -693,118 +720,59 @@ namespace GameLauncher_Console
 							switch ((CGameData.GamePlatform)m_nSelectedPlatform)
 							{
 								case CGameData.GamePlatform.Steam:
-									Process.Start("steam://open/games");
+									PlatformSteam.Launch();
 									break;
 								case CGameData.GamePlatform.GOG:
-									Process.Start("goggalaxy://");
-									/*
-									using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-									{
-										string launcherPath = key.GetValue("client") + CRegScanner.GOG_GALAXY_EXE;
-										if (File.Exists(launcherPath))
-											Process.Start(launcherPath);
-										else
-										{
-											//SetFgColour(cols.errorCC, cols.errorLtCC);
-											CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.GOG_NAME.ToUpper());
-											Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-											//Console.ResetColor();
-										}
-									}
-									*/
+									PlatformGOG.Launch();
 									break;
 								case CGameData.GamePlatform.Uplay:
-									Process.Start("uplay://");
+									PlatformUplay.Launch();
 									break;
 								case CGameData.GamePlatform.Origin:
-									Process.Start("origin://");
-									//Process.Start("eadm://");  // This was added by EA Desktop, but for now "origin://" and "origin2://" still work with it
+									PlatformOrigin.Launch();
 									break;
 								case CGameData.GamePlatform.Epic:
-									Process.Start("com.epicgames.launcher://");
+									PlatformEpic.Launch();
 									break;
 								case CGameData.GamePlatform.Bethesda:
-									Process.Start("bethesdanet://");
+									PlatformBethesda.Launch();
 									break;
 								case CGameData.GamePlatform.Battlenet:
-									Process.Start("battlenet://"); // "blizzard://" works too [TODO: is one more compatible with older versions?]
+									PlatformBattlenet.Launch();
 									break;
-								case CGameData.GamePlatform.Rockstar:
-									Process.Start("rockstar://");
+								case CGameData.GamePlatform.Rockstar:			// TODO?
+									Process.Start(CPlatform.ROCKSTAR_PROTOCOL);
 									break;
 								case CGameData.GamePlatform.Amazon:
-									Process.Start("amazon-games://");
+									PlatformAmazon.Launch();
 									break;
 								case CGameData.GamePlatform.BigFish:
-									using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.BIGFISH_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-									{
-										string launcherPath = key.GetValue("InstallationPath") + "\\bfgclient.exe";
-										if (File.Exists(launcherPath))
-											Process.Start(launcherPath);
-										else
-										{
-											//SetFgColour(cols.errorCC, cols.errorLtCC);
-											CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.BIGFISH_NAME.ToUpper());
-											Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-											//Console.ResetColor();
-										}
-									}
+									PlatformBigFish.Launch();
 									break;
-								case CGameData.GamePlatform.Arc:
-									Process.Start("arc://");
+								case CGameData.GamePlatform.Arc:				// TODO?
+									Process.Start(CPlatform.ARC_PROTOCOL);
 									break;
 								case CGameData.GamePlatform.Itch:
-									Process.Start("itch://library/");
+									PlatformItch.Launch();
 									break;
 								case CGameData.GamePlatform.Paradox:
-									using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.PARADOX_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-									{
-										string launcherPath = key.GetValue(CRegScanner.PARADOX_PATH) + "\\Paradox Launcher.exe";
-										if (File.Exists(launcherPath))
-											Process.Start(launcherPath);
-										else
-										{
-											//SetFgColour(cols.errorCC, cols.errorLtCC);
-											CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.PARADOX_NAME.ToUpper());
-											Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-											//Console.ResetColor();
-										}
-									}
+									PlatformParadox.Launch();
 									break;
-								case CGameData.GamePlatform.Plarium:
-									Process.Start("plariumplay://");
+								case CGameData.GamePlatform.Plarium:			// TODO?
+									Process.Start(CPlatform.PLARIUM_PROTOCOL);
 									break;
-								//case CGameData.GamePlatform.Twitch: // TODO?
+								//case CGameData.GamePlatform.Twitch:			// TODO?
 								//	break;
-								case CGameData.GamePlatform.Wargaming:
-									Process.Start("wgc://");
+								case CGameData.GamePlatform.Wargaming:			// TODO?
+									Process.Start(CPlatform.WARGAMING_PROTOCOL);
 									break;
 								case CGameData.GamePlatform.IGClient:
-									using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.IG_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM64
-									{
-										Process igcProcess = new Process();
-										string launcherPath = key.GetValue("InstallLocation") + "\\IGClient.exe";
-										if (File.Exists(launcherPath))
-										{
-											igcProcess.StartInfo.FileName = launcherPath;
-											igcProcess.StartInfo.UseShellExecute = false;
-											igcProcess.StartInfo.RedirectStandardOutput = true;
-											igcProcess.StartInfo.RedirectStandardError = true;
-											igcProcess.Start();
-										}
-										else
-										{
-											//SetFgColour(cols.errorCC, cols.errorLtCC);
-											CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.IG_NAME.ToUpper());
-											Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-											//Console.ResetColor();
-										}
-									}
+									PlatformIGClient.Launch();
 									break;
-								//case CGameData.GamePlatform.MicrosoftStore: // TODO?
+								//case CGameData.GamePlatform.MicrosoftStore:	// TODO?
 								//	break;
 								case CGameData.GamePlatform.Oculus:
-									Process.Start("oculus://");
+									PlatformOculus.Launch();
 									break;
 								default:
 									break;
@@ -893,7 +861,7 @@ namespace GameLauncher_Console
 						else
 						{
 							CGameData.RemoveGame(selectedGame);
-							CRegScanner.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
+							platforms.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
 							m_nCurrentSelection--;
 							if (CGameData.GetPlatformGameList((CGameData.GamePlatform)m_nSelectedPlatform).ToList().Count < 1)
 								m_nSelectedPlatform = -1;
@@ -916,8 +884,8 @@ namespace GameLauncher_Console
 
 			nSelectionCode = -1;
 
-			List<string> platforms = CConsoleHelper.GetPlatformNames();
-			if (platforms.Count < 1)
+			List<string> platformList = CConsoleHelper.GetPlatformNames();
+			if (platformList.Count < 1)
 			{
 				SetFgColour(cols.errorCC, cols.errorLtCC);
 				CLogger.LogWarn("No games found!");
@@ -930,8 +898,8 @@ namespace GameLauncher_Console
 			{
 				if ((bool)CConfig.GetConfigBool(CConfig.CFG_USEALL))
 					m_nSelectedPlatform = (int)CGameData.GamePlatform.All;
-				else if (!(platforms.Contains(CGameData.GetPlatformString(CGameData.GamePlatform.Favourites))) &&
-					platforms.Count < 3)  // if there's only one platform + All, then choose All
+				else if (!(platformList.Contains(CGameData.GetPlatformString(CGameData.GamePlatform.Favourites))) &&
+					platformList.Count < 3)  // if there's only one platform + All, then choose All
 				{
 					CLogger.LogDebug("Only one valid platform found.");
 					m_nSelectedPlatform = (int)CGameData.GamePlatform.All;
@@ -1019,7 +987,7 @@ namespace GameLauncher_Console
 				}
 			}
 			else if (m_nSelectedPlatform < 0)   // show main menu (platform list)
-				nSelectionCode = m_dockConsole.DisplayMenu(cfgv, keys, cols, ref gameSearch, platforms.ToArray());
+				nSelectionCode = m_dockConsole.DisplayMenu(cfgv, keys, cols, ref gameSearch, platformList.ToArray());
 			else if (m_nSelectedGame < 0)       // show game list
 				nSelectionCode = m_dockConsole.DisplayMenu(cfgv, keys, cols, ref gameSearch, CGameData.GetPlatformTitles((CGameData.GamePlatform)m_nSelectedPlatform).ToArray());
 		}
@@ -1050,7 +1018,7 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
-							Process.Start(string.Format("steam://install/{0}", CRegScanner.GetSteamGameID(game.ID)));
+							PlatformSteam.InstallGame(game);
 							return true;
 						}
 						return false;
@@ -1061,14 +1029,13 @@ namespace GameLauncher_Console
 						{
 							Console.ResetColor();
 							Console.Clear();
-							CLogger.LogInfo($"Installing game: {game.Title}");
-							Process.Start(string.Format("goggalaxy://openGameView/{0}", CRegScanner.GetGOGGameID(game.ID)));
+							PlatformGOG.InstallGame(game);
 							return true;
 						}
 						return false;
 					case CGameData.GamePlatform.Uplay:
 						// Some games don't provide a valid ID; provide an error in that case
-						if (game.ID.StartsWith(CRegScanner.UPLAY_INSTALL))
+						if (game.ID.StartsWith(PlatformUplay.UPLAY_INSTALL))
 						{
 							string answerUplay = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 							ClearInputLine(cols);
@@ -1077,14 +1044,14 @@ namespace GameLauncher_Console
 								Console.ResetColor();
 								Console.Clear();
 								CLogger.LogInfo($"Installing game: {game.Title}");
-								Process.Start(string.Format("uplay://launch/{0}", CRegScanner.GetUplayGameID(game.ID)));
+								PlatformUplay.InstallGame(game);
 								return true;
 							}
 						}
 						else
 						{
 							//SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("Cannot get {0} ID for this title.", CRegScanner.UPLAY_NAME.ToUpper());
+							CLogger.LogWarn("Cannot get {0} ID for this title.", PlatformUplay.NAME.ToUpper());
 							Console.WriteLine("ERROR: Couldn't get ID for this title.");
 							//Console.ResetColor();
 						}
@@ -1097,36 +1064,22 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
-							Process.Start($"amazon-games://play/{game.ID}");
+							PlatformAmazon.InstallGame(game);
 							return true;
 						}
 						return false;
 					case CGameData.GamePlatform.BigFish:
-						using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.BIGFISH_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+						/*
+						string answerBFG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+						ClearInputLine(cols);
+						if (answerBFG[0] == 'Y' || answerBFG[0] == 'y')
 						{
-							string launcherPath = key.GetValue("InstallationPath") + "\\bfgclient.exe";
-							if (File.Exists(launcherPath))
-							{
-								/*
-								string answerBFG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
-								ClearInputLine(cols);
-								if (answerBFG[0] == 'Y' || answerBFG[0] == 'y')
-								{
-									CLogger.LogInfo($"Installing game: {game.Title}");
-								*/
-									Process.Start(launcherPath);
-									return true;
-								//}
-							}
-							else
-							{
-								//SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.BIGFISH_NAME.ToUpper());
-								Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-								//Console.ResetColor();
-							}
-						}
-						return false;
+							CLogger.LogInfo($"Installing game: {game.Title}");
+						*/
+							PlatformBigFish.InstallGame(game);
+							return true;
+						//}
+						//return false;
 					case CGameData.GamePlatform.Itch:
 						string answerItch = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
 						ClearInputLine(cols);
@@ -1135,67 +1088,34 @@ namespace GameLauncher_Console
 							Console.ResetColor();
 							Console.Clear();
 							CLogger.LogInfo($"Installing game: {game.Title}");
-							Process.Start(string.Format("itch://games/{0}", CRegScanner.GetItchGameID(game.ID)));
+							PlatformItch.InstallGame(game);
 							return true;		
 						}
 						return false;
 					case CGameData.GamePlatform.IGClient:
-						using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.IG_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM64
+						/*
+						string answerIG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+						ClearInputLine(cols);
+						if (answerIG[0] == 'Y' || answerIG[0] == 'y')
 						{
-							Process igcProcess = new Process();
-							string launcherPath = key.GetValue("InstallLocation") + "\\IGClient.exe";
-							if (File.Exists(launcherPath))
-							{
-								/*
-								string answerIG = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
-								ClearInputLine(cols);
-								if (answerIG[0] == 'Y' || answerIG[0] == 'y')
-								{
-									CLogger.LogInfo($"Installing game: {game.Title}");
-								*/
-									igcProcess.StartInfo.FileName = launcherPath;
-									igcProcess.StartInfo.UseShellExecute = false;
-									igcProcess.StartInfo.RedirectStandardOutput = true;
-									igcProcess.StartInfo.RedirectStandardError = true;
-									igcProcess.Start();
-									return true;
-								//}
-							}
-							else
-							{
-								//SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.IG_NAME.ToUpper());
-								Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-								//Console.ResetColor();
-							}
-						}
-						return false;
+							CLogger.LogInfo($"Installing game: {game.Title}");
+						*/
+							PlatformIGClient.InstallGame(game);
+							return true;
+						//}
+						//return false;
 					case CGameData.GamePlatform.Paradox:
-						using (RegistryKey key = Registry.LocalMachine.OpenSubKey(CRegScanner.PARADOX_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+						/*
+						string answerParadox = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
+						ClearInputLine(cols);
+						if (answerParadox[0] == 'Y' || answerParadox[0] == 'y')
 						{
-							string launcherPath = key.GetValue(CRegScanner.PARADOX_PATH) + "\\Paradox Launcher.exe";
-							if (File.Exists(launcherPath))
-							{
-								/*
-								string answerParadox = InputPrompt($"Install game {game.Title} [y/n]? >>> ", cols);
-								ClearInputLine(cols);
-								if (answerParadox[0] == 'Y' || answerParadox[0] == 'y')
-								{
-									CLogger.LogInfo($"Installing game: {game.Title}");
-								*/
-									Process.Start(launcherPath);
-									return true;
-								//}
-							}
-							else
-							{
-								//SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("Cannot start {0} launcher.", CRegScanner.PARADOX_NAME.ToUpper());
-								Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-								//Console.ResetColor();
-							}
-						}
-						return false;
+							CLogger.LogInfo($"Installing game: {game.Title}");
+						*/
+							PlatformParadox.Launch();
+							return true;
+						//}
+						//return false;
 					default:
 						//SetFgColour(cols.errorCC, cols.errorLtCC);
 						CLogger.LogWarn("Install not supported for this platform.");
@@ -1268,21 +1188,7 @@ namespace GameLauncher_Console
 				switch (game.Platform)
 				{
 					case CGameData.GamePlatform.GOG:
-						//CLogger.LogInfo("Setting up a {0} game...", CRegScanner.GOG_NAME_LONG);
-						ProcessStartInfo gogProcess = new ProcessStartInfo();
-						string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
-						string gogArguments = game.Launch.Contains(".") ? game.Launch.Substring(game.Launch.IndexOf('.') + 4) : String.Empty;
-						CLogger.LogInfo($"gogClientPath: {gogClientPath}");
-						CLogger.LogInfo($"gogArguments: {gogArguments}");
-						gogProcess.FileName = gogClientPath;
-						gogProcess.Arguments = gogArguments;
-						Process.Start(gogProcess);
-						Thread.Sleep(4000);
-						Process[] procs = Process.GetProcessesByName("GalaxyClient");
-						foreach (Process proc in procs)
-						{
-							WindowMessage.ShowWindowAsync(procs[0].MainWindowHandle, WindowMessage.SW_FORCEMINIMIZE);
-						}
+						PlatformGOG.StartGame(game);
 						break;
 					default:
 						Process.Start(game.Launch);
@@ -1320,7 +1226,7 @@ namespace GameLauncher_Console
 
 		private void WriteWithBreak(ref int line, int height, ConsoleColor breakCol, ConsoleColor breakColLt)
 		{
-			WriteWithBreak(ref line, height, ConsoleColor.Black, ConsoleColor.Black, breakCol, breakColLt, String.Empty);
+			WriteWithBreak(ref line, height, ConsoleColor.Black, ConsoleColor.Black, breakCol, breakColLt, string.Empty);
 		}
 
 		/// <summary>
@@ -1814,6 +1720,201 @@ namespace GameLauncher_Console
 			}
 			if (shellError)
 				Thread.Sleep(4000);
+		}
+
+		public static bool DownloadCustomImage(string title, string url)
+        {
+			if (!string.IsNullOrEmpty(url))
+			{
+				string file = Path.Combine(currentPath, IMAGE_FOLDER_NAME,
+					string.Concat(title.Split(Path.GetInvalidFileNameChars())) +
+					Path.GetExtension(url));
+				if (!File.Exists(file))
+				{
+					try
+					{
+						using (var client = new WebClient())
+						{
+							client.DownloadFile(url, file);
+							return true;
+						}
+					}
+					catch (WebException we)
+					{
+						CLogger.LogError(we);
+					}
+				}
+			}
+			return false;
+		}
+		public static void DeleteCustomImage(string title)
+        {
+			foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" })
+			{
+				try
+				{
+					string iconFile = Path.Combine(currentPath, IMAGE_FOLDER_NAME,
+						string.Concat(title.Split(Path.GetInvalidFileNameChars())) +
+						"." + ext);
+					if (File.Exists(iconFile))
+						File.Delete(iconFile);
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e);
+				}
+			}
+		}
+
+		public static void StartAndRedirect(string file)
+		{
+			StartAndRedirect(file, "", "");
+		}
+
+		public static void StartAndRedirect(string file, string args)
+		{
+			StartAndRedirect(file, args, "");
+		}
+
+		public static void StartAndRedirect(string file, string args, string dir)
+		{
+			Process cmdProcess = new Process();
+			cmdProcess.StartInfo.FileName = file;
+			cmdProcess.StartInfo.Arguments = args;
+			cmdProcess.StartInfo.WorkingDirectory = dir;
+			cmdProcess.StartInfo.UseShellExecute = false;
+			cmdProcess.StartInfo.RedirectStandardOutput = true;
+			cmdProcess.StartInfo.RedirectStandardError = true;
+			cmdProcess.Start();
+		}
+
+		// https://www.sadrobot.co.nz/blog/2011/06/21/when-system-diagnostics-process-creates-a-process-it-inherits-inheritable-handles-from-the-parent-process/
+		public static void StartDisinherit(string command)
+		{
+			// We can use the string builder to build up our full command line, including arguments
+			var sb = new StringBuilder(command);
+			var processSecurity = new SecurityAttributes();
+			var threadSecurity = new SecurityAttributes();
+
+			processSecurity.nLength = Marshal.SizeOf(processSecurity);
+			threadSecurity.nLength = Marshal.SizeOf(threadSecurity);
+
+			if (CreateProcess(null, sb, processSecurity, threadSecurity, false, normalPriorityClass,
+				 IntPtr.Zero, null, new StartupInfo(), new ProcessInformation()))
+			{
+				// Process was created successfully
+				return;
+			}
+
+			// We couldn't create the process, so raise an exception with the details.
+			throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
+		}
+
+		const int normalPriorityClass = 0x0020;
+
+		[DllImport("Kernel32", CharSet = CharSet.Auto, SetLastError = true, BestFitMapping = false)]
+		internal static extern bool CreateProcess(
+			[MarshalAs(UnmanagedType.LPTStr)] string applicationName,
+			StringBuilder commandLine,
+			SecurityAttributes processAttributes,
+			SecurityAttributes threadAttributes,
+			bool inheritHandles,
+			int creationFlags,
+			IntPtr environment,
+			[MarshalAs(UnmanagedType.LPTStr)] string currentDirectory,
+			StartupInfo startupInfo,
+			ProcessInformation processInformation
+		);
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal class ProcessInformation
+		{
+			public IntPtr hProcess = IntPtr.Zero;
+			public IntPtr hThread = IntPtr.Zero;
+			public int dwProcessId;
+			public int dwThreadId;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal class StartupInfo
+		{
+			public int cb;
+			public IntPtr lpReserved = IntPtr.Zero;
+			public IntPtr lpDesktop = IntPtr.Zero;
+			public IntPtr lpTitle = IntPtr.Zero;
+			public int dwX;
+			public int dwY;
+			public int dwXSize;
+			public int dwYSize;
+			public int dwXCountChars;
+			public int dwYCountChars;
+			public int dwFillAttribute;
+			public int dwFlags;
+			public short wShowWindow;
+			public short cbReserved2;
+			public IntPtr lpReserved2 = IntPtr.Zero;
+			public SafeFileHandle hStdInput = new SafeFileHandle(IntPtr.Zero, false);
+			public SafeFileHandle hStdOutput = new SafeFileHandle(IntPtr.Zero, false);
+			public SafeFileHandle hStdError = new SafeFileHandle(IntPtr.Zero, false);
+
+			public StartupInfo()
+			{
+				dwY = 0;
+				cb = Marshal.SizeOf(this);
+			}
+
+			public void Dispose()
+			{
+				// close the handles created for child process
+				if (hStdInput != null && !hStdInput.IsInvalid)
+				{
+					hStdInput.Close();
+					hStdInput = null;
+				}
+
+				if (hStdOutput != null && !hStdOutput.IsInvalid)
+				{
+					hStdOutput.Close();
+					hStdOutput = null;
+				}
+
+				if (hStdError == null || hStdError.IsInvalid) return;
+
+				hStdError.Close();
+				hStdError = null;
+			}
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal class SecurityAttributes
+		{
+			public int nLength = 12;
+			public SafeLocalMemHandle lpSecurityDescriptor = new SafeLocalMemHandle(IntPtr.Zero, false);
+			public bool bInheritHandle;
+		}
+
+		[SuppressUnmanagedCodeSecurity, HostProtection(SecurityAction.LinkDemand, MayLeakOnAbort = true)]
+		internal sealed class SafeLocalMemHandle : SafeHandleZeroOrMinusOneIsInvalid
+		{
+			internal SafeLocalMemHandle() : base(true) { }
+
+			[SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
+			internal SafeLocalMemHandle(IntPtr existingHandle, bool ownsHandle) : base(ownsHandle)
+			{
+				SetHandle(existingHandle);
+			}
+
+			[DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+			internal static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(string stringSecurityDescriptor,
+				int stringSDRevision, out SafeLocalMemHandle pSecurityDescriptor, IntPtr securityDescriptorSize);
+
+			[ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success), DllImport("kernel32.dll")]
+			private static extern IntPtr LocalFree(IntPtr hMem);
+
+			protected override bool ReleaseHandle()
+			{
+				return (LocalFree(handle) == IntPtr.Zero);
+			}
 		}
 
 		/// <summary>

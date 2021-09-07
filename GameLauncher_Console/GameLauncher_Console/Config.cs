@@ -139,6 +139,7 @@ namespace GameLauncher_Console
 		public const string CFG_USETEXT		= "flag_text_use_custom_text_values";
 		public const string CFG_IMGBORD		= "flag_image_draw_border_characters";
 		public const string CFG_IMGCUST		= "flag_image_do_not_use_custom";
+		public const string CFG_IMGDOWN		= "flag_image_download_missing";
 		public const string CFG_IMGRTIO		= "flag_image_ignore_custom_aspect_ratio";
 		public const string CFG_IMGBGLEG	= "flag_image_use_legacy_background_colours";
 		public const string CFG_IMGSCAN		= "flag_image_do_not_do_deep_scan_for_icons";

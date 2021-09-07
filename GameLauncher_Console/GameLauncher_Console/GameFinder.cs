@@ -12,10 +12,6 @@ namespace GameLauncher_Console
 	/// </summary>
 	public static class CGameFinder
 	{
-		private const string IMAGE_FOLDER_NAME = "CustomImages";
-		private const string GAME_FOLDER_NAME = "CustomGames";
-		private const string CUSTOM_PLATFORM  = "Custom";
-
 		/// <summary>
 		/// Find the game's binary executable file
 		/// </summary>
@@ -161,88 +157,6 @@ namespace GameLauncher_Console
 				}
 			}
 			return "";
-		}
-
-		/// <summary>
-		/// Find and import games from the binaries found in the "CustomGames" directory
-		/// </summary>
-		public static void ImportFromFolder(ref CGameData.CTempGameSet tempGameSet)
-		{
-			CheckCustomFolder();
-			FindCustomLinkFiles(ref tempGameSet);
-			FindCustomBinaries(ref tempGameSet);
-		}
-
-		/// <summary>
-		/// Search the "CustomGames" folder for file shortcuts (.lnk) to import.
-		/// </summary>
-		/// http://www.saunalahti.fi/janij/blog/2006-12.html#d6d9c7ee-82f9-4781-8594-152efecddae2
-		private static void FindCustomLinkFiles(ref CGameData.CTempGameSet tempGameSet)
-		{
-			List<string> fileList = Directory.EnumerateFiles(GAME_FOLDER_NAME, "*", SearchOption.TopDirectoryOnly).Where(s => s.EndsWith(".lnk")).ToList();
-
-			foreach (string file in fileList)
-			{
-				string strPathOnly		= Path.GetDirectoryName(file);
-				strPathOnly				= Path.GetFullPath(strPathOnly);
-				string strFilenameOnly	= Path.GetFileName(file);
-
-				Shell32.Shell shell = new Shell32.Shell();
-				Shell32.Folder folder			= shell.NameSpace(strPathOnly);
-				Shell32.FolderItem folderItem	= folder.ParseName(strFilenameOnly);
-				if (folderItem != null)
-				{
-					Shell32.ShellLinkObject link = (Shell32.ShellLinkObject)folderItem.GetLink;
-					string strID			= Path.GetFileNameWithoutExtension(file);
-					string strTitle			= strID;
-					CLogger.LogDebug($"- {strTitle}");
-					string strLaunch		= link.Path;
-					string strUninstall		= "";  // N/A
-					string strAlias			= CRegScanner.GetAlias(strTitle);
-					if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-						strAlias = "";
-					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, CUSTOM_PLATFORM, 0f);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Search the "CustomGames" folder for binaries (.exe) files to import
-		/// </summary>
-		private static void FindCustomBinaries(ref CGameData.CTempGameSet tempGameSet)
-		{
-			List<string> fileList = Directory.EnumerateFiles(GAME_FOLDER_NAME, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".exe")).ToList();
-
-			// Big Fish Games may use .bfg for executables
-			//fileList.AddRange(Directory.EnumerateFiles(GAME_FOLDER_NAME, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".bfg")).ToList());
-
-			foreach (string file in fileList)
-			{
-				string strID			= Path.GetFileNameWithoutExtension(file);
-				string strTitle			= strID;
-				CLogger.LogDebug($"- {strTitle}");
-				string strLaunch		= Path.GetFullPath(file);
-				string strUninstall		= ""; // N/A
-				string strAlias			= CRegScanner.GetAlias(strTitle);
-				if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-					strAlias = "";
-				tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, CUSTOM_PLATFORM, 0f);
-			}
-		}
-
-		/// <summary>
-		/// Check if the folders "CustomImages" and "CustomGames" exist in the same directory as the application - create if not found
-		/// </summary>
-		public static void CheckCustomFolder()
-		{
-			if (!Directory.Exists(IMAGE_FOLDER_NAME))
-			{
-				Directory.CreateDirectory(IMAGE_FOLDER_NAME);
-			}
-			if (!Directory.Exists(GAME_FOLDER_NAME))
-			{
-				Directory.CreateDirectory(GAME_FOLDER_NAME);
-			}
 		}
 	}
 }

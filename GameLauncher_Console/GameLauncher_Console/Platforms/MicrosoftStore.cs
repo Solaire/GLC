@@ -1,4 +1,6 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using Logger;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -11,21 +13,31 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 //using Windows.Management.Deployment;	// PackageManager [won't work unless this is a UWP or MSIX-packaged app?]
-//using HtmlAgilityPack;
-using Logger;
+using static GameLauncher_Console.CJsonWrapper;
+using static GameLauncher_Console.CRegScanner;
 
 namespace GameLauncher_Console
 {
-	/// <summary>
-	/// Class used to scan Microsoft Store apps and retrieve the game data.
-	/// </summary>
-	public static class CStoreScanner
+    public class PlatformMicrosoftStore : IPlatform
 	{
-		/// <summary>
-		/// Find installed Microsoft Store games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		public static void GetMSStoreGames(List<CRegScanner.RegistryGameData> gameDataList)
+		// Microsoft Store/Xbox Game Pass
+		// [experimental]
+		public const CGameData.GamePlatform ENUM = CGameData.GamePlatform.MicrosoftStore;
+		public const string NAME				= "Microsoft";
+		public const string DESCRIPTION			= "Microsoft Store";
+		public const string PROTOCOL			= "";
+		//private const string LAUNCH_SUFFIX	= @":\\";
+
+		CGameData.GamePlatform IPlatform.Enum => ENUM;
+
+		string IPlatform.Name => NAME;
+
+        string IPlatform.Description => DESCRIPTION;
+
+        public static void Launch() => Process.Start("explorer.exe shell:AppsFolder\\Microsoft.WindowsStore_8wekyb3d8bbwe!App");
+        //public static void Launch() => Process.Start("explorer.exe shell:AppsFolder\\Microsoft.XboxApp_8wekyb3d8bbwe!Microsoft.XboxApp");
+
+        public void GetGames(List<RegistryGameData> gameDataList)
 		{
 			// TODO?: PowerShell Reference Assemblies method
 			/*
@@ -59,7 +71,7 @@ namespace GameLauncher_Console
 				}
 				if (!(string.IsNullOrEmpty(strLaunch)))
 					gameDataList.Add(
-						new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+						new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 			}
 			*/
 
@@ -75,8 +87,8 @@ namespace GameLauncher_Console
 				request.Credentials = new NetworkCredential(msUsername, msPassword);
 				return true;
 			};
-	#if DEBUG
-			string tmpfile = string.Format("tmp_{0}.html", CRegScanner.MS_NAME);
+#if DEBUG
+			string tmpfile = string.Format("tmp_{0}.html", NAME);
 
 			try
 			{
@@ -92,67 +104,20 @@ namespace GameLauncher_Console
 					OptionUseIdAttribute = true
 				};
 				doc.Load(tmpfile);
-	#else
+#else
 				HtmlAgilityPack.HtmlDocument doc = web.Load(url);
 				doc.OptionUseIdAttribute = true;
-	#endif
+#endif
 				// div#gamesList.All
 				// <ul class="recentProgressList"><li style><xbox-title-item><div class="recentProgressInfoWrapper"><a class="recentProgressLinkWrapper" ...
 				// data-m="{\"cN\":\"Microsoft Minesweeper\",\"bhvr\":281,\"tags\":{\"titleName\":\"Microsoft Minesweeper\",\"titleType\":\"XboxOne\"}}"
 
+				//HtmlNode gameList = doc.DocumentNode.SelectNodes("recentProgressList");
+
 				/*
-				HtmlNode gameList = doc.DocumentNode.SelectNodes("recentProgressList");
-
-				if (gameList != null)
-				{
-					CLogger.LogDebug("{0} not-installed games:", CRegScanner.MS_NAME.ToUpper());
-
-					var options = new JsonDocumentOptions
-					{
-						AllowTrailingCommas = true
-					};
-					string rgGames = gameList.InnerText.Remove(0, gameList.InnerText.IndexOf('['));
-					rgGames = rgGames.Remove(rgGames.IndexOf(';'));
-
-					using (JsonDocument document = JsonDocument.Parse(@rgGames, options))
-					{
-						foreach (JsonElement game in document.RootElement.EnumerateArray())
-						{
-							ulong id = GetULongProperty(game, "appid");
-							if (id > 0)
-							{
-								// Check if game is already installed
-								string strID = $"appmanifest_{id}.acf";
-								bool found = false;
-								foreach (string file in allFiles)
-								{
-									if (file.EndsWith(strID))
-										found = true;
-								}
-								if (!found)
-								{
-									string strTitle = GetStringProperty(game, "name");
-									//string strIconPath = GetStringProperty(game, "logo");  // TODO: Use logo to download icon
-									string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
-
-									// Add not-installed games
-									CLogger.LogDebug($"- *{strTitle}");
-									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-								}
-							}
-						}
-					}
-				}
-				else
-				{
-					CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
-									"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
-						CRegScanner.MS_NAME.ToUpper());
-				}
-				/*
-				#if DEBUG
-										File.Delete(tmpfile);
-				#endif
+#if DEBUG
+				File.Delete(tmpfile);
+#endif
 				*/
 			/*
 			}
@@ -202,6 +167,11 @@ namespace GameLauncher_Console
 			*/
 
 			CLogger.LogDebug("----------------------");
+		}
+
+		public void GetGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
+		{
+			GetGames(gameDataList);
 		}
 
 		/*
