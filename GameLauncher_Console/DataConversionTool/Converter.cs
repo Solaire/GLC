@@ -53,7 +53,7 @@ namespace DataConversionTool
             }
 
             // Load and log all platforms and games from JSON
-            success = CJsonWrapper.ImportFromJSON(out CConfig.Configuration config, out CConfig.Hotkeys keys, out CConfig.Colours cols, out List<CGameData.CMatch> matches);
+            success = CJsonWrapper.ImportFromJSON(out List<CGameData.CMatch> matches);
             if(!success)
             {
                 CInputOutput.Log("ERROR: Could not load games from the JSON file");
@@ -72,7 +72,9 @@ namespace DataConversionTool
                     if(platform.Key != "All games" 
                         && platform.Key != "Search results" 
                         && platform.Key != "Favourites"
-                        && platform.Key != "Hidden games")
+                        && platform.Key != "New games"
+                        && platform.Key != "Hidden games"
+                        && platform.Key != "Not installed")
                     {
                         CPlatform.InsertPlatform(platform.Key, "");
                     }

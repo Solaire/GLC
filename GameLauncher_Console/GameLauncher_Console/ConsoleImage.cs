@@ -106,6 +106,44 @@ namespace GameLauncher_Console
 			internal Coord dwFontSize;
 		}
 
+		[DllImport("kernel32.dll", SetLastError = true)]
+		public static extern IntPtr GetStdHandle(int nStdHandle);
+
+		[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+		public static extern bool GetCurrentConsoleFontEx(
+			IntPtr hConsoleOutput,
+			bool bMaximumWindow,
+			[In, Out] CONSOLE_FONT_INFO_EX lpConsoleCurrentFont);
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		public class CONSOLE_FONT_INFO_EX
+		{
+			private int cbSize;
+			public CONSOLE_FONT_INFO_EX()
+			{
+				cbSize = Marshal.SizeOf(typeof(CONSOLE_FONT_INFO_EX));
+			}
+			public int FontIndex;
+			public COORD dwFontSize;
+			public int FontFamily;
+			public int FontWeight;
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+			public string FaceName;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct COORD
+		{
+			public short X;
+			public short Y;
+
+			public COORD(short X, short Y)
+			{
+				this.X = X;
+				this.Y = Y;
+			}
+		};
+
 		[StructLayout(LayoutKind.Explicit)]
 		internal struct Coord
 		{
@@ -115,6 +153,7 @@ namespace GameLauncher_Console
 			internal short Y;
 		}
 
+		public const int STD_OUTPUT_HANDLE = -11;
 		private const int FILE_SHARE_READ = 1;
 		private const int FILE_SHARE_WRITE = 2;
 		private const int GENERIC_READ = unchecked((int)0x80000000);
@@ -145,16 +184,57 @@ namespace GameLauncher_Console
 			return new Size(cfi.dwFontSize.X, cfi.dwFontSize.Y);
 		}
 
-		private static Color ToGrColor(ConsoleColor cc)
+		// This is for the cmd legacy color scheme
+		private static Color ToGrColourLegacy(ConsoleColor cc)
 		{
+			// this works for old schema, but this has changed
 			int cInt = (int)cc;
 			int brightnessCoefficient = ((cInt & 8) > 0) ? 2 : 1;
 			int r = ((cInt & 4) > 0) ? 128 * brightnessCoefficient - 1 : 0;
 			int g = ((cInt & 2) > 0) ? 128 * brightnessCoefficient - 1 : 0;
 			int b = ((cInt & 1) > 0) ? 128 * brightnessCoefficient - 1 : 0;
-
 			return Color.FromArgb(r, g, b);
-			//return Color.Black;
+		}
+
+		// This is for the new (campbell) color scheme
+		private static Color ToGrColourCampbell(ConsoleColor cc)
+		{
+			switch (cc)
+			{
+				case ConsoleColor.Black:
+					return Color.FromArgb(12, 12, 12);
+				case ConsoleColor.DarkBlue:
+					return Color.FromArgb(0, 55, 218);
+				case ConsoleColor.DarkGreen:
+					return Color.FromArgb(19, 161, 14);
+				case ConsoleColor.DarkCyan:
+					return Color.FromArgb(58, 150, 221);
+				case ConsoleColor.DarkRed:
+					return Color.FromArgb(197, 15, 31);
+				case ConsoleColor.DarkMagenta:
+					return Color.FromArgb(136, 23, 152);
+				case ConsoleColor.DarkYellow:
+					return Color.FromArgb(193, 156, 0);
+				case ConsoleColor.Gray:
+					return Color.FromArgb(204, 204, 204);
+				case ConsoleColor.DarkGray:
+					return Color.FromArgb(118, 118, 118);
+				case ConsoleColor.Blue:
+					return Color.FromArgb(59, 120, 255);
+				case ConsoleColor.Green:
+					return Color.FromArgb(22, 198, 12);
+				case ConsoleColor.Cyan:
+					return Color.FromArgb(97, 214, 214);
+				case ConsoleColor.Red:
+					return Color.FromArgb(231, 72, 86);
+				case ConsoleColor.Magenta:
+					return Color.FromArgb(180, 0, 158);
+				case ConsoleColor.Yellow:
+					return Color.FromArgb(249, 241, 165);
+				case ConsoleColor.White:
+					return Color.FromArgb(242, 242, 242);
+			}
+			return Color.FromArgb(12, 12, 12);
 		}
 
 		public static void GetImageProperties(int imgWidth, int imgPercent, out Size size, out Point location)
@@ -169,15 +249,17 @@ namespace GameLauncher_Console
 			location = new Point(Console.WindowWidth - imgWidth, Decimal.ToInt32(Math.Floor((Console.WindowHeight - imgHeight) * ((decimal)imgPercent / 100))));
 		}
 
-		public static void GetIconSize(int iconWidth, out Size iconSize)
+		public static void GetIconSize(int iconWidth, out Size sizeIcon)
 		{
+			/*
 			int iconHeight;
 			if (iconWidth % 2 == 0)
 				iconHeight = iconWidth / 2;
 			else
 				iconHeight = iconWidth / 2 + 1;
+			*/
 
-			iconSize = new Size(iconWidth, iconHeight);
+			sizeIcon = new Size(iconWidth, 1);
 		}
 
 		/// <summary>
@@ -189,7 +271,16 @@ namespace GameLauncher_Console
 		/// <param name="yCushion">Text mode spaces between image and border in y direction</param>
 		public static void ShowImageBorder(Size size, Point point, int xCushion, int yCushion)  // showing the border sometimes causes the image to disappear
 		{
-			//GetImageProperties(imgWidth, imgPercent, out Size imageSize, out Point location);
+            int linePercent;
+            try
+			{
+				linePercent = 100 / Console.WindowHeight;
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e);
+				linePercent = 4;
+			}
 			
 			for (int y = point.Y - yCushion; y < point.Y + size.Height + 1; ++y)
 			{
@@ -201,22 +292,22 @@ namespace GameLauncher_Console
 					Console.Write(" ");
 				}
 			}
-			if (point.Y == 0)
+			if (CConfig.GetConfigInt(CConfig.CFG_IMGPOS) < 100 - linePercent)
 			{
-				Console.SetCursorPosition((point.X - xCushion - 1) > 0 ? point.X - xCushion - 1 : 0, size.Height + yCushion + 1);
+				Console.SetCursorPosition((point.X - xCushion - 1) > 0 ? point.X - xCushion - 1 : 0, point.Y + size.Height + yCushion);
 				Console.Write("└");
 				for (int x = point.X - xCushion; x < point.X + size.Width; ++x)
 				{
-					Console.SetCursorPosition(x, size.Height + yCushion + 1);
+					Console.SetCursorPosition(x, point.Y + size.Height + yCushion);
 					Console.Write("─");
 					for (int j = yCushion; j > 0; --j)
 					{
-						Console.SetCursorPosition(x, size.Height + j);
+						Console.SetCursorPosition(x, point.Y + size.Height + j);
 						Console.Write(" ");
 					}
 				}
 			}
-			else
+			if (CConfig.GetConfigInt(CConfig.CFG_IMGPOS) > linePercent)
 			{
 				Console.SetCursorPosition((point.X - xCushion - 1) > 0 ? point.X - xCushion - 1 : 0, (point.Y - yCushion - 1) > 0 ? point.Y - yCushion - 1 : 0);
 				Console.Write("┌");
@@ -235,32 +326,33 @@ namespace GameLauncher_Console
 			Console.SetCursorPosition(0, 0);
 		}
 
-		public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, CConfig.Configuration config, ConsoleColor bg)
+		public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, ConsoleColor? bg)
         {
 			if (bPlatform)
 				title = title.Substring(0, title.LastIndexOf(':'));
 
-			if (!((bool)config.noImageCustom) && !string.IsNullOrEmpty(title))
+			string titleFile = string.Concat(title.Split(Path.GetInvalidFileNameChars()));
+
+			if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGCUST)) && !string.IsNullOrEmpty(title))
 			{
 				foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF" })
 				{
-					if (File.Exists(@".\CustomImages\" + title + "." + ext))
+					if (File.Exists(@".\CustomImages\" + titleFile + "." + ext))
 					{
 						bPlatform = false;
-						imgPath = @".\CustomImages\" + title + "." + ext;
+						imgPath = @".\CustomImages\" + titleFile + "." + ext;
 						break;
 					}
 				}
 			}
 			if (bPlatform)
-				ShowPlatformImage(selection, size, location, imgPath, config, bg);
+				ShowPlatformImage(selection, size, location, imgPath, bg);
 			else
-				ShowGameImage(selection, size, location, imgPath, config, bg);
+				ShowGameImage(selection, size, location, imgPath, bg);
 		}
 
-		public static void ShowGameImage(int selection, Size size, Point point, string imgPath, CConfig.Configuration config, ConsoleColor bg)
+		private static void ShowGameImage(int selection, Size size, Point point, string imgPath, ConsoleColor? bg)
 		{
-			//GetImageProperties((int)config.imageSize, (int)config.imagePosition, out Size imageSize, out Point location);
 			Size fontSize = GetConsoleFontSize();
 
 			if (size.Width > 0) //&& !(IsRunning))
@@ -303,7 +395,7 @@ namespace GameLauncher_Console
 							using (image = (Bitmap)Image.FromFile(imgPath))
 							{
 								ClearImage(size, point, bg);
-								DrawImage(image, x, y, w, h, (bool)config.imageIgnoreRatio);
+								DrawImage(image, x, y, w, h, (bool)CConfig.GetConfigBool(CConfig.CFG_IMGRTIO));
 							}
 						}
 						catch (Exception e)
@@ -319,7 +411,7 @@ namespace GameLauncher_Console
 						{
 							using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
 							{
-								int res = (int)config.imageRes < 256 ? (int)config.imageRes : 256;
+								int res = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) < 256 ? (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) : 256;
 								if (w > h && w < res)
 									res = w;
 								else if (h > w && h < res)
@@ -342,11 +434,12 @@ namespace GameLauncher_Console
 								}
 							}
 						}
-						catch (Exception e)
+						//SHCreateItemFromParsingName() causes this catch fairly often
+						catch //(Exception e)
 						{
 							defaultIcon = true;
 							//ClearImage(size, point, bg);
-							CLogger.LogError(e);
+							//CLogger.LogError(e);
 						}
 					}
 
@@ -379,9 +472,8 @@ namespace GameLauncher_Console
 			//IsRunning = false;
 		}
 
-		public static void ShowPlatformImage(int selection, Size size, Point point, string platform, CConfig.Configuration config, ConsoleColor bg)
+		private static void ShowPlatformImage(int selection, Size size, Point point, string platform, ConsoleColor? bg)
 		{
-			//GetImageProperties((int)config.imageSize, (int)config.imagePosition, out Size imageSize, out Point location);
 			Size fontSize = GetConsoleFontSize();
 
 			if (size.Width > 0)
@@ -392,7 +484,7 @@ namespace GameLauncher_Console
 				int w = size.Width * fontSize.Width;
 				int h = size.Height * fontSize.Height;
 
-				int res = (int)config.imageRes < 256 ? (int)config.imageRes : 256;
+				int res = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) < 256 ? (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) : 256;
 				if (w > h && w < res)
 					res = w;
 				else if (h > w && h < res)
@@ -402,13 +494,13 @@ namespace GameLauncher_Console
 				{
 					try
 					{
-						if (platform.StartsWith(CGameData.GetPlatformString(-1)))      // Unknown
+						if (platform.StartsWith(CGameData.GetPlatformString(-1)))               // Unknown
 							icon = new Icon(Properties.Resources.unknown, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(0)))  // Favourites
+						else if (platform.StartsWith(CGameData.GetPlatformString(0)))           // Favourites
 							icon = new Icon(Properties.Resources._0, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(1)))  // Custom
+						else if (platform.StartsWith(CGameData.GetPlatformString(1)))           // Custom
 							icon = new Icon(Properties.Resources._1, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(2)))  // All
+						else if (platform.StartsWith(CGameData.GetPlatformString(2)))           // All
 							icon = new Icon(Properties.Resources._2, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(3)))
 							icon = new Icon(Properties.Resources._3, res, res);
@@ -426,9 +518,9 @@ namespace GameLauncher_Console
 							icon = new Icon(Properties.Resources._9, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(10)))
 							icon = new Icon(Properties.Resources._10, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(11)))  // Hidden
+						else if (platform.StartsWith(CGameData.GetPlatformString(11)))          // Hidden
 							icon = new Icon(Properties.Resources._11, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(12)))  // Search
+						else if (platform.StartsWith(CGameData.GetPlatformString(12)))          // Search
 							icon = new Icon(Properties.Resources._12, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(13)))
 							icon = new Icon(Properties.Resources._13, res, res);
@@ -448,7 +540,13 @@ namespace GameLauncher_Console
 							icon = new Icon(Properties.Resources._20, res, res);
 						else if (platform.StartsWith(CGameData.GetPlatformString(21)))
 							icon = new Icon(Properties.Resources._21, res, res);
-						else if (platform.Equals(CDock.SETTINGS_TITLE))					// Settings
+						else if (platform.StartsWith(CGameData.GetPlatformString(22)))          // New
+							icon = new Icon(Properties.Resources._22, res, res);
+						else if (platform.StartsWith(CGameData.GetPlatformString(23)))          // Not installed
+							icon = new Icon(Properties.Resources._23, res, res);
+						else if (platform.StartsWith(CGameData.GetPlatformString(24)))
+							icon = new Icon(Properties.Resources._24, res, res);
+						else if (platform.Equals(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)))	// Settings
 							icon = new Icon(Properties.Resources.settings, res, res);
 						else
 							icon = new Icon(Properties.Resources.icon, res, res);
@@ -469,14 +567,13 @@ namespace GameLauncher_Console
 			}
 		}
 
-		public static void ClearImage(Size size, Point point, ConsoleColor bg)
+		public static void ClearImage(Size size, Point point, ConsoleColor? bg)
 		{
-			//GetImageProperties(imgWidth, imgPercent, out Size imageSize, out Point location);
-
-			if (size.Width > 0)
+			if (bg != null && size.Width > 0)
 			{
 				using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
 				{
+					SolidBrush brush;
 					Size fontSize = GetConsoleFontSize();
 
 					// translating the character positions to pixels
@@ -485,18 +582,24 @@ namespace GameLauncher_Console
 						point.Y * fontSize.Height,
 						size.Width * fontSize.Width,
 						size.Height * fontSize.Height);
-					SolidBrush brush = new SolidBrush(ToGrColor(bg));
+					if ((bool)CConfig.GetConfigBool(CConfig.CFG_IMGBGLEG))
+						brush = new SolidBrush(ToGrColourLegacy((ConsoleColor)bg));
+					else
+						brush = new SolidBrush(ToGrColourCampbell((ConsoleColor)bg));
 					g.FillRectangle(brush, imageRect);
 				}
 			}
 		}
 
 		/// <summary>
-		/// Resize an image keeping its aspect ratio (cropping may occur).
+		/// Draw an image, optionally enforcing its aspect ratio (slight cropping may occur).
 		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="width"></param>
-		/// <param name="height"></param>
+		/// <param name="source">image</param>
+		/// <param name="x">x-position</param>
+		/// <param name="y">y-position</param>
+		/// <param name="w">width</param>
+		/// <param name="h">height</param>
+		/// <param name="ignoreRatio">ignore aspect ratio</param>
 		/// <returns></returns>
 		public static void DrawImage(Image source, int x, int y, int w, int h, bool ignoreRatio)
 		{

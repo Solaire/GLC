@@ -84,7 +84,7 @@ namespace DataConversionTool
                 Log(string.Format("ID: {0}, Title: {1}, Platform: {2}", game.ID, game.Title, game.PlatformString));
                 Log(string.Format("Alias: {0}, Frequency: {1}", game.Alias, game.Frequency));
                 Log(string.Format("Launch: {0}, Uninstall: {1}, Icon {2}", game.Launch, game.Uninstaller, game.Icon));
-                Log(string.Format("Favourite: {0}, Hidden: {1}", game.IsFavourite, game.IsHidden));
+                Log(string.Format("Installed: {0}, Favourite: {1}, Hidden: {2}, New: {3}", game.IsInstalled, game.IsFavourite, game.IsHidden, game.IsNew));
                 Log("");
             }
         }

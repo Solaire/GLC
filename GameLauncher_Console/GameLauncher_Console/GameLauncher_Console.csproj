@@ -33,7 +33,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.1.0.0</ApplicationVersion>
+    <ApplicationVersion>1.2.0.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -83,6 +83,9 @@
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.10.2.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.10.2\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.1\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -141,6 +144,7 @@
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleImage.cs" />
@@ -151,6 +155,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="GameFinder.cs" />
+    <Compile Include="IniParser.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="SqlDB.cs" />
     <Compile Include="SteamWrapper.cs" />
@@ -170,6 +175,7 @@
     </Compile>
     <Compile Include="RegScanner.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="StoreScanner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -231,6 +237,9 @@
     <Content Include="Resources\2.ico" />
     <Content Include="Resources\20.ico" />
     <Content Include="Resources\21.ico" />
+    <Content Include="Resources\22.ico" />
+    <Content Include="Resources\23.ico" />
+    <Content Include="Resources\24.ico" />
     <Content Include="Resources\3.ico" />
     <Content Include="Resources\4.ico" />
     <Content Include="Resources\5.ico" />

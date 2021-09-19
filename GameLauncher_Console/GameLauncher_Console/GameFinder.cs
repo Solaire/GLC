@@ -195,13 +195,13 @@ namespace GameLauncher_Console
 					Shell32.ShellLinkObject link = (Shell32.ShellLinkObject)folderItem.GetLink;
 					string strID			= Path.GetFileNameWithoutExtension(file);
 					string strTitle			= strID;
-					CLogger.LogDebug("* {0}", strTitle);
+					CLogger.LogDebug($"- {strTitle}");
 					string strLaunch		= link.Path;
-					string strUninstaller	= "";  // N/A
+					string strUninstall		= "";  // N/A
 					string strAlias			= CRegScanner.GetAlias(strTitle);
 					if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 						strAlias = "";
-					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstaller, false, false, strAlias, CUSTOM_PLATFORM, 0f);
+					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, CUSTOM_PLATFORM, 0f);
 				}
 			}
 		}
@@ -220,13 +220,13 @@ namespace GameLauncher_Console
 			{
 				string strID			= Path.GetFileNameWithoutExtension(file);
 				string strTitle			= strID;
-				CLogger.LogDebug("* {0}", strTitle);
+				CLogger.LogDebug($"- {strTitle}");
 				string strLaunch		= Path.GetFullPath(file);
-				string strUninstaller	= ""; // N/A
+				string strUninstall		= ""; // N/A
 				string strAlias			= CRegScanner.GetAlias(strTitle);
 				if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 					strAlias = "";
-				tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstaller, false, false, strAlias, CUSTOM_PLATFORM, 0f);
+				tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, CUSTOM_PLATFORM, 0f);
 			}
 		}
 
