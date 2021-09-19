@@ -55,50 +55,22 @@ namespace GameLauncher_Console
 		#region Query definitions
 
 		/// <summary>
-		/// Retrieve the platform information fromthe database
-		/// Also returns the game count for each platform
+		/// Abstract class for the Platform table
+		/// Contains the column property getters/setters
 		/// </summary>
-		public class CQryReadPlatforms : CSqlQry
+		public abstract class CQryPlatform : CSqlQry
         {
-			public CQryReadPlatforms()
-				: base(
-				"Platform " + 
-				"LEFT JOIN Game G on PlatformID = G.PlatformFK", 
-				"", " GROUP BY PlatformID")
-			{
-				m_sqlRow["PlatformID"]	= new CSqlFieldInteger("PlatformID", QryFlag.cSelWhere);
-				m_sqlRow["Name"]		= new CSqlFieldString("Name",		 QryFlag.cSelRead);
-				m_sqlRow["GameCount"]	= new CSqlFieldString("COUNT(G.GameID) as GameCount", QryFlag.cSelRead);
-			}
-			public int PlatformID
-			{
-				get { return m_sqlRow["PlatformID"].Integer; }
-				set { m_sqlRow["PlatformID"].Integer = value; }
-			}
-			public string Name
-			{
-				get { return m_sqlRow["Name"].String; }
-				set { m_sqlRow["Name"].String = value; }
-			}
-			public int GameCount
-			{
-				get { return m_sqlRow["GameCount"].Integer; }
-				set { m_sqlRow["GameCount"].Integer = value; }
-			}
-		}
+			/// <summary>
+			/// Constructor.
+			/// </summary>
+			/// <param name="table">The table name. This string should also include any JOIN tables</param>
+			/// <param name="selectCondition">Select condition string for more complex queries. Use the field and value masks as templates (eg. & <= ?), those will be populated when query is constructed based on the CSqlRow's field insert order</param>
+			/// <param name="selectExtraCondition">Any additional select conditions such as ORDER BY or GROUP BY</param>
+			public CQryPlatform(string table, string selectCondition, string selectExtraCondition) 
+				: base(table, selectCondition, selectExtraCondition)
+            {
 
-		/// <summary>
-		/// Query for writing to the platform table
-		/// </summary>
-		public class CQryWritePlatforms : CSqlQry
-        {
-			public CQryWritePlatforms()
-				: base("Platform", "", "")
-			{
-				m_sqlRow["PlatformID"]	= new CSqlFieldInteger("PlatformID" , QryFlag.cUpdWhere | QryFlag.cDelWhere);
-				m_sqlRow["Name"]		= new CSqlFieldString("Name"		, QryFlag.cUpdWrite | QryFlag.cInsWrite);
-				m_sqlRow["Description"]	= new CSqlFieldString("Description" , QryFlag.cUpdWrite | QryFlag.cInsWrite);
-			}
+            }
 			public int PlatformID
 			{
 				get { return m_sqlRow["PlatformID"].Integer; }
@@ -113,6 +85,43 @@ namespace GameLauncher_Console
 			{
 				get { return m_sqlRow["Description"].String; }
 				set { m_sqlRow["Description"].String = value; }
+			}
+			public int GameCount
+			{
+				get { return m_sqlRow["GameCount"].Integer; }
+				set { m_sqlRow["GameCount"].Integer = value; }
+			}
+		}
+
+		/// <summary>
+		/// Retrieve the platform information fromthe database
+		/// Also returns the game count for each platform
+		/// </summary>
+		public class CQryReadPlatforms : CQryPlatform
+		{
+			public CQryReadPlatforms()
+				: base(
+				"Platform " + 
+				"LEFT JOIN Game G on PlatformID = G.PlatformFK", 
+				"", " GROUP BY PlatformID")
+			{
+				m_sqlRow["PlatformID"]	= new CSqlFieldInteger("PlatformID", QryFlag.cSelWhere);
+				m_sqlRow["Name"]		= new CSqlFieldString("Name",		 QryFlag.cSelRead);
+				m_sqlRow["GameCount"]	= new CSqlFieldString("COUNT(G.GameID) as GameCount", QryFlag.cSelRead);
+			}
+		}
+
+		/// <summary>
+		/// Query for writing to the platform table
+		/// </summary>
+		public class CQryWritePlatforms : CQryPlatform
+		{
+			public CQryWritePlatforms()
+				: base("Platform", "", "")
+			{
+				m_sqlRow["PlatformID"]	= new CSqlFieldInteger("PlatformID" , QryFlag.cUpdWhere | QryFlag.cDelWhere);
+				m_sqlRow["Name"]		= new CSqlFieldString("Name"		, QryFlag.cUpdWrite | QryFlag.cInsWrite);
+				m_sqlRow["Description"]	= new CSqlFieldString("Description" , QryFlag.cUpdWrite | QryFlag.cInsWrite);
 			}
 		}
 

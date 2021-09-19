@@ -351,7 +351,14 @@ namespace SqlDB
         /// <returns>CSqlField</returns>
         public CSqlField this[string key]
         {
-            get { return base[key]; }
+            get 
+            {
+                if(this.ContainsKey(key))
+                {
+                    return base[key];
+                }
+                return null;
+            }
             set
             {
                 if(!this.ContainsKey(key))
@@ -380,8 +387,11 @@ namespace SqlDB
         private const string M_FIELD_MASK = "&";
         private const string M_VALUE_MASK = "?";
 
+        // Readonly table name and select conditions
+        // The conditions will be used to reset should the user want to dynamically set them
         protected readonly string m_tableName;
         protected readonly string m_selectCondition;
+        protected readonly string m_selectExtraCondition;
 
         protected CSqlRow m_sqlRow;
         protected SQLiteDataReader m_selectResult;
@@ -395,17 +405,21 @@ namespace SqlDB
         protected CSqlQry(string table, string selectCondition, string selectExtraCondition)
         {
             m_tableName = table;
-            m_selectCondition = selectCondition;
-            SelectExtraCondition = selectExtraCondition;
+            m_selectCondition       = selectCondition;
+            m_selectExtraCondition  = selectExtraCondition;
             m_selectResult = null;
             m_sqlRow = new CSqlRow();
         }
 
-        public string SelectExtraCondition { get; set; }
+        // Dynamic select and select extra conditions
+        public string NewSelectCondition        { protected get; set; }
+        public string NewSelectExtraCondition   { protected get; set; }
 
         public void MakeFieldsNull()
         {
             m_selectResult = null;
+            NewSelectCondition = m_selectCondition;
+            NewSelectExtraCondition = m_selectExtraCondition;
             foreach (KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
                 field.Value.MakeNull();
@@ -472,7 +486,7 @@ namespace SqlDB
         /// <returns>Constructed query condition. If pre-defined condition string exists, return advanced condition string</returns>
         protected virtual string PrepareWhereStatement(CSqlField.QryFlag whereFlag)
         {
-            if(m_selectCondition.Length > 0)
+            if(NewSelectCondition.Length > 0)
             {
                 return PrepareAdvancedWhereStatement();
             }
@@ -515,7 +529,7 @@ namespace SqlDB
             int columnIndex = 0; // Which SQL column we're currently using
             int fMask = 0; // Field mask index
             int vMask = 0; // Value mask index
-            StringBuilder whereCondition = new StringBuilder(m_selectCondition);
+            StringBuilder whereCondition = new StringBuilder(NewSelectCondition);
 
             //while(-1 < vMask && vMask < whereCondition.Length)
             while(true)
@@ -623,9 +637,9 @@ namespace SqlDB
             {
                 query += " WHERE " + whereCondition;
             }
-            if(SelectExtraCondition.Length > 0)
+            if(NewSelectExtraCondition.Length > 0)
             {
-                query += " " + SelectExtraCondition;
+                query += " " + NewSelectExtraCondition;
             }
             SQLiteErrorCode err = CSqlDB.Instance.ExecuteRead(query, out m_selectResult);
             if(err == SQLiteErrorCode.Ok)

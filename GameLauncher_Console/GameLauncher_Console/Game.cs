@@ -36,32 +36,25 @@ namespace CGame_Test // TODO: GameLauncher_Console
 			*/
         };
 
-        // Due to C#'s limitations, every query will come with a lot of bloated boilerplate code
-        // Best thing to do for now is to hide them away in a region and just use them. I will have to return to them one day
+
         #region Query definitions
 
         /// <summary>
-        /// Main game query, handling all reading and writing
-        /// TODO: Once the game class is done, it's probably worth seeing if this can be split into special-purpose queries to improve performance and avoid potential problems
+        /// Abstract class for the Game table
+        /// Contains the column property getters/setters
         /// </summary>
-        public class CQryGame : CSqlQry
+        public abstract class CQryGame : CSqlQry
         {
-            public CQryGame() : base("Game", "", "")
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            /// <param name="table">The table name. This string should also include any JOIN tables</param>
+            /// <param name="selectCondition">Select condition string for more complex queries. Use the field and value masks as templates (eg. & <= ?), those will be populated when query is constructed based on the CSqlRow's field insert order</param>
+            /// <param name="selectExtraCondition">Any additional select conditions such as ORDER BY or GROUP BY</param>
+            public CQryGame(string table, string selectCondition, string selectExtraCondition) 
+                : base(table, selectCondition, selectExtraCondition)
             {
-                m_sqlRow["GameID"]          = new CSqlFieldInteger("GameID"     , QryFlag.cSelRead | QryFlag.cWhere);
-                m_sqlRow["PlatformFK"]      = new CSqlFieldInteger("PlatformFK" , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
-                m_sqlRow["Identifier"]      = new CSqlFieldString("Identifier"  , QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Title"]           = new CSqlFieldString("Title"       , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Alias"]           = new CSqlFieldString("Alias"       , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Launch"]          = new CSqlFieldString("Launch"      , QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall"   , QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["IsFavourite"]     = new CSqlFieldBoolean("IsFavourite", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden"   , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
-                m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency"   , QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating"     , QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Icon"]            = new CSqlFieldString("Icon"        , QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["Description"]     = new CSqlFieldString("Description" , QryFlag.cInsWrite | QryFlag.cSelRead);
-                m_sqlRow["IsMultiPlatform"] = new CSqlFieldBoolean("IsMultiPlatform", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+
             }
             public int GameID
             {
@@ -136,59 +129,68 @@ namespace CGame_Test // TODO: GameLauncher_Console
         }
 
         /// <summary>
+        /// General purpose query for reading/writing to game table
+        /// </summary>
+        private class CQryGameReadWrite : CQryGame
+        {
+            public CQryGameReadWrite()
+                : base("Game", "", "")
+            {
+                m_sqlRow["GameID"]          = new CSqlFieldInteger("GameID",        QryFlag.cSelRead  | QryFlag.cWhere);
+                m_sqlRow["PlatformFK"]      = new CSqlFieldInteger("PlatformFK",    QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cWhere);
+                m_sqlRow["Identifier"]      = new CSqlFieldString("Identifier",     QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Title"]           = new CSqlFieldString("Title",          QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Alias"]           = new CSqlFieldString("Alias",          QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Launch"]          = new CSqlFieldString("Launch",         QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Uninstall"]       = new CSqlFieldString("Uninstall",      QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["IsFavourite"]     = new CSqlFieldBoolean("IsFavourite",   QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden",      QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency",      QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating",        QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Icon"]            = new CSqlFieldString("Icon",           QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Description"]     = new CSqlFieldString("Description",    QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["IsMultiPlatform"] = new CSqlFieldBoolean("IsMultiPlatform", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
+            }
+        }
+
+        /// <summary>
         /// Query for game sorting
         /// </summary>
-        private class CQryGameSort : CSqlQry
+        private class CQryGameSort : CQryGame
         {
             public CQryGameSort() : base("Game", "", "")
             {
-                m_sqlRow["GameID"] = new CSqlFieldInteger("GameID", QryFlag.cSelRead);
-                m_sqlRow["PlatformFK"] = new CSqlFieldInteger("PlatformFK", QryFlag.cSelWhere);
-            }
-
-            public int GameID
-            {
-                get { return m_sqlRow["GameID"].Integer; }
-                set { m_sqlRow["GameID"].Integer = value; }
-            }
-            public int PlatformFK
-            {
-                get { return m_sqlRow["PlatformFK"].Integer; }
-                set { m_sqlRow["PlatformFK"].Integer = value; }
+                m_sqlRow["PlatformFK"]  = new CSqlFieldInteger("PlatformFK",  QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["IsFavourite"] = new CSqlFieldBoolean("IsFavourite", QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["IsHidden"]    = new CSqlFieldBoolean("IsHidden",    QryFlag.cSelRead | QryFlag.cSelWhere);
+                m_sqlRow["GameID"]      = new CSqlFieldInteger("GameID",      QryFlag.cSelRead );
+                m_sqlRow["Identifier"]  = new CSqlFieldString("Identifier",   QryFlag.cSelRead );
+                m_sqlRow["Title"]       = new CSqlFieldString("Title",        QryFlag.cSelRead );
+                m_sqlRow["Alias"]       = new CSqlFieldString("Alias",        QryFlag.cSelRead );
+                m_sqlRow["Launch"]      = new CSqlFieldString("Launch",       QryFlag.cSelRead );
+                m_sqlRow["Frequency"]   = new CSqlFieldDouble("Frequency",    QryFlag.cSelRead );
+                m_sqlRow["Rating"]      = new CSqlFieldInteger("Rating",      QryFlag.cSelRead );
+                m_sqlRow["Icon"]        = new CSqlFieldString("Icon",         QryFlag.cSelRead );
             }
         }
 
         /// <summary>
         /// Class for performing a fuzzy search 
         /// </summary>
-        private class CQryGameFuzzySearch : CSqlQry
+        private class CQryGameFuzzySearch : CQryGame
         {
-            public CQryGameFuzzySearch() : base("Game", "(& = ?) AND (& LIKE '%?%')", "")
+            public CQryGameFuzzySearch() 
+                : base("Game", "(& = ?) AND (& LIKE '%?%')", "")
             {
                 m_sqlRow["PlatformFK"] = new CSqlFieldInteger("PlatformFK", QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["Title"] = new CSqlFieldString("Title", QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["GameID"] = new CSqlFieldInteger("GameID", QryFlag.cSelRead);
             }
-            public int GameID
-            {
-                get { return m_sqlRow["GameID"].Integer; }
-                set { m_sqlRow["GameID"].Integer = value; }
-            }
-            public int PlatformFK
-            {
-                get { return m_sqlRow["PlatformFK"].Integer; }
-                set { m_sqlRow["PlatformFK"].Integer = value; }
-            }
-            public string Title
-            {
-                get { return m_sqlRow["Title"].String; }
-                set { m_sqlRow["Title"].String = value; }
-            }
         }
-        
+
         #endregion // Query definitions
 
-        private static CQryGame m_qryGame = new CQryGame();
+        private static CQryGameReadWrite m_qryReadWrite = new CQryGameReadWrite();
         private static CDbAttribute m_gameAttribute = new CDbAttribute("Game");
         private static GameSet m_currentGames = new GameSet();
 
@@ -218,6 +220,18 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 cSortAlpha      = 0x08,
             }
 
+            /// <summary>
+            /// Enum indicating which kind of games are currently loaded into memory
+            /// If the type is platform, then the Platform property will be used in the queries.
+            /// </summary>
+            private enum SetType
+            {
+                cTypeAllGames       = 0,
+                cTypePlatformGames  = 1,
+                cTypeFavouriteGames = 2,
+                cTypeHiddenGames    = 3
+            }
+
             private CQryGameSort m_qryGameSort;
 
             public GameSet()
@@ -226,9 +240,10 @@ namespace CGame_Test // TODO: GameLauncher_Console
             }
 
             /// <summary>
-            /// The current platform of the games
+            /// The current platform of the games and type of games selected
             /// </summary>
             public int Platform { get; set; }
+            private SetType Type { get; set; }
 
             /// <summary>
             /// Sort the current GameSet
@@ -237,47 +252,65 @@ namespace CGame_Test // TODO: GameLauncher_Console
             /// <param name="ascending">If true, sort by ascending order, otherwise sort by descending</param>
             /// <param name="noArticle">If true and doing alpha sort, ignore articles in the names</param>
             /// <returns>List of sorted games</returns>
-            public List<int> SortGames(SortFlag flag, bool ascending, bool noArticle)
+            public GameSet SortGames(SortFlag flag, bool ascending, bool noArticle) // TODO no article
             {
-                // TODO. all, fav, hidden games
-                // TODO. ignore article
-                List<int> outGameIDs = new List<int>();
-
                 m_qryGameSort.MakeFieldsNull();
-                m_qryGameSort.PlatformFK = Platform; // Using current platform
 
-                // Create the order by condition
-                string orderByString = " ORDER BY ";
-                int used = 0;
-                foreach(SortFlag i in Enum.GetValues(typeof(SortFlag)))
+                string selectCondition = "";
+                string orderBy = "";
+
+                // Create the select condition
+                switch (Type)
                 {
-                    if((flag & i) > 0)
+                    case SetType.cTypePlatformGames:
+                        selectCondition = "(& = ?)";
+                        m_qryGameSort.PlatformFK = Platform;
+                        break;
+                    case SetType.cTypeFavouriteGames:
+                        m_qryGameSort.IsFavourite = true;
+                        break;
+                    case SetType.cTypeHiddenGames:
+                        m_qryGameSort.IsHidden = true;
+                        break;
+                    case SetType.cTypeAllGames:
+                    default:
+                        break;
+                }
+                { // Create order by string
+                    orderBy = " ORDER BY ";
+                    int used = 0;
+                    foreach (SortFlag i in Enum.GetValues(typeof(SortFlag)))
                     {
-                        orderByString += CExtensions.GetDescription(i);
-                        if(!ascending)
+                        if ((flag & i) > 0)
                         {
-                            orderByString += " DESC, ";
+                            orderBy += CExtensions.GetDescription(i);
+                            if (!ascending)
+                            {
+                                orderBy += " DESC, ";
+                            }
+                            used++;
                         }
-                        used++;
+                    }
+                    if (used == 1) // Remove tailing comma
+                    {
+                        orderBy.Remove(',');
+                    }
+                    else if (used == 0) // Clear if no flags (just in case)
+                    {
+                        orderBy = "";
                     }
                 }
-                if(used == 1) // Remove tailing comma
-                {
-                    orderByString.Remove(',');
-                }
-                else if(used == 0) // Clear if no flags (just in case)
-                {
-                    orderByString = "";
-                }
-                m_qryGameSort.SelectExtraCondition = orderByString;
+
+                m_qryGameSort.NewSelectCondition = selectCondition;
+                m_qryGameSort.NewSelectExtraCondition = orderBy;
                 if (m_qryGameSort.Select() == SQLiteErrorCode.Ok)
                 {
                     do
                     {
-                        outGameIDs.Add(m_qryGameSort.GameID);
+                        m_currentGames[m_qryGameSort.Title] = new GameObject(m_qryGameSort);
                     } while (m_qryGameSort.Fetch());
                 }
-                return outGameIDs;
+                return m_currentGames;
             }
         }
 
@@ -390,14 +423,14 @@ namespace CGame_Test // TODO: GameLauncher_Console
             m_currentGames.Platform = platformFK;
 
             // Get new games and return
-            m_qryGame.MakeFieldsNull();
-            m_qryGame.PlatformFK = platformFK;
-            if(m_qryGame.Select() == SQLiteErrorCode.Ok)
+            m_qryReadWrite.MakeFieldsNull();
+            m_qryReadWrite.PlatformFK = platformFK;
+            if(m_qryReadWrite.Select() == SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    m_currentGames[m_qryGame.Title] = new GameObject(m_qryGame);
-                } while(m_qryGame.Fetch());
+                    m_currentGames[m_qryReadWrite.Title] = new GameObject(m_qryReadWrite);
+                } while(m_qryReadWrite.Fetch());
             }
             return m_currentGames.Values.ToList();
         }
@@ -405,13 +438,13 @@ namespace CGame_Test // TODO: GameLauncher_Console
         public static HashSet<GameObject> GetAllGames()
         {
             HashSet<GameObject> outHashSet = new HashSet<GameObject>();
-            m_qryGame.MakeFieldsNull();
-            if(m_qryGame.Select() == SQLiteErrorCode.Ok)
+            m_qryReadWrite.MakeFieldsNull();
+            if(m_qryReadWrite.Select() == SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    outHashSet.Add(new GameObject(m_qryGame));
-                } while(m_qryGame.Fetch());
+                    outHashSet.Add(new GameObject(m_qryReadWrite));
+                } while(m_qryReadWrite.Fetch());
             }
             return outHashSet;
         }
@@ -423,17 +456,17 @@ namespace CGame_Test // TODO: GameLauncher_Console
         /// <returns>True on insert success, otherwise false</returns>
         public static bool InsertGame(GameObject game)
         {
-            m_qryGame.MakeFieldsNull();
+            m_qryReadWrite.MakeFieldsNull();
             if(game.PlatformFK > 0)
             {
-                m_qryGame.PlatformFK = game.PlatformFK;
+                m_qryReadWrite.PlatformFK = game.PlatformFK;
             }
-            m_qryGame.Identifier = game.Identifier;
-            m_qryGame.Title      = game.Title;
-            m_qryGame.Alias      = (game.Alias.Length > 0) ? game.Alias : game.Title;
-            m_qryGame.Launch     = game.Launch;
-            m_qryGame.Uninstall  = game.Uninstall;
-            if(m_qryGame.Insert() == SQLiteErrorCode.Ok)
+            m_qryReadWrite.Identifier = game.Identifier;
+            m_qryReadWrite.Title      = game.Title;
+            m_qryReadWrite.Alias      = (game.Alias.Length > 0) ? game.Alias : game.Title;
+            m_qryReadWrite.Launch     = game.Launch;
+            m_qryReadWrite.Uninstall  = game.Uninstall;
+            if(m_qryReadWrite.Insert() == SQLiteErrorCode.Ok)
             {
                 // If the same platform as last query, add to the hashset.
                 if(m_currentGames.Platform == game.PlatformFK)
@@ -452,9 +485,9 @@ namespace CGame_Test // TODO: GameLauncher_Console
         /// <returns>true on delete success, otherwise false</returns>
         public static bool RemoveGame(int gameID)
         {
-            m_qryGame.MakeFieldsNull();
-            m_qryGame.GameID = gameID;
-            return m_qryGame.Delete() == SQLiteErrorCode.Ok;
+            m_qryReadWrite.MakeFieldsNull();
+            m_qryReadWrite.GameID = gameID;
+            return m_qryReadWrite.Delete() == SQLiteErrorCode.Ok;
         }
 
         /// <summary>
@@ -465,10 +498,10 @@ namespace CGame_Test // TODO: GameLauncher_Console
         /// <returns>True on update success, otherwise false</returns>
         public static bool ToggleFavourite(GameObject game, bool isFavourite)
         {
-            m_qryGame.MakeFieldsNull();
-            m_qryGame.GameID = game.GameID;
-            m_qryGame.IsFavourite = isFavourite;
-            if(m_qryGame.Update() == SQLiteErrorCode.Ok)
+            m_qryReadWrite.MakeFieldsNull();
+            m_qryReadWrite.GameID = game.GameID;
+            m_qryReadWrite.IsFavourite = isFavourite;
+            if(m_qryReadWrite.Update() == SQLiteErrorCode.Ok)
             {
                 // If the same platform as last query, switch object
                 if(m_currentGames.Platform == game.PlatformFK)
@@ -488,10 +521,10 @@ namespace CGame_Test // TODO: GameLauncher_Console
         /// <returns>True on update success, otherwise false</returns>
         public static bool ToggleHidden(GameObject game, bool isHidden)
         {
-            m_qryGame.MakeFieldsNull();
-            m_qryGame.GameID = game.GameID;
-            m_qryGame.IsHidden = isHidden;
-            if (m_qryGame.Update() == SQLiteErrorCode.Ok)
+            m_qryReadWrite.MakeFieldsNull();
+            m_qryReadWrite.GameID = game.GameID;
+            m_qryReadWrite.IsHidden = isHidden;
+            if (m_qryReadWrite.Update() == SQLiteErrorCode.Ok)
             {
                 // If the same platform as last query, switch object
                 if (m_currentGames.Platform == game.PlatformFK)
