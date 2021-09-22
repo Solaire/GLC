@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
+using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CRegScanner;
 
 namespace GameLauncher_Console
@@ -12,9 +14,7 @@ namespace GameLauncher_Console
 	// [installed games only]
 	public class PlatformBethesda : IPlatform
     {
-		public const CGameData.GamePlatform ENUM	= CGameData.GamePlatform.Bethesda;
-		public const string NAME					= "Bethesda";
-		public const string DESCRIPTION				= "Bethesda.net Launcher";
+		public const GamePlatform ENUM	= GamePlatform.Bethesda;
 		public const string PROTOCOL				= "bethesdanet://";
 		private const string START_GAME				= PROTOCOL + "run";
 		private const string BETHESDA_NET			= "bethesda.net";
@@ -24,17 +24,20 @@ namespace GameLauncher_Console
 		//private const string BETHESDA_REG			= @"SOFTWARE\WOW6432Node\Bethesda Softworks\Bethesda.net"; // HKLM32
 		//private const string BETHESDA_UNREG		= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
 
-		CGameData.GamePlatform IPlatform.Enum => ENUM;
+		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
-        string IPlatform.Name => NAME;
+		GamePlatform IPlatform.Enum => ENUM;
 
-        string IPlatform.Description => DESCRIPTION;
+        string IPlatform.Name => _name;
+
+        string IPlatform.Description => GetPlatformString(ENUM);
 
         public static void Launch() => Process.Start(PROTOCOL);
 
-		public static void InstallGame() => throw new NotImplementedException();
+		public static void InstallGame(CGame game) => throw new NotImplementedException();
 
-		public void GetGames(List<RegistryGameData> gameDataList)
+		[SupportedOSPlatform("windows")]
+		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
 
@@ -42,13 +45,13 @@ namespace GameLauncher_Console
 			{
 				if (key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", _name.ToUpper());
 					return;
 				}
 
 				keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, NAME.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", keyList.Count, _name.ToUpper());
 				foreach (var data in keyList)
 				{
 					string loc = GetRegStrVal(data, BETHESDA_PATH);
@@ -59,7 +62,7 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Bethesda);
+					string strPlatform = GetPlatformString(GamePlatform.Bethesda);
 					try
 					{
 						strID = Path.GetFileName(data.Name);
@@ -82,15 +85,10 @@ namespace GameLauncher_Console
 					}
 					if (!(string.IsNullOrEmpty(strLaunch)))
 						gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+							new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 				}
 			}
 			CLogger.LogDebug("------------------------");
-		}
-
-		public void GetGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			GetGames(gameDataList);
 		}
 	}
 }

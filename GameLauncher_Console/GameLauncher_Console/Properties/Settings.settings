@@ -23,10 +23,16 @@
     <Setting Name="flag_do_not_split_over_pages" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="flag_enlarge_height_to_fit" Type="System.Boolean" Scope="User">
+    <Setting Name="flag_windows_enlarge_height_to_fit" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="flag_sort_alphabetically" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="flag_sort_by_frequency" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="flag_sort_by_user_rating" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="flag_sort_favourites_on_top" Type="System.Boolean" Scope="User">
@@ -59,9 +65,6 @@
     <Setting Name="flag_image_do_not_use_custom" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="flag_image_download_missing" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
     <Setting Name="flag_image_ignore_custom_aspect_ratio" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
@@ -70,6 +73,12 @@
     </Setting>
     <Setting Name="flag_image_do_not_do_deep_scan_for_icons" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="flag_image_do_not_download_missing" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="list_show_uwp_titles" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Angry Birds 2|Angry Birds Friends|Bloons TD Battles|Bloons Monkey City|Candy Crush Saga|Candy Crush Soda Saga|Candy Crush Jelly Saga|Crossy Road|Minecraft|Phase 10 2|Roblox</Value>
     </Setting>
     <Setting Name="num_list_icons_max_size_in_characters" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">2</Value>
@@ -267,7 +276,7 @@
       <Value Profile="(Default)">NoName</Value>
     </Setting>
     <Setting Name="key_new_game_1" Type="System.String" Scope="User">
-      <Value Profile="(Default)">OemPlus</Value>
+      <Value Profile="(Default)">NoName</Value>
     </Setting>
     <Setting Name="key_new_game_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">N</Value>
@@ -336,6 +345,30 @@
       <Value Profile="(Default)">F7</Value>
     </Setting>
     <Setting Name="key_sort_method_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_edit_tags_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_edit_tags_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">T</Value>
+    </Setting>
+    <Setting Name="key_rating_up_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">OemPlus</Value>
+    </Setting>
+    <Setting Name="key_rating_up_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Add</Value>
+    </Setting>
+    <Setting Name="key_rating_down_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">OemMinus</Value>
+    </Setting>
+    <Setting Name="key_rating_down_2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Subtract</Value>
+    </Setting>
+    <Setting Name="key_download_image_1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="key_download_image_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">NoName</Value>
     </Setting>
     <Setting Name="text_main_menu_title" Type="System.String" Scope="User">

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
+using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CRegScanner;
 
 namespace GameLauncher_Console
@@ -12,28 +14,27 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformUplay : IPlatform
 	{
-		public const CGameData.GamePlatform ENUM = CGameData.GamePlatform.Uplay;
-		public const string NAME				= "Ubisoft";
-		public const string DESCRIPTION			= "Ubisoft Connect";
+		public const GamePlatform ENUM = GamePlatform.Uplay;
 		public const string PROTOCOL			= "uplay://";
 		public const string START_GAME			= PROTOCOL + "launch";
 		public const string UPLAY_INSTALL		= "Uplay Install ";
 		private const string UPLAY_UNREG		= "Uplay"; // HKLM32 Uninstall
 		//private const string UPLAY_REG		= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
 
-		CGameData.GamePlatform IPlatform.Enum => ENUM;
+		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
-		string IPlatform.Name => NAME;
+		GamePlatform IPlatform.Enum => ENUM;
 
-        string IPlatform.Description => DESCRIPTION;
+		string IPlatform.Name => _name;
+
+        string IPlatform.Description => GetPlatformString(ENUM);
 
         public static void Launch() => Process.Start(PROTOCOL);
 
-		public static void InstallGame(CGameData.CGame game) => Process.Start(START_GAME + "/" + GetGameID(game.ID));
+		public static void InstallGame(CGame game) => Process.Start(START_GAME + "/" + GetGameID(game.ID));
 
-        public void GetGames(List<RegistryGameData> gameDataList) => GetGames(gameDataList, false);
-
-        public void GetGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
+		[SupportedOSPlatform("windows")]
+		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
 			List<string> uplayIds = new List<string>();
@@ -44,7 +45,7 @@ namespace GameLauncher_Console
 			{
 				if (uplayKey == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", _name.ToUpper());
 					return;
 				}
 				uplayLoc = GetRegStrVal(uplayKey, GAME_INSTALL_LOCATION);
@@ -54,7 +55,7 @@ namespace GameLauncher_Console
 			{
 				keyList = FindGameFolders(key, UPLAY_INSTALL);
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, NAME.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", keyList.Count, _name.ToUpper());
 				foreach (var data in keyList)
 				{
 					string loc = GetRegStrVal(data, GAME_INSTALL_LOCATION);
@@ -65,7 +66,7 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Uplay);
+					string strPlatform = GetPlatformString(GamePlatform.Uplay);
 					try
 					{
 						strID = Path.GetFileName(data.Name);
@@ -78,7 +79,7 @@ namespace GameLauncher_Console
 						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
 							strIconPath = CGameFinder.FindGameBinaryFile(loc, strTitle);
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"' })));
+						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"' }).Trim(new char[] { '/', '\\' })));
 						if (strAlias.Length > strTitle.Length)
 							strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -90,9 +91,8 @@ namespace GameLauncher_Console
 					}
 					if (!(string.IsNullOrEmpty(strLaunch)))
 						gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+							new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 				}
-				CLogger.LogDebug("-----------------------");
 			}
 
 			// Get not-installed games
@@ -110,9 +110,9 @@ namespace GameLauncher_Console
 						string strID = "";
 						string strTitle = "";
 						string strIconPath = "";
-						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Uplay);
+						string strPlatform = GetPlatformString(GamePlatform.Uplay);
 
-						CLogger.LogDebug("{0} not-installed games:", NAME.ToUpper());
+						CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
 						uplayCfg.AddRange(File.ReadAllLines(uplayCfgFile));
 						foreach (string line in uplayCfg)  // Note if the last game is valid, this method won't catch it; but that appears very unlikely
 						{
@@ -141,7 +141,7 @@ namespace GameLauncher_Console
 										strTitle = strTitle.Replace("''", "'");
 										CLogger.LogDebug($"- *{strTitle}");
 										gameDataList.Add(
-											new RegistryGameData(strID, strTitle, "", strIconPath, "", "", false, strPlatform));
+											new ImportGameData(strID, strTitle, "", strIconPath, "", "", false, strPlatform));
 									}
 								}
 
@@ -171,7 +171,7 @@ namespace GameLauncher_Console
 								strTitle = line.Substring(line.IndexOf("l1:") + 4).Trim(trimChars);
 
 							else if (line.Trim().StartsWith("icon_image: ") && line.Trim().EndsWith(".ico"))
-								strIconPath = Path.Combine(Path.Combine(uplayLoc, "data\\games"), line.Substring(line.IndexOf("icon_image:") + 12).Trim());
+								strIconPath = Path.Combine(uplayLoc, "data\\games", line.Substring(line.IndexOf("icon_image:") + 12).Trim());
 							else if (string.IsNullOrEmpty(strID))
 							{
 								if (line.Trim().StartsWith("game_code: ") && !(strID.StartsWith(UPLAY_INSTALL)))
@@ -187,9 +187,10 @@ namespace GameLauncher_Console
 				}
 				catch (Exception e)
 				{
-					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", NAME.ToUpper(), uplayCfgFile));
+					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", _name.ToUpper(), uplayCfgFile));
 				}
 			}
+			CLogger.LogDebug("-----------------------");
 		}
 
 		/// <summary>

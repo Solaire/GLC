@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Text.Json;
 using System.Threading;
+using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-using static GameLauncher_Console.CRegScanner;
+//using static GameLauncher_Console.CRegScanner;
 using static System.Environment;
 
 namespace GameLauncher_Console
@@ -17,9 +19,7 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformGOG : IPlatform
 	{
-		public const CGameData.GamePlatform ENUM = CGameData.GamePlatform.GOG;
-		public const string NAME				= "GOG";
-		public const string DESCRIPTION			= "GOG Galaxy";
+		public const GamePlatform ENUM = GamePlatform.GOG;
 		public const string PROTOCOL			= "goggalaxy://";
 		public const string INSTALL				= PROTOCOL + "openGameView";
 		private const string START_SUFFIX		= "/command=runGame /gameId=";
@@ -30,11 +30,13 @@ namespace GameLauncher_Console
 		private const string GOG_DB				= @"\GOG.com\Galaxy\storage\galaxy-2.0.db";
 		//private const string GOG_GALAXY_UNREG	= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
 
-		CGameData.GamePlatform IPlatform.Enum => ENUM;
+		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
-		string IPlatform.Name => NAME;
+		GamePlatform IPlatform.Enum => ENUM;
 
-        string IPlatform.Description => DESCRIPTION;
+		string IPlatform.Name => _name;
+
+        string IPlatform.Description => GetPlatformString(ENUM);
 
         public static void Launch() => Process.Start(PROTOCOL);
 
@@ -49,7 +51,7 @@ namespace GameLauncher_Console
 				else
 				{
 					//SetFgColour(cols.errorCC, cols.errorLtCC);
-					CLogger.LogWarn("Cannot start {0} launcher.", GOG.NAME.ToUpper());
+					CLogger.LogWarn("Cannot start {0} launcher.", _name.ToUpper());
 					Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
 					//Console.ResetColor();
 				}
@@ -57,18 +59,18 @@ namespace GameLauncher_Console
 		}
 		*/
 
-		public static void InstallGame(CGameData.CGame game)
+		public static void InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
 			Process.Start(INSTALL + "/" + GetGameID(game.ID));
 		}
 
-		public static void StartGame(CGameData.CGame game)
+		public static void StartGame(CGame game)
         {
 			//CLogger.LogInfo("Setting up a {0} game...", GOG.NAME_LONG);
-			ProcessStartInfo gogProcess = new ProcessStartInfo();
+			ProcessStartInfo gogProcess = new();
 			string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
-			string gogArguments = game.Launch.Contains(".") ? game.Launch.Substring(game.Launch.IndexOf('.') + 4) : string.Empty;
+			string gogArguments = game.Launch.Contains(".") ? game.Launch[(game.Launch.IndexOf('.') + 4)..] : string.Empty;
 			CLogger.LogInfo($"gogClientPath: {gogClientPath}");
 			CLogger.LogInfo($"gogArguments: {gogArguments}");
 			gogProcess.FileName = gogClientPath;
@@ -82,7 +84,8 @@ namespace GameLauncher_Console
 			}
 		}
 
-        public void GetGames(List<RegistryGameData> gameDataList)
+		[SupportedOSPlatform("windows")]
+		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			/*
 			productId from ProductAuthorizations
@@ -97,7 +100,7 @@ namespace GameLauncher_Console
 			string db = GetFolderPath(SpecialFolder.CommonApplicationData) + GOG_DB;
 			if (!File.Exists(db))
 			{
-				CLogger.LogInfo("{0} database not found.", NAME.ToUpper());
+				CLogger.LogInfo("{0} database not found.", _name.ToUpper());
 				return;
 			}
 			string launcherPath = "";
@@ -110,117 +113,115 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using (var con = new SQLiteConnection($"Data Source={db}"))
-				{
-					con.Open();
+                using var con = new SQLiteConnection($"Data Source={db}");
+                con.Open();
 
-					// Get both installed and not-installed games
+                // Get both installed and not-installed games
 
-					using (var cmd = new SQLiteCommand(string.Format("SELECT productId from Builds"), con))
-					using (SQLiteDataReader rdr = cmd.ExecuteReader())
-					{
-						while (rdr.Read())
-						{
-							int id = rdr.GetInt32(0);
+                using (var cmd = new SQLiteCommand(string.Format("SELECT productId from Builds"), con))
+                using (SQLiteDataReader rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        int id = rdr.GetInt32(0);
 
-							using (var cmd2 = new SQLiteCommand($"SELECT images, title from LimitedDetails WHERE productId = {id};", con))
-							using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
-							{
-								while (rdr2.Read())
-								{
-									string images = rdr2.GetString(0);
-									// To be safe, we should probably confirm "gog_{id}" is correct here with
-									// "SELECT releaseKey FROM ProductsToReleaseKeys WHERE gogId = {id};"
-									string strID = $"gog_{id}";
-									string strTitle = rdr2.GetString(1);
-									string strAlias = "";
-									string strLaunch = "";
-									string strIconPath = "";
-									string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.GOG);
+                        using var cmd2 = new SQLiteCommand($"SELECT images, title from LimitedDetails WHERE productId = {id};", con);
+                        using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
+                        while (rdr2.Read())
+                        {
+                            string images = rdr2.GetString(0);
+                            // To be safe, we should probably confirm "gog_{id}" is correct here with
+                            // "SELECT releaseKey FROM ProductsToReleaseKeys WHERE gogId = {id};"
+                            string strID = $"gog_{id}";
+                            string strTitle = rdr2.GetString(1);
+                            string strAlias = "";
+                            string strLaunch = "";
+                            string strIconPath = "";
+                            string strPlatform = GetPlatformString(GamePlatform.GOG);
 
-									strAlias = GetAlias(strTitle);
-									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-										strAlias = "";
+                            strAlias = GetAlias(strTitle);
+                            if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+                                strAlias = "";
 
-									using (var cmd3 = new SQLiteCommand($"SELECT installationPath FROM InstalledBaseProducts WHERE productId = {id};", con))
-									using (SQLiteDataReader rdr3 = cmd3.ExecuteReader())
-									{
-										while (rdr3.Read())
-										{
-											using (var cmd4 = new SQLiteCommand($"SELECT id FROM PlayTasks WHERE gameReleaseKey = '{strID}';", con))
-											using (SQLiteDataReader rdr4 = cmd4.ExecuteReader())
-											{
-												while (rdr4.Read())
-												{
-													int task = rdr4.GetInt32(0);
+                            using (var cmd3 = new SQLiteCommand($"SELECT installationPath FROM InstalledBaseProducts WHERE productId = {id};", con))
+                            using (SQLiteDataReader rdr3 = cmd3.ExecuteReader())
+                            {
+                                while (rdr3.Read())
+                                {
+                                    using var cmd4 = new SQLiteCommand($"SELECT id FROM PlayTasks WHERE gameReleaseKey = '{strID}';", con);
+                                    using SQLiteDataReader rdr4 = cmd4.ExecuteReader();
+                                    while (rdr4.Read())
+                                    {
+                                        int task = rdr4.GetInt32(0);
 
-													using (var cmd5 = new SQLiteCommand($"SELECT executablePath, commandLineArgs FROM PlayTaskLaunchParameters WHERE playTaskId = {task};", con))
-													using (SQLiteDataReader rdr5 = cmd5.ExecuteReader())
-													{
-														while (rdr5.Read())
-														{
-															// Add installed games
-															strIconPath = rdr5.GetString(0);
-															if (string.IsNullOrEmpty(launcherPath))
-															{
-																string args = rdr5.GetString(1);
-																if (!string.IsNullOrEmpty(strLaunch))
-																{
-																	if (!string.IsNullOrEmpty(args))
-																	{
-																		strLaunch += " " + args;
-																	}
-																}
-															}
-															else
-															{
-																strLaunch = launcherPath + " " + START_SUFFIX + id + " " + START_PATH + "\"" + Path.GetDirectoryName(strIconPath) + "\"";
-																if (strLaunch.Length > 8191)
-																	strLaunch = launcherPath + " " + START_SUFFIX + id;
-															}
-															CLogger.LogDebug($"- {strTitle}");
-															gameDataList.Add(new RegistryGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
-														}
-													}
-												}
-											}
-										}
-									}
+                                        using var cmd5 = new SQLiteCommand($"SELECT executablePath, commandLineArgs FROM PlayTaskLaunchParameters WHERE playTaskId = {task};", con);
+                                        using SQLiteDataReader rdr5 = cmd5.ExecuteReader();
+                                        while (rdr5.Read())
+                                        {
+                                            // Add installed games
+                                            strIconPath = rdr5.GetString(0);
+                                            if (string.IsNullOrEmpty(launcherPath))
+                                            {
+                                                string args = rdr5.GetString(1);
+                                                if (!string.IsNullOrEmpty(strLaunch))
+                                                {
+                                                    if (!string.IsNullOrEmpty(args))
+                                                    {
+                                                        strLaunch += " " + args;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                strLaunch = launcherPath + " " + START_SUFFIX + id + " " + START_PATH + "\"" + Path.GetDirectoryName(strIconPath) + "\"";
+                                                if (strLaunch.Length > 8191)
+                                                    strLaunch = launcherPath + " " + START_SUFFIX + id;
+                                            }
+                                            CLogger.LogDebug($"- {strTitle}");
+                                            gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
+                                            /*
+                                            // grab last run date?
+                                            using (var cmd6 = new SQLiteCommand($"SELECT lastPlayedDate FROM LastPlayedDates WHERE gameReleaseKey = {strID};", con))
+                                            using (SQLiteDataReader rdr6 = cmd6.ExecuteReader())
+                                            {
+                                                while (rdr6.Read())
+                                                {
+                                                    DateTime dateLastRun = JsonSerializer.Deserialize<DateTime>("\"" + rdr5.GetString(0) + "\"");
+                                                }
+                                            }
+                                            */
+                                        }
+                                    }
+                                }
+                            }
 
-									// Add not-installed games
-									if (string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
-									{
-										CLogger.LogDebug($"- *{strTitle}");
-										gameDataList.Add(new RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+                            // Add not-installed games
+                            if (string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+                            {
+                                CLogger.LogDebug($"- *{strTitle}");
+                                gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 
-										// Use icon from images (json) to download not-installed icons
-										if ((bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
-										{
-											string iconUrl = "";
-											using (JsonDocument document = JsonDocument.Parse(@images, jsonTrailingCommas))
-											{
-												iconUrl = GetStringProperty(document.RootElement, "logo2x"); // "icon" is 1:1 ratio, but in a circular frame
-											}
-											CDock.DownloadCustomImage(strTitle, iconUrl);
-										}
-									}
-								}
-							}
-						}
-					}
-					con.Close();
-				}
-			}
+                                // Use icon from images (json) to download not-installed icons
+                                if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
+                                {
+                                    string iconUrl = "";
+                                    using (JsonDocument document = JsonDocument.Parse(@images, jsonTrailingCommas))
+                                    {
+                                        iconUrl = GetStringProperty(document.RootElement, "logo2x"); // "icon" is 1:1 ratio, but in a circular frame
+                                    }
+                                    CDock.DownloadCustomImage(strTitle, iconUrl);
+                                }
+                            }
+                        }
+                    }
+                }
+                con.Close();
+            }
 			catch (Exception e)
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} database output!", NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
 			}
 			CLogger.LogDebug("-------------------");
-		}
-
-		public void GetGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			GetGames(gameDataList);
 		}
 
 		/// <summary>
@@ -230,7 +231,7 @@ namespace GameLauncher_Console
 		/// <returns>Steam game ID as string</returns>
 		public static string GetGameID(string key)
 		{
-			return key.Substring(4);
+			return key[4..];
 		}
 	}
 }

@@ -5,23 +5,23 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SQLite;
 using System.Linq;
+using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-using static GameLauncher_Console.CRegScanner;
+//using static GameLauncher_Console.CRegScanner;
 using static SqlDB.CSqlField;
 
 namespace GameLauncher_Console
 {
 	public interface IPlatform
 	{
-		CGameData.GamePlatform Enum { get; }
+		GamePlatform Enum { get; }
 		string Name { get; }
         string Description { get; }
 		//void Launch();
-		//void InstallGame(CGameData.CGame game);
-		//void StartGame(CGameData.CGame game);
-		//void UninstallGame(CGameData.CGame game);
-		void GetGames(List<RegistryGameData> gameDataList);
-		void GetGames(List<RegistryGameData> gameDataList, bool expensiveIcons);
+		//void InstallGame(CGame game);
+		//void StartGame(CGame game);
+		void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons);
+		//string GetGameID(CGame game);
 	}
 
 	/// <summary>
@@ -31,11 +31,12 @@ namespace GameLauncher_Console
 	{
 		private readonly List<IPlatform> _platforms;
 
+		/*
 		/// <summary>
 		/// Enumerator containing currently supported game platforms
 		/// [Unlike CGameData.GamePlatform, this does not include Custom, All, Hidden, Search, New, NotInstalled categories]
 		/// </summary>
-		public enum GamePlatform
+		public enum Platform
         {
 			[Description("Unknown")]
 			Unknown = -1,
@@ -74,10 +75,11 @@ namespace GameLauncher_Console
 			[Description("Indiegala Client")]
 			IGClient = 16,
 			[Description("Microsoft Store")]
-			MicrosoftStore = 17,
+			Microsoft = 17,
 			[Description("Oculus")]
 			Oculus = 18
 		}
+		*/
 
 		// POTENTIAL FUTURE PLATFORMS:
 
@@ -178,8 +180,8 @@ namespace GameLauncher_Console
 
 		#endregion // Query definitions
 
-		private static CQryReadPlatforms m_qryRead = new CQryReadPlatforms();
-		private static CQryWritePlatforms m_qryWrite = new CQryWritePlatforms();
+		private static CQryReadPlatforms m_qryRead = new();
+		private static CQryWritePlatforms m_qryWrite = new();
 
 		/// <summary>
 		/// Container for a single platform
@@ -229,34 +231,34 @@ namespace GameLauncher_Console
 		/// </summary>
 		public void ScanGames(bool bOnlyCustom, bool bExpensiveIcons, bool bFirstScan)
 		{
-			CGameData.CTempGameSet tempGameSet = new CGameData.CTempGameSet();
+			CTempGameSet tempGameSet = new();
 			CLogger.LogDebug("-----------------------");
-			List<RegistryGameData> gameDataList = new List<RegistryGameData>();
+			List<ImportGameData> gameDataList = new();
 			if (!bOnlyCustom)
 			{
 				foreach (IPlatform platform in _platforms)
 				{
 					Console.Write(".");
-					CLogger.LogInfo("Looking for {0} games...", platform.Description.ToUpper());
+					CLogger.LogInfo("Looking for {0} games...", platform.Description);
 					platform.GetGames(gameDataList, bExpensiveIcons);
 				}
-				foreach (RegistryGameData data in gameDataList)
+				foreach (ImportGameData data in gameDataList)
 				{
-					tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, data.m_bInstalled, false, true, false, data.m_strAlias, data.m_strPlatform, 0f);
+					tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, data.m_bInstalled, false, true, false, data.m_strAlias, data.m_strPlatform, new List<string>(), DateTime.MinValue, 0, 0f);
 				}
 			}
 
-			PlatformCustom custom = new PlatformCustom();
+			PlatformCustom custom = new();
 
 			Console.Write(".");
-			CLogger.LogInfo("Looking for {0} games...", PlatformCustom.DESCRIPTION.ToUpper());
+			CLogger.LogInfo("Looking for {0} games...", GetPlatformString(GamePlatform.Custom));
 			custom.GetGames(ref tempGameSet);
-			CGameData.MergeGameSets(tempGameSet);
+			MergeGameSets(tempGameSet);
 			if (bFirstScan)
-				CGameData.SortGames(true, false, (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true);
+				SortGames((int)CConsoleHelper.SortMethod.cSort_Alpha, false, (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true);
 			CLogger.LogDebug("-----------------------");
 			Console.WriteLine();
-			ExportGames(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
+			ExportGames(GetPlatformGameList(GamePlatform.All).ToList());
 		}
 
 		/// <summary>
@@ -265,7 +267,7 @@ namespace GameLauncher_Console
 		/// <returns>List of PlatformObjects</returns>
 		public static Dictionary<string, PlatformObject>GetPlatforms()
         {
-			Dictionary<string, PlatformObject> platforms = new Dictionary<string, PlatformObject>();
+			Dictionary<string, PlatformObject> platforms = new();
 			m_qryRead.MakeFieldsNull();
 			if(m_qryRead.Select() == SQLiteErrorCode.Ok)
             {

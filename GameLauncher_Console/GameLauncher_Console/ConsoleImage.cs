@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using static GameLauncher_Console.CGameData;
 
 namespace GameLauncher_Console
 {
@@ -495,59 +496,59 @@ namespace GameLauncher_Console
 				{
 					try
 					{
-						if (platform.StartsWith(CGameData.GetPlatformString(-1)))               // Unknown
+						if (platform.StartsWith(GetPlatformString(-1)))               // Unknown
 							icon = new Icon(Properties.Resources.unknown, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(0)))           // Favourites
+						else if (platform.StartsWith(GetPlatformString(0)))           // Favourites
 							icon = new Icon(Properties.Resources._0, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(1)))           // Custom
+						else if (platform.StartsWith(GetPlatformString(1)))           // Custom
 							icon = new Icon(Properties.Resources._1, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(2)))           // All
+						else if (platform.StartsWith(GetPlatformString(2)))           // All
 							icon = new Icon(Properties.Resources._2, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(3)))
+						else if (platform.StartsWith(GetPlatformString(3)))
 							icon = new Icon(Properties.Resources._3, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(4)))
+						else if (platform.StartsWith(GetPlatformString(4)))
 							icon = new Icon(Properties.Resources._4, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(5)))
+						else if (platform.StartsWith(GetPlatformString(5)))
 							icon = new Icon(Properties.Resources._5, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(6)))
+						else if (platform.StartsWith(GetPlatformString(6)))
 							icon = new Icon(Properties.Resources._6, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(7)))
+						else if (platform.StartsWith(GetPlatformString(7)))
 							icon = new Icon(Properties.Resources._7, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(8)))
+						else if (platform.StartsWith(GetPlatformString(8)))
 							icon = new Icon(Properties.Resources._8, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(9)))
+						else if (platform.StartsWith(GetPlatformString(9)))
 							icon = new Icon(Properties.Resources._9, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(10)))
+						else if (platform.StartsWith(GetPlatformString(10)))
 							icon = new Icon(Properties.Resources._10, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(11)))          // Hidden
+						else if (platform.StartsWith(GetPlatformString(11)))          // Hidden
 							icon = new Icon(Properties.Resources._11, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(12)))          // Search
+						else if (platform.StartsWith(GetPlatformString(12)))          // Search
 							icon = new Icon(Properties.Resources._12, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(13)))
+						else if (platform.StartsWith(GetPlatformString(13)))
 							icon = new Icon(Properties.Resources._13, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(14)))
+						else if (platform.StartsWith(GetPlatformString(14)))
 							icon = new Icon(Properties.Resources._14, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(15)))
+						else if (platform.StartsWith(GetPlatformString(15)))
 							icon = new Icon(Properties.Resources._15, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(16)))
+						else if (platform.StartsWith(GetPlatformString(16)))
 							icon = new Icon(Properties.Resources._16, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(17)))
+						else if (platform.StartsWith(GetPlatformString(17)))
 							icon = new Icon(Properties.Resources._17, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(18)))
+						else if (platform.StartsWith(GetPlatformString(18)))
 							icon = new Icon(Properties.Resources._18, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(19)))
+						else if (platform.StartsWith(GetPlatformString(19)))
 							icon = new Icon(Properties.Resources._19, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(20)))
+						else if (platform.StartsWith(GetPlatformString(20)))
 							icon = new Icon(Properties.Resources._20, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(21)))
+						else if (platform.StartsWith(GetPlatformString(21)))
 							icon = new Icon(Properties.Resources._21, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(22)))          // New
+						else if (platform.StartsWith(GetPlatformString(22)))          // New
 							icon = new Icon(Properties.Resources._22, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(23)))          // Not installed
+						else if (platform.StartsWith(GetPlatformString(23)))          // Not installed
 							icon = new Icon(Properties.Resources._23, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(24)))
+						else if (platform.StartsWith(GetPlatformString(24)))
 							icon = new Icon(Properties.Resources._24, res, res);
-						else if (platform.StartsWith(CGameData.GetPlatformString(25)))
+						else if (platform.StartsWith(GetPlatformString(25)))
 							icon = new Icon(Properties.Resources._25, res, res);
 						else if (platform.Equals(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)))	// Settings
 							icon = new Icon(Properties.Resources.settings, res, res);

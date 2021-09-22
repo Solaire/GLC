@@ -5,8 +5,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-using static GameLauncher_Console.CRegScanner;
+//using static GameLauncher_Console.CRegScanner;
 using static System.Environment;
 
 namespace GameLauncher_Console
@@ -15,34 +16,34 @@ namespace GameLauncher_Console
 	// [installed games only]
 	public class PlatformEpic : IPlatform
 	{
-		public const CGameData.GamePlatform ENUM = CGameData.GamePlatform.Epic;
-		public const string NAME				= "Epic";
-		public const string DESCRIPTION			= "Epic Games Launcher";
+		public const GamePlatform ENUM = GamePlatform.Epic;
 		public const string PROTOCOL			= "com.epicgames.launcher://";
 		//private const string EPIC_GAMES_UNREG	= "{A2FB1E1A-55D9-4511-A0BF-DEAD0493FBBC}"; // HKLM32 Uninstall
 		//private const string EPIC_GAMES_UNREG	= "{A7BBC0A6-3DB0-41CC-BCED-DDFC5D4F3060}"; // HKLM32 Uninstall
 		private const string EPIC_ITEMS_FOLDER	= @"\Epic\EpicGamesLauncher\Data\Manifests";
 
-		CGameData.GamePlatform IPlatform.Enum => ENUM;
+		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
-		string IPlatform.Name => NAME;
+		GamePlatform IPlatform.Enum => ENUM;
 
-        string IPlatform.Description => DESCRIPTION;
+		string IPlatform.Name => _name;
+
+        string IPlatform.Description => GetPlatformString(ENUM);
 
         public static void Launch() => Process.Start(PROTOCOL);
 
-		public static void InstallGame() => throw new NotImplementedException();
+		public static void InstallGame(CGame game) => throw new NotImplementedException();
 
-		public void GetGames(List<RegistryGameData> gameDataList)
+		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			string dir = GetFolderPath(SpecialFolder.CommonApplicationData) + EPIC_ITEMS_FOLDER;
 			if (!Directory.Exists(dir))
 			{
-				CLogger.LogInfo("{0} games not found in ProgramData.", NAME.ToUpper());
+				CLogger.LogInfo("{0} games not found in ProgramData.", _name.ToUpper());
 				return;
 			}
 			string[] files = Directory.GetFiles(dir, "*.item", SearchOption.TopDirectoryOnly);
-			CLogger.LogInfo("{0} {1} games found", files.Count(), NAME.ToUpper());
+			CLogger.LogInfo("{0} {1} games found", files.Count(), _name.ToUpper());
 
 			foreach (string file in files)
 			{
@@ -56,35 +57,30 @@ namespace GameLauncher_Console
 					using (JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas))
 					{
 						string strID = Path.GetFileName(file);
-						string strTitle = GetStringProperty(document.RootElement, GAME_DISPLAY_NAME);
+						string strTitle = GetStringProperty(document.RootElement, "DisplayName");
 						CLogger.LogDebug($"- {strTitle}");
 						string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
 						string strAlias = "";
-						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Epic);
+						string strPlatform = GetPlatformString(GamePlatform.Epic);
 
 						if (!string.IsNullOrEmpty(strLaunch))
 						{
-							strLaunch = Path.Combine(GetStringProperty(document.RootElement, GAME_INSTALL_LOCATION), strLaunch);
+							strLaunch = Path.Combine(GetStringProperty(document.RootElement, "InstallLocation"), strLaunch);
 							strAlias = GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
 							if (strAlias.Length > strTitle.Length)
 								strAlias = GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
-							gameDataList.Add(new RegistryGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+							gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 						}
 					}
 				}
 				catch (Exception e)
 				{
-					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", NAME.ToUpper(), file));
+					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
 				}
 			}
 			CLogger.LogDebug("--------------------");
-		}
-
-		public void GetGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			GetGames(gameDataList);
 		}
 	}
 }

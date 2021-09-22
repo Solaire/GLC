@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using static GameLauncher_Console.CGameData;
 
 namespace GameLauncher_Console
 {
@@ -18,8 +19,8 @@ namespace GameLauncher_Console
 	/// </summary>
 	public static class CJsonWrapper
 	{
-		public static JsonDocumentOptions jsonTrailingCommas = new JsonDocumentOptions
-		{
+		public static JsonDocumentOptions jsonTrailingCommas = new()
+        {
 			AllowTrailingCommas = true
 		};
 
@@ -57,6 +58,8 @@ namespace GameLauncher_Console
 		private const string GAMES_ARRAY_NEW				= "new";
 		private const string GAMES_ARRAY_HIDDEN				= "hidden";
 		private const string GAMES_ARRAY_ALIAS				= "alias";
+		private const string GAMES_ARRAY_LASTRUN			= "lastrun";
+		private const string GAMES_ARRAY_RATING				= "rating";
 		private const string GAMES_ARRAY_FREQUENCY			= "frequency";
 
 		// search json (for command line non-interactive interactions)
@@ -118,10 +121,10 @@ namespace GameLauncher_Console
 		/// Import games from the games json config file
 		/// </summary>
 		/// <returns>True if successful, otherwise false</returns>
-		public static bool ImportFromJSON(CPlatform platforms, out List<CGameData.CMatch> matches)
+		public static bool ImportFromJSON(CPlatform platforms, out List<CMatch> matches)
 		{
 			bool parseError = false;
-			matches = new List<CGameData.CMatch>();
+			matches = new List<CMatch>();
 
 			// Previous search matches
 			Version verSearch = Version.Parse("0.0");
@@ -139,7 +142,7 @@ namespace GameLauncher_Console
 			}
 
 			if (verSearch < MIN_LAST_VERSION)
-				matches = new List<CGameData.CMatch>();
+				matches = new List<CMatch>();
 
 			// Game data
 			int nGameCount = 0;
@@ -160,7 +163,17 @@ namespace GameLauncher_Console
 				}
 				else if (!(bool)CConfig.GetConfigBool(CConfig.CFG_USESCAN))
 				{
-					if (!ImportGames(gamesPath, ref nGameCount, ref verGames, (bool)CConfig.GetConfigBool(CConfig.CFG_USEALPH), (bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE), (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true))
+					if (!ImportGames(
+						gamesPath,
+						ref nGameCount,
+						ref verGames,
+						(bool)CConfig.GetConfigBool(CConfig.CFG_USEFREQ) ? CConsoleHelper.SortMethod.cSort_Freq : 
+						((bool)CConfig.GetConfigBool(CConfig.CFG_USERATE) ? CConsoleHelper.SortMethod.cSort_Rating : 
+						(((bool)CConfig.GetConfigBool(CConfig.CFG_USEALPH) ? CConsoleHelper.SortMethod.cSort_Alpha : 
+						CConsoleHelper.SortMethod.cSort_Date))),
+						(bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE),
+						(bool)CConfig.GetConfigBool(CConfig.CFG_USEINST),
+						true))
 						parseError = true;
 				}
 			}
@@ -185,7 +198,7 @@ namespace GameLauncher_Console
 		/// ... I need to find a nice workaround as JsonDocument class is read-only.
 		/// </summary>
 		/// <returns>True is successful, otherwise false</returns>
-		public static bool ExportGames(List<CGameData.CGame> gameList)
+		public static bool ExportGames(List<CGame> gameList)
 		{
 			CLogger.LogInfo("Saving {0} games to JSON...", gameList.Count);
 			var options = new JsonWriterOptions
@@ -195,30 +208,26 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using(var stream = new MemoryStream())
-				{
-					using(var writer = new Utf8JsonWriter(stream, options))
-					{
-						writer.WriteStartObject();
-						writer.WriteString(JSON_VERSION, CDock.version);
-						writer.WriteStartArray(GAMES_ARRAY);
-						for(int i = 0; i < gameList.Count; i++)
-						{
-							WriteGame(writer, gameList[i]); //, stream, options,
-						}
-						writer.WriteEndArray();
-						writer.WriteEndObject();
-					}
+                using var stream = new MemoryStream();
+                using (var writer = new Utf8JsonWriter(stream, options))
+                {
+                    writer.WriteStartObject();
+                    writer.WriteString(JSON_VERSION, CDock.version);
+                    writer.WriteStartArray(GAMES_ARRAY);
+                    for (int i = 0; i < gameList.Count; i++)
+                    {
+                        WriteGame(writer, gameList[i]); //, stream, options,
+                    }
+                    writer.WriteEndArray();
+                    writer.WriteEndObject();
+                }
 
-					string strJsonData = Encoding.UTF8.GetString(stream.ToArray());
-					byte[] bytes = new UTF8Encoding(true).GetBytes(strJsonData);
+                string strJsonData = Encoding.UTF8.GetString(stream.ToArray());
+                byte[] bytes = new UTF8Encoding(true).GetBytes(strJsonData);
 
-					using(FileStream fs = File.Create(gamesPath))
-					{
-						fs.Write(bytes, 0, bytes.Length);
-					}
-				}
-			}
+                using FileStream fs = File.Create(gamesPath);
+                fs.Write(bytes, 0, bytes.Length);
+            }
 			catch(Exception e)
 			{
 				CLogger.LogError(e);
@@ -232,7 +241,7 @@ namespace GameLauncher_Console
 		/// Export search matches from memory to the search json file
 		/// </summary>
 		/// <returns>True is successful, otherwise false</returns>
-		public static bool ExportSearch(List<CGameData.CMatch> matchList)
+		public static bool ExportSearch(List<CMatch> matchList)
 		{
 			CLogger.LogInfo("Saving search data to JSON...");
 			var options = new JsonWriterOptions
@@ -242,31 +251,27 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using (var stream = new MemoryStream())
-				{
-					using (var writer = new Utf8JsonWriter(stream, options))
-					{
-						writer.WriteStartObject();
-						writer.WriteString(JSON_VERSION, CDock.version);
-						writer.WriteStartArray(LAST_ARRAY);
-						for (int i = 0; i < matchList.Count; i++)
-						{
-							WriteSearch(writer, matchList[i]); //, stream, options,
-						}
-						writer.WriteEndArray();
-						writer.WriteEndObject();
-					}
+                using var stream = new MemoryStream();
+                using (var writer = new Utf8JsonWriter(stream, options))
+                {
+                    writer.WriteStartObject();
+                    writer.WriteString(JSON_VERSION, CDock.version);
+                    writer.WriteStartArray(LAST_ARRAY);
+                    for (int i = 0; i < matchList.Count; i++)
+                    {
+                        WriteSearch(writer, matchList[i]); //, stream, options,
+                    }
+                    writer.WriteEndArray();
+                    writer.WriteEndObject();
+                }
 
-					string strJsonData = Encoding.UTF8.GetString(stream.ToArray());
-					byte[] bytes = new UTF8Encoding(true).GetBytes(strJsonData);
+                string strJsonData = Encoding.UTF8.GetString(stream.ToArray());
+                byte[] bytes = new UTF8Encoding(true).GetBytes(strJsonData);
 
-					using (FileStream fs = File.Create(searchPath))
-					{
-						fs.Write(bytes, 0, bytes.Length);
-					}
-				}
+                using FileStream fs = File.Create(searchPath);
+                fs.Write(bytes, 0, bytes.Length);
 
-			}
+            }
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
@@ -286,7 +291,7 @@ namespace GameLauncher_Console
 
 			try
 			{
-				CIniParser ini = new CIniParser(configPath);
+				CIniParser ini = new(configPath);
 
 				ini.Write(INI_VERSION, CDock.version, VERSION_SECTION);
 				foreach (KeyValuePair<string, string> setting in CConfig.config)
@@ -316,26 +321,22 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using(var stream = new MemoryStream())
-				{
-					using(var writer = new Utf8JsonWriter(stream, options))
-					{
-						writer.WriteStartObject();
-						writer.WriteString(JSON_VERSION, CDock.version);
-						writer.WriteStartArray(GAMES_ARRAY);
-						writer.WriteEndArray();
-						writer.WriteEndObject();
-					}
+                using var stream = new MemoryStream();
+                using (var writer = new Utf8JsonWriter(stream, options))
+                {
+                    writer.WriteStartObject();
+                    writer.WriteString(JSON_VERSION, CDock.version);
+                    writer.WriteStartArray(GAMES_ARRAY);
+                    writer.WriteEndArray();
+                    writer.WriteEndObject();
+                }
 
-					string strJsonData = Encoding.UTF8.GetString(stream.ToArray());
-					byte[] bytes = new UTF8Encoding(true).GetBytes(strJsonData);
+                string strJsonData = Encoding.UTF8.GetString(stream.ToArray());
+                byte[] bytes = new UTF8Encoding(true).GetBytes(strJsonData);
 
-					using (FileStream fs = File.Create(file))
-					{
-						fs.Write(bytes, 0, bytes.Length);
-					}
-				}
-			}
+                using FileStream fs = File.Create(file);
+                fs.Write(bytes, 0, bytes.Length);
+            }
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
@@ -363,7 +364,7 @@ namespace GameLauncher_Console
 
 			try
 			{
-				CIniParser ini = new CIniParser(file);
+				CIniParser ini = new(file);
 
 				ini.Write(INI_VERSION, CDock.version, VERSION_SECTION);
 				ini.WriteComment(" <https://docs.microsoft.com/dotnet/api/system.consolekey>", " Valid key_* entries :");
@@ -385,7 +386,7 @@ namespace GameLauncher_Console
 		/// Import games from the json file and add them to the global game dictionary.
 		/// <returns>True if successful, otherwise false</returns>
 		/// </summary>
-		private static bool ImportGames(string file, ref int nGameCount, ref Version version, bool alphaSort, bool faveSort, bool instSort, bool ignoreArticle)
+		private static bool ImportGames(string file, ref int nGameCount, ref Version version, CConsoleHelper.SortMethod sortMethod, bool faveSort, bool instSort, bool ignoreArticle = false)
 		{
 			CLogger.LogInfo("Importing games from JSON...");
 
@@ -396,38 +397,38 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using (JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas))
-				{
-                    Version.TryParse(GetStringProperty(document.RootElement, JSON_VERSION), out version);
-					if (version < MIN_GAME_VERSION) return true;
+                using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
+                if (Version.TryParse(GetStringProperty(document.RootElement, JSON_VERSION), out version) && version < MIN_GAME_VERSION)
+					return true;
 
-					if (!document.RootElement.TryGetProperty(GAMES_ARRAY, out JsonElement jArrGames)) // 'games' array does not exist
-						return false;
+                if (!document.RootElement.TryGetProperty(GAMES_ARRAY, out JsonElement jArrGames)) // 'games' array does not exist
+                    return false;
 
-					foreach (JsonElement jElement in jArrGames.EnumerateArray())
-					{
-						string strID = GetStringProperty(jElement, GAMES_ARRAY_ID);
-						string strTitle = GetStringProperty(jElement, GAMES_ARRAY_TITLE);
-						if (string.IsNullOrEmpty(strTitle))
-							continue;
+                foreach (JsonElement jElement in jArrGames.EnumerateArray())
+                {
+                    string strID = GetStringProperty(jElement, GAMES_ARRAY_ID);
+                    string strTitle = GetStringProperty(jElement, GAMES_ARRAY_TITLE);
+                    if (string.IsNullOrEmpty(strTitle))
+                        continue;
 
-						string strLaunch = GetStringProperty(jElement, GAMES_ARRAY_LAUNCH);
-						string strIconPath = GetStringProperty(jElement, GAMES_ARRAY_ICON);
-						string strUninstall = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
-						bool   bIsInstalled = GetBoolProperty(jElement, GAMES_ARRAY_INSTALLED);
-						bool   bIsFavourite = GetBoolProperty(jElement, GAMES_ARRAY_FAVOURITE);
-						bool   bIsNew = GetBoolProperty(jElement, GAMES_ARRAY_NEW);
-						bool   bIsHidden = GetBoolProperty(jElement, GAMES_ARRAY_HIDDEN);
-						string strAlias = GetStringProperty(jElement, GAMES_ARRAY_ALIAS);
-						string strPlatform = GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
-						double fOccurCount = GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
+                    string strLaunch = GetStringProperty(jElement, GAMES_ARRAY_LAUNCH);
+                    string strIconPath = GetStringProperty(jElement, GAMES_ARRAY_ICON);
+                    string strUninstall = GetStringProperty(jElement, GAMES_ARRAY_UNINSTALLER);
+                    bool bIsInstalled = GetBoolProperty(jElement, GAMES_ARRAY_INSTALLED);
+                    bool bIsFavourite = GetBoolProperty(jElement, GAMES_ARRAY_FAVOURITE);
+                    bool bIsNew = GetBoolProperty(jElement, GAMES_ARRAY_NEW);
+                    bool bIsHidden = GetBoolProperty(jElement, GAMES_ARRAY_HIDDEN);
+                    string strAlias = GetStringProperty(jElement, GAMES_ARRAY_ALIAS);
+                    string strPlatform = GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
+                    DateTime dateLastRun = GetDateTimeProperty(jElement, GAMES_ARRAY_LASTRUN);
+                    ushort rating = GetUShortProperty(jElement, GAMES_ARRAY_RATING);
+                    double fOccurCount = GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
 
-						CGameData.AddGame(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, fOccurCount);
-						nGameCount++;
-					}
-					CGameData.SortGames(alphaSort, faveSort, instSort, ignoreArticle);
-				}
-			}
+                    AddGame(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, new List<string>(), dateLastRun, rating, fOccurCount);
+                    nGameCount++;
+                }
+                SortGames(sortMethod, faveSort, instSort, ignoreArticle);
+            }
 			catch (Exception e)
 			{
 				CLogger.LogError(e, $"Malformed {file} file!");
@@ -441,7 +442,7 @@ namespace GameLauncher_Console
 		/// Import games from the json file and add them to the global game dictionary.
 		/// <returns>True if successful, otherwise false</returns>
 		/// </summary>
-		private static bool ImportSearch(string file, ref Version version, ref List<CGameData.CMatch> matches)
+		private static bool ImportSearch(string file, ref Version version, ref List<CMatch> matches)
 		{
 			CLogger.LogInfo("Importing search results from JSON...");
 
@@ -452,25 +453,24 @@ namespace GameLauncher_Console
 
 			try
 			{
-				using (JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas))
-				{
-					Version.TryParse(GetStringProperty(document.RootElement, JSON_VERSION), out version);
+                using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
+				if (!Version.TryParse(GetStringProperty(document.RootElement, JSON_VERSION), out version))
+					version = Version.Parse("0.0");
 
-					if (!document.RootElement.TryGetProperty(LAST_ARRAY, out JsonElement jArrSearch)) // 'matches' array does not exist
-						return false;
+                if (!document.RootElement.TryGetProperty(LAST_ARRAY, out JsonElement jArrSearch)) // 'matches' array does not exist
+                    return false;
 
-					foreach (JsonElement jElement in jArrSearch.EnumerateArray())
-					{
-						string strTitle = GetStringProperty(jElement, LAST_ARRAY_TITLE);
-						if (string.IsNullOrEmpty(strTitle))
-							continue;
+                foreach (JsonElement jElement in jArrSearch.EnumerateArray())
+                {
+                    string strTitle = GetStringProperty(jElement, LAST_ARRAY_TITLE);
+                    if (string.IsNullOrEmpty(strTitle))
+                        continue;
 
-						int nIndex = GetIntProperty(jElement, LAST_ARRAY_INDEX);
-						int nPercent = GetUShortProperty(jElement, LAST_ARRAY_PERCENT);
-						matches.Add(new CGameData.CMatch(strTitle, nIndex, nPercent));
-					}
-				}
-			}
+                    int nIndex = GetIntProperty(jElement, LAST_ARRAY_INDEX);
+                    int nPercent = GetUShortProperty(jElement, LAST_ARRAY_PERCENT);
+                    matches.Add(new CMatch(strTitle, nIndex, nPercent));
+                }
+            }
 			catch (Exception e)
 			{
 				CLogger.LogError(e, $"Malformed {file} file!");
@@ -487,17 +487,16 @@ namespace GameLauncher_Console
 		{
 			bool importError = false;
 			bool translateError = false;
-			Dictionary<string, string> configNew = new Dictionary<string, string>();
+			Dictionary<string, string> configNew = new();
 			//Version version = Version.Parse("0.0");
 
 			CLogger.LogInfo("Importing configuration data from INI...");
 
 			try
 			{
-				CIniParser ini = new CIniParser(file);
+				CIniParser ini = new(file);
 
-				Version.TryParse(ini.Read(INI_VERSION, VERSION_SECTION), out Version version);
-				if (version >= MIN_CFG_VERSION)
+				if (Version.TryParse(ini.Read(INI_VERSION, VERSION_SECTION), out Version version) && (version >= MIN_CFG_VERSION))
 				{
 					foreach (KeyValuePair<string, string> setting in CConfig.config)
 					{
@@ -551,105 +550,113 @@ namespace GameLauncher_Console
 
 			try
 			{
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLBG1), true, out colours.bgCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLBG2), true, out colours.bgLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLTITLE1), true, out colours.titleCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLTITLE2), true, out colours.titleLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLSUB1), true, out colours.subCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLSUB2), true, out colours.subLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLENTRY1), true, out colours.entryCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLENTRY2), true, out colours.entryLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLUNIN1), true, out colours.uninstCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLUNIN2), true, out colours.uninstLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHIBG1), true, out colours.highbgCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHIBG2), true, out colours.highbgLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHILITE1), true, out colours.highlightCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLHILITE2), true, out colours.highlightLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLINPBG1), true, out colours.inputbgCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLINPBG2), true, out colours.inputbgLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLINPUT1), true, out colours.inputCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLINPUT2), true, out colours.inputLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLERRBG1), true, out colours.errorCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLERRBG2), true, out colours.errorLtCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLERROR1), true, out colours.errorCC);
-				Enum.TryParse<ConsoleColor>(CConfig.GetConfigString(CConfig.CFG_COLERROR2), true, out colours.errorLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLBG1), true, out colours.bgCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLBG2), true, out colours.bgLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLTITLE1), true, out colours.titleCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLTITLE2), true, out colours.titleLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLSUB1), true, out colours.subCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLSUB2), true, out colours.subLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLENTRY1), true, out colours.entryCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLENTRY2), true, out colours.entryLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLUNIN1), true, out colours.uninstCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLUNIN2), true, out colours.uninstLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLHIBG1), true, out colours.highbgCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLHIBG2), true, out colours.highbgLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLHILITE1), true, out colours.highlightCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLHILITE2), true, out colours.highlightLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLINPBG1), true, out colours.inputbgCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLINPBG2), true, out colours.inputbgLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLINPUT1), true, out colours.inputCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLINPUT2), true, out colours.inputLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLERRBG1), true, out colours.errorCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLERRBG2), true, out colours.errorLtCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLERROR1), true, out colours.errorCC);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_COLERROR2), true, out colours.errorLtCC);
 			}
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
 				Console.WriteLine($"ERROR: Bad colour value. Resetting defaults...");
 				parseError = true;
-				SetConfigDefaults(false, false, false, false, true, false, false);
+				SetConfigDefaults(false, false, false, false, false, true, false, false);
 			}
 			try
 			{
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYLT1), true, out hotkeys.leftCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYLT2), true, out hotkeys.leftCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYUP1), true, out hotkeys.upCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYUP2), true, out hotkeys.upCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYRT1), true, out hotkeys.rightCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYRT2), true, out hotkeys.rightCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYDN1), true, out hotkeys.downCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYDN2), true, out hotkeys.downCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYSEL1), true, out hotkeys.selectCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYSEL2), true, out hotkeys.selectCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYQUIT1), true, out hotkeys.quitCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYQUIT2), true, out hotkeys.quitCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYSCAN1), true, out hotkeys.scanCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYSCAN2), true, out hotkeys.scanCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHELP1), true, out hotkeys.helpCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHELP2), true, out hotkeys.helpCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYBACK1), true, out hotkeys.backCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYBACK2), true, out hotkeys.backCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPGUP1), true, out hotkeys.pageUpCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPGUP2), true, out hotkeys.pageUpCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPGDN1), true, out hotkeys.pageDownCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPGDN2), true, out hotkeys.pageDownCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHOME1), true, out hotkeys.firstCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHOME2), true, out hotkeys.firstCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYEND1), true, out hotkeys.lastCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYEND2), true, out hotkeys.lastCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPLAT1), true, out hotkeys.launcherCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYPLAT2), true, out hotkeys.launcherCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCFG1), true, out hotkeys.settingsCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCFG2), true, out hotkeys.settingsCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFIND1), true, out hotkeys.searchCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFIND2), true, out hotkeys.searchCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYTAB1), true, out hotkeys.completeCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYTAB2), true, out hotkeys.completeCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYESC1), true, out hotkeys.cancelCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYESC2), true, out hotkeys.cancelCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYNEW1), true, out hotkeys.newCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYNEW2), true, out hotkeys.newCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYDEL1), true, out hotkeys.deleteCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYDEL2), true, out hotkeys.deleteCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYUNIN1), true, out hotkeys.uninstCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYUNIN2), true, out hotkeys.uninstCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCUT1), true, out hotkeys.shortcutCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYCUT2), true, out hotkeys.shortcutCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHIDE1), true, out hotkeys.hideCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYHIDE2), true, out hotkeys.hideCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFAVE1), true, out hotkeys.faveCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYFAVE2), true, out hotkeys.faveCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYALIAS1), true, out hotkeys.aliasCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYALIAS2), true, out hotkeys.aliasCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYTYPE1), true, out hotkeys.typeCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYTYPE2), true, out hotkeys.typeCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYVIEW1), true, out hotkeys.viewCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYVIEW2), true, out hotkeys.viewCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYMODE1), true, out hotkeys.modeCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYMODE2), true, out hotkeys.modeCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYIMG1), true, out hotkeys.imageCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYIMG2), true, out hotkeys.imageCK2);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYSORT1), true, out hotkeys.sortCK1);
-				Enum.TryParse<ConsoleKey>(CConfig.GetConfigString(CConfig.CFG_KEYSORT2), true, out hotkeys.sortCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYLT1), true, out hotkeys.leftCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYLT2), true, out hotkeys.leftCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYUP1), true, out hotkeys.upCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYUP2), true, out hotkeys.upCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYRT1), true, out hotkeys.rightCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYRT2), true, out hotkeys.rightCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYDN1), true, out hotkeys.downCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYDN2), true, out hotkeys.downCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYSEL1), true, out hotkeys.selectCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYSEL2), true, out hotkeys.selectCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYQUIT1), true, out hotkeys.quitCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYQUIT2), true, out hotkeys.quitCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYSCAN1), true, out hotkeys.scanCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYSCAN2), true, out hotkeys.scanCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYHELP1), true, out hotkeys.helpCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYHELP2), true, out hotkeys.helpCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYBACK1), true, out hotkeys.backCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYBACK2), true, out hotkeys.backCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYPGUP1), true, out hotkeys.pageUpCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYPGUP2), true, out hotkeys.pageUpCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYPGDN1), true, out hotkeys.pageDownCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYPGDN2), true, out hotkeys.pageDownCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYHOME1), true, out hotkeys.firstCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYHOME2), true, out hotkeys.firstCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYEND1), true, out hotkeys.lastCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYEND2), true, out hotkeys.lastCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYPLAT1), true, out hotkeys.launcherCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYPLAT2), true, out hotkeys.launcherCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYCFG1), true, out hotkeys.settingsCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYCFG2), true, out hotkeys.settingsCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYFIND1), true, out hotkeys.searchCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYFIND2), true, out hotkeys.searchCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYTAB1), true, out hotkeys.completeCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYTAB2), true, out hotkeys.completeCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYESC1), true, out hotkeys.cancelCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYESC2), true, out hotkeys.cancelCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYNEW1), true, out hotkeys.newCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYNEW2), true, out hotkeys.newCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYDEL1), true, out hotkeys.deleteCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYDEL2), true, out hotkeys.deleteCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYUNIN1), true, out hotkeys.uninstCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYUNIN2), true, out hotkeys.uninstCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYCUT1), true, out hotkeys.shortcutCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYCUT2), true, out hotkeys.shortcutCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYHIDE1), true, out hotkeys.hideCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYHIDE2), true, out hotkeys.hideCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYFAVE1), true, out hotkeys.faveCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYFAVE2), true, out hotkeys.faveCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYALIAS1), true, out hotkeys.aliasCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYALIAS2), true, out hotkeys.aliasCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYTYPE1), true, out hotkeys.typeCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYTYPE2), true, out hotkeys.typeCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYVIEW1), true, out hotkeys.viewCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYVIEW2), true, out hotkeys.viewCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYMODE1), true, out hotkeys.modeCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYMODE2), true, out hotkeys.modeCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYIMG1), true, out hotkeys.imageCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYIMG2), true, out hotkeys.imageCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYSORT1), true, out hotkeys.sortCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYSORT2), true, out hotkeys.sortCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYTAGS1), true, out hotkeys.tagsCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYTAGS2), true, out hotkeys.tagsCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYRATEUP1), true, out hotkeys.ratingUpCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYRATEDN2), true, out hotkeys.ratingUpCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYRATEDN1), true, out hotkeys.ratingDownCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYRATEDN2), true, out hotkeys.ratingDownCK2);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYDLIMG1), true, out hotkeys.downloadCK1);
+				Enum.TryParse(CConfig.GetConfigString(CConfig.CFG_KEYDLIMG2), true, out hotkeys.downloadCK2);
 			}
 			catch (Exception e)
 			{
 				CLogger.LogError(e);
 				Console.WriteLine($"ERROR: Bad hotkey value. Resetting defaults...");
 				parseError = true;
-				SetConfigDefaults(false, false, false, false, false, true, false);
+				SetConfigDefaults(false, false, false, false, false, false, true, false);
 			}
 			return !parseError;
 		}
@@ -661,7 +668,7 @@ namespace GameLauncher_Console
 		/// <param name="stream">MemoryStream object</param>
 		/// <param name="options">JsonWriter options struct</param>
 		/// <param name="data">Game data</param>
-		private static void WriteGame(Utf8JsonWriter writer, CGameData.CGame data) //, MemoryStream stream, JsonWriterOptions options, 
+		private static void WriteGame(Utf8JsonWriter writer, CGame data) //, MemoryStream stream, JsonWriterOptions options, 
 		{
 			writer.WriteStartObject();
 			writer.WriteString(GAMES_ARRAY_ID			, data.ID);
@@ -675,6 +682,8 @@ namespace GameLauncher_Console
 			writer.WriteBoolean(GAMES_ARRAY_NEW			, data.IsNew);
 			writer.WriteBoolean(GAMES_ARRAY_HIDDEN		, data.IsHidden);
 			writer.WriteString(GAMES_ARRAY_ALIAS		, data.Alias);
+			writer.WriteString(GAMES_ARRAY_LASTRUN		, data.LastRunDate);
+			writer.WriteNumber(GAMES_ARRAY_RATING		, data.Rating);
 			writer.WriteNumber(GAMES_ARRAY_FREQUENCY	, data.Frequency);
 			writer.WriteEndObject();
 		}
@@ -686,7 +695,7 @@ namespace GameLauncher_Console
 		/// <param name="stream">MemoryStream object</param>
 		/// <param name="options">JsonWriter options struct</param>
 		/// <param name="data">Match data</param>
-		private static void WriteSearch(Utf8JsonWriter writer, CGameData.CMatch data) //, MemoryStream stream, JsonWriterOptions options, 
+		private static void WriteSearch(Utf8JsonWriter writer, CMatch data) //, MemoryStream stream, JsonWriterOptions options, 
 		{
 			writer.WriteStartObject();
 			writer.WriteString(LAST_ARRAY_TITLE		, data.m_strTitle);
@@ -788,6 +797,32 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
+		/// Retrieve ISO 8601-1:2019 date/time value from the JSON element
+		/// </summary>
+		/// <param name="strPropertyName">Name of the property</param>
+		/// <param name="jElement">Source JSON element</param>
+		/// <returns>Value of the property as a DateTime or null if not found</returns>
+		public static DateTime GetDateTimeProperty(JsonElement jElement, string strPropertyName)
+		{
+			try
+			{
+				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
+				{
+					string strVal = jValue.GetString();
+					if (!string.IsNullOrEmpty(strVal))
+					{
+						return JsonSerializer.Deserialize<DateTime>("\"" + strVal + "\"");
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+			return DateTime.MinValue;
+		}
+
+		/// <summary>
 		/// Retrieve integer value from the JSON element
 		/// </summary>
 		/// <param name="strPropertyName">Name of the property</param>
@@ -879,15 +914,17 @@ namespace GameLauncher_Console
 		/// Set the default configuration values
 		/// </summary>
 		/// <param name="boolOnly">Only affects boolean values, and override with defaults</param>
+		/// <param name="listOnly">Only affects list values, and override with defaults</param>
 		/// <param name="numOnly">Only affects number values, and override with defaults</param>
 		/// <param name="colourOnly">Only affects colour values, and override with defaults</param>
 		/// <param name="keyOnly">Only affects hotkey values, and override with defaults</param>
 		/// <param name="textOnly">Only affects text values, and override with defaults</param>
-		private static void SetConfigDefaults(bool forceAll, bool boolOnly, bool numOnly, bool longOnly, bool colourOnly, bool keyOnly, bool textOnly)
+		private static void SetConfigDefaults(bool forceAll, bool boolOnly, bool listOnly, bool numOnly, bool longOnly, bool colourOnly, bool keyOnly, bool textOnly)
 		{
 			if (forceAll)
-            {
+			{
 				SetBoolDefaults(true);
+				SetListDefaults(true);
 				SetNumberDefaults(true);
 				SetLongDefaults(true);
 				SetColourDefaults(true);
@@ -896,6 +933,8 @@ namespace GameLauncher_Console
 			}
 			else if (boolOnly)
 				SetBoolDefaults(true);
+			else if (listOnly)
+				SetListDefaults(true);
 			else if (numOnly)
 				SetNumberDefaults(true);
 			else if (longOnly)
@@ -907,7 +946,7 @@ namespace GameLauncher_Console
 			else if (textOnly)
 				SetTextDefaults(true);
 			else
-            {
+			{
 				SetBoolDefaults(false);
 				SetNumberDefaults(false);
 				SetLongDefaults(false);
@@ -922,7 +961,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private static void SetConfigDefaults(bool forceAll)
 		{
-			SetConfigDefaults(forceAll, false, false, false, false, false, false);
+			SetConfigDefaults(forceAll, false, false, false, false, false, false, false);
         }
 
 		/// <summary>
@@ -939,6 +978,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_NOPAGE, force);
 			SetDefaultVal(CConfig.CFG_USESIZE, force);
 			SetDefaultVal(CConfig.CFG_USEALPH, force);
+			SetDefaultVal(CConfig.CFG_USEFREQ, force);
+			SetDefaultVal(CConfig.CFG_USERATE, force);
 			SetDefaultVal(CConfig.CFG_USEFAVE, force);
 			SetDefaultVal(CConfig.CFG_USEINST, force);
 			SetDefaultVal(CConfig.CFG_USELITE, force);
@@ -954,7 +995,17 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_IMGBGLEG, force);
 			SetDefaultVal(CConfig.CFG_IMGSCAN, force);
 		}
-		
+
+		/// <summary>
+		/// Set the default list configuration values
+		/// </summary>
+		private static void SetListDefaults(bool force)
+		{
+#if DEBUG
+			SetDefaultVal(CConfig.CFG_UWPLIST, force);
+#endif
+		}
+
 		/// <summary>
 		/// Set the default number configuration values
 		/// </summary>
@@ -1006,7 +1057,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Set the default colour configuration values
+		/// Set the default key configuration values
 		/// </summary>
 		private static void SetKeyDefaults(bool force)
 		{
@@ -1068,6 +1119,14 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_KEYIMG2, force);
 			SetDefaultVal(CConfig.CFG_KEYSORT1, force);
 			SetDefaultVal(CConfig.CFG_KEYSORT2, force);
+			SetDefaultVal(CConfig.CFG_KEYTAGS1, force);
+			SetDefaultVal(CConfig.CFG_KEYTAGS2, force);
+			SetDefaultVal(CConfig.CFG_KEYRATEUP1, force);
+			SetDefaultVal(CConfig.CFG_KEYRATEUP2, force);
+			SetDefaultVal(CConfig.CFG_KEYRATEDN1, force);
+			SetDefaultVal(CConfig.CFG_KEYRATEDN2, force);
+			SetDefaultVal(CConfig.CFG_KEYDLIMG1, force);
+			SetDefaultVal(CConfig.CFG_KEYDLIMG2, force);
 		}
 
 		/// <summary>

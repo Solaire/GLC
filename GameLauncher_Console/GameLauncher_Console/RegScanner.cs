@@ -3,14 +3,16 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 
 namespace GameLauncher_Console
 {
 
-    /// <summary>
-    /// Class used to scan the registry and retrieve the game data.
-    /// </summary>
-    public static class CRegScanner
+	/// <summary>
+	/// Class used to scan the registry and retrieve the game data.
+	/// </summary>
+	[SupportedOSPlatform("windows")]
+	public static class CRegScanner
 	{
 		public const string NODE64_REG				= @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
 		public const string NODE32_REG				= @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
@@ -20,33 +22,6 @@ namespace GameLauncher_Console
 		public const string GAME_INSTALL_LOCATION	= "InstallLocation";
 		public const string GAME_UNINSTALL_STRING	= "UninstallString";
 		public const string INSTALLSHIELD			= "_is1";
-
-		/// <summary>
-		/// Collect data from the registry
-		/// </summary>
-		public struct RegistryGameData
-		{
-			public string m_strID;
-			public string m_strTitle;
-			public string m_strLaunch;
-			public string m_strIcon;
-			public string m_strUninstall;
-			public string m_strAlias;
-			public bool m_bInstalled;
-			public string m_strPlatform;
-
-			public RegistryGameData(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, string strAlias, bool bInstalled, string strPlatform)
-			{
-				m_strID			= strID;
-				m_strTitle		= strTitle;
-				m_strLaunch		= strLaunch;
-				m_strIcon		= strIconPath;
-				m_strUninstall	= strUninstall;
-				m_strAlias		= strAlias;
-				m_bInstalled	= bInstalled;
-				m_strPlatform	= strPlatform;
-			}
-		}
 
 		/// <summary>
 		/// Find game keys in specified root
@@ -188,30 +163,6 @@ namespace GameLauncher_Console
 				CLogger.LogError(e);
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// Simplify a string for use as a default alias
-		/// </summary>
-		/// <param name="title">The game's title</param>
-		/// <returns>simplified string</returns>
-		public static string GetAlias(string title)
-		{
-			string alias = title.ToLower();
-			/*
-			foreach (string prep in new List<string> { "for", "of", "to" })
-			{
-				if (alias.StartsWith(prep + " "))
-					alias = alias.Substring(prep.Length + 1);
-			}
-			*/
-			foreach (string art in CGameData.articles)
-			{
-				if (alias.StartsWith(art + " "))
-					alias = alias.Substring(art.Length + 1);
-			}
-			alias = new string(alias.Where(c => !char.IsWhiteSpace(c) && !char.IsPunctuation(c) && !char.IsSymbol(c)).ToArray());
-			return alias;
 		}
 	}
 }

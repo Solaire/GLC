@@ -10,7 +10,7 @@ namespace DataConversionTool
     public class CConverter
     {
         /// <summary>
-        /// Enum for convertion mode
+        /// Enum for conversion mode
         /// </summary>
         public enum ConvertMode
         {

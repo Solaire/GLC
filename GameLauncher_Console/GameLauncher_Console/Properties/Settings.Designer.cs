@@ -110,12 +110,12 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool flag_enlarge_height_to_fit {
+        public bool flag_windows_enlarge_height_to_fit {
             get {
-                return ((bool)(this["flag_enlarge_height_to_fit"]));
+                return ((bool)(this["flag_windows_enlarge_height_to_fit"]));
             }
             set {
-                this["flag_enlarge_height_to_fit"] = value;
+                this["flag_windows_enlarge_height_to_fit"] = value;
             }
         }
         
@@ -128,6 +128,30 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["flag_sort_alphabetically"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_sort_by_frequency {
+            get {
+                return ((bool)(this["flag_sort_by_frequency"]));
+            }
+            set {
+                this["flag_sort_by_frequency"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_sort_by_user_rating {
+            get {
+                return ((bool)(this["flag_sort_by_user_rating"]));
+            }
+            set {
+                this["flag_sort_by_user_rating"] = value;
             }
         }
         
@@ -253,18 +277,6 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool flag_image_download_missing {
-            get {
-                return ((bool)(this["flag_image_download_missing"]));
-            }
-            set {
-                this["flag_image_download_missing"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool flag_image_ignore_custom_aspect_ratio {
             get {
@@ -296,6 +308,32 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["flag_image_do_not_do_deep_scan_for_icons"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_image_do_not_download_missing {
+            get {
+                return ((bool)(this["flag_image_do_not_download_missing"]));
+            }
+            set {
+                this["flag_image_do_not_download_missing"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Angry Birds 2|Angry Birds Friends|Bloons TD Battles|Bloons Monkey City|Candy Crus" +
+            "h Saga|Candy Crush Soda Saga|Candy Crush Jelly Saga|Crossy Road|Minecraft|Phase " +
+            "10 2|Roblox")]
+        public string list_show_uwp_titles {
+            get {
+                return ((string)(this["list_show_uwp_titles"]));
+            }
+            set {
+                this["list_show_uwp_titles"] = value;
             }
         }
         
@@ -1081,7 +1119,7 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("OemPlus")]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
         public string key_new_game_1 {
             get {
                 return ((string)(this["key_new_game_1"]));
@@ -1364,6 +1402,102 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["key_sort_method_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_edit_tags_1 {
+            get {
+                return ((string)(this["key_edit_tags_1"]));
+            }
+            set {
+                this["key_edit_tags_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("T")]
+        public string key_edit_tags_2 {
+            get {
+                return ((string)(this["key_edit_tags_2"]));
+            }
+            set {
+                this["key_edit_tags_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("OemPlus")]
+        public string key_rating_up_1 {
+            get {
+                return ((string)(this["key_rating_up_1"]));
+            }
+            set {
+                this["key_rating_up_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Add")]
+        public string key_rating_up_2 {
+            get {
+                return ((string)(this["key_rating_up_2"]));
+            }
+            set {
+                this["key_rating_up_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("OemMinus")]
+        public string key_rating_down_1 {
+            get {
+                return ((string)(this["key_rating_down_1"]));
+            }
+            set {
+                this["key_rating_down_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Subtract")]
+        public string key_rating_down_2 {
+            get {
+                return ((string)(this["key_rating_down_2"]));
+            }
+            set {
+                this["key_rating_down_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_download_image_1 {
+            get {
+                return ((string)(this["key_download_image_1"]));
+            }
+            set {
+                this["key_download_image_1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        public string key_download_image_2 {
+            get {
+                return ((string)(this["key_download_image_2"]));
+            }
+            set {
+                this["key_download_image_2"] = value;
             }
         }
         
