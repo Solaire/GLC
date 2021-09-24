@@ -39,6 +39,8 @@ namespace GameLauncher_Console
 		public const CompareOptions IGNORE_ALL = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreSymbols;
 		public const StringComparison IGNORE_CASE = StringComparison.CurrentCultureIgnoreCase;
 		public const string IMAGE_FOLDER_NAME = "CustomImages";
+		public const char SEPARATOR_SYMBOL = '│';
+		public const char RATING_SYMBOL = '*';
 
 		public static readonly string FILENAME = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
 
@@ -527,7 +529,6 @@ namespace GameLauncher_Console
 						if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Date)
 						{
 							method = "frequency";
-							CLogger.LogInfo("Switching to frequency sort method...");
 							CConfig.SetConfigValue(CConfig.CFG_USEALPH, false);
 							CConfig.SetConfigValue(CConfig.CFG_USEFREQ, true);
 							CConfig.SetConfigValue(CConfig.CFG_USERATE, false);
@@ -535,7 +536,6 @@ namespace GameLauncher_Console
 						else if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Freq)
 						{
 							method = "rating";
-							CLogger.LogInfo("Switching to rating sort method...");
 							CConfig.SetConfigValue(CConfig.CFG_USEALPH, false);
 							CConfig.SetConfigValue(CConfig.CFG_USEFREQ, false);
 							CConfig.SetConfigValue(CConfig.CFG_USERATE, true);
@@ -543,14 +543,12 @@ namespace GameLauncher_Console
 						else if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Rating)
 						{
 							method = "alphabetic";
-							CLogger.LogInfo("Switching to alphabetic sort method...");
 							CConfig.SetConfigValue(CConfig.CFG_USEALPH, true);
 							CConfig.SetConfigValue(CConfig.CFG_USEFREQ, false);
 							CConfig.SetConfigValue(CConfig.CFG_USERATE, false);
 						}
 						else
 						{
-							CLogger.LogInfo("Switching to date sort method...");
 							CConfig.SetConfigValue(CConfig.CFG_USEALPH, false);
 							CConfig.SetConfigValue(CConfig.CFG_USEFREQ, false);
 							CConfig.SetConfigValue(CConfig.CFG_USERATE, false);
@@ -767,31 +765,81 @@ namespace GameLauncher_Console
 							continue;
 
 						case CConsoleHelper.DockSelection.cSel_raiseRating: // Raise rating
-							selectedGame.IncrementRating();
-							try
+							if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Rating)
 							{
-								Console.SetCursorPosition(0, Console.WindowHeight - INPUT_BOTTOM_CUSHION - 1);
+								// If currently sorting by ranking, ask user to enter a number
+								// (This is a stop-gap solution until we can follow the selection after a re-sort)
+								string newRatingR = InputPrompt(string.Format("Rating [{0}] >>> ", selectedGame.Rating), cols);
+								if (!string.IsNullOrEmpty(newRatingR))
+								{
+									if (ushort.TryParse(newRatingR, out ushort rating))
+									{
+										if (rating < 6)
+										{
+											selectedGame.Rating = rating;
+											if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Rating)
+											{
+												SortGames(CConsoleHelper.m_SortMethod,
+													(bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE),
+													(bool)CConfig.GetConfigBool(CConfig.CFG_USEINST),
+													CultureInfo.InstalledUICulture.Equals("en_US") || CultureInfo.InstalledUICulture.Equals("en_GB"));
+											}
+										}
+									}
+								}
 							}
-							catch (Exception e)
+							else if (selectedGame.IncrementRating())
 							{
-								CLogger.LogError(e);
+								/*
+								if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Rating)
+								{
+									SortGames(CConsoleHelper.m_SortMethod,
+										(bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE),
+										(bool)CConfig.GetConfigBool(CConfig.CFG_USEINST),
+										CultureInfo.InstalledUICulture.Equals("en_US") || CultureInfo.InstalledUICulture.Equals("en_GB"));
+								}
+								*/
+								// If InfoBar isn't shown, shouldn't we provide some kind of user feedback?
 							}
-							Console.WriteLine("Rating: {0}", selectedGame.Rating);
-							Thread.Sleep(2000);
 							continue;
 
 						case CConsoleHelper.DockSelection.cSel_lowerRating: // Lower rating
-							selectedGame.DecrementRating();
-							try
+							if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Rating)
 							{
-								Console.SetCursorPosition(0, Console.WindowHeight - INPUT_BOTTOM_CUSHION - 1);
+								// If currently sorting by ranking, ask user to enter a number
+								// (This is a stop-gap solution until we can follow the selection after a re-sort)
+								string newRatingL = InputPrompt(string.Format("Rating [{0}] >>> ", selectedGame.Rating), cols);
+								if (!string.IsNullOrEmpty(newRatingL))
+								{
+									if (ushort.TryParse(newRatingL, out ushort rating))
+									{
+										if (rating < 6)
+										{
+											selectedGame.Rating = rating;
+											if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Rating)
+											{
+												SortGames(CConsoleHelper.m_SortMethod,
+													(bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE),
+													(bool)CConfig.GetConfigBool(CConfig.CFG_USEINST),
+													CultureInfo.InstalledUICulture.Equals("en_US") || CultureInfo.InstalledUICulture.Equals("en_GB"));
+											}
+										}
+									}
+								}
 							}
-							catch (Exception e)
+							else if (selectedGame.DecrementRating())
 							{
-								CLogger.LogError(e);
+								/*
+								if (CConsoleHelper.m_SortMethod == CConsoleHelper.SortMethod.cSort_Rating)
+								{
+									SortGames(CConsoleHelper.m_SortMethod,
+										(bool)CConfig.GetConfigBool(CConfig.CFG_USEFAVE),
+										(bool)CConfig.GetConfigBool(CConfig.CFG_USEINST),
+										CultureInfo.InstalledUICulture.Equals("en_US") || CultureInfo.InstalledUICulture.Equals("en_GB"));
+								}
+								*/
+								// If InfoBar isn't shown, shouldn't we provide some kind of user feedback?
 							}
-							Console.WriteLine("Rating: {0}", selectedGame.Rating);
-							Thread.Sleep(2000);
 							continue;
 
 						case CConsoleHelper.DockSelection.cSel_downloadImage: // Download image

@@ -438,19 +438,27 @@ namespace GameLauncher_Console
 			/// <summary>
 			/// Increment the rating by 1
 			/// </summary>
-			public void IncrementRating()
+			public bool IncrementRating()
 			{
 				if (m_rating < 5)
+				{
 					m_rating++;
+					return true;
+				}
+				return false;
 			}
 
 			/// <summary>
 			/// Decrement the rating by 1
 			/// </summary>
-			public void DecrementRating()
+			public bool DecrementRating()
 			{
 				if (m_rating > 0)
+				{
 					m_rating--;
+					return true;
+				}
+				return false;
 			}
 
 			/// <summary>
@@ -467,18 +475,23 @@ namespace GameLauncher_Console
 			/// <summary>
 			/// Increment the frequency counter by 1
 			/// </summary>
-			public void IncrementFrequency()
+			public bool IncrementFrequency()
 			{
 				m_fOccurCount += 5;
+				return true;
 			}
 
 			/// <summary>
 			/// Decrease the frequency counter by 10%
 			/// </summary>
-			public void DecimateFrequency()
+			public bool DecimateFrequency()
 			{
 				if (m_fOccurCount > 0f)
+				{
 					m_fOccurCount *= 0.9f;
+					return true;
+				}
+				return false;
 			}
 		}
 

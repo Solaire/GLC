@@ -1012,18 +1012,27 @@ namespace GameLauncher_Console
 				//CDock.ClearInputLine(cols);
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
 				CDock.SetFgColour(cols.titleCC, cols.titleLtCC);
-				string separator = "│";
-				string leftSide = separator;
-				string rightSide = separator;
+				string leftSide = CDock.SEPARATOR_SYMBOL.ToString();
+				string rightSide = CDock.SEPARATOR_SYMBOL.ToString();
 				if (CDock.m_nSelectedPlatform > -1)
 				{
+					string aliasString = "";
+					string ratingString = "";
 					CGame selectedGame = GetPlatformGame((GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
-					/*
+
 					if (selectedGame.Alias.Length > 0)
-						leftSide = string.Format("{0} {1} {0} [{2}] {0}", separator, selectedGame.Title, selectedGame.Alias);
-					else
-					*/
-					leftSide = string.Format("{0} {1} {0}", separator, selectedGame.Title);
+						aliasString = string.Format(" {0} {1}", CDock.SEPARATOR_SYMBOL, selectedGame.Alias);
+
+					if (selectedGame.Rating > 0)
+					{
+						if (string.IsNullOrEmpty(CDock.RATING_SYMBOL.ToString()))
+							ratingString = string.Format(" {0} {1} *", CDock.SEPARATOR_SYMBOL, selectedGame.Rating);
+						else
+							//ratingString = string.Format(" {0} {1}", CDock.SEPARATOR_SYMBOL, new string(CDock.RATING_SYMBOL, selectedGame.Rating));
+							ratingString = string.Format(" {0} {1} {2}", CDock.SEPARATOR_SYMBOL, selectedGame.Rating, CDock.RATING_SYMBOL);
+					}
+
+					leftSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selectedGame.Title + aliasString + ratingString);
 					/*
 					if (CDock.m_nSelectedPlatform == (int)GamePlatform.All ||
 						CDock.m_nSelectedPlatform == (int)GamePlatform.Favourites ||
@@ -1033,14 +1042,14 @@ namespace GameLauncher_Console
 						CDock.m_nSelectedPlatform == (int)GamePlatform.Search ||
 						CDock.m_nSelectedPlatform == (int)GamePlatform.Unknown)
 					*/
-					rightSide = string.Format("{0} {1} {0}", separator, selectedGame.PlatformString);
+					rightSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selectedGame.PlatformString);
 				}
 				else
 				{
 					//int platform = GetPlatformString(GetPlatformEnum(platform));
 					//leftSide = string.Format("{0} {1} {0}", separator, strCurrentOption.Substring(0, strCurrentOption.IndexOf(": ")));
 					selection = selection.Substring(0, selection.IndexOf(": "));
-					leftSide = string.Format("{0} {1} {0}", separator, selection);
+					leftSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selection);
 				}
 				Console.WriteLine(leftSide + rightSide.PadLeft(Console.WindowWidth - leftSide.Length - 1));
 				Thread.Sleep(50);  // image sometimes become written over otherwise
