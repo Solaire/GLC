@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GLC
 {
@@ -34,7 +30,7 @@ namespace GLC
 
         public void Initialise()
         {
-            Redraw();
+            Redraw(true);
         }
 
         public void SetStatus(string status)
@@ -83,6 +79,12 @@ namespace GLC
             Console.CursorLeft = m_inputPosition;
         }
 
+        public void SetCursor()
+        {
+            Console.CursorLeft = m_inputPosition;
+            Console.CursorTop = m_rect.y + 1;
+        }
+
         public void AddInput(char input)
         {
             if(char.IsControl(input))
@@ -106,7 +108,7 @@ namespace GLC
         /// <summary>
         /// Redraw the microbuffer and status texts
         /// </summary>
-        public override void Redraw()
+        public override void Redraw(bool fullRedraw)
         {
             DrawStatus();
             DrawBuffer();
@@ -117,6 +119,13 @@ namespace GLC
         /// </summary>
         public override void OnEnter()
         {
+            // Despatch the command back to the parent to deal with
+            if(m_parent != null)
+            {
+                m_parent.Command = m_inputBuffer;
+            }
+            
+            // TODO: Temporary
             SetStatus(m_inputBuffer);
             m_inputBuffer = "";
             m_inputPosition = 0;

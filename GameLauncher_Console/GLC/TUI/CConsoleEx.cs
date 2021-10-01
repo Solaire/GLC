@@ -46,7 +46,7 @@ namespace GLC
                 Console.CursorLeft = col;
                 Console.CursorTop  = y;
 
-                Console.WriteLine("-");
+                Console.Write("-");
             }
         }
 
@@ -59,7 +59,7 @@ namespace GLC
                 Console.CursorLeft = x;
                 Console.CursorTop  = row;
 
-                Console.WriteLine("|");
+                Console.Write("|");
             }
         }
         
@@ -70,7 +70,7 @@ namespace GLC
         /// <param name="x">Console buffer column position</param>
         /// <param name="y">Console buffer row position</param>
         /// <param name="colourPair">Pair of backgound and foreground colours</param>
-        public static void WriteText(string text, int x, int y, ColourPair colourPair)
+        public static void WriteText(string text, int x, int y, int padLeft, int padRight, ColourPair colourPair)
         {
             // TODO: check if x and y are within the buffer area
             if((x < 0 || x > Console.BufferWidth) || (y < 0 || y > Console.BufferHeight))
@@ -86,8 +86,12 @@ namespace GLC
             Console.BackgroundColor = colourPair.background;
             Console.ForegroundColor = colourPair.foreground;
 
+            text = text.PadLeft(text.Length + padLeft);
+            text = text.PadRight(padRight);
+
             Console.Write(text);
         }
+
         /*
         private static void SetupWindow()
         {

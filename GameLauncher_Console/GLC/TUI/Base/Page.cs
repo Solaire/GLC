@@ -67,7 +67,7 @@ namespace GLC
             }
 
             CalculatePanelLayout();
-            Redraw();
+            Redraw(true);
         }
 
         public void CalculatePanelLayout()
@@ -114,12 +114,12 @@ namespace GLC
         /// <summary>
         /// Redraw the page
         /// </summary>
-        public override void Redraw()
+        public override void Redraw(bool fullRedraw)
         {
             // TODO: draw title
             foreach(CPanel p in m_panels)
             {
-                p.Redraw();
+                p.Redraw(fullRedraw);
             }
         }
 

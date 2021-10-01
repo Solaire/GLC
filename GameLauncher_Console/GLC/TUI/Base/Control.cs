@@ -10,7 +10,7 @@ namespace GLC
         protected ConsoleRect m_rect;
         protected ColourPair  m_colourPair;
 
-        public abstract void Redraw();
+        public abstract void Redraw(bool fullRedraw);
         public abstract void OnEnter();
         public abstract void OnUpArrow();
         public abstract void OnDownArrow();

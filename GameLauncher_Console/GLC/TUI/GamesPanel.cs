@@ -18,10 +18,10 @@ namespace GLC
 
         }
 
-#region CPanel overrides
-        public override void Redraw()
+#region CControl overrides
+        public override void Redraw(bool fullRedraw)
         {
-            CConsoleEx.DrawColourRect(m_rect, ConsoleColor.Green);
+            CConsoleEx.DrawColourRect(m_rect, ConsoleColor.Black);
             if(m_bottomBorder)
             {
                 CConsoleEx.DrawHorizontalLine(m_rect.x, m_rect.height - 1, m_rect.width - 1);
@@ -56,9 +56,9 @@ namespace GLC
         {
             throw new NotImplementedException();
         }
-#endregion
+#endregion // CControl overrides
 
-#region CControl overrides
+#region CPanel overrides
         protected override bool LoadContent()
         {
             throw new NotImplementedException();
@@ -83,6 +83,6 @@ namespace GLC
         {
             throw new NotImplementedException();
         }
-#endregion
+#endregion // CPanel overrides
     }
 }

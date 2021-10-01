@@ -18,6 +18,8 @@ namespace GLC
 
         public  ColourPair  m_defaultColours { get; private set; }
 
+        public string Command { private get; set; }
+
         private int     m_currentPage;
         private CPage[] m_pages;
         private CMicrobuffer m_microbuffer;
@@ -37,14 +39,11 @@ namespace GLC
 
             m_currentPage    = 0;
             m_pages = new CPage[2];
-            /*
-            for (int i = 0; i < m_pages.Length; i++)
-            {
-                m_pages[i] = new CPage(); // TODO: constructor
-            } 
-            */
+
             m_microbuffer = new CMicrobuffer(this);
             m_microbufferFocus = true;
+
+            Command = "";
         }
 
         /// <summary>
@@ -69,9 +68,14 @@ namespace GLC
         {
             while(true)
             {
-                // Reference to the currently focused item to avoid boilerplate code
-                CControl focused = (m_microbufferFocus) ? m_microbuffer : m_pages[m_currentPage];
-                ConsoleKeyInfo keyInfo = Console.ReadKey(false);
+                Console.CursorVisible  = m_microbufferFocus;
+                CControl focused       = (m_microbufferFocus) ? m_microbuffer : m_pages[m_currentPage];
+                if(m_microbufferFocus && Console.CursorVisible)
+                {
+                    m_microbuffer.SetCursor();
+                }
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
                 switch(keyInfo.Key)
                 {
                     case ConsoleKey.Escape:
@@ -85,6 +89,7 @@ namespace GLC
                     {
                         // Switch focus from active page into the microbuffer
                         m_microbufferFocus = true;
+                        m_microbuffer.AddInput(keyInfo.KeyChar);
                     }
                     break;
 
@@ -132,9 +137,21 @@ namespace GLC
                     }
                     break;
                 }
-                focused.Redraw();
+                if(Command.Length != 0) // Parse and execute command
+                {
+                    HandleCommand();
+                }
+                focused.Redraw(false);
             }
         }
+
+        private void HandleCommand()
+        {
+            // TODO: implement
+
+            Command = "";
+        }
+
         /*
         public void MicrobufferTest()
         {
