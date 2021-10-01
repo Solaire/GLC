@@ -22,7 +22,7 @@ namespace GameLauncher_Console
 		//private const string EPIC_GAMES_UNREG	= "{A7BBC0A6-3DB0-41CC-BCED-DDFC5D4F3060}"; // HKLM32 Uninstall
 		private const string EPIC_ITEMS_FOLDER	= @"\Epic\EpicGamesLauncher\Data\Manifests";
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -43,7 +43,7 @@ namespace GameLauncher_Console
 				return;
 			}
 			string[] files = Directory.GetFiles(dir, "*.item", SearchOption.TopDirectoryOnly);
-			CLogger.LogInfo("{0} {1} games found", files.Count(), _name.ToUpper());
+			CLogger.LogInfo("{0} {1} games found", files.Length, _name.ToUpper());
 
 			foreach (string file in files)
 			{
@@ -54,27 +54,25 @@ namespace GameLauncher_Console
 
 				try
 				{
-					using (JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas))
-					{
-						string strID = Path.GetFileName(file);
-						string strTitle = GetStringProperty(document.RootElement, "DisplayName");
-						CLogger.LogDebug($"- {strTitle}");
-						string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
-						string strAlias = "";
-						string strPlatform = GetPlatformString(GamePlatform.Epic);
+                    using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
+                    string strID = Path.GetFileName(file);
+                    string strTitle = GetStringProperty(document.RootElement, "DisplayName");
+                    CLogger.LogDebug($"- {strTitle}");
+                    string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
+                    string strAlias = "";
+                    string strPlatform = GetPlatformString(GamePlatform.Epic);
 
-						if (!string.IsNullOrEmpty(strLaunch))
-						{
-							strLaunch = Path.Combine(GetStringProperty(document.RootElement, "InstallLocation"), strLaunch);
-							strAlias = GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
-							if (strAlias.Length > strTitle.Length)
-								strAlias = GetAlias(strTitle);
-							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-								strAlias = "";
-							gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-						}
-					}
-				}
+                    if (!string.IsNullOrEmpty(strLaunch))
+                    {
+                        strLaunch = Path.Combine(GetStringProperty(document.RootElement, "InstallLocation"), strLaunch);
+                        strAlias = GetAlias(GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
+                        if (strAlias.Length > strTitle.Length)
+                            strAlias = GetAlias(strTitle);
+                        if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+                            strAlias = "";
+                        gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+                    }
+                }
 				catch (Exception e)
 				{
 					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));

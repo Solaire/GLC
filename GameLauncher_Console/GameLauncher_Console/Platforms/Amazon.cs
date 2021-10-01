@@ -26,7 +26,7 @@ namespace GameLauncher_Console
 		private const string AMAZON_OWN_DB = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";
 		//private const string AMAZON_UNREG		= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -73,7 +73,7 @@ namespace GameLauncher_Console
                     string strIconPath = "";
                     string strUninstall = "";
 
-                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey(NODE64_REG + "\\AmazonGames/" + strTitle, RegistryKeyPermissionCheck.ReadSubTree))
+                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey(Path.Combine(NODE64_REG, "AmazonGames", strTitle), RegistryKeyPermissionCheck.ReadSubTree))
                     {
                         if (key != null)
                         {
@@ -181,7 +181,7 @@ namespace GameLauncher_Console
 			CLogger.LogDebug("-------------------");
 		}
 
-		/*
+        /*
 		/// <summary>
 		/// Scan the key name and extract the Amazon game id [no longer necessary after moving to SQLite method]
 		/// </summary>
@@ -189,8 +189,8 @@ namespace GameLauncher_Console
 		/// <returns>Amazon game ID as string</returns>
 		private static string GetGameID(string key)
 		{
-			return key.Substring(key.LastIndexOf(" -p ") + 4);
+			return key[(key.LastIndexOf(" -p ") + 4)..];
 		}
-		*/
+        */
 	}
 }

@@ -37,7 +37,7 @@ namespace GameLauncher_Console
 		private const string STEAM_REG			= @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
 		//private const string STEAM_UNREG		= "Steam"; // HKLM32 Uninstall
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 

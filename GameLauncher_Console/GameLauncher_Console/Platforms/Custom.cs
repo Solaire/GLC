@@ -16,7 +16,7 @@ namespace GameLauncher_Console
 		public const string PROTOCOL			= "";
 		private const string GAME_FOLDER_NAME	= "CustomGames";
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 

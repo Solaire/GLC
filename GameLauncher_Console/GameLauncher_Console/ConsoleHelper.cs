@@ -1046,8 +1046,6 @@ namespace GameLauncher_Console
 				}
 				else
 				{
-					//int platform = GetPlatformString(GetPlatformEnum(platform));
-					//leftSide = string.Format("{0} {1} {0}", separator, strCurrentOption.Substring(0, strCurrentOption.IndexOf(": ")));
 					selection = selection.Substring(0, selection.IndexOf(": "));
 					leftSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selection);
 				}

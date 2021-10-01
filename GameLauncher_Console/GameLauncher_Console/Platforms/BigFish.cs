@@ -29,7 +29,7 @@ namespace GameLauncher_Console
 		private const string BIGFISH_TIME			= "TimeLeft";
 		private const string BIGFISH_CASINO_ID		= "F7315T1L1";
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -42,7 +42,7 @@ namespace GameLauncher_Console
 			if (OperatingSystem.IsWindows())
 			{
                 using RegistryKey key = Registry.LocalMachine.OpenSubKey(BIGFISH_REG, RegistryKeyPermissionCheck.ReadSubTree); // HKLM32
-                string launcherPath = key.GetValue("InstallationPath") + "\\bfgclient.exe";
+                string launcherPath = Path.Combine(GetRegStrVal(key, "InstallationPath"), "bfgclient.exe");
                 if (File.Exists(launcherPath))
                     Process.Start(launcherPath);
                 else

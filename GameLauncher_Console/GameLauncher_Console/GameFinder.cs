@@ -63,9 +63,9 @@ namespace GameLauncher_Console
 
 
 					string description = FileVersionInfo.GetVersionInfo(file).FileDescription ?? "";
-					description.ToLower();
+					description = description.ToLower();
 
-					FileInfo info = new FileInfo(file);
+					FileInfo info = new(file);
 					string name = info.Name.Substring(0, info.Name.IndexOf('.')).ToLower();
 
 					// Perform a check against the acronym
@@ -107,10 +107,10 @@ namespace GameLauncher_Console
 						pathLen = 0;
 					}
 					else
-						words = strPath.Substring(strPath.LastIndexOf('/')).Split(new char[] { ' ', '-', '_', ':' });
+						words = strPath[strPath.LastIndexOf('/')..].Split(new char[] { ' ', '-', '_', ':' });
 				}
 				else
-					words = strPath.Substring(strPath.LastIndexOf('\\')).Split(new char[] { ' ', '-', '_', ':' });
+					words = strPath[strPath.LastIndexOf('\\')..].Split(new char[] { ' ', '-', '_', ':' });
 				
 				foreach (string word in words)
 				{
@@ -127,9 +127,9 @@ namespace GameLauncher_Console
 						continue;
 
 					string description = FileVersionInfo.GetVersionInfo(file).FileDescription ?? "";
-					description.ToLower();
+					description = description.ToLower();
 
-					FileInfo info = new FileInfo(file);
+					FileInfo info = new(file);
 					string name = info.Name.Substring(0, info.Name.IndexOf('.')).ToLower();
 
 					// Perform a check against the acronym

@@ -17,14 +17,14 @@ namespace GameLauncher_Console
 		public const GamePlatform ENUM	= GamePlatform.Bethesda;
 		public const string PROTOCOL				= "bethesdanet://";
 		private const string START_GAME				= PROTOCOL + "run";
-		private const string BETHESDA_NET			= "bethesda.net";
+		//private const string BETHESDA_NET			= "bethesda.net";
 		private const string BETHESDA_PATH			= "Path";
 		private const string BETHESDA_CREATION_KIT	= "Creation Kit";
 		private const string BETHESDA_PRODUCT_ID	= "ProductID";
 		//private const string BETHESDA_REG			= @"SOFTWARE\WOW6432Node\Bethesda Softworks\Bethesda.net"; // HKLM32
-		//private const string BETHESDA_UNREG		= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
+		private const string BETHESDA_UNREG			= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -40,16 +40,22 @@ namespace GameLauncher_Console
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
+			string launcherPath = "";
 
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			using (RegistryKey launcherKey = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE32_REG, BETHESDA_UNREG), RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				if (key == null)
+				if (launcherKey == null)
 				{
 					CLogger.LogInfo("{0} client not found in the registry.", _name.ToUpper());
 					return;
 				}
+				launcherPath = GetRegStrVal(launcherKey, GAME_INSTALL_LOCATION);
+			}
 
-				keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
+			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			{
+				//keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
+				keyList = FindGameKeys(key, launcherPath, GAME_UNINSTALL_STRING, new string[] { BETHESDA_CREATION_KIT });
 
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, _name.ToUpper());
 				foreach (var data in keyList)

@@ -30,7 +30,7 @@ namespace GameLauncher_Console
 		private const string ORIGIN_REG			= @"SOFTWARE\WOW6432Node\Origin"; // HKLM32
 		*/
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 

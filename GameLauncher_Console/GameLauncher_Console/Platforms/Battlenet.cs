@@ -7,6 +7,7 @@ using System.IO;
 using System.Runtime.Versioning;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CRegScanner;
+using static System.Environment;
 
 namespace GameLauncher_Console
 {
@@ -15,11 +16,13 @@ namespace GameLauncher_Console
 	public class PlatformBattlenet : IPlatform
     {
 		public const GamePlatform ENUM = GamePlatform.Battlenet;
-		public const string PROTOCOL			= "battlenet://";	// "blizzard://" works too [TODO: is one more compatible with older versions?]
-		//private const string BATTLE_NET_UNREG	= "Battle.net"; // HKLM32 Uninstall
-		private const string BATTLE_NET_REG		= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
+		public const string PROTOCOL			= "battlenet://";   // "blizzard://" works too [TODO: is one more compatible with older versions?]
+		//private const string BATTLE_NET			= "Battle.net";
+		private const string BATTLE_NET_UNREG	= "Battle.net";		// HKLM32 Uninstall
+		//private const string BATTLE_NET_REG	= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
+		private const string BATTLE_NET_UNINST	= @"Battle.net\Agent\Blizzard Uninstaller.exe";
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -40,11 +43,12 @@ namespace GameLauncher_Console
 			{
 				if (key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", _name.ToUpper());
+					CLogger.LogInfo("HKLM32 Uninstall not found in the registry.", _name.ToUpper());
 					return;
 				}
 
-				keyList = FindGameKeys(key, BATTLE_NET_REG, GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_REG });
+				//keyList = FindGameKeys(key, BATTLE_NET, GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_UNREG });
+				keyList = FindGameKeys(key, Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), BATTLE_NET_UNINST), GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_UNREG });
 
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, _name.ToUpper());
 				foreach (var data in keyList)

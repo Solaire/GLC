@@ -24,7 +24,7 @@ namespace GameLauncher_Console
 		private const string OCULUS_LIBS		= @"SOFTWARE\Oculus VR, LLC\Oculus\Libraries"; // HKCU64
 		private const string OCULUS_LIBPATH		= "OriginalPath"; // "Path" might be better, but may require converting "\\?\Volume{guid}\" to drive letter
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -38,7 +38,7 @@ namespace GameLauncher_Console
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			// Get installed games
-			List<string> libPaths = new List<string>();
+			List<string> libPaths = new();
 
 			using (RegistryKey key = Registry.CurrentUser.OpenSubKey(OCULUS_LIBS, RegistryKeyPermissionCheck.ReadSubTree))
 			{
@@ -46,16 +46,14 @@ namespace GameLauncher_Console
 				{
 					foreach (string lib in key.GetSubKeyNames())
 					{
-						using (RegistryKey key2 = Registry.CurrentUser.OpenSubKey(Path.Combine(OCULUS_LIBS, lib), RegistryKeyPermissionCheck.ReadSubTree))
-						{
-							libPaths.Add(GetRegStrVal(key2, OCULUS_LIBPATH));
-						}
-					}
+                        using RegistryKey key2 = Registry.CurrentUser.OpenSubKey(Path.Combine(OCULUS_LIBS, lib), RegistryKeyPermissionCheck.ReadSubTree);
+                        libPaths.Add(GetRegStrVal(key2, OCULUS_LIBPATH));
+                    }
 				}
 			}
 			foreach (string lib in libPaths)
 			{
-				List<string> libFiles = new List<string>();
+				List<string> libFiles = new();
 				try
 				{
 					string manifestPath = Path.Combine(lib, "Manifests");
@@ -83,36 +81,34 @@ namespace GameLauncher_Console
 							CLogger.LogWarn(string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
 						else
 						{
-							using (JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
-							{
-								CultureInfo ci = new CultureInfo("en-GB");
-								TextInfo ti = ci.TextInfo;
+                            using JsonDocument document = JsonDocument.Parse(@strDocumentData, options);
+                            CultureInfo ci = new("en-GB");
+                            TextInfo ti = ci.TextInfo;
 
-								string strID = "";
-								string strTitle = "";
-								string strLaunch = "";
-								string strAlias = "";
-								string strPlatform = GetPlatformString(GamePlatform.Oculus);
+                            string strID = "";
+                            string strTitle = "";
+                            string strLaunch = "";
+                            string strAlias = "";
+                            string strPlatform = GetPlatformString(GamePlatform.Oculus);
 
-								//ulong id = GetULongProperty(document.RootElement, "appId");
-								string name = GetStringProperty(document.RootElement, "canonicalName");
-								//if (id > 0)
-								if (!string.IsNullOrEmpty(name))
-								{
-									strID = name + ".json";
-									string exefile = GetStringProperty(document.RootElement, "launchFile");
-									strTitle = ti.ToTitleCase(name.Replace('-', ' '));
-									CLogger.LogDebug($"- {strTitle}");
-									strLaunch = Path.Combine(lib, "Software", name, exefile);
-									strAlias = GetAlias(Path.GetFileNameWithoutExtension(exefile));
-									if (strAlias.Length > strTitle.Length)
-										strAlias = GetAlias(strTitle);
-									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-										strAlias = "";
-									gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-								}
-							}
-						}
+                            //ulong id = GetULongProperty(document.RootElement, "appId");
+                            string name = GetStringProperty(document.RootElement, "canonicalName");
+                            //if (id > 0)
+                            if (!string.IsNullOrEmpty(name))
+                            {
+                                strID = name + ".json";
+                                string exefile = GetStringProperty(document.RootElement, "launchFile");
+                                strTitle = ti.ToTitleCase(name.Replace('-', ' '));
+                                CLogger.LogDebug($"- {strTitle}");
+                                strLaunch = Path.Combine(lib, "Software", name, exefile);
+                                strAlias = GetAlias(Path.GetFileNameWithoutExtension(exefile));
+                                if (strAlias.Length > strTitle.Length)
+                                    strAlias = GetAlias(strTitle);
+                                if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+                                    strAlias = "";
+                                gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+                            }
+                        }
 					}
 					catch (Exception e)
 					{

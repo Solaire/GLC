@@ -1317,7 +1317,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Print output and wait until the user has pressed a key to show next page
 		/// </summary>
-		private void WriteWithBreak(ref int line, int height, ConsoleColor outputCol, ConsoleColor outputColLt, ConsoleColor breakCol, ConsoleColor breakColLt, string output)
+		private static void WriteWithBreak(ref int line, int height, ConsoleColor outputCol, ConsoleColor outputColLt, ConsoleColor breakCol, ConsoleColor breakColLt, string output)
 		{
 			if (line > height - INPUT_BOTTOM_CUSHION)
 			{
@@ -1332,7 +1332,7 @@ namespace GameLauncher_Console
 			line++;
 		}
 
-		private void WriteWithBreak(ref int line, int height, ConsoleColor breakCol, ConsoleColor breakColLt)
+		private static void WriteWithBreak(ref int line, int height, ConsoleColor breakCol, ConsoleColor breakColLt)
 		{
 			WriteWithBreak(ref line, height, ConsoleColor.Black, ConsoleColor.Black, breakCol, breakColLt, string.Empty);
 		}

@@ -177,7 +177,7 @@ namespace GameLauncher_Console
 				throw new IOException("Unable to open CONOUT$", errorCode);
 			}
 
-			ConsoleFontInfo cfi = new ConsoleFontInfo();
+			ConsoleFontInfo cfi = new();
 			if (!GetCurrentConsoleFont(outHandle, false, cfi))
 			{
 				throw new InvalidOperationException("Unable to get font information.");
@@ -200,43 +200,27 @@ namespace GameLauncher_Console
 		// This is for the new (campbell) color scheme
 		private static Color ToGrColourCampbell(ConsoleColor cc)
 		{
-			switch (cc)
-			{
-				case ConsoleColor.Black:
-					return Color.FromArgb(12, 12, 12);
-				case ConsoleColor.DarkBlue:
-					return Color.FromArgb(0, 55, 218);
-				case ConsoleColor.DarkGreen:
-					return Color.FromArgb(19, 161, 14);
-				case ConsoleColor.DarkCyan:
-					return Color.FromArgb(58, 150, 221);
-				case ConsoleColor.DarkRed:
-					return Color.FromArgb(197, 15, 31);
-				case ConsoleColor.DarkMagenta:
-					return Color.FromArgb(136, 23, 152);
-				case ConsoleColor.DarkYellow:
-					return Color.FromArgb(193, 156, 0);
-				case ConsoleColor.Gray:
-					return Color.FromArgb(204, 204, 204);
-				case ConsoleColor.DarkGray:
-					return Color.FromArgb(118, 118, 118);
-				case ConsoleColor.Blue:
-					return Color.FromArgb(59, 120, 255);
-				case ConsoleColor.Green:
-					return Color.FromArgb(22, 198, 12);
-				case ConsoleColor.Cyan:
-					return Color.FromArgb(97, 214, 214);
-				case ConsoleColor.Red:
-					return Color.FromArgb(231, 72, 86);
-				case ConsoleColor.Magenta:
-					return Color.FromArgb(180, 0, 158);
-				case ConsoleColor.Yellow:
-					return Color.FromArgb(249, 241, 165);
-				case ConsoleColor.White:
-					return Color.FromArgb(242, 242, 242);
-			}
-			return Color.FromArgb(12, 12, 12);
-		}
+            return cc switch
+            {
+                ConsoleColor.Black => Color.FromArgb(12, 12, 12),
+                ConsoleColor.DarkBlue => Color.FromArgb(0, 55, 218),
+                ConsoleColor.DarkGreen => Color.FromArgb(19, 161, 14),
+                ConsoleColor.DarkCyan => Color.FromArgb(58, 150, 221),
+                ConsoleColor.DarkRed => Color.FromArgb(197, 15, 31),
+                ConsoleColor.DarkMagenta => Color.FromArgb(136, 23, 152),
+                ConsoleColor.DarkYellow => Color.FromArgb(193, 156, 0),
+                ConsoleColor.Gray => Color.FromArgb(204, 204, 204),
+                ConsoleColor.DarkGray => Color.FromArgb(118, 118, 118),
+                ConsoleColor.Blue => Color.FromArgb(59, 120, 255),
+                ConsoleColor.Green => Color.FromArgb(22, 198, 12),
+                ConsoleColor.Cyan => Color.FromArgb(97, 214, 214),
+                ConsoleColor.Red => Color.FromArgb(231, 72, 86),
+                ConsoleColor.Magenta => Color.FromArgb(180, 0, 158),
+                ConsoleColor.Yellow => Color.FromArgb(249, 241, 165),
+                ConsoleColor.White => Color.FromArgb(242, 242, 242),
+                _ => Color.FromArgb(12, 12, 12),
+            };
+        }
 
 		public static void GetImageProperties(int imgWidth, int imgPercent, out Size size, out Point location)
 		{
@@ -411,31 +395,29 @@ namespace GameLauncher_Console
 					{
 						try
 						{
-							using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
-							{
-								int res = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) < 256 ? (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) : 256;
-								if (w > h && w < res)
-									res = w;
-								else if (h > w && h < res)
-									res = h;
+                            using Graphics g = Graphics.FromHwnd(GetConsoleWindow());
+                            int res = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) < 256 ? (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) : 256;
+                            if (w > h && w < res)
+                                res = w;
+                            else if (h > w && h < res)
+                                res = h;
 
-								IntPtr hBitmap = IntPtr.Zero;
-								Guid uuid = new Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe");  // IShellItem
-								SHCreateItemFromParsingName(imgPath, IntPtr.Zero, uuid, out IShellItem ppsi);
-								((IShellItemImageFactory)ppsi).GetImage(new Size(res, res), SIIGBF.SIIGBF_ICONONLY, out hBitmap);
+                            IntPtr hBitmap = IntPtr.Zero;
+                            Guid uuid = new("43826d1e-e718-42ee-bc55-a1e261c37bfe");  // IShellItem
+                            SHCreateItemFromParsingName(imgPath, IntPtr.Zero, uuid, out IShellItem ppsi);
+                            ((IShellItemImageFactory)ppsi).GetImage(new Size(res, res), SIIGBF.SIIGBF_ICONONLY, out hBitmap);
 
-								using (image = Bitmap.FromHbitmap(hBitmap))
-								{
-									// translating the character positions to pixels
-									if (selection == CDock.m_nCurrentSelection)
-									{
-										ClearImage(size, point, bg);
-										Rectangle imageRect = new Rectangle(x, y, w, h);
-										g.DrawImage(image, imageRect);
-									}
-								}
-							}
-						}
+                            using (image = Bitmap.FromHbitmap(hBitmap))
+                            {
+                                // translating the character positions to pixels
+                                if (selection == CDock.m_nCurrentSelection)
+                                {
+                                    ClearImage(size, point, bg);
+                                    Rectangle imageRect = new(x, y, w, h);
+                                    g.DrawImage(image, imageRect);
+                                }
+                            }
+                        }
 						//SHCreateItemFromParsingName() causes this catch fairly often
 						catch //(Exception e)
 						{
@@ -456,7 +438,7 @@ namespace GameLauncher_Console
 								if (selection == CDock.m_nCurrentSelection)
 								{
 									ClearImage(size, point, bg);
-									Rectangle imageRect = new Rectangle(x, y, w, h);
+									Rectangle imageRect = new(x, y, w, h);
 									g.DrawImage(image, imageRect);
 								}
 							}
@@ -492,107 +474,103 @@ namespace GameLauncher_Console
 				else if (h > w && h < res)
 					res = h;
 
-				using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
-				{
-					try
-					{
-						if (platform.StartsWith(GetPlatformString(-1)))               // Unknown
-							icon = new Icon(Properties.Resources.unknown, res, res);
-						else if (platform.StartsWith(GetPlatformString(0)))           // Favourites
-							icon = new Icon(Properties.Resources._0, res, res);
-						else if (platform.StartsWith(GetPlatformString(1)))           // Custom
-							icon = new Icon(Properties.Resources._1, res, res);
-						else if (platform.StartsWith(GetPlatformString(2)))           // All
-							icon = new Icon(Properties.Resources._2, res, res);
-						else if (platform.StartsWith(GetPlatformString(3)))
-							icon = new Icon(Properties.Resources._3, res, res);
-						else if (platform.StartsWith(GetPlatformString(4)))
-							icon = new Icon(Properties.Resources._4, res, res);
-						else if (platform.StartsWith(GetPlatformString(5)))
-							icon = new Icon(Properties.Resources._5, res, res);
-						else if (platform.StartsWith(GetPlatformString(6)))
-							icon = new Icon(Properties.Resources._6, res, res);
-						else if (platform.StartsWith(GetPlatformString(7)))
-							icon = new Icon(Properties.Resources._7, res, res);
-						else if (platform.StartsWith(GetPlatformString(8)))
-							icon = new Icon(Properties.Resources._8, res, res);
-						else if (platform.StartsWith(GetPlatformString(9)))
-							icon = new Icon(Properties.Resources._9, res, res);
-						else if (platform.StartsWith(GetPlatformString(10)))
-							icon = new Icon(Properties.Resources._10, res, res);
-						else if (platform.StartsWith(GetPlatformString(11)))          // Hidden
-							icon = new Icon(Properties.Resources._11, res, res);
-						else if (platform.StartsWith(GetPlatformString(12)))          // Search
-							icon = new Icon(Properties.Resources._12, res, res);
-						else if (platform.StartsWith(GetPlatformString(13)))
-							icon = new Icon(Properties.Resources._13, res, res);
-						else if (platform.StartsWith(GetPlatformString(14)))
-							icon = new Icon(Properties.Resources._14, res, res);
-						else if (platform.StartsWith(GetPlatformString(15)))
-							icon = new Icon(Properties.Resources._15, res, res);
-						else if (platform.StartsWith(GetPlatformString(16)))
-							icon = new Icon(Properties.Resources._16, res, res);
-						else if (platform.StartsWith(GetPlatformString(17)))
-							icon = new Icon(Properties.Resources._17, res, res);
-						else if (platform.StartsWith(GetPlatformString(18)))
-							icon = new Icon(Properties.Resources._18, res, res);
-						else if (platform.StartsWith(GetPlatformString(19)))
-							icon = new Icon(Properties.Resources._19, res, res);
-						else if (platform.StartsWith(GetPlatformString(20)))
-							icon = new Icon(Properties.Resources._20, res, res);
-						else if (platform.StartsWith(GetPlatformString(21)))
-							icon = new Icon(Properties.Resources._21, res, res);
-						else if (platform.StartsWith(GetPlatformString(22)))          // New
-							icon = new Icon(Properties.Resources._22, res, res);
-						else if (platform.StartsWith(GetPlatformString(23)))          // Not installed
-							icon = new Icon(Properties.Resources._23, res, res);
-						else if (platform.StartsWith(GetPlatformString(24)))
-							icon = new Icon(Properties.Resources._24, res, res);
-						else if (platform.StartsWith(GetPlatformString(25)))
-							icon = new Icon(Properties.Resources._25, res, res);
-						else if (platform.Equals(CConfig.GetConfigString(CConfig.CFG_TXTCFGT)))	// Settings
-							icon = new Icon(Properties.Resources.settings, res, res);
-						else
-							icon = new Icon(Properties.Resources.icon, res, res);
+                using Graphics g = Graphics.FromHwnd(GetConsoleWindow());
+                try
+                {
+                    if (platform.StartsWith(GetPlatformString(-1)))               // Unknown
+                        icon = new Icon(Properties.Resources.unknown, res, res);
+                    else if (platform.StartsWith(GetPlatformString(0)))           // Favourites
+                        icon = new Icon(Properties.Resources._0, res, res);
+                    else if (platform.StartsWith(GetPlatformString(1)))           // Custom
+                        icon = new Icon(Properties.Resources._1, res, res);
+                    else if (platform.StartsWith(GetPlatformString(2)))           // All
+                        icon = new Icon(Properties.Resources._2, res, res);
+                    else if (platform.StartsWith(GetPlatformString(3)))
+                        icon = new Icon(Properties.Resources._3, res, res);
+                    else if (platform.StartsWith(GetPlatformString(4)))
+                        icon = new Icon(Properties.Resources._4, res, res);
+                    else if (platform.StartsWith(GetPlatformString(5)))
+                        icon = new Icon(Properties.Resources._5, res, res);
+                    else if (platform.StartsWith(GetPlatformString(6)))
+                        icon = new Icon(Properties.Resources._6, res, res);
+                    else if (platform.StartsWith(GetPlatformString(7)))
+                        icon = new Icon(Properties.Resources._7, res, res);
+                    else if (platform.StartsWith(GetPlatformString(8)))
+                        icon = new Icon(Properties.Resources._8, res, res);
+                    else if (platform.StartsWith(GetPlatformString(9)))
+                        icon = new Icon(Properties.Resources._9, res, res);
+                    else if (platform.StartsWith(GetPlatformString(10)))
+                        icon = new Icon(Properties.Resources._10, res, res);
+                    else if (platform.StartsWith(GetPlatformString(11)))          // Hidden
+                        icon = new Icon(Properties.Resources._11, res, res);
+                    else if (platform.StartsWith(GetPlatformString(12)))          // Search
+                        icon = new Icon(Properties.Resources._12, res, res);
+                    else if (platform.StartsWith(GetPlatformString(13)))
+                        icon = new Icon(Properties.Resources._13, res, res);
+                    else if (platform.StartsWith(GetPlatformString(14)))
+                        icon = new Icon(Properties.Resources._14, res, res);
+                    else if (platform.StartsWith(GetPlatformString(15)))
+                        icon = new Icon(Properties.Resources._15, res, res);
+                    else if (platform.StartsWith(GetPlatformString(16)))
+                        icon = new Icon(Properties.Resources._16, res, res);
+                    else if (platform.StartsWith(GetPlatformString(17)))
+                        icon = new Icon(Properties.Resources._17, res, res);
+                    else if (platform.StartsWith(GetPlatformString(18)))
+                        icon = new Icon(Properties.Resources._18, res, res);
+                    else if (platform.StartsWith(GetPlatformString(19)))
+                        icon = new Icon(Properties.Resources._19, res, res);
+                    else if (platform.StartsWith(GetPlatformString(20)))
+                        icon = new Icon(Properties.Resources._20, res, res);
+                    else if (platform.StartsWith(GetPlatformString(21)))
+                        icon = new Icon(Properties.Resources._21, res, res);
+                    else if (platform.StartsWith(GetPlatformString(22)))          // New
+                        icon = new Icon(Properties.Resources._22, res, res);
+                    else if (platform.StartsWith(GetPlatformString(23)))          // Not installed
+                        icon = new Icon(Properties.Resources._23, res, res);
+                    else if (platform.StartsWith(GetPlatformString(24)))
+                        icon = new Icon(Properties.Resources._24, res, res);
+                    else if (platform.StartsWith(GetPlatformString(25)))
+                        icon = new Icon(Properties.Resources._25, res, res);
+                    else if (platform.Equals(CConfig.GetConfigString(CConfig.CFG_TXTCFGT))) // Settings
+                        icon = new Icon(Properties.Resources.settings, res, res);
+                    else
+                        icon = new Icon(Properties.Resources.icon, res, res);
 
-						// translating the character positions to pixels
-						if (selection == CDock.m_nCurrentSelection)
-						{
-							ClearImage(size, point, bg);
-							Rectangle imageRect = new Rectangle(x, y, w, h);
-							g.DrawImage(icon.ToBitmap(), imageRect);
-						}
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e);
-					}
-				}
-			}
+                    // translating the character positions to pixels
+                    if (selection == CDock.m_nCurrentSelection)
+                    {
+                        ClearImage(size, point, bg);
+                        Rectangle imageRect = new(x, y, w, h);
+                        g.DrawImage(icon.ToBitmap(), imageRect);
+                    }
+                }
+                catch (Exception e)
+                {
+                    CLogger.LogError(e);
+                }
+            }
 		}
 
 		public static void ClearImage(Size size, Point point, ConsoleColor? bg)
 		{
 			if (bg != null && size.Width > 0)
 			{
-				using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
-				{
-					SolidBrush brush;
-					Size fontSize = GetConsoleFontSize();
+                using Graphics g = Graphics.FromHwnd(GetConsoleWindow());
+                SolidBrush brush;
+                Size fontSize = GetConsoleFontSize();
 
-					// translating the character positions to pixels
-					Rectangle imageRect = new Rectangle(
-						point.X * fontSize.Width,
-						point.Y * fontSize.Height,
-						size.Width * fontSize.Width,
-						size.Height * fontSize.Height);
-					if ((bool)CConfig.GetConfigBool(CConfig.CFG_IMGBGLEG))
-						brush = new SolidBrush(ToGrColourLegacy((ConsoleColor)bg));
-					else
-						brush = new SolidBrush(ToGrColourCampbell((ConsoleColor)bg));
-					g.FillRectangle(brush, imageRect);
-				}
-			}
+                // translating the character positions to pixels
+                Rectangle imageRect = new(
+                    point.X * fontSize.Width,
+                    point.Y * fontSize.Height,
+                    size.Width * fontSize.Width,
+                    size.Height * fontSize.Height);
+                if ((bool)CConfig.GetConfigBool(CConfig.CFG_IMGBGLEG))
+                    brush = new SolidBrush(ToGrColourLegacy((ConsoleColor)bg));
+                else
+                    brush = new SolidBrush(ToGrColourCampbell((ConsoleColor)bg));
+                g.FillRectangle(brush, imageRect);
+            }
 		}
 
 		/// <summary>
@@ -613,18 +591,16 @@ namespace GameLauncher_Console
 			{
 				try
 				{
-					using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
-					{
-						/*
-						if (selection == CDock.m_nCurrentSelection)
-						{
-							ClearImage(size, point, bg);
-						*/
-							Rectangle imageRect = new Rectangle(x, y, w, h);
-							g.DrawImage(source, imageRect);
-						//}
-					}
-				}
+                    using Graphics g = Graphics.FromHwnd(GetConsoleWindow());
+                    /*
+                    if (selection == CDock.m_nCurrentSelection)
+                    {
+                        ClearImage(size, point, bg);
+                    */
+                    Rectangle imageRect = new(x, y, w, h);
+                    g.DrawImage(source, imageRect);
+                    //}
+                }
 				catch (Exception e)
 				{
 					CLogger.LogError(e);
@@ -634,52 +610,50 @@ namespace GameLauncher_Console
 			{
 				try
 				{
-					using (Bitmap target = new Bitmap(w, h))
-					using (Graphics g = Graphics.FromHwnd(GetConsoleWindow()))
-					{
-						/*
-						g.CompositingQuality = CompositingQuality.HighQuality;
-						g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-						g.SmoothingMode = SmoothingMode.HighQuality;
-						*/
+                    using Bitmap target = new(w, h);
+                    using Graphics g = Graphics.FromHwnd(GetConsoleWindow());
+                    /*
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+                    */
 
-						// Scaling
-						float scaling = 1;
-						if (!(ignoreRatio))
-						{
-							float scalingY = (float)source.Height / h;
-							float scalingX = (float)source.Width / w;
-							if (scalingX > scalingY) scaling = scalingX;
-							else scaling = scalingY;
-						}
+                    // Scaling
+                    float scaling = 1;
+                    if (!(ignoreRatio))
+                    {
+                        float scalingY = (float)source.Height / h;
+                        float scalingX = (float)source.Width / w;
+                        if (scalingX > scalingY) scaling = scalingX;
+                        else scaling = scalingY;
+                    }
 
-						int newWidth = (int)(source.Width / scaling);
-						int newHeight = (int)(source.Height / scaling);
+                    int newWidth = (int)(source.Width / scaling);
+                    int newHeight = (int)(source.Height / scaling);
 
-						// Correct float to int rounding
-						if (newWidth > w) newWidth = w;
-						if (newHeight > h) newHeight = h;
+                    // Correct float to int rounding
+                    if (newWidth > w) newWidth = w;
+                    if (newHeight > h) newHeight = h;
 
-						// See if image needs to be cropped
-						int shiftX = 0;
-						int shiftY = 0;
+                    // See if image needs to be cropped
+                    int shiftX = 0;
+                    int shiftY = 0;
 
-						if (newWidth < w)
-							shiftX = (newWidth - w) / 2;
-						if (newHeight < h)
-							shiftY = (newHeight - h) / 2;
+                    if (newWidth < w)
+                        shiftX = (newWidth - w) / 2;
+                    if (newHeight < h)
+                        shiftY = (newHeight - h) / 2;
 
-						// Draw image
-						/*
-						if (selection == CDock.m_nCurrentSelection)
-						{
-							ClearImage(size, point, bg);
-						*/
-							Rectangle imageRect = new Rectangle(x - shiftX, y - shiftY, newWidth, newHeight);
-							g.DrawImage(source, imageRect);
-						//}
-					}
-				}
+                    // Draw image
+                    /*
+                    if (selection == CDock.m_nCurrentSelection)
+                    {
+                        ClearImage(size, point, bg);
+                    */
+                    Rectangle imageRect = new(x - shiftX, y - shiftY, newWidth, newHeight);
+                    g.DrawImage(source, imageRect);
+                    //}
+                }
 				catch (Exception e)
 				{
 					CLogger.LogError(e);

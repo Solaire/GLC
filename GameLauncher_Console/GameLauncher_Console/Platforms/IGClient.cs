@@ -24,7 +24,7 @@ namespace GameLauncher_Console
 		private const string IG_JSON_FILE		= @"\IGClient\storage\installed.json";
 		private const string IG_OWN_JSON_FILE	= @"\IGClient\config.json";
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -38,7 +38,7 @@ namespace GameLauncher_Console
 			{
                 using RegistryKey key = Registry.LocalMachine.OpenSubKey(IG_REG, RegistryKeyPermissionCheck.ReadSubTree); // HKLM64
                 Process igcProcess = new();
-                string launcherPath = key.GetValue(GAME_INSTALL_LOCATION) + "\\IGClient.exe";
+                string launcherPath = Path.Combine(GetRegStrVal(key, GAME_INSTALL_LOCATION), "IGClient.exe");
                 if (File.Exists(launcherPath))
                     CDock.StartAndRedirect(launcherPath);
                 else

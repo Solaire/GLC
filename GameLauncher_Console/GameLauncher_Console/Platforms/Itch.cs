@@ -8,7 +8,7 @@ using System.Runtime.Versioning;
 using System.Text.Json;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-//using static GameLauncher_Console.CRegScanner;
+using static GameLauncher_Console.CRegScanner;
 using static System.Environment;
 
 namespace GameLauncher_Console
@@ -28,7 +28,7 @@ namespace GameLauncher_Console
 		private const string ITCH_UNREG			= "itch"; // HKCU64 Uninstall
 		*/
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -42,7 +42,7 @@ namespace GameLauncher_Console
 			if (OperatingSystem.IsWindows())
 			{
                 using RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"itch\shell\open\command", RegistryKeyPermissionCheck.ReadSubTree);
-                string value = key.GetValue(null).ToString();
+                string value = GetRegStrVal(key, null);
                 string[] subs = value.Split();
                 string command = "";
                 string args = "";
@@ -53,9 +53,7 @@ namespace GameLauncher_Console
                     else
                         command = subs[0];
                 }
-                args.Replace("%1", LAUNCH);
-                CLogger.LogDebug("command: " + command + ", parameters: " + args);
-                CDock.StartAndRedirect(command, args);
+                CDock.StartAndRedirect(command, args.Replace("%1", LAUNCH));
             }
 		}
 
@@ -67,18 +65,17 @@ namespace GameLauncher_Console
 				try
 				{
                     using RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"itch\shell\open\command", RegistryKeyPermissionCheck.ReadSubTree);
-                    string[] subs = ((string)key.GetValue(null)).Split(' ');
+                    string[] subs = GetRegStrVal(key, null).Split(' ');
                     string command = "";
-                    string parameters = "";
+                    string args = "";
                     for (int i = 0; i > subs.Length; i++)
                     {
                         if (i > 0)
-                            parameters += subs[i];
+                            args += subs[i];
                         else
                             command = subs[0];
                     }
-                    parameters.Replace("%1", INSTALL + "/" + GetGameID(game.ID));
-                    CDock.StartAndRedirect(command, parameters);
+                    CDock.StartAndRedirect(command, args.Replace("%1", INSTALL + "/" + GetGameID(game.ID)));
                 }
 				catch (Exception e)
 				{

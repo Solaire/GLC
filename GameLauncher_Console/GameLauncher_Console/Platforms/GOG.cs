@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-//using static GameLauncher_Console.CRegScanner;
+using static GameLauncher_Console.CRegScanner;
 using static System.Environment;
 
 namespace GameLauncher_Console
@@ -26,11 +26,11 @@ namespace GameLauncher_Console
 		private const string START_PATH			= "/path=";
 		public const string GOG_REG_GAMES		= @"SOFTWARE\WOW6432Node\GOG.com\Games";
 		public const string GOG_REG_CLIENT		= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
-		public const string GOG_GALAXY_EXE		= "\\GalaxyClient.exe";
+		public const string GOG_GALAXY_EXE		= "GalaxyClient.exe";
 		private const string GOG_DB				= @"\GOG.com\Galaxy\storage\galaxy-2.0.db";
 		//private const string GOG_GALAXY_UNREG	= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -45,7 +45,7 @@ namespace GameLauncher_Console
         {
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				string launcherPath = key.GetValue("client") + GOG.GOG_GALAXY_EXE;
+				string launcherPath = Path.Combine(GetRegStrVal(key, "client"), GOG_GALAXY_EXE);
 				if (File.Exists(launcherPath))
 					Process.Start(launcherPath);
 				else
@@ -106,7 +106,7 @@ namespace GameLauncher_Console
 			string launcherPath = "";
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				launcherPath = key.GetValue("client") + GOG_GALAXY_EXE;
+				launcherPath = Path.Combine(GetRegStrVal(key, "client"), GOG_GALAXY_EXE);
 				if (!File.Exists(launcherPath))
 					launcherPath = "";
 			}

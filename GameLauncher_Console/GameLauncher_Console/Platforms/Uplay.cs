@@ -21,7 +21,7 @@ namespace GameLauncher_Console
 		private const string UPLAY_UNREG		= "Uplay"; // HKLM32 Uninstall
 		//private const string UPLAY_REG		= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -37,18 +37,18 @@ namespace GameLauncher_Console
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
-			List<string> uplayIds = new List<string>();
-			List<string> uplayIcons = new List<string>();
-			string uplayLoc = "";
+			List<string> uplayIds = new();
+			List<string> uplayIcons = new();
+			string launcherPath = "";
 
-			using (RegistryKey uplayKey = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE32_REG, UPLAY_UNREG), RegistryKeyPermissionCheck.ReadSubTree))
+			using (RegistryKey launcherKey = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE32_REG, UPLAY_UNREG), RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				if (uplayKey == null)
+				if (launcherKey == null)
 				{
 					CLogger.LogInfo("{0} client not found in the registry.", _name.ToUpper());
 					return;
 				}
-				uplayLoc = GetRegStrVal(uplayKey, GAME_INSTALL_LOCATION);
+				launcherPath = GetRegStrVal(launcherKey, GAME_INSTALL_LOCATION);
 			}
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
@@ -96,15 +96,15 @@ namespace GameLauncher_Console
 			}
 
 			// Get not-installed games
-			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY) && !(string.IsNullOrEmpty(uplayLoc)))
+			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY) && !(string.IsNullOrEmpty(launcherPath)))
 			{
-				string uplayCfgFile = Path.Combine(uplayLoc, @"cache\configuration\configurations");
+				string uplayCfgFile = Path.Combine(launcherPath, @"cache\configuration\configurations");
 				try
 				{
 					if (File.Exists(uplayCfgFile))
 					{
 						char[] trimChars = { ' ', '\'', '"' };
-						List<string> uplayCfg = new List<string>();
+						List<string> uplayCfg = new();
 						int nGames = 0;
 						bool dlc = false;
 						string strID = "";
@@ -160,26 +160,26 @@ namespace GameLauncher_Console
 								continue;
 							}
 							else if (string.IsNullOrEmpty(strTitle) && line.Trim().StartsWith("name: "))
-								strTitle = line.Substring(line.IndexOf("name:") + 6).Trim(trimChars);
+								strTitle = line[(line.IndexOf("name:") + 6)..].Trim(trimChars);
 							else if (line.Trim().StartsWith("display_name: "))  // replace "name:" if it exists
-								strTitle = line.Substring(line.IndexOf("display_name:") + 14).Trim(trimChars);
+								strTitle = line[(line.IndexOf("display_name:") + 14)..].Trim(trimChars);
 							else if (strTitle.Equals("NAME") && line.Trim().StartsWith("NAME: "))
-								strTitle = line.Substring(line.IndexOf("NAME:") + 6).Trim(trimChars);
+								strTitle = line[(line.IndexOf("NAME:") + 6)..].Trim(trimChars);
 							else if (strTitle.Equals("GAMENAME") && line.Trim().StartsWith("GAMENAME: "))
-								strTitle = line.Substring(line.IndexOf("GAMENAME:") + 10).Trim(trimChars);
+								strTitle = line[(line.IndexOf("GAMENAME:") + 10)..].Trim(trimChars);
 							else if (strTitle.Equals("l1") && line.Trim().StartsWith("l1: "))
-								strTitle = line.Substring(line.IndexOf("l1:") + 4).Trim(trimChars);
+								strTitle = line[(line.IndexOf("l1:") + 4)..].Trim(trimChars);
 
 							else if (line.Trim().StartsWith("icon_image: ") && line.Trim().EndsWith(".ico"))
-								strIconPath = Path.Combine(uplayLoc, "data\\games", line.Substring(line.IndexOf("icon_image:") + 12).Trim());
+								strIconPath = Path.Combine(launcherPath, "data\\games", line[(line.IndexOf("icon_image:") + 12)..].Trim());
 							else if (string.IsNullOrEmpty(strID))
 							{
 								if (line.Trim().StartsWith("game_code: ") && !(strID.StartsWith(UPLAY_INSTALL)))
-									strID = "uplay_" + line.Substring(line.IndexOf("game_code:") + 11).Trim();
+									strID = "uplay_" + line[(line.IndexOf("game_code:") + 11)..].Trim();
 								else if (line.Trim().StartsWith(@"register: HKEY_LOCAL_MACHINE\SOFTWARE\Ubisoft\Launcher\Installs\"))
 								{
 									strID = line.Substring(0, line.LastIndexOf("\\")).Trim();
-									strID = UPLAY_INSTALL + strID.Substring(strID.LastIndexOf("\\") + 1);
+									strID = UPLAY_INSTALL + strID[(strID.LastIndexOf("\\") + 1)..];
 								}
 							}
 						}
@@ -211,7 +211,7 @@ namespace GameLauncher_Console
 				break;
 			}
 
-			return key.Substring(index);
+			return key[index..];
 		}
 	}
 }

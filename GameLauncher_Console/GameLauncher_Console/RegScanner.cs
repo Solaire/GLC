@@ -28,14 +28,14 @@ namespace GameLauncher_Console
 		/// Looks for a key-value pair inside the specified root.
 		/// </summary>
 		/// <param name="root">Root folder that will be scanned</param>
-		/// <param name="strKey">The target key that should contain the target value</param>
-		/// <param name="strValue">The target value in the key</param>
-		/// <param name="ignore">Function will ignore these folders (used to ignore things like launchers)</param>
+		/// <param name="strValue">The target value in the subkey</param>
+		/// <param name="strSubKeyName">The target key that should contain the target value</param>
+		/// <param name="ignore">Function will ignore these subkey names (used to ignore things like launchers)</param>
 		/// <returns>List of game registry keys</returns>
-		public static List<RegistryKey> FindGameKeys(RegistryKey root, string strKey, string strValue, string[] ignore)
+		public static List<RegistryKey> FindGameKeys(RegistryKey root, string strValue, string strSubKeyName, string[] ignore)
 		{
-			LinkedList<RegistryKey> toCheck = new LinkedList<RegistryKey>();
-			List<RegistryKey> gameKeys = new List<RegistryKey>();
+			LinkedList<RegistryKey> toCheck = new();
+			List<RegistryKey> gameKeys = new();
 
 			toCheck.AddLast(root);
 
@@ -48,9 +48,9 @@ namespace GameLauncher_Console
 				{
 					foreach(var name in root.GetValueNames())
 					{
-						if(root.GetValueKind(name) == RegistryValueKind.String && name == strValue)
+						if(root.GetValueKind(name) == RegistryValueKind.String && name == strSubKeyName)
 						{
-							if(((string)root.GetValue(name)).Contains(strKey))
+							if(((string)root.GetValue(name)).Contains(strValue))
 							{
 								gameKeys.Add(root);
 								break;
@@ -92,8 +92,8 @@ namespace GameLauncher_Console
 		/// <returns>List of Reg keys with game folders</returns>
 		public static List<RegistryKey> FindGameFolders(RegistryKey root, string strFolder)
 		{
-			LinkedList<RegistryKey> toCheck = new LinkedList<RegistryKey>();
-			List<RegistryKey> gameKeys = new List<RegistryKey>();
+			LinkedList<RegistryKey> toCheck = new();
+			List<RegistryKey> gameKeys = new();
 
 			toCheck.AddLast(root);
 
@@ -108,7 +108,7 @@ namespace GameLauncher_Console
 					{
 						if(!(sub.Equals("Microsoft")))
 						{
-							if (string.IsNullOrEmpty(strFolder) || sub.IndexOf(strFolder, StringComparison.OrdinalIgnoreCase) >= 0)
+							if (string.IsNullOrEmpty(strFolder) || sub.Contains(strFolder, StringComparison.OrdinalIgnoreCase))
 								gameKeys.Add(root.OpenSubKey(sub, RegistryKeyPermissionCheck.ReadSubTree));
 						}
 					}

@@ -294,9 +294,9 @@ namespace CGame_Test // TODO: GameLauncher_Console
                         used++;
                     }
                 }
-                if(used == 1) // Remove tailing comma
+                if(used == 1) // Remove trailing comma
                 {
-                    orderByString.Remove(',');
+                    orderByString = orderByString.Remove(',');
                 }
                 else if(used == 0) // Clear if no flags (just in case)
                 {
@@ -415,6 +415,16 @@ namespace CGame_Test // TODO: GameLauncher_Console
             public override int GetHashCode()
             {
                 return this.Title.GetHashCode();
+            }
+
+            public static bool operator ==(GameObject left, GameObject right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(GameObject left, GameObject right)
+            {
+                return !(left == right);
             }
         }
 

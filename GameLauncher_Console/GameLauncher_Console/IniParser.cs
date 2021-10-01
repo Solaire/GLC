@@ -145,7 +145,7 @@ namespace IniParser
 			GetPrivateProfileSection(section ?? m_EXE, buffer, 2048, m_filePath);
 			string[] temp = Encoding.Unicode.GetString(buffer).Trim('\0').Split('\0');
 
-			List<string> output = new List<string>();
+			List<string> output = new();
 
 			foreach (string s in temp)
 			{

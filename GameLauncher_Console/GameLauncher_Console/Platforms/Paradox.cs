@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 using System.Text.Json;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-//using static GameLauncher_Console.CRegScanner;
+using static GameLauncher_Console.CRegScanner;
 using static System.Environment;
 
 namespace GameLauncher_Console
@@ -25,7 +25,7 @@ namespace GameLauncher_Console
 		//private const string PARADOX_UNREG	= "{ED2CDA1D-39E4-4CBB-992C-5C1D08672128}"; //HKLM32
 		private const string PARADOX_JSON_FOLDER = @"\Paradox Interactive\launcher";
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
 		GamePlatform IPlatform.Enum => ENUM;
 
@@ -38,7 +38,7 @@ namespace GameLauncher_Console
 			if (OperatingSystem.IsWindows())
 			{
                 using RegistryKey key = Registry.LocalMachine.OpenSubKey(PARADOX_REG, RegistryKeyPermissionCheck.ReadSubTree); // HKLM32
-                string launcherPath = key.GetValue(PARADOX_PATH) + "\\Paradox Launcher.exe";
+                string launcherPath = Path.Combine(GetRegStrVal(key, PARADOX_PATH), "\\Paradox Launcher.exe");
                 if (File.Exists(launcherPath))
                     Process.Start(launcherPath);
                 else
@@ -63,7 +63,7 @@ namespace GameLauncher_Console
                     CLogger.LogInfo("{0} client not found in the registry.", _name.ToUpper());
                 else
                 {
-                    string path = key.GetValue(PARADOX_PATH).ToString();
+                    string path = GetRegStrVal(key, PARADOX_PATH);
 
                     try
                     {

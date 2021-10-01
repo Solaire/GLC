@@ -44,9 +44,9 @@ namespace GameLauncher_Console
 		private const string MSSTORE_APP = "Microsoft.WindowsStore_8wekyb3d8bbwe!App";
 		private const string MSSTORE_MSPREFIX = "xboxliveapp-";
 
-		private static string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
-		private List<string> manifestNamespaces = new()
+		private readonly List<string> manifestNamespaces = new()
 		{
 			"http://schemas.microsoft.com/appx/manifest/foundation/windows10",
 			"http://schemas.microsoft.com/appx/2010/manifest"
@@ -172,7 +172,6 @@ namespace GameLauncher_Console
 						try
 						{
 							string basePath = key.GetValue("PackageRootFolder").ToString();
-							CLogger.LogDebug("DEBUG title:" + strTitle);
 							if (strTitle.StartsWith("@"))
 							{
 								strTitle = key.GetValue("DisplayName").ToString();
