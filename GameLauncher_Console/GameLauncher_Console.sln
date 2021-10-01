@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataConversionTool", "DataC
 		{4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1} = {4EBCEF5B-1A8A-42FB-81DB-446A14ED15D1}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLC", "GLC\GLC.csproj", "{98219DE0-60C6-451F-9E5E-8005559E7E1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{92A97D68-92B7-4348-9275-BC3E9D0E8941}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92A97D68-92B7-4348-9275-BC3E9D0E8941}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92A97D68-92B7-4348-9275-BC3E9D0E8941}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98219DE0-60C6-451F-9E5E-8005559E7E1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98219DE0-60C6-451F-9E5E-8005559E7E1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98219DE0-60C6-451F-9E5E-8005559E7E1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98219DE0-60C6-451F-9E5E-8005559E7E1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
