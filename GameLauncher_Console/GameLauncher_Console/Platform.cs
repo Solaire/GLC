@@ -50,7 +50,7 @@ namespace GameLauncher_Console
 			Origin = 3,
 			[Description("Epic")]
 			Epic = 4,
-			[Description("Betheda.net")]
+			[Description("Bethesda.net")]
 			Bethesda = 5,
 			[Description("Battle.net")]
 			Battlenet = 6,

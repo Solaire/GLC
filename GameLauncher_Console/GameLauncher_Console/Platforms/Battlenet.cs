@@ -17,7 +17,7 @@ namespace GameLauncher_Console
     {
 		public const GamePlatform ENUM = GamePlatform.Battlenet;
 		public const string PROTOCOL			= "battlenet://";   // "blizzard://" works too [TODO: is one more compatible with older versions?]
-		//private const string BATTLE_NET			= "Battle.net";
+		//private const string BATTLE_NET		= "Battle.net";
 		private const string BATTLE_NET_UNREG	= "Battle.net";		// HKLM32 Uninstall
 		//private const string BATTLE_NET_REG	= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
 		private const string BATTLE_NET_UNINST	= @"Battle.net\Agent\Blizzard Uninstaller.exe";
@@ -37,7 +37,7 @@ namespace GameLauncher_Console
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
+			List<RegistryKey> keyList;
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{

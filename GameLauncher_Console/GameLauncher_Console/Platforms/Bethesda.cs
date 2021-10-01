@@ -23,6 +23,7 @@ namespace GameLauncher_Console
 		private const string BETHESDA_PRODUCT_ID	= "ProductID";
 		//private const string BETHESDA_REG			= @"SOFTWARE\WOW6432Node\Bethesda Softworks\Bethesda.net"; // HKLM32
 		private const string BETHESDA_UNREG			= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
+		private const string BETHESDA_UNINST		= "BethesdaNetUpdater.exe";
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -39,7 +40,9 @@ namespace GameLauncher_Console
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
+			List<RegistryKey> keyList;
+			
+			/*
 			string launcherPath = "";
 
 			using (RegistryKey launcherKey = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE32_REG, BETHESDA_UNREG), RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
@@ -51,11 +54,11 @@ namespace GameLauncher_Console
 				}
 				launcherPath = GetRegStrVal(launcherKey, GAME_INSTALL_LOCATION);
 			}
+			*/
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				//keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
-				keyList = FindGameKeys(key, launcherPath, GAME_UNINSTALL_STRING, new string[] { BETHESDA_CREATION_KIT });
+				keyList = FindGameKeys(key, BETHESDA_UNINST, GAME_UNINSTALL_STRING, new string[] { BETHESDA_CREATION_KIT, BETHESDA_UNREG });
 
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, _name.ToUpper());
 				foreach (var data in keyList)

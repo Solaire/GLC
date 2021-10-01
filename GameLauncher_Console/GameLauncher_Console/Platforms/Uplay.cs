@@ -36,7 +36,7 @@ namespace GameLauncher_Console
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
+			List<RegistryKey> keyList;
 			List<string> uplayIds = new();
 			List<string> uplayIcons = new();
 			string launcherPath = "";
