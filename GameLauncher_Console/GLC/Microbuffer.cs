@@ -1,4 +1,5 @@
 ﻿using System;
+using GLC_Structs;
 
 namespace GLC
 {
@@ -55,7 +56,11 @@ namespace GLC
                 statusCpy += "...";
             }
 
-            Console.Write(statusCpy.PadRight(m_rect.width));
+            ColourPair reverse;
+            reverse.background = m_colourPair.foreground;
+            reverse.foreground = m_colourPair.background;
+            //Console.Write(statusCpy.PadRight(m_rect.width));
+            CConsoleEx.WriteText(statusCpy, m_rect.x, m_rect.y, CConstants.TEXT_PADDING_LEFT, m_rect.width, reverse);
         }
 
         public void DrawBuffer()
@@ -65,7 +70,7 @@ namespace GLC
             Console.CursorTop = m_rect.y + 1;
             Console.BackgroundColor = m_colourPair.background;
             Console.ForegroundColor = m_colourPair.foreground;
-
+            
             string bufferCpy = m_inputBuffer.ToString();
 
             if (bufferCpy.Length > m_rect.width - 2) // 2 char padding
@@ -73,7 +78,9 @@ namespace GLC
                 bufferCpy = bufferCpy.Remove(bufferCpy.Length - m_rect.width - 2); // 2 char padding
             }
 
-            Console.Write(bufferCpy.PadRight(m_rect.width));
+            //Console.Write(bufferCpy.PadRight(m_rect.width));
+
+            CConsoleEx.WriteText(bufferCpy, m_rect.x, m_rect.y + 1, CConstants.TEXT_PADDING_LEFT, m_rect.width, m_colourPair);
 
             Console.CursorVisible = true;
             Console.CursorLeft = m_inputPosition;
@@ -81,7 +88,7 @@ namespace GLC
 
         public void SetCursor()
         {
-            Console.CursorLeft = m_inputPosition;
+            Console.CursorLeft = m_inputPosition + CConstants.TEXT_PADDING_LEFT;
             Console.CursorTop = m_rect.y + 1;
         }
 
