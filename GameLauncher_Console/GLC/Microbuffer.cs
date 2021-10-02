@@ -25,8 +25,6 @@ namespace GLC
             m_rect.y = parent.m_rect.height - 2;
             m_rect.width = parent.m_rect.width;
             m_rect.height = 2;
-
-            m_colourPair = parent.m_defaultColours;
         }
 
         public void Initialise()
@@ -43,44 +41,30 @@ namespace GLC
         public void DrawStatus()
         {
             Console.CursorVisible = false;
-            Console.CursorLeft    = m_rect.x;
-            Console.CursorTop     = m_rect.y;
-            Console.BackgroundColor = m_colourPair.foreground;
-            Console.ForegroundColor = m_colourPair.background;
-
-            string statusCpy = m_status;
+            string statusCpy      = m_status;
 
             if(statusCpy.Length > m_rect.width - 2) // 2 char padding
             {
                 statusCpy = statusCpy.Remove(statusCpy.Length - m_rect.width - 5); // 2 char padding + space for an Ellipsis
                 statusCpy += "...";
             }
-
-            ColourPair reverse;
-            reverse.background = m_colourPair.foreground;
-            reverse.foreground = m_colourPair.background;
             //Console.Write(statusCpy.PadRight(m_rect.width));
-            CConsoleEx.WriteText(statusCpy, m_rect.x, m_rect.y, CConstants.TEXT_PADDING_LEFT, m_rect.width, reverse);
+            CConsoleEx.WriteText(statusCpy, m_rect.x, m_rect.y, CConstants.TEXT_PADDING_LEFT, m_rect.width, m_parent.m_colours[ColourThemeIndex.cStatusBg], m_parent.m_colours[ColourThemeIndex.cStatusFg]);
         }
 
         public void DrawBuffer()
         {
             Console.CursorVisible = false;
-            Console.CursorLeft = 0;
-            Console.CursorTop = m_rect.y + 1;
-            Console.BackgroundColor = m_colourPair.background;
-            Console.ForegroundColor = m_colourPair.foreground;
-            
-            string bufferCpy = m_inputBuffer.ToString();
+            string bufferCpy      = m_inputBuffer.ToString();
 
-            if (bufferCpy.Length > m_rect.width - 2) // 2 char padding
+            if (bufferCpy.Length > m_rect.width - 1) // 1 char padding
             {
-                bufferCpy = bufferCpy.Remove(bufferCpy.Length - m_rect.width - 2); // 2 char padding
+                bufferCpy = bufferCpy.Remove(bufferCpy.Length - m_rect.width - 1); // 1 char padding
             }
 
             //Console.Write(bufferCpy.PadRight(m_rect.width));
 
-            CConsoleEx.WriteText(bufferCpy, m_rect.x, m_rect.y + 1, CConstants.TEXT_PADDING_LEFT, m_rect.width, m_colourPair);
+            CConsoleEx.WriteText(bufferCpy, m_rect.x, m_rect.y + 1, CConstants.TEXT_PADDING_LEFT, m_rect.width, m_parent.m_colours[ColourThemeIndex.cDefaultBg], m_parent.m_colours[ColourThemeIndex.cDefaultFg]);
 
             Console.CursorVisible = true;
             Console.CursorLeft = m_inputPosition;
@@ -94,16 +78,12 @@ namespace GLC
 
         public void AddInput(char input)
         {
-            if(char.IsControl(input))
+            if(char.IsControl(input) || m_inputBuffer.Length == m_rect.width - 2)
             {
                 return;
             }
 
             Console.CursorVisible = true;
-            Console.CursorLeft    = m_inputPosition;
-            Console.CursorTop     = m_rect.y + 1;
-            Console.BackgroundColor = m_colourPair.background;
-            Console.ForegroundColor = m_colourPair.foreground;
 
             string before = m_inputBuffer.Substring(0, m_inputPosition);
             string after  = m_inputBuffer.Substring(m_inputPosition, m_inputBuffer.Length - m_inputPosition);

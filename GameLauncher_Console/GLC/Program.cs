@@ -43,11 +43,7 @@ namespace GLC
             rect.width = 100;
             rect.height = 48;
 
-            ColourPair pair;
-            pair.background = System.ConsoleColor.Black;
-            pair.foreground = System.ConsoleColor.White;
-
-            CWindow window = new CWindow("GLC 2.0 test", rect, pair);
+            CWindow window = new CWindow("GLC 2.0 test", rect, CConstants.DEFAULT_THEME);
             window.Initialise();
             window.WindowMain();
 

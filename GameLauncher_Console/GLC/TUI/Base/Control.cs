@@ -8,7 +8,6 @@ namespace GLC
     public abstract class CControl
     {
         protected ConsoleRect m_rect;
-        protected ColourPair  m_colourPair;
 
         public abstract void Redraw(bool fullRedraw);
         public abstract void OnEnter();

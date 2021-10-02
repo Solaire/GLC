@@ -37,9 +37,10 @@ namespace GLC
             }
         }
 
-        public static void DrawHorizontalLine(int x, int y, int width)
+        public static void DrawHorizontalLine(int x, int y, int width, ConsoleColor colourBg, ConsoleColor colourFg)
         {
-            Console.BackgroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = colourBg;
+            Console.ForegroundColor = colourFg;
 
             for(int col = x; col < x + width; col++)
             {
@@ -50,9 +51,10 @@ namespace GLC
             }
         }
 
-        public static void DrawVerticalLine(int x, int y, int height)
+        public static void DrawVerticalLine(int x, int y, int height, ConsoleColor colourBg, ConsoleColor colourFg)
         {
-            Console.BackgroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = colourBg;
+            Console.ForegroundColor = colourFg;
 
             for(int row = y; row < y + height; row++)
             {
@@ -70,7 +72,7 @@ namespace GLC
         /// <param name="x">Console buffer column position</param>
         /// <param name="y">Console buffer row position</param>
         /// <param name="colourPair">Pair of backgound and foreground colours</param>
-        public static void WriteText(string text, int x, int y, int padLeft, int padRight, ColourPair colourPair)
+        public static void WriteText(string text, int x, int y, int padLeft, int padRight, ConsoleColor colourBg, ConsoleColor colourFg)
         {
             // TODO: check if x and y are within the buffer area
             if((x < 0 || x > Console.BufferWidth) || (y < 0 || y > Console.BufferHeight))
@@ -83,8 +85,8 @@ namespace GLC
             Console.CursorLeft = x;
             Console.CursorTop  = y;
 
-            Console.BackgroundColor = colourPair.background;
-            Console.ForegroundColor = colourPair.foreground;
+            Console.BackgroundColor = colourBg;
+            Console.ForegroundColor = colourFg;
 
             text = text.PadLeft(text.Length + padLeft);
             text = text.PadRight(padRight);

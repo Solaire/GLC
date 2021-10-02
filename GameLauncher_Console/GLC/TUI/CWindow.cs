@@ -9,14 +9,12 @@ namespace GLC
     /// </summary>
     public class CWindow
     {
-        /*
-            A window does not contain controls by itself. Instead it will delegate anything to pages
-            The only real control that is present in the window is the microbuffer
-        */
+        // A window does not contain controls by itself. Instead it will delegate anything to pages
+        // The only real control that is present in the window is the microbuffer
         private string      m_title;
         public  ConsoleRect m_rect { get; private set; }
 
-        public  ColourPair  m_defaultColours { get; private set; }
+        public  ColourTheme m_colours { get; private set; }
 
         public string Command { private get; set; }
 
@@ -31,19 +29,18 @@ namespace GLC
         /// <param name="title">Window title</param>
         /// <param name="rect">Size of the window/buffer</param>
         /// <param name="defaultColours">Default background and foreground colour pair</param>
-        public CWindow(string title, ConsoleRect rect, ColourPair defaultColours)
+        public CWindow(string title, ConsoleRect rect, ColourTheme colours)
         {
             m_title          = title;
             m_rect           = rect;
-            m_defaultColours = defaultColours;
+            m_colours        = colours;
+            Command          = "";
 
             m_currentPage    = 0;
-            m_pages = new CPage[2];
+            m_pages          = new CPage[2];
 
-            m_microbuffer = new CMicrobuffer(this);
+            m_microbuffer      = new CMicrobuffer(this);
             m_microbufferFocus = true;
-
-            Command = "";
         }
 
         /// <summary>
@@ -57,7 +54,7 @@ namespace GLC
 
             // Initialise all pages
             m_pages[0] = new CPage(this, "Library");
-            m_pages[0].Initialise(new PanelType[] { PanelType.cPanel_Platforms, PanelType.cPanel_Games });
+            m_pages[0].Initialise(new PanelType[] { PanelType.cPlatforms, PanelType.cGames });
         }
 
         /// <summary>
@@ -151,38 +148,5 @@ namespace GLC
 
             Command = "";
         }
-
-        /*
-        public void MicrobufferTest()
-        {
-            while(true)
-            {
-                ConsoleKeyInfo keyInfo = Console.ReadKey(false);
-                switch(keyInfo.Key)
-                {
-                    case ConsoleKey.Escape: // Exit
-                        m_currentPage = 0;
-                        return;
-
-                    case ConsoleKey.Enter:
-                        m_microbuffer.StatusFromInput();
-                        break;
-
-                    case ConsoleKey.LeftArrow:
-                        m_microbuffer.MoveLeft();
-                        break;
-
-                    case ConsoleKey.RightArrow:
-                        m_microbuffer.MoveRight();
-                        break;
-
-                    default:
-                        m_microbuffer.AddInput(keyInfo.KeyChar);
-                        break;
-                }
-                m_microbuffer.Redraw();
-            }
-        }
-        */
     }
 }

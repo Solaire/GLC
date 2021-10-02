@@ -16,10 +16,33 @@ namespace GLC
         // Initialise the panel array and each individual panel
         public static readonly PanelData[] PANEL_DATA =
         {
-            new PanelData(PanelType.cPanel_Platforms, "Platforms",    50, 100),
-            new PanelData(PanelType.cPanel_Games,     "Games",        50, 100),
-            new PanelData(PanelType.cPanel_GameInfo,  "GameInfo",     50, 100),
-            new PanelData(PanelType.cPanel_KeyConfig, "Key Bindings", 50, 100),
+            new PanelData(PanelType.cPlatforms, "Platforms",    50, 100),
+            new PanelData(PanelType.cGames,     "Games",        50, 100),
+            new PanelData(PanelType.cGameInfo,  "GameInfo",     50, 100),
+            new PanelData(PanelType.cKeyConfig, "Key Bindings", 50, 100),
         };
+
+        private static readonly System.ConsoleColor[] DEFAULT_COLOUR_ARRAY =
+        {
+            System.ConsoleColor.Black, // Default background
+            System.ConsoleColor.White, // Default foreground
+
+            System.ConsoleColor.White, // Status background
+            System.ConsoleColor.Black, // Status foreground
+            
+            System.ConsoleColor.DarkGreen, // Panel border background
+            System.ConsoleColor.White,     // Panel border foreground
+
+            System.ConsoleColor.Black, // Panel main background
+            System.ConsoleColor.White, // Panel main foreground
+
+            System.ConsoleColor.DarkBlue, // Panel highlight background
+            System.ConsoleColor.Red,      // Panel highlight foreground
+
+            System.ConsoleColor.Blue, // Panel highlight focus background
+            System.ConsoleColor.Red, // Panel highlight focus foreground
+        };
+
+        public static readonly ColourTheme DEFAULT_THEME = new ColourTheme(DEFAULT_COLOUR_ARRAY);
     }
 }

@@ -20,8 +20,6 @@ namespace GLC
             m_rect.y = 0;
             m_rect.width = parent.m_rect.width;
             m_rect.height = parent.m_rect.height - 2; // Microbuffer
-
-            m_colourPair = parent.m_defaultColours;
         }
 
         /// <summary>
@@ -35,25 +33,25 @@ namespace GLC
                 PanelData data = CConstants.PANEL_DATA[(int)panelTypes[i]];
                 switch(panelTypes[i]) // TODO: Each panel has it's own class
                 {
-                    case PanelType.cPanel_Platforms:
+                    case PanelType.cPlatforms:
                     {
-                        m_panels[i] = new CPlatformPanel(data.percentWidth, data.percentHeight);
+                        m_panels[i] = new CPlatformPanel(data.percentWidth, data.percentHeight, this);
                     }
                     break;
 
-                    case PanelType.cPanel_Games:
+                    case PanelType.cGames:
                     {
-                        m_panels[i] = new CGamesPanel(data.percentWidth, data.percentHeight);
+                        m_panels[i] = new CGamesPanel(data.percentWidth, data.percentHeight, this);
                     }
                     break;
 
-                    case PanelType.cPanel_GameInfo:
+                    case PanelType.cGameInfo:
                     {
                         //m_panels[i] = new CGameInfoPanel(data.percentWidth, data.percentHeight);
                     }
                     break;
 
-                    case PanelType.cPanel_KeyConfig:
+                    case PanelType.cKeyConfig:
                     {
                         //m_panels[i] = new CKeyConfigPanel(data.percentWidth, data.percentHeight);
                     }
@@ -109,6 +107,15 @@ namespace GLC
                     nextTop = 0;
                 }
             }
+        }
+
+        public ConsoleColor GetColour(ColourThemeIndex i)
+        {
+            if(m_parent == null)
+            {
+                return (((int)i & 1) == 0) ? ConsoleColor.Black : ConsoleColor.White;
+            }
+            return m_parent.m_colours[i];
         }
 
         /// <summary>

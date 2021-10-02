@@ -8,7 +8,7 @@ namespace GLC
     /// </summary>
     public sealed class CGamesPanel : CPanel
     {
-        public CGamesPanel(int percentWidth, int percentHeight) : base("Games", PanelType.cPanel_Games, percentWidth, percentHeight)
+        public CGamesPanel(int percentWidth, int percentHeight, CPage parentPage) : base("Games", PanelType.cGames, percentWidth, percentHeight, parentPage)
         {
 
         }
@@ -21,14 +21,14 @@ namespace GLC
 #region CControl overrides
         public override void Redraw(bool fullRedraw)
         {
-            CConsoleEx.DrawColourRect(m_rect, ConsoleColor.Black);
+            CConsoleEx.DrawColourRect(m_rect, m_parentPage.GetColour(ColourThemeIndex.cPanelMainBg));
             if(m_bottomBorder)
             {
-                CConsoleEx.DrawHorizontalLine(m_rect.x, m_rect.height - 1, m_rect.width - 1);
+                CConsoleEx.DrawHorizontalLine(m_rect.x, m_rect.height - 1, m_rect.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBg), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFg));
             }
             if(m_rightBorder)
             {
-                CConsoleEx.DrawVerticalLine(m_rect.width - 1, m_rect.y, m_rect.height - 1);
+                CConsoleEx.DrawVerticalLine(m_rect.width - 1, m_rect.y, m_rect.height - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBg), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFg));
             }
         }
 

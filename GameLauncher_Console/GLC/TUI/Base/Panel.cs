@@ -24,7 +24,9 @@ namespace GLC
         protected bool m_rightBorder;
         protected bool m_bottomBorder;
 
-        public CPanel(string title, PanelType type, int percentWidth, int percentHeight)
+        protected CPage m_parentPage;
+
+        public CPanel(string title, PanelType type, int percentWidth, int percentHeight, CPage parentPage)
         {
             m_title       = title;
             m_currentItem = 0;
@@ -34,6 +36,8 @@ namespace GLC
 
             m_rightBorder  = true;
             m_bottomBorder = true;
+
+            m_parentPage = parentPage;
         }
 
         public int GetPercentWidth()
