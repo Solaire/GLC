@@ -21,14 +21,14 @@ namespace GLC
 #region CControl overrides
         public override void Redraw(bool fullRedraw)
         {
-            CConsoleEx.DrawColourRect(m_rect, m_parentPage.GetColour(ColourThemeIndex.cPanelMainBg));
+            CConsoleEx.DrawColourRect(m_area, m_parentPage.GetColour(ColourThemeIndex.cPanelMainBG));
             if(m_bottomBorder)
             {
-                CConsoleEx.DrawHorizontalLine(m_rect.x, m_rect.height - 1, m_rect.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBg), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFg));
+                CConsoleEx.DrawHorizontalLine(m_area.x, m_area.height - 1, m_area.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBG), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFG));
             }
             if(m_rightBorder)
             {
-                CConsoleEx.DrawVerticalLine(m_rect.width - 1, m_rect.y, m_rect.height - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBg), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFg));
+                CConsoleEx.DrawVerticalLine(m_area.width - 1, m_area.y, m_area.height - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBG), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFG));
             }
         }
 
@@ -83,6 +83,11 @@ namespace GLC
         {
             throw new NotImplementedException();
         }
-#endregion // CPanel overrides
+
+        public override bool Update()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion // CPanel overrides
     }
 }

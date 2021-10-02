@@ -12,7 +12,7 @@ namespace GLC
 
         public CPlatformPanel(int percentWidth, int percentHeight, CPage parentPage) : base("Library", PanelType.cPlatforms, percentWidth, percentHeight, parentPage)
         {
-            m_currentItem = 0;
+            m_hoveredItemIndex = 0;
             m_platforms = new string[]
             {
                 "Platform 1",
@@ -32,39 +32,39 @@ namespace GLC
         {
             if(!fullRedraw)
             {
-                int currentItemY = m_rect.y + m_currentItem + 1;
-                CConsoleEx.WriteText(m_platforms[m_currentItem], 0, currentItemY, CConstants.TEXT_PADDING_LEFT, m_rect.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelSelectFocusBg), m_parentPage.GetColour(ColourThemeIndex.cPanelSelectFocusFg));
+                int currentItemY = m_area.y + m_hoveredItemIndex + 1;
+                CConsoleEx.WriteText(m_platforms[m_hoveredItemIndex], 0, currentItemY, CConstants.TEXT_PADDING_LEFT, m_area.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelSelectFocusBG), m_parentPage.GetColour(ColourThemeIndex.cPanelSelectFocusFG));
 
-                if(m_currentItem > 0)
+                if(m_hoveredItemIndex > 0)
                 {
-                    int adjecentItemY = m_rect.y + m_currentItem;
-                    CConsoleEx.WriteText(m_platforms[m_currentItem - 1], 0, adjecentItemY, CConstants.TEXT_PADDING_LEFT, m_rect.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelMainBg), m_parentPage.GetColour(ColourThemeIndex.cPanelMainFg));
+                    int adjecentItemY = m_area.y + m_hoveredItemIndex;
+                    CConsoleEx.WriteText(m_platforms[m_hoveredItemIndex - 1], 0, adjecentItemY, CConstants.TEXT_PADDING_LEFT, m_area.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelMainBG), m_parentPage.GetColour(ColourThemeIndex.cPanelMainFG));
                 }
 
-                if(m_currentItem < m_platforms.Length - 1)
+                if(m_hoveredItemIndex < m_platforms.Length - 1)
                 {
-                    int adjecentItemY = m_rect.y + m_currentItem + 2;
-                    CConsoleEx.WriteText(m_platforms[m_currentItem + 1], 0, adjecentItemY, CConstants.TEXT_PADDING_LEFT, m_rect.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelMainBg), m_parentPage.GetColour(ColourThemeIndex.cPanelMainFg));
+                    int adjecentItemY = m_area.y + m_hoveredItemIndex + 2;
+                    CConsoleEx.WriteText(m_platforms[m_hoveredItemIndex + 1], 0, adjecentItemY, CConstants.TEXT_PADDING_LEFT, m_area.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelMainBG), m_parentPage.GetColour(ColourThemeIndex.cPanelMainFG));
                 }
 
                 return;
             }
 
-            CConsoleEx.DrawColourRect(m_rect, ConsoleColor.Black);
+            CConsoleEx.DrawColourRect(m_area, ConsoleColor.Black);
             if(m_bottomBorder)
             {
-                CConsoleEx.DrawHorizontalLine(m_rect.x, m_rect.height - 1, m_rect.width, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBg), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFg));
+                CConsoleEx.DrawHorizontalLine(m_area.x, m_area.height - 1, m_area.width, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBG), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFG));
             }
             if(m_rightBorder)
             {
-                CConsoleEx.DrawVerticalLine(m_rect.width - 1, m_rect.y, m_rect.height, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBg), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFg));
+                CConsoleEx.DrawVerticalLine(m_area.width - 1, m_area.y, m_area.height, m_parentPage.GetColour(ColourThemeIndex.cPanelBorderBG), m_parentPage.GetColour(ColourThemeIndex.cPanelBorderFG));
             }
 
-            for(int row = m_rect.x + 1, i = 0; row < m_rect.x + m_rect.width && i < m_platforms.Length; row++, i++)
+            for(int row = m_area.x + 1, i = 0; row < m_area.x + m_area.width && i < m_platforms.Length; row++, i++)
             {
-                ColourThemeIndex background = (m_currentItem == i) ? ColourThemeIndex.cPanelSelectFocusBg : ColourThemeIndex.cPanelMainBg;
-                ColourThemeIndex foreground = (m_currentItem == i) ? ColourThemeIndex.cPanelSelectFocusFg : ColourThemeIndex.cPanelMainFg;
-                CConsoleEx.WriteText(m_platforms[i], 0, row, CConstants.TEXT_PADDING_LEFT, m_rect.width - 1, m_parentPage.GetColour(background), m_parentPage.GetColour(foreground));
+                ColourThemeIndex background = (m_hoveredItemIndex == i) ? ColourThemeIndex.cPanelSelectFocusBG : ColourThemeIndex.cPanelMainBG;
+                ColourThemeIndex foreground = (m_hoveredItemIndex == i) ? ColourThemeIndex.cPanelSelectFocusFG : ColourThemeIndex.cPanelMainFG;
+                CConsoleEx.WriteText(m_platforms[i], 0, row, CConstants.TEXT_PADDING_LEFT, m_area.width - 1, m_parentPage.GetColour(background), m_parentPage.GetColour(foreground));
             }
 
         }
@@ -76,12 +76,12 @@ namespace GLC
 
         public override void OnUpArrow()
         {
-            m_currentItem = Math.Max(m_currentItem - 1, 0);
+            m_hoveredItemIndex = Math.Max(m_hoveredItemIndex - 1, 0);
         }
 
         public override void OnDownArrow()
         {
-            m_currentItem = Math.Min(m_currentItem + 1, m_platforms.Length - 1);
+            m_hoveredItemIndex = Math.Min(m_hoveredItemIndex + 1, m_platforms.Length - 1);
         }
 
         public override void OnLeftArrow()
@@ -120,6 +120,11 @@ namespace GLC
         {
             throw new NotImplementedException();
         }
-#endregion // CPanel overrides
+
+        public override bool Update()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion // CPanel overrides
     }
 }

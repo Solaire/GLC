@@ -24,23 +24,24 @@ namespace GLC
 
         private static readonly System.ConsoleColor[] DEFAULT_COLOUR_ARRAY =
         {
-            System.ConsoleColor.Black, // Default background
-            System.ConsoleColor.White, // Default foreground
-
-            System.ConsoleColor.White, // Status background
-            System.ConsoleColor.Black, // Status foreground
-            
-            System.ConsoleColor.DarkGreen, // Panel border background
-            System.ConsoleColor.White,     // Panel border foreground
-
-            System.ConsoleColor.Black, // Panel main background
-            System.ConsoleColor.White, // Panel main foreground
-
-            System.ConsoleColor.DarkBlue, // Panel highlight background
-            System.ConsoleColor.Red,      // Panel highlight foreground
-
-            System.ConsoleColor.Blue, // Panel highlight focus background
-            System.ConsoleColor.Red, // Panel highlight focus foreground
+            // Default background/foreground
+            System.ConsoleColor.Black,
+            System.ConsoleColor.White,
+            // Status background/foreground
+            System.ConsoleColor.White,
+            System.ConsoleColor.Black,
+            // Panel border background/foreground
+            System.ConsoleColor.DarkGreen,
+            System.ConsoleColor.White,
+            // Panel mian background/foreground
+            System.ConsoleColor.Black,
+            System.ConsoleColor.White,
+            // Panel highlight background/foreground
+            System.ConsoleColor.DarkGray,
+            System.ConsoleColor.Red,
+            // Focused panel highlight background/foreground
+            System.ConsoleColor.Blue,
+            System.ConsoleColor.Red,
         };
 
         public static readonly ColourTheme DEFAULT_THEME = new ColourTheme(DEFAULT_COLOUR_ARRAY);

@@ -7,7 +7,7 @@ namespace GLC
     /// </summary>
     public abstract class CControl
     {
-        protected ConsoleRect m_rect;
+        protected ConsoleRect m_area;
 
         public abstract void Redraw(bool fullRedraw);
         public abstract void OnEnter();

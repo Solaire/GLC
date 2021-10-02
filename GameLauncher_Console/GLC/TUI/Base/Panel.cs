@@ -16,28 +16,36 @@ namespace GLC
     /// </summary>
     public abstract class CPanel : CControl
     {
-        protected string m_title;
-        protected int    m_currentItem;
-        protected int    m_percentWidth;
-        protected int    m_percentHeight;
+        protected string    m_title;
         protected PanelType m_panelType;
+        protected int       m_percentWidth;
+        protected int       m_percentHeight;
+
+        protected int    m_hoveredItemIndex;
+
         protected bool m_rightBorder;
         protected bool m_bottomBorder;
 
         protected CPage m_parentPage;
 
+        public bool Dirty { get; protected set; }
+
         public CPanel(string title, PanelType type, int percentWidth, int percentHeight, CPage parentPage)
         {
-            m_title       = title;
-            m_currentItem = 0;
-            m_panelType   = type;
-            m_percentWidth = percentWidth;
+            m_title         = title;
+            m_panelType     = type;
+            m_percentWidth  = percentWidth;
             m_percentHeight = percentHeight;
+
+            m_hoveredItemIndex = 0;
+
 
             m_rightBorder  = true;
             m_bottomBorder = true;
 
             m_parentPage = parentPage;
+
+            Dirty = false;
         }
 
         public int GetPercentWidth()
@@ -52,14 +60,14 @@ namespace GLC
 
         public void SetPosition(int x, int y)
         {
-            m_rect.x = x;
-            m_rect.y = y;
+            m_area.x = x;
+            m_area.y = y;
         }
 
         public void SetSize(int width, int height)
         {
-            m_rect.width  = width;
-            m_rect.height = height;
+            m_area.width  = width;
+            m_area.height = height;
         }
 
         public void SetRightBorder(bool enable)
@@ -77,5 +85,6 @@ namespace GLC
         protected abstract void DrawHighlighted(bool isFocused);
         public abstract void OnTab();
         public abstract void OnKeyInfo(ConsoleKeyInfo keyInfo);
+        public abstract bool Update();
     }
 }
