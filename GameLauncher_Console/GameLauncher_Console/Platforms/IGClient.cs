@@ -17,7 +17,7 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformIGClient : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.IGClient;
+		public const GamePlatform ENUM          = GamePlatform.IGClient;
 		public const string PROTOCOL			= "";
 		public const string IG_REG				= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
 		//private const string IG_UNREG			= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall

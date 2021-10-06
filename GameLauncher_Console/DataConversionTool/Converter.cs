@@ -87,7 +87,7 @@ namespace DataConversionTool
                 foreach(CGameData.CGame game in jsonAllGames)
                 {
                     int platformFK = (dbPlatforms.ContainsKey(game.PlatformString)) ? dbPlatforms[game.PlatformString].PlatformID : 0;
-                    GameObject tmp = new GameObject(platformFK, game.ID, game.Title, game.Alias, game.Launch, game.Uninstaller);
+                    GameObject tmp = new(platformFK, game.ID, game.Title, game.Alias, game.Launch, game.Uninstaller);
                     CGame.InsertGame(tmp);
                 }
                 HashSet<CGame.GameObject> dbGames = CGame.GetAllGames();
@@ -114,7 +114,7 @@ namespace DataConversionTool
 
         private Dictionary<string, int> AddPlatformsToDB(List<string> platforms)
         {
-            Dictionary<string, int> platformsDB = new Dictionary<string, int>();
+            Dictionary<string, int> platformsDB = new();
 
             // TODO;
 

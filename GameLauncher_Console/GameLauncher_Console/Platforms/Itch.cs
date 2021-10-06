@@ -17,7 +17,7 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformItch : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Itch;
+		public const GamePlatform ENUM          = GamePlatform.Itch;
 		public const string PROTOCOL			= "itch://";
 		public const string LAUNCH				= PROTOCOL + "library";
 		public const string INSTALL				= PROTOCOL + "games";
@@ -114,6 +114,7 @@ namespace GameLauncher_Console
                             string strAlias = "";
                             string strLaunch = "";
                             string strPlatform = GetPlatformString(GamePlatform.Itch);
+                            DateTime lastRun = DateTime.MinValue;
 
                             string iconUrl = rdr.GetString(4);
                             if (string.IsNullOrEmpty(iconUrl))
@@ -121,36 +122,38 @@ namespace GameLauncher_Console
 
                             // SELECT path FROM install_locations;
                             // SELECT install_folder FROM downloads;
-                            // SELECT verdict FROM caves;
-                            using (var cmd2 = new SQLiteCommand($"SELECT last_touched_at, verdict, install_folder_name FROM caves WHERE game_id = {id};", con))
+                            using (var cmd2 = new SQLiteCommand($"SELECT installed_at, last_touched_at, verdict, install_folder_name FROM caves WHERE game_id = {id};", con))
                             using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
                             {
                                 while (rdr2.Read())
                                 {
-                                    string verdict = rdr2.GetString(1);
-                                    // grab last run date?
-                                    //DateTime dateLastRun = JsonSerializer.Deserialize<DateTime>("\"" + rdr2.GetString(0) + "\"");
+                                    if (!rdr2.IsDBNull(1))
+                                    {
+                                        lastRun = rdr2.GetDateTime(1);
+                                        //CLogger.LogDebug("    last_touched_at: " + rdr2.GetString(1) + " -> " + lastRun.ToShortDateString());
+                                    }
+                                    //else if (!rdr2.IsDBNull(0))
+                                    //    lastRun = rdr2.GetDateTime(0);
+                                    string verdict = rdr2.GetString(2);
+                                    //strAlias = rdr2.GetString(3);
                                     strAlias = GetAlias(strTitle);
                                     if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
                                         strAlias = "";
 
                                     using JsonDocument document = JsonDocument.Parse(@verdict, jsonTrailingCommas);
                                     string basePath = GetStringProperty(document.RootElement, "basePath");
-                                    if (document.RootElement.TryGetProperty("candidates", out JsonElement candidates)) // 'candidates' object exists
+                                    if (document.RootElement.TryGetProperty("candidates", out JsonElement candidates) && !string.IsNullOrEmpty(candidates.ToString()))
                                     {
-                                        if (!string.IsNullOrEmpty(candidates.ToString()))
+                                        foreach (JsonElement jElement in candidates.EnumerateArray())
                                         {
-                                            foreach (JsonElement jElement in candidates.EnumerateArray())
-                                            {
-                                                strLaunch = string.Format("{0}\\{1}", basePath, GetStringProperty(jElement, "path"));
-                                            }
+                                            strLaunch = string.Format("{0}\\{1}", basePath, GetStringProperty(jElement, "path"));
                                         }
                                     }
                                     // Add installed games
                                     if (!string.IsNullOrEmpty(strLaunch))
                                     {
                                         CLogger.LogDebug($"- {strTitle}");
-                                        gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+                                        gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform, dateLastRun:lastRun));
 
                                         // Use still_cover_url, or cover_url if it doesn't exist, to download missing icons
                                         if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)) &&

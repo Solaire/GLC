@@ -62,6 +62,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden"   , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency"   , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating"     , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["NumRuns"]         = new CSqlFieldInteger("NumRuns"    , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["LastRun"]         = new CSqlFieldString("LastRun"     , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Icon"]            = new CSqlFieldString("Icon"        , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Tags"]            = new CSqlFieldString("Tags"        , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
@@ -132,6 +133,11 @@ namespace CGame_Test // TODO: GameLauncher_Console
             {
                 get { return m_sqlRow["Rating"].Integer; }
                 set { m_sqlRow["Rating"].Integer = value; }
+            }
+            public int NumRuns
+            {
+                get { return m_sqlRow["NumRuns"].Integer; }
+                set { m_sqlRow["NumRuns"].Integer = value; }
             }
             public string LastRun
             {
@@ -340,6 +346,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 IsNew           = qryGame.IsNew;
                 IsHidden        = qryGame.IsHidden;
                 LastRun         = JsonSerializer.Deserialize<DateTime>(qryGame.LastRun);
+                NumRuns         = qryGame.NumRuns;
                 Rating          = qryGame.Rating;
                 Frequency       = qryGame.Frequency;
                 IsMultiPlatform = qryGame.IsMultiPlatform;
@@ -373,6 +380,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 IsNew           = false;
                 IsHidden        = false;
                 LastRun         = DateTime.MinValue;
+                NumRuns         = 0;
                 Rating          = 0;
                 Frequency       = 0.0f;
                 IsMultiPlatform = false;
@@ -393,6 +401,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
             public bool IsNew           { get; private set; }
             public bool IsHidden        { get; set; }
             public DateTime LastRun     { get; private set; }
+            public int NumRuns          { get; private set; }
             public double Rating        { get; set; }
             public double Frequency     { get; private set; }
             public bool IsMultiPlatform { get; set; }

@@ -18,7 +18,7 @@ namespace GameLauncher_Console
 	// [installed games only]
 	public class PlatformOculus : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Oculus;
+		public const GamePlatform ENUM			= GamePlatform.Oculus;
 		public const string PROTOCOL			= "oculus://";
 		//private const string OCULUS_UNREG		= "Oculus"; // HKLM64 Uninstall
 		private const string OCULUS_LIBS		= @"SOFTWARE\Oculus VR, LLC\Oculus\Libraries"; // HKCU64

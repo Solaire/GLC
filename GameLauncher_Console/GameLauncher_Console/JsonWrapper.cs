@@ -59,6 +59,7 @@ namespace GameLauncher_Console
 		private const string GAMES_ARRAY_HIDDEN				= "hidden";
 		private const string GAMES_ARRAY_ALIAS				= "alias";
 		private const string GAMES_ARRAY_LASTRUN			= "lastrun";
+		private const string GAMES_ARRAY_NUMRUNS			= "numruns";
 		private const string GAMES_ARRAY_RATING				= "rating";
 		private const string GAMES_ARRAY_FREQUENCY			= "frequency";
 
@@ -421,10 +422,11 @@ namespace GameLauncher_Console
                     string strAlias = GetStringProperty(jElement, GAMES_ARRAY_ALIAS);
                     string strPlatform = GetStringProperty(jElement, GAMES_ARRAY_PLATFORM);
                     DateTime dateLastRun = GetDateTimeProperty(jElement, GAMES_ARRAY_LASTRUN);
+					int numRuns = GetIntProperty(jElement, GAMES_ARRAY_NUMRUNS);
                     ushort rating = GetUShortProperty(jElement, GAMES_ARRAY_RATING);
                     double fOccurCount = GetDoubleProperty(jElement, GAMES_ARRAY_FREQUENCY);
 
-                    AddGame(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, new List<string>(), dateLastRun, rating, fOccurCount);
+                    AddGame(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, strPlatform, new List<string>(), dateLastRun, rating, (uint)numRuns, fOccurCount);
                     nGameCount++;
                 }
                 SortGames(sortMethod, faveSort, instSort, ignoreArticle);
@@ -683,6 +685,7 @@ namespace GameLauncher_Console
 			writer.WriteBoolean(GAMES_ARRAY_HIDDEN		, data.IsHidden);
 			writer.WriteString(GAMES_ARRAY_ALIAS		, data.Alias);
 			writer.WriteString(GAMES_ARRAY_LASTRUN		, data.LastRunDate);
+			writer.WriteNumber(GAMES_ARRAY_NUMRUNS		, data.NumRuns);
 			writer.WriteNumber(GAMES_ARRAY_RATING		, data.Rating);
 			writer.WriteNumber(GAMES_ARRAY_FREQUENCY	, data.Frequency);
 			writer.WriteEndObject();
@@ -757,7 +760,10 @@ namespace GameLauncher_Console
 			try
 			{
 				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
-					return jValue.GetString();
+				{
+					if (jValue.ValueKind.Equals(JsonValueKind.String))
+						return jValue.GetString();
+				}
 			}
 			catch (Exception e)
 			{
@@ -781,8 +787,8 @@ namespace GameLauncher_Console
 					return jValue.GetBoolean();
 					/*
 					if (jValue.GetString() == "1" ||
-						jValue.GetString()[0].ToString().Equals("t", StringComparison.OrdinalIgnoreCase) ||
-						jValue.GetString()[0].ToString().Equals("y", StringComparison.OrdinalIgnoreCase))
+						jValue.GetString()[0].ToString().Equals("t", CDock.IGNORE_CASE) ||
+						jValue.GetString()[0].ToString().Equals("y", CDock.IGNORE_CASE))
 					{
 						return true;
 					}
@@ -797,7 +803,7 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Retrieve ISO 8601-1:2019 date/time value from the JSON element
+		/// Retrieve ISO 8601-1:2019 or Unix epoch date/time value from the JSON element
 		/// </summary>
 		/// <param name="strPropertyName">Name of the property</param>
 		/// <param name="jElement">Source JSON element</param>
@@ -808,10 +814,20 @@ namespace GameLauncher_Console
 			{
 				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
 				{
-					string strVal = jValue.GetString();
-					if (!string.IsNullOrEmpty(strVal))
+					if (jValue.ValueKind.Equals(JsonValueKind.String))
 					{
-						return JsonSerializer.Deserialize<DateTime>("\"" + strVal + "\"");
+						// Assume ISO 8601-1:2019
+						string strVal = jValue.GetString();
+						if (!string.IsNullOrEmpty(strVal))
+						{
+							return JsonSerializer.Deserialize<DateTime>("\"" + strVal + "\"");
+						}
+					}
+					else if (jValue.ValueKind.Equals(JsonValueKind.Number))
+					{
+						// Assume Unix Epoch
+						if (jValue.TryGetInt64(out long dateTime))
+							return DateTimeOffset.FromUnixTimeSeconds(dateTime).UtcDateTime;
 					}
 				}
 			}
@@ -856,7 +872,7 @@ namespace GameLauncher_Console
 			{
 				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
 				{
-					if (jValue.TryGetUInt64(out ulong nOut)) return (ulong)nOut;
+					if (jValue.TryGetUInt64(out ulong nOut)) return nOut;
 				}
 			}
 			catch (Exception e)
@@ -878,7 +894,7 @@ namespace GameLauncher_Console
 			{
 				if (jElement.TryGetProperty(strPropertyName, out JsonElement jValue))
 				{
-					if (jValue.TryGetUInt16(out ushort nOut)) return (ushort)nOut;
+					if (jValue.TryGetUInt16(out ushort nOut)) return nOut;
 				}
 			}
 			catch (Exception e)

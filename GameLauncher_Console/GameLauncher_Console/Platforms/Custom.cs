@@ -12,7 +12,7 @@ namespace GameLauncher_Console
 	// [maybe this shouldn't derive from IPlatform interface?]
 	public class PlatformCustom : IPlatform
     {
-		public const GamePlatform ENUM = GamePlatform.Custom;
+		public const GamePlatform ENUM			= GamePlatform.Custom;
 		public const string PROTOCOL			= "";
 		private const string GAME_FOLDER_NAME	= "CustomGames";
 
@@ -65,7 +65,7 @@ namespace GameLauncher_Console
 					string strAlias = GetAlias(strTitle);
 					if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 						strAlias = "";
-					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, strPlatform, new List<string>(), DateTime.MinValue, 0, 0f);
+					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, strPlatform, new List<string>(), DateTime.MinValue, 0, 0, 0f);
 				}
 			}
 		}
@@ -91,7 +91,7 @@ namespace GameLauncher_Console
 				string strAlias = GetAlias(strTitle);
 				if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 					strAlias = "";
-				tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, strPlatform, new List<string>(), DateTime.MinValue, 0, 0f);
+				tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, strPlatform, new List<string>(), DateTime.MinValue, 0, 0, 0f);
 			}
 		}
 	}

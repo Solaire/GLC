@@ -16,7 +16,7 @@ namespace GameLauncher_Console
 	// [installed games only]
 	public class PlatformEpic : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Epic;
+		public const GamePlatform ENUM			= GamePlatform.Epic;
 		public const string PROTOCOL			= "com.epicgames.launcher://";
 		//private const string EPIC_GAMES_UNREG	= "{A2FB1E1A-55D9-4511-A0BF-DEAD0493FBBC}"; // HKLM32 Uninstall
 		//private const string EPIC_GAMES_UNREG	= "{A7BBC0A6-3DB0-41CC-BCED-DDFC5D4F3060}"; // HKLM32 Uninstall

@@ -14,7 +14,7 @@ namespace GameLauncher_Console
 	// [installed games only]
 	public class PlatformBethesda : IPlatform
     {
-		public const GamePlatform ENUM	= GamePlatform.Bethesda;
+		public const GamePlatform ENUM				= GamePlatform.Bethesda;
 		public const string PROTOCOL				= "bethesdanet://";
 		private const string START_GAME				= PROTOCOL + "run";
 		//private const string BETHESDA_NET			= "bethesda.net";

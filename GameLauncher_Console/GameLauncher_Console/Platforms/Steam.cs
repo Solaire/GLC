@@ -21,7 +21,7 @@ namespace GameLauncher_Console
 	// [NOTE: DLCs are currently listed as owned not-installed games]
 	public class PlatformSteam : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Steam;
+		public const GamePlatform ENUM			= GamePlatform.Steam;
 		public const string PROTOCOL			= "steam://";
 		public const string LAUNCH				= PROTOCOL + "open/games";
 		public const string INSTALL				= PROTOCOL + "install";

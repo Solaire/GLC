@@ -38,11 +38,11 @@ namespace GameLauncher_Console
 		
 		// [experimental, DEBUG only]
 
-		public const GamePlatform ENUM = GamePlatform.Microsoft;
-		public const string PROTOCOL = "msxbox://";
+		public const GamePlatform ENUM			= GamePlatform.Microsoft;
+		public const string PROTOCOL			= "msxbox://";
 		//private const string LAUNCH_SUFFIX	= @":\\";
-		private const string MSSTORE_APP = "Microsoft.WindowsStore_8wekyb3d8bbwe!App";
-		private const string MSSTORE_MSPREFIX = "xboxliveapp-";
+		private const string MSSTORE_APP		= "Microsoft.WindowsStore_8wekyb3d8bbwe!App";
+		private const string MSSTORE_MSPREFIX	= "xboxliveapp-";
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 

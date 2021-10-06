@@ -19,7 +19,7 @@ namespace GameLauncher_Console
 	// [installed games only]
 	public class PlatformOrigin : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Origin;
+		public const GamePlatform ENUM			= GamePlatform.Origin;
 		public const string PROTOCOL			= "origin://";	//"eadm://" was added by EA Desktop, but "origin://" and "origin2://" still work with it (for now)
 		private const string ORIGIN_CONTENT		= @"\Origin\LocalContent";
 		private const string ORIGIN_PATH		= "dipinstallpath=";

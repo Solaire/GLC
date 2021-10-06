@@ -244,7 +244,7 @@ namespace GameLauncher_Console
 				}
 				foreach (ImportGameData data in gameDataList)
 				{
-					tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, data.m_bInstalled, false, true, false, data.m_strAlias, data.m_strPlatform, new List<string>(), DateTime.MinValue, 0, 0f);
+					tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, data.m_bInstalled, false, true, false, data.m_strAlias, data.m_strPlatform, new List<string>(), DateTime.MinValue, 0, 0, 0f);
 				}
 			}
 

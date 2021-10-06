@@ -938,6 +938,7 @@ namespace GameLauncher_Console
 					if (selectedGame.IsInstalled)
 					{
 						NormaliseFrequencies(selectedGame);
+						selectedGame.IncrementRuns();
 						selectedGame.SetRunDate();
 						matches = new List<CMatch>() { new CMatch(selectedGame.Title, 1, 100) };
 						CJsonWrapper.ExportSearch(matches);
@@ -969,6 +970,7 @@ namespace GameLauncher_Console
 						Console.WriteLine("     Icon : {0}", selectedGame.Icon);
 						Console.WriteLine("Uninstall : {0}", selectedGame.Uninstaller);
 						Console.WriteLine(" Last Run : {0}", selectedGame.LastRunDate);
+						Console.WriteLine(" Num Runs : {0}", selectedGame.NumRuns);
 						Console.WriteLine("Frequency : {0}", selectedGame.Frequency);
 						Console.WriteLine("   Rating : {0}", selectedGame.Rating);
 						Console.WriteLine();

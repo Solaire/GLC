@@ -50,7 +50,7 @@ namespace GameLauncher_Console
 					{
 						if(root.GetValueKind(name) == RegistryValueKind.String && name == strKeyName)
 						{
-							if(((string)root.GetValue(name)).Contains(strValue, StringComparison.OrdinalIgnoreCase))
+							if(((string)root.GetValue(name)).Contains(strValue, CDock.IGNORE_CASE))
 							{
 								gameKeys.Add(root);
 								break;
@@ -108,7 +108,7 @@ namespace GameLauncher_Console
 					{
 						if(!(sub.Equals("Microsoft")))
 						{
-							if (string.IsNullOrEmpty(strFolder) || sub.Contains(strFolder, StringComparison.OrdinalIgnoreCase))
+							if (string.IsNullOrEmpty(strFolder) || sub.Contains(strFolder, CDock.IGNORE_CASE))
 								gameKeys.Add(root.OpenSubKey(sub, RegistryKeyPermissionCheck.ReadSubTree));
 						}
 					}
@@ -156,6 +156,33 @@ namespace GameLauncher_Console
 				*/
 					if (int.TryParse(valData.ToString(), out int result))
 						return result;
+				//}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Get a value from the registry if it exists
+		/// </summary>
+		/// <param name="key">The registry key</param>
+		/// <param name="valName">The registry value name</param>
+		/// <returns>the value's data as a string</returns>
+		public static byte[] GetRegBinaryVal(RegistryKey key, string valName)
+		{
+			try
+			{
+				object valData = key.GetValue(valName);
+				/*
+				Type valType = valData.GetType();
+				if (valData != null && valType == typeof(byte))
+				{
+				*/
+				//if (byte.TryParse(valData.ToString(), out byte result))
+				return (byte[])valData;
 				//}
 			}
 			catch (Exception e)

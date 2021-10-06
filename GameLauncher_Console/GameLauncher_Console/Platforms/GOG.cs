@@ -19,7 +19,7 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformGOG : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.GOG;
+		public const GamePlatform ENUM          = GamePlatform.GOG;
 		public const string PROTOCOL			= "goggalaxy://";
 		public const string INSTALL				= PROTOCOL + "openGameView";
 		private const string START_SUFFIX		= "/command=runGame /gameId=";
@@ -130,7 +130,8 @@ namespace GameLauncher_Console
                         while (rdr2.Read())
                         {
                             string images = rdr2.GetString(0);
-                            // To be safe, we should probably confirm "gog_{id}" is correct here with
+
+                            // To be safe, we might want to confirm "gog_{id}" is correct here with
                             // "SELECT releaseKey FROM ProductsToReleaseKeys WHERE gogId = {id};"
                             string strID = $"gog_{id}";
                             string strTitle = rdr2.GetString(1);
@@ -138,6 +139,10 @@ namespace GameLauncher_Console
                             string strLaunch = "";
                             string strIconPath = "";
                             string strPlatform = GetPlatformString(GamePlatform.GOG);
+                            bool hidden = false;
+                            List<string> tagList = new();
+                            DateTime lastRun = DateTime.MinValue;
+                            ushort userRating = 0;
 
                             strAlias = GetAlias(strTitle);
                             if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -178,18 +183,63 @@ namespace GameLauncher_Console
                                                     strLaunch = launcherPath + " " + START_SUFFIX + id;
                                             }
                                             CLogger.LogDebug($"- {strTitle}");
-                                            gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
-                                            /*
-                                            // grab last run date?
-                                            using (var cmd6 = new SQLiteCommand($"SELECT lastPlayedDate FROM LastPlayedDates WHERE gameReleaseKey = {strID};", con))
+
+                                            // grab hidden status
+                                            using (var cmd6 = new SQLiteCommand($"SELECT isHidden FROM UserReleaseProperties WHERE releaseKey = '{strID}';", con))
                                             using (SQLiteDataReader rdr6 = cmd6.ExecuteReader())
                                             {
                                                 while (rdr6.Read())
                                                 {
-                                                    DateTime dateLastRun = JsonSerializer.Deserialize<DateTime>("\"" + rdr5.GetString(0) + "\"");
+                                                    hidden = rdr6.GetBoolean(0);
+                                                    //CLogger.LogDebug("    isHidden: " + rdr6.GetBoolean(0).ToString());
+                                                    break;
                                                 }
                                             }
-                                            */
+                                            
+                                            // grab user tags
+                                            using (var cmd7 = new SQLiteCommand($"SELECT tag FROM UserReleaseTags WHERE releaseKey = '{strID}';", con))
+                                            using (SQLiteDataReader rdr7 = cmd7.ExecuteReader())
+                                            {
+                                                while (rdr7.Read())
+                                                {
+                                                    tagList.Add(rdr7.GetString(0));
+                                                    //CLogger.LogDebug("    tag: " + rdr7.GetString(0));
+                                                }
+                                            }
+                                            
+                                            // grab last run date
+                                            using (var cmd8 = new SQLiteCommand($"SELECT lastPlayedDate FROM LastPlayedDates WHERE gameReleaseKey = '{strID}';", con))
+                                            using (SQLiteDataReader rdr8 = cmd8.ExecuteReader())
+                                            {
+                                                while (rdr8.Read())
+                                                {
+                                                    if (!rdr8.IsDBNull(0))
+                                                    {
+                                                        lastRun = rdr8.GetDateTime(0);
+                                                        //CLogger.LogDebug("    lastPlayedDate: " + rdr8.GetString(0) + " -> " + lastRun.ToShortDateString());
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            // grab user rating
+                                            using (var cmd9 = new SQLiteCommand($"SELECT value FROM GamePieces WHERE releaseKey = '{strID}';", con))
+                                            using (SQLiteDataReader rdr9 = cmd9.ExecuteReader())
+                                            {
+                                                while (rdr9.Read())
+                                                {
+                                                    string pieces = rdr9.GetString(0);
+                                                    using JsonDocument document2 = JsonDocument.Parse(@pieces, jsonTrailingCommas);
+                                                    if (document2.RootElement.TryGetProperty("myRating", out JsonElement jRating))
+                                                    {
+                                                        if (jRating.ValueKind != JsonValueKind.Null)
+                                                            jRating.TryGetUInt16(out userRating);
+                                                        //CLogger.LogDebug("    myRating: " + userRating.ToString());
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform, bHidden:hidden, tags:tagList, dateLastRun:lastRun, rating:userRating));
                                         }
                                     }
                                 }

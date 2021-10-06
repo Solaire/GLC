@@ -17,7 +17,7 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformBigFish : IPlatform
 	{
-		public const GamePlatform ENUM	= GamePlatform.BigFish;
+		public const GamePlatform ENUM				= GamePlatform.BigFish;
 		//private const string START_GAME			= "LaunchGame.bfg";
 		private const string BIGFISH_GAME_FOLDER	= "BFG-";
 		public const string BIGFISH_REG				= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
@@ -112,6 +112,17 @@ namespace GameLauncher_Console
 			return null;
 		}
 
+		public DateTime BFRegToDateTime(byte[] bytes)
+		{
+			// Note this only accounts for the first 4 bytes of a 16 byte span; not sure what the rest specifies
+			long date = ((((
+			(long)bytes[0]) * 256 +
+            bytes[1]) * 256 +
+            bytes[2]) * 256 +
+            bytes[3]);
+			return DateTimeOffset.FromUnixTimeSeconds(date - 2209032000).UtcDateTime; // This date is seconds from 1900 rather than 1970 epoch
+		}
+
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
@@ -127,7 +138,7 @@ namespace GameLauncher_Console
 
 				keyList = FindGameFolders(key, "");
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, _name.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", keyList.Count > 1 ? keyList.Count - 1 : keyList.Count, _name.ToUpper());
 				foreach (var data in keyList)
 				{
 					string wrap = Path.GetFileName(data.Name);
@@ -154,12 +165,23 @@ namespace GameLauncher_Console
 						if (activated > 0 || timeLeft > 0 || daysLeft > 0)
 						{
 							isInstalled = true;
+							CLogger.LogDebug($"- {strTitle}");
 						}
-						CLogger.LogDebug($"- {strTitle}");
+						else
+							CLogger.LogDebug($"- *{strTitle}");
+
 						strLaunch = GetRegStrVal(data, BIGFISH_PATH);
 						strAlias = GetAlias(strTitle);
 						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 							strAlias = "";
+						//strIconPath = GetRegStrVal(data, "Thumbnail");	// 80x80
+						strIconPath = GetRegStrVal(data, "feature");        // 175x150
+
+						//ushort userRating = (ushort)GetRegDWORDVal(data, "Rating"); // Not used?
+						uint numberRuns = (uint)GetRegDWORDVal(data, "PlayCount");
+						byte[] dateData = GetRegBinaryVal(data, "LastActionTime");
+						DateTime lastRun = BFRegToDateTime(dateData);
+						//CLogger.LogDebug("    LastActionTime: " + BitConverter.ToString(dateData) + " -> " + lastRun.ToShortDateString());
 
 						List<RegistryKey> unKeyList;
 						using (RegistryKey key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
@@ -171,7 +193,8 @@ namespace GameLauncher_Console
 								{
 									if (GetRegStrVal(data2, BIGFISH_ID).Equals(wrap))
 									{
-										strIconPath = GetRegStrVal(data2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+										if (string.IsNullOrEmpty(strIconPath))
+											strIconPath = GetRegStrVal(data2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 										strUninstall = GetRegStrVal(data2, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
 									}
 								}
@@ -188,7 +211,8 @@ namespace GameLauncher_Console
 								{
 									XmlDocument doc = new();
 									doc.Load(xmlPath);
-									XmlNode node = doc.DocumentElement.SelectSingleNode("thumbnail");
+									//XmlNode node = doc.DocumentElement.SelectSingleNode("thumbnail");	// 80x80
+									XmlNode node = doc.DocumentElement.SelectSingleNode("feature");		// 175x150
 									if (node != null)
 									{
 										strIconPath = node.InnerText;
@@ -217,22 +241,7 @@ namespace GameLauncher_Console
 						}
 						if (!(string.IsNullOrEmpty(strLaunch)))
 							gameDataList.Add(
-								new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, isInstalled, strPlatform));
-
-						// Add not-installed games [not used]
-						/*
-						if (!found)
-						{
-							CLogger.LogDebug($"- *{strTitle}");
-							gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-
-							// Use website to download not-installed icons
-							if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
-							{
-								CDock.DownloadCustomImage(strTitle, GetIconUrl(GetGameID(strID), strTitle));
-							}
-						}
-						*/
+								new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, isInstalled, strPlatform, dateLastRun:lastRun, numRuns:numberRuns));
 					}
 					catch (Exception e)
 					{

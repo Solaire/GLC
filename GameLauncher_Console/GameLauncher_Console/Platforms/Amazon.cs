@@ -18,12 +18,12 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformAmazon : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Amazon;
+		public const GamePlatform ENUM          = GamePlatform.Amazon;
 		public const string PROTOCOL			= "amazon-games://";
 		public const string START_GAME			= PROTOCOL + "play";
-		private const string UNINST_CMD = @"\__InstallData__\Amazon Game Remover.exe -m Game -p";
-		private const string AMAZON_DB = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
-		private const string AMAZON_OWN_DB = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";
+		private const string UNINST_CMD         = @"\__InstallData__\Amazon Game Remover.exe -m Game -p";
+		private const string AMAZON_DB          = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
+		private const string AMAZON_OWN_DB      = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";
 		//private const string AMAZON_UNREG		= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
@@ -94,8 +94,7 @@ namespace GameLauncher_Console
                                 if (!string.IsNullOrEmpty(strDocumentData))
                                 {
                                     using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
-                                    JsonElement root = document.RootElement;
-                                    root.TryGetProperty("Main", out JsonElement main);
+                                    document.RootElement.TryGetProperty("Main", out JsonElement main);
                                     if (!main.Equals(null))
                                     {
                                         string iconFile = GetStringProperty(main, "Command");

@@ -129,8 +129,14 @@ namespace GameLauncher_Console
 			public string m_strAlias;
 			public bool m_bInstalled;
 			public string m_strPlatform;
+			public bool m_bFavourite;
+			public bool m_bHidden;
+			public List<string> m_tags;
+			public DateTime m_dateLastRun;
+			public ushort m_rating;
+			private uint m_numRuns;
 
-			public ImportGameData(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, string strAlias, bool bInstalled, string strPlatform)
+			public ImportGameData(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, string strAlias, bool bInstalled, string strPlatform, bool bFavourite = false, bool bHidden = false, List<string> tags = default, DateTime dateLastRun = default, ushort rating = 0, uint numRuns = 0)
 			{
 				m_strID = strID;
 				m_strTitle = strTitle;
@@ -140,6 +146,12 @@ namespace GameLauncher_Console
 				m_strAlias = strAlias;
 				m_bInstalled = bInstalled;
 				m_strPlatform = strPlatform;
+				m_bFavourite = bFavourite;
+				m_bHidden = bHidden;
+				m_tags = tags ?? new List<string>();
+                m_dateLastRun = dateLastRun;
+				m_rating = rating;
+				m_numRuns = numRuns;
 			}
 		}
 
@@ -162,6 +174,7 @@ namespace GameLauncher_Console
 			private List<string> m_tags;
 			private DateTime m_dateLastRun;
 			private ushort m_rating;
+			private uint m_numRuns;
 			private double m_fOccurCount;
 
 			/// <summary>
@@ -181,8 +194,9 @@ namespace GameLauncher_Console
 			/// <param name="tags">List of user-specified categories</param>
 			/// <param name="dateLastRun">Date game was last launched</param>
 			/// <param name="rating">User rating (0-5)</param>
+			/// <param name="numRuns">Number of game launches</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			protected CGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, List<string> tags, DateTime dateLastRun, ushort rating, double fOccurCount)
+			protected CGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, List<string> tags, DateTime dateLastRun, ushort rating, uint numRuns, double fOccurCount)
 			{
 				m_strID = strID;
 				m_strTitle = strTitle;
@@ -198,6 +212,7 @@ namespace GameLauncher_Console
 				m_tags = tags;
 				m_dateLastRun = dateLastRun;
 				m_rating = rating;
+				m_numRuns = numRuns;
 				m_fOccurCount = fOccurCount;
 			}
 
@@ -462,6 +477,25 @@ namespace GameLauncher_Console
 			}
 
 			/// <summary>
+			/// Number of launches getter
+			/// </summary>
+			public uint NumRuns
+			{
+				get
+				{
+					return m_numRuns;
+				}
+			}
+
+			/// <summary>
+			/// Increment the number of runs by 1
+			/// </summary>
+			public void IncrementRuns()
+			{
+				m_numRuns++;
+			}
+
+			/// <summary>
 			/// OccurCount getter
 			/// </summary>
 			public double Frequency
@@ -519,9 +553,10 @@ namespace GameLauncher_Console
 			/// <param name="dateLastRun">Date game was last launched</param>
 			/// <param name="tags">List of user-specified categories</param>
 			/// <param name="rating">User rating (0-5)</param>
+			/// <param name="numRuns">Number of game launches</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			public CGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, List<string> tags, DateTime dateLastRun, ushort rating, double fOccurCount)
-				: base(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, fOccurCount)
+			public CGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, List<string> tags, DateTime dateLastRun, ushort rating, uint numRuns, double fOccurCount)
+				: base(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, numRuns, fOccurCount)
 			{
 
 			}
@@ -558,8 +593,9 @@ namespace GameLauncher_Console
 			/// <param name="dateLastRun">Date game was last launched</param>
 			/// <param name="tags">List of user-specified categories</param>
 			/// <param name="rating">User rating (0-5)</param>
+			/// <param name="numRuns">Number of game launches</param>
 			/// <param name="fOccurCount">Game's frequency counter</param>
-			public void InsertGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, List<string> tags, DateTime dateLastRun, ushort rating, double fOccurCount)
+			public void InsertGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, List<string> tags, DateTime dateLastRun, ushort rating, uint numRuns, double fOccurCount)
 			{
 				GamePlatform platformEnum;
 				// If platform is incorrect or unsupported, default to unknown.
@@ -568,7 +604,7 @@ namespace GameLauncher_Console
 				if (platformEnum < 0)
 					platformEnum = GamePlatform.Unknown;
 
-				this.Add(CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, fOccurCount));
+				this.Add(CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, numRuns, fOccurCount));
 			}
 		}
 
@@ -589,11 +625,12 @@ namespace GameLauncher_Console
 		/// <param name="tags">List of user-specified categories</param>
 		/// <param name="dateLastRun">Date game was last launched</param>
 		/// <param name="rating">User rating (0-5)</param>
+		/// <param name="numRuns">Number of game launches</param>
 		/// <param name="fOccurCount">Game's frequency counter</param>
 		/// <returns>Instance of CGame</returns>
-		private static CGame CreateGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, List<string> tags, DateTime dateLastRun, ushort rating, double fOccurCount)
+		private static CGame CreateGameInstance(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, GamePlatform platformEnum, List<string> tags, DateTime dateLastRun, ushort rating, uint numRuns, double fOccurCount)
 		{
-			return new CGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, fOccurCount);
+			return new CGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, numRuns, fOccurCount);
 		}
 
 		private static readonly Dictionary<GamePlatform, HashSet<CGame>> m_gameDictionary = new();
@@ -870,8 +907,9 @@ namespace GameLauncher_Console
 		/// <param name="tags">List of user-specified categories</param>
 		/// <param name="dateLastRun">Date game was last launched</param>
 		/// <param name="rating">User rating (0-5)</param>
+		/// <param name="numRuns">Number of game launches</param>
 		/// <param name="fOccurCount">Game's frequency counter</param>
-		public static void AddGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, List<string> tags, DateTime dateLastRun, ushort rating, double fOccurCount)
+		public static void AddGame(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, bool bIsInstalled, bool bIsFavourite, bool bIsNew, bool bIsHidden, string strAlias, string strPlatform, List<string> tags, DateTime dateLastRun, ushort rating, uint numRuns, double fOccurCount)
 		{
 			GamePlatform platformEnum;
 			// If platform is incorrect or unsupported, default to unknown.
@@ -884,7 +922,7 @@ namespace GameLauncher_Console
 			if (!m_gameDictionary.ContainsKey(platformEnum))
 				m_gameDictionary[platformEnum] = new HashSet<CGame>();
 
-			CGame game = CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, fOccurCount);
+			CGame game = CreateGameInstance(strID, strTitle, strLaunch, strIconPath, strUninstall, bIsInstalled, bIsFavourite, bIsNew, bIsHidden, strAlias, platformEnum, tags, dateLastRun, rating, numRuns, fOccurCount);
 			m_gameDictionary[platformEnum].Add(game);
 
 			if (game.IsFavourite)
