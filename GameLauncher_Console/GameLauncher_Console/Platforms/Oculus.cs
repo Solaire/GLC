@@ -50,33 +50,31 @@ namespace GameLauncher_Console
 				using var con = new SQLiteConnection($"Data Source={db}");
 				con.Open();
 
-				// Get both installed and not-installed games
+                // Get both installed and not-installed games
 
-				using (var cmd = new SQLiteCommand(string.Format("SELECT hashkey, value FROM Objects WHERE typename = 'Application'"), con))
-				using (SQLiteDataReader rdr = cmd.ExecuteReader())
-				{
-					while (rdr.Read())
-					{
-                        _ = ulong.TryParse(rdr.GetString(0), out ulong id);
-						//SQLiteBlob val = rdr.GetBlob(1, true);
-						//val.Read(buffer, count, offset);
-						//val.Close();
-						byte[] val = new byte[rdr.GetBytes(1, 0, null, 0, int.MaxValue) - 1];
-						rdr.GetBytes(1, 0, val, 0, val.Length);
-						string strVal = System.Text.Encoding.Default.GetString(val);
-						int i = strVal.IndexOf("display_name");
-						int j = strVal.IndexOf("display_short_description");
-						if (i > 0 && j > 0)
-						{
-							i += 22;
-							j -= 5;
-							if (j - i < 1)
-								j = i + 1;
-							titles[id] = strVal[i..j];
-						}
-					}
-				}
-			}
+                using var cmd = new SQLiteCommand(string.Format("SELECT hashkey, value FROM Objects WHERE typename = 'Application'"), con);
+                using SQLiteDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    _ = ulong.TryParse(rdr.GetString(0), out ulong id);
+                    //SQLiteBlob val = rdr.GetBlob(1, true);
+                    //val.Read(buffer, count, offset);
+                    //val.Close();
+                    byte[] val = new byte[rdr.GetBytes(1, 0, null, 0, int.MaxValue) - 1];
+                    rdr.GetBytes(1, 0, val, 0, val.Length);
+                    string strVal = System.Text.Encoding.Default.GetString(val);
+                    int i = strVal.IndexOf("display_name");
+                    int j = strVal.IndexOf("display_short_description");
+                    if (i > 0 && j > 0)
+                    {
+                        i += 22;
+                        j -= 5;
+                        if (j - i < 1)
+                            j = i + 1;
+                        titles[id] = strVal[i..j];
+                    }
+                }
+            }
 			catch (Exception e)
             {
 				CLogger.LogError(e);

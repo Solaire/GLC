@@ -1175,7 +1175,7 @@ namespace GameLauncher_Console
 						return false;
 					case GamePlatform.Uplay:
 						// Some games don't provide a valid ID; provide an error in that case
-						if (game.ID.StartsWith(PlatformUplay.UPLAY_INSTALL))
+						if (game.ID.StartsWith(PlatformUplay.UPLAY_PREFIX))
 						{
 							if (InputInstall(game.Title, cols))
 							{

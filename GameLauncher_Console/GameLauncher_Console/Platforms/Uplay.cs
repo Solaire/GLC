@@ -17,7 +17,7 @@ namespace GameLauncher_Console
 		public const GamePlatform ENUM		= GamePlatform.Uplay;
 		public const string PROTOCOL		= "uplay://";
 		public const string START_GAME		= PROTOCOL + "launch";
-		private const string UPLAY_PREFIX	= "Uplay Install ";
+		public const string UPLAY_PREFIX	= "Uplay Install ";
 		private const string UPLAY_UNREG	= "Uplay"; // HKLM32 Uninstall
 		//private const string UPLAY_REG	= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
 
