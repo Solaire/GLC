@@ -16,7 +16,7 @@ namespace GameLauncher_Console
     {
 		public const GamePlatform ENUM				= GamePlatform.Bethesda;
 		public const string PROTOCOL				= "bethesdanet://";
-		private const string START_GAME				= PROTOCOL + "run";
+		public const string START_GAME				= PROTOCOL + "run";
 		//private const string BETHESDA_NET			= "bethesda.net";
 		private const string BETHESDA_PATH			= "Path";
 		private const string BETHESDA_CREATION_KIT	= "Creation Kit";

@@ -20,15 +20,15 @@ namespace GameLauncher_Console
     // [installed games only]
     public class PlatformBattlenet : IPlatform
     {
-        public const GamePlatform ENUM          = GamePlatform.Battlenet;
-        public const string PROTOCOL            = "battlenet://";   // "blizzard://" works too [TODO: is one more compatible with older versions?]
+        public const GamePlatform ENUM			= GamePlatform.Battlenet;
+        public const string PROTOCOL			= "battlenet://";  // "blizzard://" works too [TODO: is one more compatible with older versions?]
+        public const string UNINST_GAME			= @"Battle.net\Agent\Blizzard Uninstaller.exe"; // ProgramData
         //private const string BATTLE_NET		= "Battle.net";
-        //private const string BATTLE_NET_UNREG   = "Battle.net";       // HKLM32 Uninstall
+        //private const string BATTLE_NET_UNREG	= "Battle.net"; // HKLM32 Uninstall
         //private const string BATTLE_NET_REG	= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
-        private const string BATTLE_NET_CFG     = @"Battle.net\Battle.net.config";
-        private const string BATTLE_NET_DB      = @"Battle.net\Agent\product.db";
-        private const string BATTLE_NET_DATA    = @"Battle.net\Agent\data\cache";
-        private const string BATTLE_NET_UNINST  = @"Battle.net\Agent\Blizzard Uninstaller.exe";
+        private const string BATTLE_NET_CFG		= @"Battle.net\Battle.net.config"; // AppData\Roaming
+        private const string BATTLE_NET_DB		= @"Battle.net\Agent\product.db"; // ProgramData
+        private const string BATTLE_NET_DATA	= @"Battle.net\Agent\data\cache"; // ProgramData
 
         private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -48,7 +48,7 @@ namespace GameLauncher_Console
             string cfgFile = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), BATTLE_NET_CFG);
             string dbFile = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), BATTLE_NET_DB);
             string dataPath = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), BATTLE_NET_DATA);
-            string uninstallExe = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), BATTLE_NET_UNINST);
+            string uninstallExe = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), UNINST_GAME);
 
             if (!File.Exists(dbFile))
             {

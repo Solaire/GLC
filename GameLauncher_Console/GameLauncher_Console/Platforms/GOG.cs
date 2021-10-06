@@ -19,15 +19,16 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformGOG : IPlatform
 	{
-		public const GamePlatform ENUM          = GamePlatform.GOG;
+		public const GamePlatform ENUM			= GamePlatform.GOG;
 		public const string PROTOCOL			= "goggalaxy://";
-		public const string INSTALL				= PROTOCOL + "openGameView";
-		private const string START_SUFFIX		= "/command=runGame /gameId=";
-		private const string START_PATH			= "/path=";
-		public const string GOG_REG_GAMES		= @"SOFTWARE\WOW6432Node\GOG.com\Games";
-		public const string GOG_REG_CLIENT		= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
-		public const string GOG_GALAXY_EXE		= "GalaxyClient.exe";
-		private const string GOG_DB				= @"\GOG.com\Galaxy\storage\galaxy-2.0.db";
+        public const string LAUNCH				= "GalaxyClient.exe";
+        public const string INSTALL_GAME		= PROTOCOL + "openGameView";
+        public const string START_GAME 			= LAUNCH;
+        public const string START_GAME_ARGS		= "/command=runGame /gameId=";
+        public const string START_GAME_ARGS2	= "/path=";
+		private const string GOG_REG_GAMES		= @"SOFTWARE\WOW6432Node\GOG.com\Games";
+		private const string GOG_REG_CLIENT		= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
+		private const string GOG_DB				= @"GOG.com\Galaxy\storage\galaxy-2.0.db"; // ProgramData
 		//private const string GOG_GALAXY_UNREG	= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
@@ -45,7 +46,7 @@ namespace GameLauncher_Console
         {
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				string launcherPath = Path.Combine(GetRegStrVal(key, "client"), GOG_GALAXY_EXE);
+				string launcherPath = Path.Combine(GetRegStrVal(key, "client"), LAUNCH);
 				if (File.Exists(launcherPath))
 					Process.Start(launcherPath);
 				else
@@ -62,7 +63,7 @@ namespace GameLauncher_Console
 		public static void InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
-			Process.Start(INSTALL + "/" + GetGameID(game.ID));
+			Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
 		}
 
 		public static void StartGame(CGame game)
@@ -97,7 +98,7 @@ namespace GameLauncher_Console
 			*/
 
 			// Get installed games
-			string db = GetFolderPath(SpecialFolder.CommonApplicationData) + GOG_DB;
+			string db = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), GOG_DB);
 			if (!File.Exists(db))
 			{
 				CLogger.LogInfo("{0} database not found.", _name.ToUpper());
@@ -106,7 +107,7 @@ namespace GameLauncher_Console
 			string launcherPath = "";
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				launcherPath = Path.Combine(GetRegStrVal(key, "client"), GOG_GALAXY_EXE);
+				launcherPath = Path.Combine(GetRegStrVal(key, "client"), START_GAME);
 				if (!File.Exists(launcherPath))
 					launcherPath = "";
 			}
@@ -118,14 +119,14 @@ namespace GameLauncher_Console
 
                 // Get both installed and not-installed games
 
-                using (var cmd = new SQLiteCommand(string.Format("SELECT productId from Builds"), con))
+                using (var cmd = new SQLiteCommand(string.Format("SELECT productId FROM Builds"), con))
                 using (SQLiteDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
                     {
                         int id = rdr.GetInt32(0);
 
-                        using var cmd2 = new SQLiteCommand($"SELECT images, title from LimitedDetails WHERE productId = {id};", con);
+                        using var cmd2 = new SQLiteCommand($"SELECT images, title FROM LimitedDetails WHERE productId = {id};", con);
                         using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
                         while (rdr2.Read())
                         {
@@ -178,9 +179,9 @@ namespace GameLauncher_Console
                                             }
                                             else
                                             {
-                                                strLaunch = launcherPath + " " + START_SUFFIX + id + " " + START_PATH + "\"" + Path.GetDirectoryName(strIconPath) + "\"";
+                                                strLaunch = launcherPath + " " + START_GAME_ARGS + id + " " + START_GAME_ARGS2 + "\"" + Path.GetDirectoryName(strIconPath) + "\"";
                                                 if (strLaunch.Length > 8191)
-                                                    strLaunch = launcherPath + " " + START_SUFFIX + id;
+                                                    strLaunch = launcherPath + " " + START_GAME_ARGS + id;
                                             }
                                             CLogger.LogDebug($"- {strTitle}");
 

@@ -18,12 +18,13 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformAmazon : IPlatform
 	{
-		public const GamePlatform ENUM          = GamePlatform.Amazon;
+		public const GamePlatform ENUM			= GamePlatform.Amazon;
 		public const string PROTOCOL			= "amazon-games://";
 		public const string START_GAME			= PROTOCOL + "play";
-		private const string UNINST_CMD         = @"\__InstallData__\Amazon Game Remover.exe -m Game -p";
-		private const string AMAZON_DB          = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
-		private const string AMAZON_OWN_DB      = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";
+		public const string UNINST_GAME			= @"__InstallData__\Amazon Game Remover.exe";
+        public const string UNINST_ARGS			= "-m Game -p";
+        private const string AMAZON_DB			= @"Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite"; // AppData\Local
+		private const string AMAZON_OWN_DB		= @"Amazon Games\Data\Games\Sql\GameProductInfo.sqlite"; // AppData\Local
 		//private const string AMAZON_UNREG		= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
@@ -48,7 +49,7 @@ namespace GameLauncher_Console
 			List<string> azIds = new();
 
 			// Get installed games
-			string db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_DB;
+			string db = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), AMAZON_DB);
 			if (!File.Exists(db))
 			{
 				CLogger.LogInfo("{0} installed game database not found.", _name.ToUpper());
@@ -112,7 +113,7 @@ namespace GameLauncher_Console
                     }
                     if (string.IsNullOrEmpty(strUninstall))
                     {
-                        strUninstall = Directory.GetParent(dir).FullName + UNINST_CMD + " " + strID;
+                        strUninstall = Path.Combine(Directory.GetParent(dir).FullName, UNINST_GAME) + " " + UNINST_ARGS + " " + strID;
                     }
                     string strAlias = GetAlias(strTitle);
                     string strPlatform = GetPlatformString(GamePlatform.Amazon);
@@ -133,7 +134,7 @@ namespace GameLauncher_Console
 			// Get not-installed games
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
 			{
-				db = GetFolderPath(SpecialFolder.LocalApplicationData) + AMAZON_OWN_DB;
+				db = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), AMAZON_OWN_DB);
 				if (!File.Exists(db))
 					CLogger.LogInfo("{0} not-installed game database not found.", _name.ToUpper());
 				else

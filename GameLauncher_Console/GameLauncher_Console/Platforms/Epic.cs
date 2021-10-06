@@ -20,7 +20,7 @@ namespace GameLauncher_Console
 		public const string PROTOCOL			= "com.epicgames.launcher://";
 		//private const string EPIC_GAMES_UNREG	= "{A2FB1E1A-55D9-4511-A0BF-DEAD0493FBBC}"; // HKLM32 Uninstall
 		//private const string EPIC_GAMES_UNREG	= "{A7BBC0A6-3DB0-41CC-BCED-DDFC5D4F3060}"; // HKLM32 Uninstall
-		private const string EPIC_ITEMS_FOLDER	= @"\Epic\EpicGamesLauncher\Data\Manifests";
+		private const string EPIC_ITEMS 		= @"Epic\EpicGamesLauncher\Data\Manifests"; // ProgramData
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -36,7 +36,7 @@ namespace GameLauncher_Console
 
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			string dir = GetFolderPath(SpecialFolder.CommonApplicationData) + EPIC_ITEMS_FOLDER;
+			string dir = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), EPIC_ITEMS);
 			if (!Directory.Exists(dir))
 			{
 				CLogger.LogInfo("{0} games not found in ProgramData.", _name.ToUpper());

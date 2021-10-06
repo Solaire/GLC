@@ -14,12 +14,12 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformUplay : IPlatform
 	{
-		public const GamePlatform ENUM			= GamePlatform.Uplay;
-		public const string PROTOCOL			= "uplay://";
-		public const string START_GAME			= PROTOCOL + "launch";
-		public const string UPLAY_INSTALL		= "Uplay Install ";
-		private const string UPLAY_UNREG		= "Uplay"; // HKLM32 Uninstall
-		//private const string UPLAY_REG		= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
+		public const GamePlatform ENUM		= GamePlatform.Uplay;
+		public const string PROTOCOL		= "uplay://";
+		public const string START_GAME		= PROTOCOL + "launch";
+		private const string UPLAY_PREFIX	= "Uplay Install ";
+		private const string UPLAY_UNREG	= "Uplay"; // HKLM32 Uninstall
+		//private const string UPLAY_REG	= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -53,7 +53,7 @@ namespace GameLauncher_Console
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
-				keyList = FindGameFolders(key, UPLAY_INSTALL);
+				keyList = FindGameFolders(key, UPLAY_PREFIX);
 
 				CLogger.LogInfo("{0} {1} games found", keyList.Count, _name.ToUpper());
 				foreach (var data in keyList)
@@ -174,12 +174,12 @@ namespace GameLauncher_Console
 								strIconPath = Path.Combine(launcherPath, "data\\games", line[(line.IndexOf("icon_image:") + 12)..].Trim());
 							else if (string.IsNullOrEmpty(strID))
 							{
-								if (line.Trim().StartsWith("game_code: ") && !(strID.StartsWith(UPLAY_INSTALL)))
+								if (line.Trim().StartsWith("game_code: ") && !(strID.StartsWith(UPLAY_PREFIX)))
 									strID = "uplay_" + line[(line.IndexOf("game_code:") + 11)..].Trim();
 								else if (line.Trim().StartsWith(@"register: HKEY_LOCAL_MACHINE\SOFTWARE\Ubisoft\Launcher\Installs\"))
 								{
 									strID = line.Substring(0, line.LastIndexOf("\\")).Trim();
-									strID = UPLAY_INSTALL + strID[(strID.LastIndexOf("\\") + 1)..];
+									strID = UPLAY_PREFIX + strID[(strID.LastIndexOf("\\") + 1)..];
 								}
 							}
 						}

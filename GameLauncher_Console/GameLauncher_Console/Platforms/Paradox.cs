@@ -18,12 +18,12 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformParadox : IPlatform
 	{
-		public const GamePlatform ENUM          	= GamePlatform.Paradox;
-		public const string PROTOCOL				= "";
-		public const string PARADOX_REG				= @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; // HKLM32
-		public const string PARADOX_PATH			= "Path";
-        //private const string PARADOX_UNREG		= "{ED2CDA1D-39E4-4CBB-992C-5C1D08672128}"; //HKLM32
-        private const string PARADOX_JSON_FOLDER = @"\Paradox Interactive\launcher";
+		public const GamePlatform ENUM			= GamePlatform.Paradox;
+		public const string PROTOCOL			= "";
+		private const string PARADOX_REG		= @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; // HKLM32
+        private const string PARADOX_PATH		= "Path";
+        //private const string PARADOX_UNREG	= "{ED2CDA1D-39E4-4CBB-992C-5C1D08672128}"; //HKLM32
+        private const string PARADOX_JSON		= @"Paradox Interactive\launcher"; // AppData\Local
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -106,7 +106,7 @@ namespace GameLauncher_Console
 			// Get not-installed games
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
 			{
-				string folder = GetFolderPath(SpecialFolder.LocalApplicationData) + PARADOX_JSON_FOLDER;
+				string folder = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), PARADOX_JSON);
 				if (!Directory.Exists(folder))
 				{
 					CLogger.LogInfo("{0} games not found in Local AppData.", _name.ToUpper());

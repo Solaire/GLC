@@ -17,11 +17,11 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformItch : IPlatform
 	{
-		public const GamePlatform ENUM          = GamePlatform.Itch;
+		public const GamePlatform ENUM			= GamePlatform.Itch;
 		public const string PROTOCOL			= "itch://";
 		public const string LAUNCH				= PROTOCOL + "library";
-		public const string INSTALL				= PROTOCOL + "games";
-		private const string ITCH_DB			= @"\itch\db\butler.db";
+		public const string INSTALL_GAME		= PROTOCOL + "games";
+		private const string ITCH_DB			= @"itch\db\butler.db"; // AppData\Roaming
 		/*
 		private const string ITCH_GAME_FOLDER	= "apps";
 		private const string ITCH_METADATA		= ".itch\\receipt.json.gz";
@@ -75,7 +75,7 @@ namespace GameLauncher_Console
                         else
                             command = subs[0];
                     }
-                    CDock.StartAndRedirect(command, args.Replace("%1", INSTALL + "/" + GetGameID(game.ID)));
+                    CDock.StartAndRedirect(command, args.Replace("%1", INSTALL_GAME + "/" + GetGameID(game.ID)));
                 }
 				catch (Exception e)
 				{
@@ -87,7 +87,7 @@ namespace GameLauncher_Console
         public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			// Get installed games
-			string db = GetFolderPath(SpecialFolder.ApplicationData) + ITCH_DB;
+			string db = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), ITCH_DB);
 			if (!File.Exists(db))
 			{
 				CLogger.LogInfo("{0} database not found.", _name.ToUpper());

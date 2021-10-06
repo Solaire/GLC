@@ -40,7 +40,7 @@ namespace GameLauncher_Console
 
 		public const GamePlatform ENUM			= GamePlatform.Microsoft;
 		public const string PROTOCOL			= "msxbox://";
-		//private const string LAUNCH_SUFFIX	= @":\\";
+		//public const string LAUNCH_SUFFIX		= @":\\";
 		private const string MSSTORE_APP		= "Microsoft.WindowsStore_8wekyb3d8bbwe!App";
 		private const string MSSTORE_MSPREFIX	= "xboxliveapp-";
 

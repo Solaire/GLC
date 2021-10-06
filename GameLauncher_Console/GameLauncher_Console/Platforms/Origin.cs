@@ -21,7 +21,7 @@ namespace GameLauncher_Console
 	{
 		public const GamePlatform ENUM			= GamePlatform.Origin;
 		public const string PROTOCOL			= "origin://";	//"eadm://" was added by EA Desktop, but "origin://" and "origin2://" still work with it (for now)
-		private const string ORIGIN_CONTENT		= @"\Origin\LocalContent";
+		private const string ORIGIN_CONTENT		= @"Origin\LocalContent"; // ProgramData
 		private const string ORIGIN_PATH		= "dipinstallpath=";
 		/*
 		private const string ORIGIN_GAMES		= "Origin Games";
@@ -48,7 +48,7 @@ namespace GameLauncher_Console
 			string path = "";
 			try
 			{
-				path = GetFolderPath(SpecialFolder.CommonApplicationData) + ORIGIN_CONTENT;
+				path = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), ORIGIN_CONTENT);
 				if (Directory.Exists(path))
 				{
 					dirs.AddRange(Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly));

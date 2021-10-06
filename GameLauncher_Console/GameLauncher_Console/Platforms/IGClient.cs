@@ -17,12 +17,12 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformIGClient : IPlatform
 	{
-		public const GamePlatform ENUM          = GamePlatform.IGClient;
-		public const string PROTOCOL			= "";
-		public const string IG_REG				= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
-		//private const string IG_UNREG			= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall
-		private const string IG_JSON_FILE		= @"\IGClient\storage\installed.json";
-		private const string IG_OWN_JSON_FILE	= @"\IGClient\config.json";
+		public const GamePlatform ENUM		= GamePlatform.IGClient;
+		public const string PROTOCOL		= "";
+		private const string IG_REG			= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
+		//private const string IG_UNREG		= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall
+		private const string IG_JSON		= @"IGClient\storage\installed.json"; // AppData\Roaming
+		private const string IG_OWN_JSON	= @"IGClient\config.json"; // AppData\Roaming
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -62,7 +62,7 @@ namespace GameLauncher_Console
 			List<string> igcIds = new();
 
 			// Get installed games
-			string file = GetFolderPath(SpecialFolder.ApplicationData) + IG_JSON_FILE;
+			string file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), IG_JSON);
 			if (!File.Exists(file))
 			{
 				CLogger.LogInfo("{0} installed games not found in AppData", _name.ToUpper());
@@ -128,7 +128,7 @@ namespace GameLauncher_Console
 			// Get not-installed games
 			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
 			{
-				file = GetFolderPath(SpecialFolder.ApplicationData) + IG_OWN_JSON_FILE;
+				file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), IG_OWN_JSON);
 				if (!File.Exists(file))
 					CLogger.LogInfo("{0} not-installed games not found in AppData", _name.ToUpper());
 				else

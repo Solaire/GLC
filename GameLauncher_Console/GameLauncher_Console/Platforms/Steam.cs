@@ -24,11 +24,11 @@ namespace GameLauncher_Console
 		public const GamePlatform ENUM			= GamePlatform.Steam;
 		public const string PROTOCOL			= "steam://";
 		public const string LAUNCH				= PROTOCOL + "open/games";
-		public const string INSTALL				= PROTOCOL + "install";
-		private const string START_GAME			= PROTOCOL + "rungameid";
-		private const string UNINST_GAME		= PROTOCOL + "uninstall";
+		public const string INSTALL_GAME		= PROTOCOL + "install";
+		public const string START_GAME			= PROTOCOL + "rungameid";
+		public const string UNINST_GAME			= PROTOCOL + "uninstall";
 		private const int STEAM_MAX_LIBS		= 64;
-		private const string STEAM_GAME_FOLDER	= "Steam App ";
+		private const string STEAM_GAME_PREFIX	= "Steam App ";
 		private const string STEAM_PATH			= "steamapps";
 		private const string STEAM_LIBFILE		= "libraryfolders.vdf";
 		private const string STEAM_APPFILE		= "SteamAppData.vdf";
@@ -50,7 +50,7 @@ namespace GameLauncher_Console
 		public static void InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
-			Process.Start(INSTALL + "/" + GetGameID(game.ID));
+			Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -162,8 +162,8 @@ namespace GameLauncher_Console
 						strAlias = GetAlias(strTitle);
 						if (!string.IsNullOrEmpty(strLaunch))
 						{
-							using (RegistryKey key = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE64_REG, STEAM_GAME_FOLDER + id), RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
-											   key2 = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE32_REG, STEAM_GAME_FOLDER + id), RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
+							using (RegistryKey key = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE64_REG, STEAM_GAME_PREFIX + id), RegistryKeyPermissionCheck.ReadSubTree),  // HKLM64
+											   key2 = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE32_REG, STEAM_GAME_PREFIX + id), RegistryKeyPermissionCheck.ReadSubTree))  // HKLM32
 							{
 								if (key != null)
 									strIconPath = GetRegStrVal(key, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });

@@ -17,17 +17,14 @@ namespace GameLauncher_Console
 	// [owned and installed games]
 	public class PlatformBigFish : IPlatform
 	{
-		public const GamePlatform ENUM				= GamePlatform.BigFish;
-		//private const string START_GAME			= "LaunchGame.bfg";
-		private const string BIGFISH_GAME_FOLDER	= "BFG-";
-		public const string BIGFISH_REG				= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
-		private const string BIGFISH_GAMES			= @"SOFTWARE\WOW6432Node\Big Fish Games\Persistence\GameDB"; // HKLM32
-		private const string BIGFISH_ID				= "WrapID";
-		private const string BIGFISH_PATH			= "ExecutablePath";
-		private const string BIGFISH_ACTIV			= "Activated";
-		private const string BIGFISH_DAYS			= "DaysLeft";
-		private const string BIGFISH_TIME			= "TimeLeft";
-		private const string BIGFISH_CASINO_ID		= "F7315T1L1";
+		public const GamePlatform ENUM			= GamePlatform.BigFish;
+		//public const string START_GAME		= "LaunchGame.bfg";
+		private const string BIGFISH_PREFIX 	= "BFG-";
+		private const string BIGFISH_REG		= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
+		private const string BIGFISH_GAMES		= @"SOFTWARE\WOW6432Node\Big Fish Games\Persistence\GameDB"; // HKLM32
+		private const string BIGFISH_ID			= "WrapID";
+		private const string BIGFISH_PATH		= "ExecutablePath";
+		private const string BIGFISH_CASINO_ID	= "F7315T1L1";
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -112,17 +109,6 @@ namespace GameLauncher_Console
 			return null;
 		}
 
-		public DateTime BFRegToDateTime(byte[] bytes)
-		{
-			// Note this only accounts for the first 4 bytes of a 16 byte span; not sure what the rest specifies
-			long date = ((((
-			(long)bytes[0]) * 256 +
-            bytes[1]) * 256 +
-            bytes[2]) * 256 +
-            bytes[3]);
-			return DateTimeOffset.FromUnixTimeSeconds(date - 2209032000).UtcDateTime; // This date is seconds from 1900 rather than 1970 epoch
-		}
-
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
@@ -159,9 +145,9 @@ namespace GameLauncher_Console
 						strTitle = GetRegStrVal(data, "Name");
 
 						// If this is an expired trial, count it as not-installed
-						int activated = (int)GetRegDWORDVal(data, BIGFISH_ACTIV);
-						int daysLeft = (int)GetRegDWORDVal(data, BIGFISH_DAYS);
-						int timeLeft = (int)GetRegDWORDVal(data, BIGFISH_TIME);
+						int activated = (int)GetRegDWORDVal(data, "Activated");
+						int daysLeft = (int)GetRegDWORDVal(data, "DaysLeft");
+						int timeLeft = (int)GetRegDWORDVal(data, "TimeLeft");
 						if (activated > 0 || timeLeft > 0 || daysLeft > 0)
 						{
 							isInstalled = true;
@@ -188,7 +174,7 @@ namespace GameLauncher_Console
 						{
 							if (key2 != null)
 							{
-								unKeyList = FindGameFolders(key2, BIGFISH_GAME_FOLDER);
+								unKeyList = FindGameFolders(key2, BIGFISH_PREFIX);
 								foreach (var data2 in unKeyList)
 								{
 									if (GetRegStrVal(data2, BIGFISH_ID).Equals(wrap))
@@ -250,6 +236,17 @@ namespace GameLauncher_Console
 				}
 			}
 			CLogger.LogDebug("------------------------");
+		}
+
+		public DateTime BFRegToDateTime(byte[] bytes)
+		{
+			// Note this only accounts for the first 4 bytes of a 16 byte span; not sure what the rest specifies
+			long date = ((((
+			(long)bytes[0]) * 256 +
+			bytes[1]) * 256 +
+			bytes[2]) * 256 +
+			bytes[3]);
+			return DateTimeOffset.FromUnixTimeSeconds(date - 2209032000).UtcDateTime; // This date is seconds from 1900 rather than 1970 epoch
 		}
 
 		/// <summary>

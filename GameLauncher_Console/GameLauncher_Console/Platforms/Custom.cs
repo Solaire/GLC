@@ -14,7 +14,7 @@ namespace GameLauncher_Console
     {
 		public const GamePlatform ENUM			= GamePlatform.Custom;
 		public const string PROTOCOL			= "";
-		private const string GAME_FOLDER_NAME	= "CustomGames";
+		private const string CUSTOM_GAME_FOLDER	= "CustomGames";
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -42,7 +42,7 @@ namespace GameLauncher_Console
 		/// http://www.saunalahti.fi/janij/blog/2006-12.html#d6d9c7ee-82f9-4781-8594-152efecddae2
 		private static void FindCustomLinkFiles(ref CTempGameSet tempGameSet)
 		{
-			List<string> fileList = Directory.EnumerateFiles(Path.Combine(CDock.currentPath, GAME_FOLDER_NAME), "*", SearchOption.TopDirectoryOnly).Where(s => s.EndsWith(".lnk")).ToList();
+			List<string> fileList = Directory.EnumerateFiles(Path.Combine(CDock.currentPath, CUSTOM_GAME_FOLDER), "*", SearchOption.TopDirectoryOnly).Where(s => s.EndsWith(".lnk")).ToList();
 
 			string strPlatform = GetPlatformString(GamePlatform.Custom);
 			foreach (string file in fileList)
@@ -76,10 +76,10 @@ namespace GameLauncher_Console
 		private static void FindCustomBinaries(ref CTempGameSet tempGameSet)
 		{
 			string strPlatform = GetPlatformString(GamePlatform.Custom);
-			List<string> fileList = Directory.EnumerateFiles(Path.Combine(CDock.currentPath, GAME_FOLDER_NAME), "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".exe")).ToList();
+			List<string> fileList = Directory.EnumerateFiles(Path.Combine(CDock.currentPath, CUSTOM_GAME_FOLDER), "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".exe")).ToList();
 
 			// Big Fish Games may use .bfg for executables
-			//fileList.AddRange(Directory.EnumerateFiles(Path.Combine(CDock.currentPath, GAME_FOLDER_NAME), "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".bfg")).ToList());
+			//fileList.AddRange(Directory.EnumerateFiles(Path.Combine(CDock.currentPath, CUSTOM_GAME_FOLDER), "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".bfg")).ToList());
 
 			foreach (string file in fileList)
 			{
