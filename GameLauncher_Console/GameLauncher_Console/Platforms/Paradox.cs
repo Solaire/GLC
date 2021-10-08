@@ -113,7 +113,9 @@ namespace GameLauncher_Console
 				}
 				else
 				{
-					string[] files = Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly);
+                    CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
+
+                    string[] files = Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly);
 
 					foreach (string file in files)
 					{
@@ -123,8 +125,6 @@ namespace GameLauncher_Console
 
 							if (string.IsNullOrEmpty(strDocumentData))
 								continue;
-
-							CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
 
 							try
 							{
