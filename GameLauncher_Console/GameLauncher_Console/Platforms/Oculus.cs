@@ -121,7 +121,6 @@ namespace GameLauncher_Console
 					using SQLiteDataReader rdrU = cmdU.ExecuteReader();
 					while (rdrU.Read())
 					{
-						CLogger.LogDebug("rdrU");
 						byte[] valU = new byte[rdrU.GetBytes(1, 0, null, 0, int.MaxValue) - 1];
 						rdrU.GetBytes(1, 0, valU, 0, valU.Length);
 						string strValU = System.Text.Encoding.Default.GetString(valU);
@@ -186,7 +185,6 @@ namespace GameLauncher_Console
                         using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
                         while (rdr2.Read())
                         {
-                            CLogger.LogDebug("rdr2");
                             byte[] val2 = new byte[rdr2.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
                             rdr2.GetBytes(0, 0, val2, 0, val2.Length);
                             string strVal2 = System.Text.Encoding.Default.GetString(val2);
@@ -201,7 +199,6 @@ namespace GameLauncher_Console
                         using SQLiteDataReader rdr3 = cmd3.ExecuteReader();
                         while (rdr3.Read())
                         {
-                            CLogger.LogDebug("rdr3");
                             byte[] val3 = new byte[rdr3.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
                             rdr3.GetBytes(0, 0, val3, 0, val3.Length);
                             string strVal3 = System.Text.Encoding.Default.GetString(val3);
@@ -219,7 +216,6 @@ namespace GameLauncher_Console
                         using SQLiteDataReader rdr5 = cmd5.ExecuteReader();
                         while (rdr5.Read())
                         {
-                            CLogger.LogDebug("rdr5");
                             byte[] val5 = new byte[rdr5.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
                             rdr5.GetBytes(0, 0, val5, 0, val5.Length);
                             string strVal5 = System.Text.Encoding.Default.GetString(val5);
