@@ -322,7 +322,7 @@ namespace GameLauncher_Console
 			string msUsername = "";
 			string msPassword = "";
 			string url = $"https://account.xbox.com/en-us/profile?gamertag={xboxUsername}&activetab=main:mainTab2";
-			HtmlWeb web = new HtmlWeb();
+			HtmlWeb web = new();
 			web.UseCookies = true;
 			web.PreRequest += (request) => {
 				request.Credentials = new NetworkCredential(msUsername, msPassword);
@@ -337,10 +337,8 @@ namespace GameLauncher_Console
 			{
 				if (!File.Exists(tmpfile))
 				{
-					using (var client = new WebClient())
-					{
-						client.DownloadFile(url, tmpfile);
-					}
+					using (var client = new WebClient());
+					client.DownloadFile(url, tmpfile);
 				}
 				HtmlDocument doc = new HtmlDocument
 				{

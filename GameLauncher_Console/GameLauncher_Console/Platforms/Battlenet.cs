@@ -98,7 +98,7 @@ namespace GameLauncher_Console
                                     {
                                         string lang = pi.Settings.selectedTextLanguage;
                                         if (string.IsNullOrEmpty(lang))
-                                            lang = "enUS";
+                                            lang = "enUS"; //"enGB";
                                         /*
                                         string timestamp = "";
                                         foreach (BnetProductConfig pc in db.productConfigs)
@@ -124,7 +124,7 @@ namespace GameLauncher_Console
                                                 if (locale.GetString().Equals("lang", CDock.IGNORE_CASE))
                                                     found = true;
                                             }
-                                            if (!found) lang = "enus";
+                                            if (!found) lang = "enus"; //"engb";
                                         }
 
                                         string strID = $"battlenet_{code}";

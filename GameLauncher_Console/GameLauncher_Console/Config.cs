@@ -170,6 +170,7 @@ namespace GameLauncher_Console
 		public const string CFG_IMGPOS		= "num_selected_image_y_location_percent";
 		public const string CFG_COLSIZE		= "num_grid_text_min_column_characters";
 		public const string CFG_STEAMID		= "num_steam_id";
+		public const string CFG_OCULUSID	= "text_oculus_username";
 		public const string CFG_COLBG1		= "colour_background";
 		public const string CFG_COLBG2		= "colour_background_lightmode";
 		public const string CFG_COLTITLE1	= "colour_title";

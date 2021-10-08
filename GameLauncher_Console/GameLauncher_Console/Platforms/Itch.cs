@@ -101,7 +101,7 @@ namespace GameLauncher_Console
 
                 // Get both installed and not-installed games
 
-                using (var cmd = new SQLiteCommand(string.Format("SELECT id, title, classification, cover_url, still_cover_url FROM games;"), con))
+                using (var cmd = new SQLiteCommand("SELECT id, title, classification, cover_url, still_cover_url FROM games;", con))
                 using (SQLiteDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
@@ -195,5 +195,24 @@ namespace GameLauncher_Console
 		{
 			return key[5..];
 		}
-	}
+
+        /*
+		/// <summary>
+		/// Decompress gzip file [no longer necessary after moving to SQLite method]
+		/// </summary>
+		/// <param name="fileToDecompress"></param>
+		public static void Decompress(FileInfo fileToDecompress)
+		{
+			using (FileStream originalFileStream = fileToDecompress.OpenRead())
+			{
+				string currentFileName = fileToDecompress.FullName;
+				string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
+
+				using (FileStream decompressedFileStream = File.Create(newFileName))
+				using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+					decompressionStream.CopyTo(decompressedFileStream);
+			}
+		}
+		*/
+    }
 }

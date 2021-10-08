@@ -293,10 +293,8 @@ namespace GameLauncher_Console
 						string tmpfile = $"tmp_{NAME}.html";
 						if (!File.Exists(tmpfile))
 						{
-							using (var client = new WebClient())
-							{
-								client.DownloadFile(url, tmpfile);
-							}
+							using (var client = new WebClient());
+							client.DownloadFile(url, tmpfile);
 						}
 						HtmlDocument doc = new HtmlDocument
 						{
@@ -364,9 +362,9 @@ namespace GameLauncher_Console
 								_name.ToUpper());
 						}
 						/*
-						#if DEBUG
-												File.Delete(tmpfile);
-						#endif
+#if DEBUG
+							File.Delete(tmpfile);
+#endif
 						*/
 					}
 					catch (Exception e)

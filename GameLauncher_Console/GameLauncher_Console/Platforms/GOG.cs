@@ -119,7 +119,7 @@ namespace GameLauncher_Console
 
                 // Get both installed and not-installed games
 
-                using (var cmd = new SQLiteCommand(string.Format("SELECT productId FROM Builds"), con))
+                using (var cmd = new SQLiteCommand("SELECT productId FROM Builds", con))
                 using (SQLiteDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())

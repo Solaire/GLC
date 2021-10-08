@@ -153,14 +153,12 @@ namespace GameLauncher_Console
 			string tmpfile = $"tmp_{_name}.html";
 			if (!File.Exists(tmpfile))
 			{
-				using (var client = new WebClient())
-				{
-					client.DownloadFile(url, tmpfile);
-				}
+				using (var client = new WebClient());
+				client.DownloadFile(url, tmpfile);
 			}
 			*/
 /*
-			using (var reader = new StreamReader(stream))
+			using (var reader = new StreamReader(stream));
 			{
 				string html = reader.ReadToEnd();
 				HtmlDocument doc = new HtmlDocument
@@ -171,7 +169,7 @@ namespace GameLauncher_Console
 			}
 #else
 
-			HtmlWeb web = new HtmlWeb
+			HtmlWeb web = new()
 			{
 				UseCookies = true
 			};

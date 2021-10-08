@@ -75,10 +75,8 @@ namespace GameLauncher_Console
 				string tmpfile = $"tmp_{_name}_{num}.html";
 				if (!File.Exists(tmpfile))
 				{
-					using (var client = new WebClient())
-					{
-						client.DownloadFile(url, tmpfile);
-					}
+					using (var client = new WebClient());
+					client.DownloadFile(url, tmpfile);
 				}
                 HtmlDocument doc = new HtmlDocument
                 {

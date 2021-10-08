@@ -53,6 +53,7 @@ namespace GameLauncher_Console
 
 		public static readonly string currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 		public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
+		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" };
 		public static bool noInteractive = false;
 		public static Size sizeIcon;
 		public static Size sizeImage;
@@ -1894,7 +1895,7 @@ namespace GameLauncher_Console
 		}
 		public static void DeleteCustomImage(string title)
         {
-			foreach (string ext in new List<string> { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" })
+			foreach (string ext in supportedImages)
 			{
 				try
 				{
