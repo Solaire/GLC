@@ -15,5 +15,6 @@ namespace GLC
         public abstract void OnDownArrow();
         public abstract void OnLeftArrow();
         public abstract void OnRightArrow();
+        public abstract void OnTab();
     }
 }

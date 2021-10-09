@@ -76,19 +76,43 @@ namespace GLC
             Console.CursorTop = m_area.y + 1;
         }
 
-        public void AddInput(char input)
+        public void AddInput(ConsoleKeyInfo key)
         {
-            if(char.IsControl(input) || m_inputBuffer.Length == m_area.width - 2)
+            if(key.Key == ConsoleKey.Delete || 
+                key.Key == ConsoleKey.Backspace)
             {
-                return;
+                // Allow
+            }
+            else if(char.IsControl(key.KeyChar) || m_inputBuffer.Length == m_area.width - 2)
+            {
+                return; // Cannot add anything
             }
 
             Console.CursorVisible = true;
-
             string before = m_inputBuffer.Substring(0, m_inputPosition);
             string after  = m_inputBuffer.Substring(m_inputPosition, m_inputBuffer.Length - m_inputPosition);
-            m_inputBuffer = before + input + after;
-            m_inputPosition++;
+
+            if(key.Key == ConsoleKey.Delete) 
+            {
+                // Delete first character from the buffer after the cursor
+                int max = (after.Length == 0) ? 0 : 1;
+                m_inputBuffer = before + after.Substring(max);
+            }
+            else if(key.Key == ConsoleKey.Backspace)
+            {
+                // Delete the last character from the buffer before the cursor and move cursor left
+                int max = (before.Length == 0) ? 0 : before.Length - 1;
+                m_inputBuffer = before.Substring(0, max) + after;
+                m_inputPosition = (m_inputPosition - 1 < 0) ? 0 : m_inputPosition - 1;
+            }
+            else
+            {
+                // Default. Add input to string and move cursor to the right
+                char input      = key.KeyChar;
+                m_inputBuffer   = before + input + after;
+                m_inputPosition = (m_inputPosition + 1 > m_inputBuffer.Length) ? m_inputBuffer.Length : m_inputPosition + 1;
+            }
+
             DrawBuffer();
         }
 
@@ -148,6 +172,11 @@ namespace GLC
         public override void OnRightArrow()
         {
             m_inputPosition = (m_inputPosition + 1 > m_inputBuffer.Length) ? m_inputBuffer.Length : m_inputPosition + 1;
+        }
+
+        public override void OnTab()
+        {
+            throw new NotImplementedException("CMicrobuffer.OnTab() not yet implemented");
         }
     }
 }

@@ -53,7 +53,7 @@ namespace GLC
             m_microbuffer.Initialise();
 
             // Initialise all pages
-            m_pages[0] = new CPage(this, "Library");
+            m_pages[0] = new CLibraryPage(this);
             m_pages[0].Initialise(new PanelType[] { PanelType.cPlatforms, PanelType.cGames });
         }
 
@@ -86,7 +86,7 @@ namespace GLC
                     {
                         // Switch focus from active page into the microbuffer
                         m_microbufferFocus = true;
-                        m_microbuffer.AddInput(keyInfo.KeyChar);
+                        m_microbuffer.AddInput(keyInfo);
                     }
                     break;
 
@@ -125,11 +125,18 @@ namespace GLC
                     }
                     break;
 
+                    case ConsoleKey.Tab:
+                    {
+                        // Move cartet right or a TUI function
+                        focused.OnTab();
+                    }
+                    break;
+
                     default:
                     {
                         if(m_microbufferFocus)
                         {
-                            m_microbuffer.AddInput(keyInfo.KeyChar);
+                            m_microbuffer.AddInput(keyInfo);
                         }
                     }
                     break;

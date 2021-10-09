@@ -30,7 +30,7 @@ namespace GLC
 #region CControl overrides
         public override void Redraw(bool fullRedraw)
         {
-            if(!fullRedraw)
+            if(!fullRedraw && m_isFocused)
             {
                 int currentItemY = m_area.y + m_hoveredItemIndex + 1;
                 CConsoleEx.WriteText(m_platforms[m_hoveredItemIndex], 0, currentItemY, CConstants.TEXT_PADDING_LEFT, m_area.width - 1, m_parentPage.GetColour(ColourThemeIndex.cPanelSelectFocusBG), m_parentPage.GetColour(ColourThemeIndex.cPanelSelectFocusFG));
@@ -62,11 +62,10 @@ namespace GLC
 
             for(int row = m_area.x + 1, i = 0; row < m_area.x + m_area.width && i < m_platforms.Length; row++, i++)
             {
-                ColourThemeIndex background = (m_hoveredItemIndex == i) ? ColourThemeIndex.cPanelSelectFocusBG : ColourThemeIndex.cPanelMainBG;
-                ColourThemeIndex foreground = (m_hoveredItemIndex == i) ? ColourThemeIndex.cPanelSelectFocusFG : ColourThemeIndex.cPanelMainFG;
+                ColourThemeIndex background = (m_isFocused && m_hoveredItemIndex == i) ? ColourThemeIndex.cPanelSelectFocusBG : ColourThemeIndex.cPanelMainBG;
+                ColourThemeIndex foreground = (m_isFocused && m_hoveredItemIndex == i) ? ColourThemeIndex.cPanelSelectFocusFG : ColourThemeIndex.cPanelMainFG;
                 CConsoleEx.WriteText(m_platforms[i], 0, row, CConstants.TEXT_PADDING_LEFT, m_area.width - 1, m_parentPage.GetColour(background), m_parentPage.GetColour(foreground));
             }
-
         }
 
         public override void OnEnter()
@@ -77,11 +76,13 @@ namespace GLC
         public override void OnUpArrow()
         {
             m_hoveredItemIndex = Math.Max(m_hoveredItemIndex - 1, 0);
+            FireDirtyEvent(m_platforms[m_hoveredItemIndex]);
         }
 
         public override void OnDownArrow()
         {
             m_hoveredItemIndex = Math.Min(m_hoveredItemIndex + 1, m_platforms.Length - 1);
+            FireDirtyEvent(m_platforms[m_hoveredItemIndex]);
         }
 
         public override void OnLeftArrow()
@@ -125,6 +126,17 @@ namespace GLC
         {
             throw new NotImplementedException();
         }
+
+        public override void OnUpdateData(object sender, GenericEventArgs<string> e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void OnSetFocus(object sender, GenericEventArgs<int> e)
+        {
+            m_isFocused = (e.Data == (int)m_panelType);
+        }
+
         #endregion // CPanel overrides
     }
 }

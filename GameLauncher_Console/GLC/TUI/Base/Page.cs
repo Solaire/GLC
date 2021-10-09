@@ -22,9 +22,16 @@ namespace GLC
             m_area.height = parent.m_rect.height - 2; // Microbuffer
         }
 
+        public virtual void Initialise(PanelType[] panelTypes)
+        {
+            // No op. Needs to be implemented
+            throw new NotImplementedException("Needs to be overridden");
+        }
+
         /// <summary>
         /// Initialise the panel
         /// </summary>
+        /*
         public virtual void Initialise(PanelType[] panelTypes)
         {
             m_panels = new CPanel[panelTypes.Length];
@@ -63,10 +70,11 @@ namespace GLC
                     }
                 }
             }
-
+            
             CalculatePanelLayout();
             Redraw(true);
         }
+        */
 
         public virtual void Update()
         {
@@ -132,9 +140,12 @@ namespace GLC
         public override void Redraw(bool fullRedraw)
         {
             // TODO: draw title
-            foreach(CPanel p in m_panels)
+            for(int i = 0; i < m_panels.Length; i++)
             {
-                p.Redraw(fullRedraw);
+                if(m_panels[i] != null && m_activePanel == i)
+                {
+                    m_panels[i].Redraw(fullRedraw);
+                }
             }
         }
 
@@ -161,6 +172,11 @@ namespace GLC
         public override void OnRightArrow()
         {
             m_panels[m_activePanel].OnRightArrow();
+        }
+
+        public override void OnTab()
+        {
+            throw new NotImplementedException("Override in child class");
         }
     }
 }
