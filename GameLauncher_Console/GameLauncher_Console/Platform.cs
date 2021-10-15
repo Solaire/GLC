@@ -1,20 +1,42 @@
-﻿using SqlDB;
+﻿using Logger;
+using SqlDB;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using static SqlDB.CSqlField;
 using System.Data.SQLite;
+using System.Linq;
+using static GameLauncher_Console.CGameData;
+using static GameLauncher_Console.CJsonWrapper;
+//using static GameLauncher_Console.CRegScanner;
+using static SqlDB.CSqlField;
 
 namespace GameLauncher_Console
 {
+	public interface IPlatform
+	{
+		GamePlatform Enum { get; }
+		string Name { get; }
+        string Description { get; }
+		//void Launch();
+		//void InstallGame(CGame game);
+		//void StartGame(CGame game);
+		void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons);
+		//string GetGameID(CGame game);
+	}
+
 	/// <summary>
 	/// Class to handle platform object and platform database table
 	/// </summary>
-    public static class CPlatform
-    {
+	public class CPlatform
+	{
+		private readonly List<IPlatform> _platforms;
+
+		/*
 		/// <summary>
 		/// Enumerator containing currently supported game platforms
+		/// [Unlike CGameData.GamePlatform, this does not include Custom, All, Hidden, Search, New, NotInstalled categories]
 		/// </summary>
-		public enum GamePlatform
+		public enum Platform
         {
 			[Description("Unknown")]
 			Unknown = -1,
@@ -28,7 +50,7 @@ namespace GameLauncher_Console
 			Origin = 3,
 			[Description("Epic")]
 			Epic = 4,
-			[Description("Betheda.net")]
+			[Description("Bethesda.net")]
 			Bethesda = 5,
 			[Description("Battle.net")]
 			Battlenet = 6,
@@ -51,8 +73,46 @@ namespace GameLauncher_Console
 			[Description("Wargaming.net")]
 			Wargaming = 15,
 			[Description("Indiegala Client")]
-			IGClient = 16
+			IGClient = 16,
+			[Description("Microsoft Store")]
+			Microsoft = 17,
+			[Description("Oculus")]
+			Oculus = 18
 		}
+		*/
+
+		// POTENTIAL FUTURE PLATFORMS:
+
+		// Arc
+		public const string ARC_NAME				= "Arc";
+		public const string ARC_NAME_LONG			= "Arc";
+		public const string ARC_PROTOCOL			= "arc://";
+		//private const string ARC_UNREG			= "{CED8E25B-122A-4E80-B612-7F99B93284B3}"; // HKLM32 Uninstall
+
+		// Plarium Play
+		public const string PLARIUM_NAME			= "Plarium";
+		public const string PLARIUM_NAME_LONG		= "Plarium Play";
+		public const string PLARIUM_PROTOCOL		= "plariumplay://";
+		//private const string PLARIUM_UNREG		= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
+
+		// Rockstar Games Launcher
+		public const string ROCKSTAR_NAME			= "Rockstar";
+		public const string ROCKSTAR_NAME_LONG		= "Rockstar Games Launcher";
+		public const string ROCKSTAR_PROTOCOL		= "rockstar://";
+		//private const string ROCKSTAR_REG			= @"SOFTWARE\WOW6432Node\Rockstar Games\Launcher"; // HKLM32
+
+		// Twitch [deprecated, now Amazon Games]
+		/*
+		public const string TWITCH_NAME				= "Twitch";
+		public const string TWITCH_NAME_LONG		= "Twitch";
+		private const string TWITCH_UNREG			= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
+		*/
+
+		// Wargaming.net Game Center
+		public const string WARGAMING_NAME			= "Wargaming";
+		public const string WARGAMING_NAME_LONG		= "Wargaming.net Game Center";
+		public const string WARGAMING_PROTOCOL		= "wgc://";
+		//private const string WARGAMING_UNREG		= "Wargaming.net Game Center"; // HKCU64 Uninstall
 
 		#region Query definitions
 
@@ -120,8 +180,8 @@ namespace GameLauncher_Console
 
 		#endregion // Query definitions
 
-		private static CQryReadPlatforms m_qryRead = new CQryReadPlatforms();
-		private static CQryWritePlatforms m_qryWrite = new CQryWritePlatforms();
+		private static CQryReadPlatforms m_qryRead = new();
+		private static CQryWritePlatforms m_qryWrite = new();
 
 		/// <summary>
 		/// Container for a single platform
@@ -154,7 +214,52 @@ namespace GameLauncher_Console
 			public string Name { get; }
 			public int GameCount { get; private set; }
 			public string Description { get; }
+		}
+
+		public CPlatform()
+		{
+			_platforms = new List<IPlatform>();
+		}
+
+		public void AddSupportedPlatform(IPlatform platform)
+        {
+			_platforms.Add(platform);
         }
+
+		/// <summary>
+		/// Scan the registry and filesystem for games, add new games to memory and export into JSON document
+		/// </summary>
+		public void ScanGames(bool bOnlyCustom, bool bExpensiveIcons, bool bFirstScan)
+		{
+			CTempGameSet tempGameSet = new();
+			CLogger.LogDebug("-----------------------");
+			List<ImportGameData> gameDataList = new();
+			if (!bOnlyCustom)
+			{
+				foreach (IPlatform platform in _platforms)
+				{
+					Console.Write(".");
+					CLogger.LogInfo("Looking for {0} games...", platform.Description);
+					platform.GetGames(gameDataList, bExpensiveIcons);
+				}
+				foreach (ImportGameData data in gameDataList)
+				{
+					tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, data.m_bInstalled, false, true, false, data.m_strAlias, data.m_strPlatform, new List<string>(), DateTime.MinValue, 0, 0, 0f);
+				}
+			}
+
+			PlatformCustom custom = new();
+
+			Console.Write(".");
+			CLogger.LogInfo("Looking for {0} games...", GetPlatformString(GamePlatform.Custom));
+			custom.GetGames(ref tempGameSet);
+			MergeGameSets(tempGameSet);
+			if (bFirstScan)
+				SortGames((int)CConsoleHelper.SortMethod.cSort_Alpha, false, (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true);
+			CLogger.LogDebug("-----------------------");
+			Console.WriteLine();
+			ExportGames(GetPlatformGameList(GamePlatform.All).ToList());
+		}
 
 		/// <summary>
 		/// Get list of platforms from the database
@@ -162,7 +267,7 @@ namespace GameLauncher_Console
 		/// <returns>List of PlatformObjects</returns>
 		public static Dictionary<string, PlatformObject>GetPlatforms()
         {
-			Dictionary<string, PlatformObject> platforms = new Dictionary<string, PlatformObject>();
+			Dictionary<string, PlatformObject> platforms = new();
 			m_qryRead.MakeFieldsNull();
 			if(m_qryRead.Select() == SQLiteErrorCode.Ok)
             {

@@ -30,7 +30,7 @@ namespace DataConversionTool
             {
                 return;
             }
-            CConverter converter = new CConverter(mode);
+            CConverter converter = new(mode);
             converter.ConvertData();
         }
     }

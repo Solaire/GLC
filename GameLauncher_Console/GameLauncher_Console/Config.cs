@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
+//using System.Runtime.InteropServices;
+//using System.Text;
+using System.Windows.Forms;
+//using System.Windows.Input;
 
 namespace GameLauncher_Console
 {
+	// TODO: After switch to .NET 5, move App.config to appsettings.json
+
 	/// <summary>
 	/// Contains the definition of the configuration data
 	/// </summary>
@@ -93,6 +99,14 @@ namespace GameLauncher_Console
 			public ConsoleKey imageCK2;
 			public ConsoleKey sortCK1;
 			public ConsoleKey sortCK2;
+			public ConsoleKey ratingUpCK1;
+			public ConsoleKey ratingUpCK2;
+			public ConsoleKey ratingDownCK1;
+			public ConsoleKey ratingDownCK2;
+			public ConsoleKey tagsCK1;
+			public ConsoleKey tagsCK2;
+			public ConsoleKey downloadCK1;
+			public ConsoleKey downloadCK2;
 		}
 		public struct Colours
         {
@@ -127,8 +141,10 @@ namespace GameLauncher_Console
 		public const string CFG_USETYPE		= "flag_typing_input_is_default";
 		public const string CFG_USELIST		= "flag_single_column_list_is_default";
 		public const string CFG_NOPAGE		= "flag_do_not_split_over_pages";
-		public const string CFG_USESIZE		= "flag_enlarge_height_to_fit";
+		public const string CFG_USESIZE		= "flag_windows_enlarge_height_to_fit";
 		public const string CFG_USEALPH		= "flag_sort_alphabetically";
+		public const string CFG_USEFREQ		= "flag_sort_by_frequency";
+		public const string CFG_USERATE		= "flag_sort_by_user_rating";
 		public const string CFG_USEFAVE		= "flag_sort_favourites_on_top";
 		public const string CFG_USEINST		= "flag_sort_not_installed_on_bottom";
 		public const string CFG_USELITE		= "flag_colour_light_mode_is_default";
@@ -142,6 +158,10 @@ namespace GameLauncher_Console
 		public const string CFG_IMGRTIO		= "flag_image_ignore_custom_aspect_ratio";
 		public const string CFG_IMGBGLEG	= "flag_image_use_legacy_background_colours";
 		public const string CFG_IMGSCAN		= "flag_image_do_not_do_deep_scan_for_icons";
+		public const string CFG_IMGDOWN		= "flag_image_do_not_download_missing";
+#if DEBUG
+		public const string CFG_UWPLIST		= "list_show_uwp_titles";
+#endif
 		// images only work in conhost (cmd or PowerShell and some 3rd party shells), but not in others, e.g., Windows Terminal, TCC, etc.
 		public const string CFG_ICONSIZE	= "num_list_icons_max_size_in_characters";		// only in list mode, icons for all games on left; set to 0 to disable
 		public const string CFG_ICONRES		= "num_list_icons_resolution";					// up to 256, but setting higher than 48 causes icons with 32x32 max size to have a border and become smaller by comparison
@@ -150,6 +170,7 @@ namespace GameLauncher_Console
 		public const string CFG_IMGPOS		= "num_selected_image_y_location_percent";
 		public const string CFG_COLSIZE		= "num_grid_text_min_column_characters";
 		public const string CFG_STEAMID		= "num_steam_id";
+		public const string CFG_OCULUSID	= "text_oculus_username";
 		public const string CFG_COLBG1		= "colour_background";
 		public const string CFG_COLBG2		= "colour_background_lightmode";
 		public const string CFG_COLTITLE1	= "colour_title";
@@ -228,10 +249,18 @@ namespace GameLauncher_Console
 		public const string CFG_KEYVIEW2	= "key_grid_view_2";
 		public const string CFG_KEYMODE1	= "key_light_mode_1";							// toggle Dark/Light
 		public const string CFG_KEYMODE2	= "key_light_mode_2";
-		public const string CFG_KEYIMG1		= "key_image_display_1";						// toggle Images/Icons
+		public const string CFG_KEYIMG1		= "key_image_display_1";						// toggle Enabled/Disabled
 		public const string CFG_KEYIMG2		= "key_image_display_2";
-		public const string CFG_KEYSORT1	= "key_sort_method_1";							// toggle Freq/Alpha
+		public const string CFG_KEYSORT1	= "key_sort_method_1";							// toggle LastRun/Freq/Rating/Alpha
 		public const string CFG_KEYSORT2	= "key_sort_method_2";
+		public const string CFG_KEYTAGS1	= "key_edit_tags_1";	                        // TODO
+		public const string CFG_KEYTAGS2	= "key_edit_tags_2";
+		public const string CFG_KEYRATEUP1	= "key_rating_up_1";
+		public const string CFG_KEYRATEUP2	= "key_rating_up_2";
+		public const string CFG_KEYRATEDN1	= "key_rating_down_1";
+		public const string CFG_KEYRATEDN2	= "key_rating_down_2";
+		public const string CFG_KEYDLIMG1	= "key_download_image_1";						// TODO
+		public const string CFG_KEYDLIMG2	= "key_download_image_2";
 		public const string CFG_TXTMAINT	= "text_main_menu_title";
 		public const string CFG_TXTCFGT		= "text_settings_title";
 		public const string CFG_TXTFILET	= "text_browse_title";
@@ -268,6 +297,16 @@ namespace GameLauncher_Console
         {
 			return GetConfigString(property, ref config);
         }
+
+		public static List<string> GetConfigList(string property)
+		{
+			if (!config.TryGetValue(property, out string strVal))
+				strVal = GetConfigDefault(property);
+
+			return new List<string>(
+				from part in strVal.Split('|')
+				select part.Trim());
+		}
 
 		public static bool? GetConfigBool(string property)
 		{
@@ -474,6 +513,24 @@ namespace GameLauncher_Console
 			return strCCName;
 		}
 
+		/*
+		// https://stackoverflow.com/questions/31154596/represent-an-special-keyboard-key-in-the-current-culture/31204719#31204719
+		static string GetCharsFromKeys(Keys keys, bool shift, bool altGr)
+		{
+			var buf = new StringBuilder(256);
+			var keyboardState = new byte[256];
+			if (shift)
+				keyboardState[(int)Keys.ShiftKey] = 0xff;
+			if (altGr)
+			{
+				keyboardState[(int)Keys.ControlKey] = 0xff;
+				keyboardState[(int)Keys.Menu] = 0xff;
+			}
+			ToUnicode((uint)KeyInterop.VirtualKeyFromKey((Key)keys), 0, keyboardState, buf, 256, 0);
+			return buf.ToString();
+		}
+		*/
+
 		/// <summary>
 		/// Convert "Oem" console keys to user-readable form (US-only)
 		/// </summary>
@@ -481,7 +538,7 @@ namespace GameLauncher_Console
 		/// <returns>Value of the translated key or original key if not found</returns>
 		public static string KeyToUSFormat(string strCKeyName)
 		{
-			if (System.Windows.Forms.InputLanguage.CurrentInputLanguage.LayoutName == "US")
+			if (InputLanguage.CurrentInputLanguage.LayoutName == "US")
 			{
 				switch (strCKeyName)
 				{
@@ -521,7 +578,7 @@ namespace GameLauncher_Console
 		/// <returns>Value of the translated key or original key if not found</returns>
 		public static string ShortenKeyName(string strCKeyName)
 		{
-			if (System.Windows.Forms.InputLanguage.CurrentInputLanguage.LayoutName == "US")
+			if (InputLanguage.CurrentInputLanguage.LayoutName == "US")
 				strCKeyName = KeyToUSFormat(strCKeyName);
 			switch (strCKeyName)
 			{
@@ -1014,5 +1071,15 @@ namespace GameLauncher_Console
 			}
 			return strKeyName;
 		}
+
+		// https://stackoverflow.com/questions/31154596/represent-an-special-keyboard-key-in-the-current-culture/31204719#31204719
+		/*
+		[DllImport("user32.dll")]
+		public static extern int ToUnicode(uint virtualKeyCode, uint scanCode,
+			byte[] keyboardState,
+			[Out, MarshalAs(UnmanagedType.LPWStr, SizeConst = 64)]
+			StringBuilder receivingBuffer,
+			int bufferSize, uint flags);
+		*/
 	}
 }

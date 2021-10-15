@@ -1,162 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using static System.Environment;
+﻿using Logger;
 using Microsoft.Win32;
-using Logger;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Versioning;
 
 namespace GameLauncher_Console
 {
+
 	/// <summary>
 	/// Class used to scan the registry and retrieve the game data.
 	/// </summary>
+	[SupportedOSPlatform("windows")]
 	public static class CRegScanner
 	{
-		// CONSTANTS
-
-		// Steam (Valve)
-		public const string STEAM_NAME				= "Steam";
-		public const string STEAM_NAME_LONG			= "Steam";
-		//private const string STEAM_UNREG			= "Steam"; // HKLM32 Uninstall
-
-		// GOG Galaxy
-		public const string GOG_NAME				= "GOG";
-		public const string GOG_NAME_LONG			= "GOG Galaxy";
-		public const string GOG_REG_GAMES			= @"SOFTWARE\WOW6432Node\GOG.com\Games";
-		public const string GOG_REG_CLIENT			= @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
-		public const string GOG_GALAXY_EXE			= "\\GalaxyClient.exe";
-		//private const string GOG_GALAXY_UNREG		= "{7258BA11-600C-430E-A759-27E2C691A335}_is1"; // HKLM32 Uninstall
-
-		// Ubisoft Connect (formerly Uplay)
-		public const string UPLAY_NAME				= "Ubisoft";
-		public const string UPLAY_NAME_LONG			= "Ubisoft Connect";
-		public const string UPLAY_INSTALL			= "Uplay Install ";
-		private const string UPLAY_LAUNCH			= "uplay://launch/";
-		//private const string UPLAY_UNREG				= "Uplay" // HKLM32 Uninstall
-		//private const string UPLAY_REG				= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
-
-		// Origin [soon to be EA Desktop]
-		public const string ORIGIN_NAME				= "Origin"; //"EA"
-		public const string ORIGIN_NAME_LONG		= "Origin"; //"EA Desktop";
-		private const string ORIGIN_CONTENT			= @"\Origin\LocalContent";
-		private const string ORIGIN_PATH			= "dipinstallpath=";
-		/*
-		private const string ORIGIN_GAMES			= "Origin Games";
-		private const string EA_GAMES				= "EA Games";
-		private const string ORIGIN_UNREG			= "Origin"; // HKLM32 Uninstall
-		private const string ORIGIN_REG				= @"SOFTWARE\WOW6432Node\Origin"; // HKLM32
-		*/
-
-		// Bethesda.net Launcher
-		public const string BETHESDA_NAME			= "Bethesda";
-		public const string BETHESDA_NAME_LONG		= "Bethesda.net Launcher";
-		private const string BETHESDA_NET			= "bethesda.net";
-		private const string BETHESDA_PATH			= "Path";
-		private const string BETHESDA_CREATION_KIT	= "Creation Kit";
-		private const string BETHESDA_LAUNCH		= "bethesda://run/";
-		private const string BETHESDA_PRODUCT_ID	= "ProductID";
-		//private const string BETHESDA_UNREG			= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
-		//private const string BETHESDA_REG			= @"SOFTWARE\WOW6432Node\Bethesda Softworks\Bethesda.net"; // HKLM32
-
-		// Battle.net (Blizzard)
-		public const string BATTLENET_NAME			= "Battlenet";
-		public const string BATTLENET_NAME_LONG		= "Battle.net";
-		//private const string BATTLE_NET_UNREG		= "Battle.net"; // HKLM32 Uninstall
-		private const string BATTLE_NET_REG			= @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
-
-		// Amazon Games
-		//public const string AMAZON_NAME			= "Amazon";
-		public const string AMAZON_NAME_LONG		= "Amazon";
-		//private const string AMAZON_UNREG			= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
-
-		// Big Fish Games
-		public const string BIGFISH_NAME			= "BigFish";
-		public const string BIGFISH_NAME_LONG		= "Big Fish";
-		private const string BIGFISH_GAME_FOLDER	= "BFG-";
-		//private const string BIGFISH_LAUNCH			= "LaunchGame.bfg";
-		public const string BIGFISH_REG				= @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
-		private const string BIGFISH_GAMES			= @"SOFTWARE\WOW6432Node\Big Fish Games\Persistence\GameDB"; // HKLM32
-		private const string BIGFISH_ID				= "WrapID";
-		private const string BIGFISH_PATH			= "ExecutablePath";
-		private const string BIGFISH_ACTIV			= "Activated";
-		private const string BIGFISH_DAYS			= "DaysLeft";
-		private const string BIGFISH_TIME			= "TimeLeft";
-
-		// Epic Games Launcher
-		//public const string EPIC_NAME				= "Epic";
-		public const string EPIC_NAME_LONG			= "Epic Games Launcher";
-		//private const string EPIC_GAMES_UNREG			= "{A2FB1E1A-55D9-4511-A0BF-DEAD0493FBBC}"; // HKLM32 Uninstall
-		//private const string EPIC_GAMES_UNREG			= "{A7BBC0A6-3DB0-41CC-BCED-DDFC5D4F3060}"; // HKLM32 Uninstall
-
-		// Arc
-		/*
-		private const string ARC_NAME				= "Arc";
-		private const string ARC_NAME_LONG			= "Arc";
-		private const string ARC_UNREG				= "{CED8E25B-122A-4E80-B612-7F99B93284B3}"; // HKLM32 Uninstall
-		*/
-
-		// itch
-		//public const string ITCH_NAME				= "itch";
-		public const string ITCH_NAME_LONG			= "itch";
-		/*
-		private const string ITCH_DB				= @"\itch\db\butler.db";
-		private const string ITCH_GAME_FOLDER		= "apps";
-		private const string ITCH_METADATA			= ".itch\\receipt.json.gz";
-		private const string ITCH_UNREG				= "itch"; // HKCU64 Uninstall
-		*/
-
-		// Paradox Launcher
-		public const string PARADOX_NAME			= "Paradox";
-		public const string PARADOX_NAME_LONG		= "Paradox Launcher";
-		public const string PARADOX_REG				= @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; // HKLM32
-		public const string PARADOX_PATH			= "Path";
-
-		// Plarium Play
-		/*
-		public const string PLARIUM_NAME			= "Plarium";
-		public const string PLARIUM_NAME_LONG		= "Plarium Play";
-		private const string PLARIUM_UNREG			= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
-		*/
-
-		// Rockstar Games Launcher
-		/*
-		public const string ROCKSTAR_NAME			= "Rockstar";
-		public const string ROCKSTAR_NAME_LONG		= "Rockstar Games Launcher";
-		private const string ROCKSTAR_REG			= @"SOFTWARE\WOW6432Node\Rockstar Games\Launcher"; // HKLM32
-		*/
-
-		// Twitch [deprecated, now Amazon Games]
-		/*
-		public const string TWITCH_NAME				= "Twitch";
-		public const string TWITCH_NAME_LONG		= "Twitch";
-		private const string TWITCH_UNREG			= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
-		*/
-
-		// Wargaming.net Game Center
-		/*
-		public const string WARGAMING_NAME			= "Wargaming";
-		public const string WARGAMING_NAME_LONG		= "Wargaming.net Game Center";
-		private const string WARGAMING_UNREG		= "Wargaming.net Game Center"; // HKCU64 Uninstall
-		*/
-
-		// Indiegala
-		public const string IG_NAME					= "Indiegala"; //"IGClient";
-		public const string IG_NAME_LONG			= "Indiegala Client";
-		//private const string IG_UNREG				= "6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64 Uninstall
-		public const string IG_REG					= @"SOFTWARE\6f4f090a-db12-53b6-ac44-9ecdb7703b4a"; // HKLM64
-
-		// Microsoft Store/Xbox Game Pass
-		public const string MS_NAME					= "Microsoft";
-		public const string MS_NAME_LONG			= "Microsoft Store";
-		private const string MS_LAUNCH_SUFFIX		= @":\\";
-
-		// Custom games
-		//public const string CUSTOM_NAME				= "Custom";
-		public const string CUSTOM_NAME_LONG		= "Custom";
-
-		// generic constants
 		public const string NODE64_REG				= @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
 		public const string NODE32_REG				= @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
 		public const string GAME_DISPLAY_NAME		= "DisplayName";
@@ -167,640 +24,18 @@ namespace GameLauncher_Console
 		public const string INSTALLSHIELD			= "_is1";
 
 		/// <summary>
-		/// Collect data from the registry
-		/// </summary>
-		public struct RegistryGameData
-		{
-			public string m_strID;
-			public string m_strTitle;
-			public string m_strLaunch;
-			public string m_strIcon;
-			public string m_strUninstall;
-			public string m_strAlias;
-			public bool m_bInstalled;
-			public string m_strPlatform;
-
-			public RegistryGameData(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, string strAlias, bool bInstalled, string strPlatform)
-			{
-				m_strID			= strID;
-				m_strTitle		= strTitle;
-				m_strLaunch		= strLaunch;
-				m_strIcon		= strIconPath;
-				m_strUninstall	= strUninstall;
-				m_strAlias		= strAlias;
-				m_bInstalled	= bInstalled;
-				m_strPlatform	= strPlatform;
-			}
-		}
-
-		/// <summary>
-		/// Scan the registry for games, add new games to memory and export into JSON document
-		/// </summary>
-		public static void ScanGames(bool bOnlyCustom, bool bExpensiveIcons, bool bFirstScan)
-		{
-			CGameData.CTempGameSet tempGameSet = new CGameData.CTempGameSet();
-			CLogger.LogDebug("-----------------------");
-			List<RegistryGameData> gameDataList = GetGames(bOnlyCustom, bExpensiveIcons);
-			foreach (RegistryGameData data in gameDataList)
-			{
-				tempGameSet.InsertGame(data.m_strID, data.m_strTitle, data.m_strLaunch, data.m_strIcon, data.m_strUninstall, data.m_bInstalled, false, true, false, data.m_strAlias, data.m_strPlatform, 0f);
-			}
-			Console.Write(".");
-			CLogger.LogInfo("Looking for {0} games...", CUSTOM_NAME_LONG.ToUpper());
-			CGameFinder.ImportFromFolder(ref tempGameSet);
-			CGameData.MergeGameSets(tempGameSet);
-			if (bFirstScan)
-				CGameData.SortGames(true, false, (bool)CConfig.GetConfigBool(CConfig.CFG_USEINST), true);
-			CLogger.LogDebug("-----------------------");
-			Console.WriteLine();
-			CJsonWrapper.ExportGames(CGameData.GetPlatformGameList(CGameData.GamePlatform.All).ToList());
-		}
-
-		/// <summary>
-		/// Scan the directory and try to find all installed games
-		/// </summary>
-		/// <returns>List of game data objects</returns>
-		public static List<RegistryGameData> GetGames(bool bOnlyCustom, bool bExpensiveIcons)
-		{
-			List<RegistryGameData> gameDataList = new List<RegistryGameData>();
-
-			if (!bOnlyCustom)
-			{
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", AMAZON_NAME_LONG.ToUpper());
-				CJsonWrapper.GetAmazonGames(gameDataList, bExpensiveIcons);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", BATTLENET_NAME_LONG.ToUpper());
-				GetBattlenetGames(gameDataList);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", BETHESDA_NAME_LONG.ToUpper());
-				GetBethesdaGames(gameDataList);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", BIGFISH_NAME_LONG.ToUpper());
-				GetBigFishGames(gameDataList, bExpensiveIcons);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", EPIC_NAME_LONG.ToUpper());
-				CJsonWrapper.GetEpicGames(gameDataList);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", GOG_NAME_LONG.ToUpper());
-				CJsonWrapper.GetGogGames(gameDataList);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", IG_NAME_LONG.ToUpper());
-				CJsonWrapper.GetIGGames(gameDataList);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", ITCH_NAME_LONG.ToUpper());
-				CJsonWrapper.GetItchGames(gameDataList);
-#if DEBUG
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", MS_NAME_LONG.ToUpper());
-				CStoreScanner.GetMSStoreGames(gameDataList);
-#endif
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", ORIGIN_NAME_LONG.ToUpper());
-				GetOriginGames(gameDataList);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", PARADOX_NAME_LONG.ToUpper());
-				CJsonWrapper.GetParadoxGames(gameDataList);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", STEAM_NAME_LONG.ToUpper());
-				CJsonWrapper.GetSteamGames(gameDataList, bExpensiveIcons);
-				Console.Write(".");
-				CLogger.LogInfo("Looking for {0} games...", UPLAY_NAME_LONG.ToUpper());
-				GetUplayGames(gameDataList, bExpensiveIcons);
-			}
-
-			return gameDataList;
-		}
-
-		/// <summary>
-		/// Find installed and not-installed Ubisoft Connect (formerly Uplay) games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetUplayGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
-			List<string> uplayIds = new List<string>();
-			List<string> uplayIcons = new List<string>();
-			string uplayLoc = "";
-
-			using (RegistryKey uplayKey = Registry.LocalMachine.OpenSubKey(NODE32_REG + "\\Uplay", RegistryKeyPermissionCheck.ReadSubTree))
-			{
-				if (uplayKey == null)
-				{
-					CLogger.LogInfo("{0} client not found in the registry.", UPLAY_NAME.ToUpper());
-					return;
-				}
-				uplayLoc = GetRegStrVal(uplayKey, GAME_INSTALL_LOCATION);
-			}
-
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-			{
-				keyList = FindGameFolders(key, UPLAY_INSTALL);
-
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, UPLAY_NAME.ToUpper());
-				foreach(var data in keyList)
-				{
-					string loc = GetRegStrVal(data, GAME_INSTALL_LOCATION);
-
-					string strID = "";
-					string strTitle = "";
-					string strLaunch = "";
-					string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Uplay);
-					try
-					{
-						strID = Path.GetFileName(data.Name);
-						uplayIds.Add(strID);
-						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = UPLAY_LAUNCH + GetUplayGameID(strID);
-						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						uplayIcons.Add(strIconPath);
-						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
-							strIconPath = CGameFinder.FindGameBinaryFile(loc, strTitle);
-						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"' })));
-						if (strAlias.Length > strTitle.Length)
-							strAlias = GetAlias(strTitle);
-						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-							strAlias = "";
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e);
-					}
-					if (!(string.IsNullOrEmpty(strLaunch)))
-						gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-				}
-				CLogger.LogDebug("-----------------------");
-			}
-
-			// Get not-installed games
-			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY) && !(string.IsNullOrEmpty(uplayLoc)))
-            {
-				string uplayCfgFile = Path.Combine(uplayLoc, @"cache\configuration\configurations");
-				try
-				{
-					if (File.Exists(uplayCfgFile))
-					{
-						char[] trimChars = { ' ', '\'', '"' };
-						List<string> uplayCfg = new List<string>();
-						int nGames = 0;
-						bool dlc = false;
-						string strID = "";
-						string strTitle = "";
-						string strIconPath = "";
-						string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Uplay);
-
-						CLogger.LogDebug("{0} not-installed games:", UPLAY_NAME.ToUpper());
-						uplayCfg.AddRange(File.ReadAllLines(uplayCfgFile));
-						foreach (string line in uplayCfg)  // Note if the last game is valid, this method won't catch it; but that appears very unlikely
-						{
-							if (line.Trim().StartsWith("root:"))
-							{
-								if (nGames > 0 && !(string.IsNullOrEmpty(strID)) && dlc == false)
-								{
-									bool found = false;
-									foreach (string id in uplayIds)
-									{
-										if (id.Equals(strID))
-											found = true;
-									}
-									if (!found)
-									{
-										// The Uplay ID is not always available, so this is an alternative test
-										// However, if user has e.g., a demo and the full game installed, this might get a false negative
-										foreach (string icon in uplayIcons)
-										{
-											if (Path.GetFileName(icon).Equals(Path.GetFileName(strIconPath)))
-												found = true;
-										}
-									}
-									if (!found)
-									{
-										strTitle = strTitle.Replace("''", "'");
-										CLogger.LogDebug($"- *{strTitle}");
-										gameDataList.Add(
-											new RegistryGameData(strID, strTitle, "", strIconPath, "", "", false, strPlatform));
-									}
-								}
-
-								nGames++;
-								dlc = false;
-								strID = "";
-								strTitle = "";
-								strIconPath = "";
-							}
-							
-							if (dlc == true)
-								continue;
-							else if (line.Trim().StartsWith("is_dlc: yes"))
-							{
-								dlc = true;
-								continue;
-							}
-							else if (string.IsNullOrEmpty(strTitle) && line.Trim().StartsWith("name: "))
-								strTitle = line.Substring(line.IndexOf("name:") + 6).Trim(trimChars);
-							else if (line.Trim().StartsWith("display_name: "))  // replace "name:" if it exists
-								strTitle = line.Substring(line.IndexOf("display_name:") + 14).Trim(trimChars);
-							else if (strTitle.Equals("NAME") && line.Trim().StartsWith("NAME: "))
-								strTitle = line.Substring(line.IndexOf("NAME:") + 6).Trim(trimChars);
-							else if (strTitle.Equals("GAMENAME") && line.Trim().StartsWith("GAMENAME: "))
-								strTitle = line.Substring(line.IndexOf("GAMENAME:") + 10).Trim(trimChars);
-							else if (strTitle.Equals("l1") && line.Trim().StartsWith("l1: "))
-								strTitle = line.Substring(line.IndexOf("l1:") + 4).Trim(trimChars);
-
-							else if (line.Trim().StartsWith("icon_image: ") && line.Trim().EndsWith(".ico"))
-								strIconPath = Path.Combine(Path.Combine(uplayLoc, "data\\games"), line.Substring(line.IndexOf("icon_image:") + 12).Trim());
-							else if (string.IsNullOrEmpty(strID))
-							{
-								if (line.Trim().StartsWith("game_code: ") && !(strID.StartsWith(UPLAY_INSTALL)))
-									strID = "uplay_" + line.Substring(line.IndexOf("game_code:") + 11).Trim();
-								else if (line.Trim().StartsWith(@"register: HKEY_LOCAL_MACHINE\SOFTWARE\Ubisoft\Launcher\Installs\"))
-								{
-									strID = line.Substring(0, line.LastIndexOf("\\")).Trim();
-									strID = UPLAY_INSTALL + strID.Substring(strID.LastIndexOf("\\") + 1);
-								}
-							}
-						}
-					}
-				}
-				catch (Exception e)
-                {
-					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", UPLAY_NAME.ToUpper(), uplayCfgFile));
-                }
-            }
-		}
-
-		/// <summary>
-		/// Find installed EA Desktop/Origin games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetOriginGames(List<RegistryGameData> gameDataList)
-		{
-			List<RegistryKey> keyList = new List<RegistryKey>();
-			List<string> dirs = new List<string>();
-			string path = "";
-			try
-			{
-				path = GetFolderPath(SpecialFolder.CommonApplicationData) + ORIGIN_CONTENT;
-				if (Directory.Exists(path))
-				{
-					dirs.AddRange(Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly));
-				}
-			}
-			catch (Exception e)
-            {
-				CLogger.LogError(e, string.Format("{0} directory read error: {1}", ORIGIN_NAME.ToUpper(), path));
-			}
-
-			CLogger.LogInfo("{0} {1} games found", dirs.Count, ORIGIN_NAME.ToUpper());
-			foreach (string dir in dirs)
-			{
-				string[] files = { };
-				string install = "";
-
-				string strID = Path.GetFileName(dir);
-				string strTitle = strID;
-				string strLaunch = "";
-				//string strIconPath = "";
-				string strUninstall = "";
-				string strAlias = "";
-				string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Origin);
-
-				try
-				{
-					files = Directory.GetFiles(dir, "*.mfst", SearchOption.TopDirectoryOnly);
-				}
-				catch (Exception e)
-				{
-					CLogger.LogError(e);
-				}
-
-				foreach (string file in files)
-				{
-					try
-					{
-						string strDocumentData = File.ReadAllText(file);
-						string[] subs = strDocumentData.Split('&');
-						foreach (string sub in subs)
-						{
-							if (sub.StartsWith(ORIGIN_PATH))
-								install = sub.Substring(15);
-						}
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", ORIGIN_NAME.ToUpper(), file));
-					}
-				}
-
-				if (!string.IsNullOrEmpty(install))
-				{
-					install = Uri.UnescapeDataString(install);
-
-					using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-					{
-						if (key != null)
-						{
-							keyList = FindGameKeys(key, install, GAME_INSTALL_LOCATION, new string[] { ORIGIN_NAME });
-							foreach (var data in keyList)
-							{
-								strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-								strLaunch = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-								strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-							}
-						}
-					}
-
-					CLogger.LogDebug($"- {strTitle}");
-					if (string.IsNullOrEmpty(strLaunch))
-						strLaunch = CGameFinder.FindGameBinaryFile(install, strTitle);
-					strAlias = GetAlias(Path.GetFileNameWithoutExtension(install));
-					if (strAlias.Length > strTitle.Length)
-						strAlias = GetAlias(strTitle);
-					if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-						strAlias = "";
-
-					if (!(string.IsNullOrEmpty(strLaunch)))
-						gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
-				}
-			}
-			CLogger.LogDebug("----------------------");
-		}
-
-		/// <summary>
-		/// Find installed Bethesda.net games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetBethesdaGames(List<RegistryGameData> gameDataList)
-		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
-
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-			{
-				if (key == null)
-				{
-					CLogger.LogInfo("{0} client not found in the registry.", BETHESDA_NAME.ToUpper());
-					return;
-				}
-
-				keyList = FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
-
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, BETHESDA_NAME.ToUpper());
-				foreach(var data in keyList)
-				{
-					string loc = GetRegStrVal(data, BETHESDA_PATH);
-
-					string strID = "";
-					string strTitle = "";
-					string strLaunch = "";
-					string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Bethesda);
-					try
-					{
-						strID = Path.GetFileName(data.Name);
-						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = BETHESDA_LAUNCH + GetRegStrVal(data, BETHESDA_PRODUCT_ID);
-						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						if (string.IsNullOrEmpty(strIconPath))
-							strIconPath = Path.Combine(loc.Trim(new char[] { ' ', '"' }), string.Concat(strTitle.Split(Path.GetInvalidFileNameChars())) + ".exe");
-						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(loc.Trim(new char[] { ' ', '\'', '"' })));
-						if (strAlias.Length > strTitle.Length)
-							strAlias = GetAlias(strTitle);
-						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-							strAlias = "";
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e);
-					}
-					if (!(string.IsNullOrEmpty(strLaunch)))
-						gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-				}
-				CLogger.LogDebug("------------------------");
-			}
-		}
-
-		/// <summary>
-		/// Find installed Battle.net games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetBattlenetGames(List<RegistryGameData> gameDataList)
-		{
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
-
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-			{
-				if (key == null)
-				{
-					CLogger.LogInfo("{0} client not found in the registry.", BATTLENET_NAME.ToUpper());
-					return;
-				}
-
-				keyList = FindGameKeys(key, BATTLE_NET_REG, GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_REG });
-
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, BATTLENET_NAME.ToUpper());
-				foreach(var data in keyList)
-				{
-					string strID = "";
-					string strTitle = "";
-					string strLaunch = "";
-					//string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Battlenet);
-					try
-					{
-						strID = Path.GetFileName(data.Name);
-						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = GetAlias(Path.GetFileNameWithoutExtension(GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"' })));
-						if (strAlias.Length > strTitle.Length)
-							strAlias = GetAlias(strTitle);
-						if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-							strAlias = "";
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e);
-					}
-					if (!(string.IsNullOrEmpty(strLaunch)))
-						gameDataList.Add(
-							new RegistryGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
-				}
-				CLogger.LogDebug("--------------------------");
-			}
-		}
-
-		/// <summary>
-		/// Find installed and not-installed Big Fish games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetBigFishGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			List<RegistryKey> keyList;
-
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(BIGFISH_GAMES, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-			{
-				if (key == null)
-				{
-					CLogger.LogInfo("{0} client not found in the registry.", BIGFISH_NAME.ToUpper());
-					return;
-				}
-
-				keyList = FindGameFolders(key, "");
-
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, BIGFISH_NAME.ToUpper());
-				foreach (var data in keyList)
-				{
-					string wrap = Path.GetFileName(data.Name);
-					if (wrap.Equals("F7315T1L1"))  // Big Fish Casino
-						continue;
-
-					string strID = "bfg_" + wrap;
-					string strTitle = "";
-					string strLaunch = "";
-					string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.BigFish);
-					try
-					{
-						bool found = false;
-						strTitle = GetRegStrVal(data, "Name");
-
-						// If this is an expired trial, count it as not-installed
-						int activated = (int)GetRegDWORDVal(data, BIGFISH_ACTIV);
-						int daysLeft = (int)GetRegDWORDVal(data, BIGFISH_DAYS);
-						int timeLeft = (int)GetRegDWORDVal(data, BIGFISH_TIME);
-						if (activated > 0 || timeLeft > 0 || daysLeft > 0)
-						{
-							found = true;
-							CLogger.LogDebug($"- {strTitle}");
-							strLaunch = GetRegStrVal(data, BIGFISH_PATH);
-							strAlias = GetAlias(strTitle);
-							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
-								strAlias = "";
-
-							List<RegistryKey> unKeyList;
-							using (RegistryKey key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-							{
-								if (key2 != null)
-								{
-									unKeyList = FindGameFolders(key2, BIGFISH_GAME_FOLDER);
-									foreach (var data2 in unKeyList)
-									{
-										if (GetRegStrVal(data2, BIGFISH_ID).Equals(wrap))
-										{
-											strIconPath = GetRegStrVal(data2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-											strUninstall = GetRegStrVal(data2, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
-										}
-									}
-								}
-							}
-							if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
-								strIconPath = CGameFinder.FindGameBinaryFile(Path.GetDirectoryName(strLaunch), strTitle);
-							if (!(string.IsNullOrEmpty(strLaunch)))
-								gameDataList.Add(
-									new RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-						}
-
-						// Add not-installed games
-						if (!found)
-						{
-							CLogger.LogDebug($"- *{strTitle}");
-							gameDataList.Add(new RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-						}
-					}
-					catch (Exception e)
-					{
-						CLogger.LogError(e);
-					}
-				}
-				CLogger.LogDebug("------------------------");
-			}
-		}
-
-		/*
-		/// <summary>
-		/// Find installed Amazon games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetAmazonGames(List<RegistryGameData> gameDataList, bool expensiveIcons)
-		{
-			// moved to JsonWrapper.cs
-		}
-		*/
-
-		/*
-		/// <summary>
-		/// Find installed Epic store games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetEpicGames(List<RegistryGameData> gameDataList)
-		{
-			// moved to JsonWrapper.cs
-		}
-		*/
-
-		/*
-		/// <summary>
-		/// Find installed GOG games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetGogGames(List<RegistryGameData> gameDataList)
-		{
-			// moved to JsonWrapper.cs
-		}
-		*/
-
-		/*
-		/// <summary>
-		/// Find installed Itch games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetItchGames(List<RegistryGameData> gameDataList)
-		{
-			// moved to JsonWrapper.cs
-		}
-		*/
-
-		/*
-		/// <summary>
-		/// Find installed Steam games
-		/// </summary>
-		/// <param name="gameDataList">List of game data objects</param>
-		private static void GetSteamGames(List<RegistryGameData> gameDataList)
-		{
-			// moved to JsonWrapper.cs
-		}
-		*/
-
-		/// <summary>
 		/// Find game keys in specified root
 		/// Looks for a key-value pair inside the specified root.
 		/// </summary>
 		/// <param name="root">Root folder that will be scanned</param>
-		/// <param name="strKey">The target key that should contain the target value</param>
-		/// <param name="strValue">The target value in the key</param>
-		/// <param name="ignore">Function will ignore these folders (used to ignore things like launchers)</param>
+		/// <param name="strValue">The target value in the subkey</param>
+		/// <param name="strKeyName">The target key that should contain the target value</param>
+		/// <param name="ignore">Function will ignore these subkey names (used to ignore things like launchers)</param>
 		/// <returns>List of game registry keys</returns>
-		private static List<RegistryKey> FindGameKeys(RegistryKey root, string strKey, string strValue, string[] ignore)
+		public static List<RegistryKey> FindGameKeys(RegistryKey root, string strValue, string strKeyName, string[] ignore)
 		{
-			LinkedList<RegistryKey> toCheck = new LinkedList<RegistryKey>();
-			List<RegistryKey> gameKeys = new List<RegistryKey>();
+			LinkedList<RegistryKey> toCheck = new();
+			List<RegistryKey> gameKeys = new();
 
 			toCheck.AddLast(root);
 
@@ -813,9 +48,9 @@ namespace GameLauncher_Console
 				{
 					foreach(var name in root.GetValueNames())
 					{
-						if(root.GetValueKind(name) == RegistryValueKind.String && name == strValue)
+						if(root.GetValueKind(name) == RegistryValueKind.String && name == strKeyName)
 						{
-							if(((string)root.GetValue(name)).Contains(strKey))
+							if(((string)root.GetValue(name)).Contains(strValue, CDock.IGNORE_CASE))
 							{
 								gameKeys.Add(root);
 								break;
@@ -855,10 +90,10 @@ namespace GameLauncher_Console
 		/// <param name="root">Root directory that will be scanned</param>
 		/// <param name="strFolder">Target game folder</param>
 		/// <returns>List of Reg keys with game folders</returns>
-		private static List<RegistryKey> FindGameFolders(RegistryKey root, string strFolder)
+		public static List<RegistryKey> FindGameFolders(RegistryKey root, string strFolder)
 		{
-			LinkedList<RegistryKey> toCheck = new LinkedList<RegistryKey>();
-			List<RegistryKey> gameKeys = new List<RegistryKey>();
+			LinkedList<RegistryKey> toCheck = new();
+			List<RegistryKey> gameKeys = new();
 
 			toCheck.AddLast(root);
 
@@ -873,7 +108,7 @@ namespace GameLauncher_Console
 					{
 						if(!(sub.Equals("Microsoft")))
 						{
-							if (string.IsNullOrEmpty(strFolder) || sub.IndexOf(strFolder, StringComparison.OrdinalIgnoreCase) >= 0)
+							if (string.IsNullOrEmpty(strFolder) || sub.Contains(strFolder, CDock.IGNORE_CASE))
 								gameKeys.Add(root.OpenSubKey(sub, RegistryKeyPermissionCheck.ReadSubTree));
 						}
 					}
@@ -900,7 +135,7 @@ namespace GameLauncher_Console
             {
 				CLogger.LogError(e);
             }
-			return String.Empty;
+			return string.Empty;
 		}
 
 		/// <summary>
@@ -931,90 +166,30 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Simplify a string for use as a default alias
+		/// Get a value from the registry if it exists
 		/// </summary>
-		/// <param name="title">The game's title</param>
-		/// <returns>simplified string</returns>
-		public static string GetAlias(string title)
+		/// <param name="key">The registry key</param>
+		/// <param name="valName">The registry value name</param>
+		/// <returns>the value's data as a string</returns>
+		public static byte[] GetRegBinaryVal(RegistryKey key, string valName)
 		{
-			string alias = title.ToLower();
-			/*
-			foreach (string prep in new List<string> { "for", "of", "to" })
+			try
 			{
-				if (alias.StartsWith(prep + " "))
-					alias = alias.Substring(prep.Length + 1);
-			}
-			*/
-			foreach (string art in CGameData.articles)
-			{
-				if (alias.StartsWith(art + " "))
-					alias = alias.Substring(art.Length + 1);
-			}
-			alias = new string(alias.Where(c => !char.IsWhiteSpace(c) && !char.IsPunctuation(c) && !char.IsSymbol(c)).ToArray());
-			return alias;
-		}
-
-		/// <summary>
-		/// Scan the key name and extract the Steam game id
-		/// </summary>
-		/// <param name="key">The game string</param>
-		/// <returns>Steam game ID as string</returns>
-		public static string GetSteamGameID(string key)
-		{
-			return Path.GetFileNameWithoutExtension(key.Substring(key.LastIndexOf("_") + 1));
-		}
-
-		/// <summary>
-		/// Scan the key name and extract the Steam game id
-		/// </summary>
-		/// <param name="key">The game string</param>
-		/// <returns>Steam game ID as string</returns>
-		public static string GetGOGGameID(string key)
-		{
-			return key.Substring(4);
-		}
-
-		/// <summary>
-		/// Scan the key name and extract the Uplay game id
-		/// </summary>
-		/// <param name="key">The game string</param>
-		/// <returns>Uplay game ID as string</returns>
-		public static string GetUplayGameID(string key)
-		{
-			int index = 0;
-			for(int i = key.Length - 1; i > -1; i--)
-			{
-				if(char.IsDigit(key[i]))
+				object valData = key.GetValue(valName);
+				/*
+				Type valType = valData.GetType();
+				if (valData != null && valType == typeof(byte))
 				{
-					index = i;
-					continue;
-				}
-				break;
+				*/
+				//if (byte.TryParse(valData.ToString(), out byte result))
+				return (byte[])valData;
+				//}
 			}
-
-			return key.Substring(index);
-		}
-
-		/*
-		/// <summary>
-		/// Scan the key name and extract the Amazon game id [no longer necessary after moving to SQLite method]
-		/// </summary>
-		/// <param name="key">The game string</param>
-		/// <returns>Amazon game ID as string</returns>
-		private static string GetAmazonGameID(string key)
-		{
-			return key.Substring(key.LastIndexOf(" -p ") + 4);
-		}
-		*/
-
-		/// <summary>
-		/// Scan the key name and extract the Itch game id
-		/// </summary>
-		/// <param name="key">The game string</param>
-		/// <returns>itch game ID as string</returns>
-		public static string GetItchGameID(string key)
-		{
-			return key.Substring(5);
+			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+			return null;
 		}
 	}
 }

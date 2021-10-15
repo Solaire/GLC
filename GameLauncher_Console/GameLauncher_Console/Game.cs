@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SQLite;
 using System.Linq;
+using System.Text.Json;
 using static SqlDB.CSqlField;
 
 namespace CGame_Test // TODO: GameLauncher_Console
@@ -61,7 +62,10 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 m_sqlRow["IsHidden"]        = new CSqlFieldBoolean("IsHidden"   , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["Frequency"]       = new CSqlFieldDouble("Frequency"   , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Rating"]          = new CSqlFieldInteger("Rating"     , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["NumRuns"]         = new CSqlFieldInteger("NumRuns"    , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["LastRun"]         = new CSqlFieldString("LastRun"     , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["Icon"]            = new CSqlFieldString("Icon"        , QryFlag.cInsWrite | QryFlag.cSelRead);
+                m_sqlRow["Tags"]            = new CSqlFieldString("Tags"        , QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
                 m_sqlRow["Description"]     = new CSqlFieldString("Description" , QryFlag.cInsWrite | QryFlag.cSelRead);
                 m_sqlRow["IsMultiPlatform"] = new CSqlFieldBoolean("IsMultiPlatform", QryFlag.cInsWrite | QryFlag.cSelRead | QryFlag.cSelWhere);
             }
@@ -130,10 +134,29 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 get { return m_sqlRow["Rating"].Integer; }
                 set { m_sqlRow["Rating"].Integer = value; }
             }
+            public int NumRuns
+            {
+                get { return m_sqlRow["NumRuns"].Integer; }
+                set { m_sqlRow["NumRuns"].Integer = value; }
+            }
+            public string LastRun
+            {
+                get { return m_sqlRow["LastRun"].String; }
+                set { m_sqlRow["LastRun"].String = value; }
+            }
             public string Icon
             {
                 get { return m_sqlRow["Icon"].String; }
                 set { m_sqlRow["Icon"].String = value; }
+            }
+            public List<string> Tags
+            {
+                get {
+                    return new List<string>(
+                        from part in m_sqlRow["Tags"].String.Split('|')
+                        select part.Trim());
+                    }
+                set { m_sqlRow["Tags"].String += "|" + value; } // This is really an Add rather than Set
             }
             public string Description
             {
@@ -200,9 +223,9 @@ namespace CGame_Test // TODO: GameLauncher_Console
         
         #endregion // Query definitions
 
-        private static CQryGame m_qryGame = new CQryGame();
-        private static CDbAttribute m_gameAttribute = new CDbAttribute("Game");
-        private static GameSet m_currentGames = new GameSet();
+        private static CQryGame m_qryGame = new();
+        private static CDbAttribute m_gameAttribute = new("Game");
+        private static GameSet m_currentGames = new();
 
         /// <summary>
         /// Dictionary collection implementation for the game object
@@ -222,12 +245,16 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 // to the top and more difficult ones (alphabetical) to the bottom.
                 [Description("IsFavourite")]
                 cSortFavourite  = 0x01,
-                [Description("Frequency")]
-                cSortFrequency  = 0x02,
+                [Description("IsInstalled")]
+                cSortInstalled  = 0x02,
                 [Description("Rating")]
                 cSortRating     = 0x04,
+                [Description("Frequency")]
+                cSortFrequency  = 0x08,
+                [Description("LastRun")]
+                cSortDate       = 0x10,
                 [Description("Title")]
-                cSortAlpha      = 0x08,
+                cSortAlpha      = 0x20,
             }
 
             private CQryGameSort m_qryGameSort;
@@ -253,7 +280,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
             {
                 // TODO. all, fav, new, hidden games
                 // TODO. ignore article
-                List<int> outGameIDs = new List<int>();
+                List<int> outGameIDs = new();
 
                 m_qryGameSort.MakeFieldsNull();
                 m_qryGameSort.PlatformFK = Platform; // Using current platform
@@ -273,9 +300,9 @@ namespace CGame_Test // TODO: GameLauncher_Console
                         used++;
                     }
                 }
-                if(used == 1) // Remove tailing comma
+                if(used == 1) // Remove trailing comma
                 {
-                    orderByString.Remove(',');
+                    orderByString = orderByString.Remove(',');
                 }
                 else if(used == 0) // Clear if no flags (just in case)
                 {
@@ -313,10 +340,13 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 Launch          = qryGame.Launch;
                 Uninstall       = qryGame.Uninstall;
                 Icon            = qryGame.Icon;
+                Tags            = qryGame.Tags;
                 IsInstalled     = qryGame.IsInstalled;
                 IsFavourite     = qryGame.IsFavourite;
                 IsNew           = qryGame.IsNew;
                 IsHidden        = qryGame.IsHidden;
+                LastRun         = JsonSerializer.Deserialize<DateTime>(qryGame.LastRun);
+                NumRuns         = qryGame.NumRuns;
                 Rating          = qryGame.Rating;
                 Frequency       = qryGame.Frequency;
                 IsMultiPlatform = qryGame.IsMultiPlatform;
@@ -344,10 +374,13 @@ namespace CGame_Test // TODO: GameLauncher_Console
                 // Default rest
                 GameID          = 0;
                 Icon            = "";
+                Tags            = new List<string>() { "" };
                 IsInstalled     = false;
                 IsFavourite     = false;
                 IsNew           = false;
                 IsHidden        = false;
+                LastRun         = DateTime.MinValue;
+                NumRuns         = 0;
                 Rating          = 0;
                 Frequency       = 0.0f;
                 IsMultiPlatform = false;
@@ -362,10 +395,13 @@ namespace CGame_Test // TODO: GameLauncher_Console
             public string Launch        { get; }
             public string Uninstall     { get; }
             public string Icon          { get; set; }
+            public List<string> Tags    { get; set; }
             public bool IsInstalled     { get; set; }
             public bool IsFavourite     { get; set; }
-            public bool IsNew           { get; set; }
+            public bool IsNew           { get; private set; }
             public bool IsHidden        { get; set; }
+            public DateTime LastRun     { get; private set; }
+            public int NumRuns          { get; private set; }
             public double Rating        { get; set; }
             public double Frequency     { get; private set; }
             public bool IsMultiPlatform { get; set; }
@@ -388,6 +424,16 @@ namespace CGame_Test // TODO: GameLauncher_Console
             public override int GetHashCode()
             {
                 return this.Title.GetHashCode();
+            }
+
+            public static bool operator ==(GameObject left, GameObject right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(GameObject left, GameObject right)
+            {
+                return !(left == right);
             }
         }
 
@@ -422,7 +468,7 @@ namespace CGame_Test // TODO: GameLauncher_Console
 
         public static HashSet<GameObject> GetAllGames()
         {
-            HashSet<GameObject> outHashSet = new HashSet<GameObject>();
+            HashSet<GameObject> outHashSet = new();
             m_qryGame.MakeFieldsNull();
             if(m_qryGame.Select() == SQLiteErrorCode.Ok)
             {
@@ -577,9 +623,9 @@ namespace CGame_Test // TODO: GameLauncher_Console
             HashSet<GameObject> newGames = games.Values.ToHashSet();
             HashSet<GameObject> allGames = GetAllGames().ToHashSet();
 
-            HashSet<GameObject> toAdd = new HashSet<GameObject>(newGames);
+            HashSet<GameObject> toAdd = new(newGames);
             toAdd.ExceptWith(allGames);
-            HashSet<GameObject> toRemove = new HashSet<GameObject>(allGames);
+            HashSet<GameObject> toRemove = new(allGames);
             toRemove.ExceptWith(newGames);
 
             foreach(GameObject game in toAdd)
