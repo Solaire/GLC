@@ -1,12 +1,12 @@
-﻿using GLC_Structs;
+﻿using System;
+using ConsoleUI;
+using ConsoleUI.Event;
+using ConsoleUI.Structs;
 
 namespace GLC
 {
     class CLibraryPage : CPage
     {
-        public delegate void OnFocusEventHandler(object sender, GenericEventArgs<int> e);
-        public event OnFocusEventHandler OnFocus;
-
         private enum PanelIndex
         {
             cPlatform = 0,
@@ -14,56 +14,65 @@ namespace GLC
             cGameInfo = 2,
         }
 
-        public CLibraryPage(CWindow parent) : base(parent, "Library")
+        public CLibraryPage(CWindow parent, ConsoleRect area, string title, int panelCount) : base(parent, area, title, panelCount)
         {
-            m_panels = new CPanel[3];
-            m_activePanel = (int)PanelIndex.cPlatform;
+
         }
 
-        public override void Initialise(PanelType[] panelTypes)
+        public override void Initialise(PanelTypeCode[] panelTypes)
         {
             for(int i = 0; i < panelTypes.Length && i < m_panels.Length; i++)
             {
-                PanelData data = CConstants.PANEL_DATA[(int)panelTypes[i]];
-                switch(panelTypes[i])
+                PanelData data = CConstants.PANEL_DATA[panelTypes[i].Code];
+
+                if(panelTypes[i] == PanelType.PLATFORM_PANEL)
                 {
-                    case PanelType.cPlatforms:
-                    {
-                        m_panels[i] = new CPlatformPanel(data.percentWidth, data.percentHeight, this);
-                    }
-                    break;
-
-                    case PanelType.cGames:
-                    {
-                        m_panels[i] = new CGamesPanel(data.percentWidth, data.percentHeight, this);
-                    }
-                    break;
-
-                    case PanelType.cGameInfo:
-                    {
-                        //m_panels[i] = new CGameInfoPanel(data.percentWidth, data.percentHeight);
-                    }
-                    break;
+                    m_panels[i] = new CPlatformPanel(data.title, panelTypes[i], data.percentWidth, data.percentHeight, this);
+                }
+                else if(panelTypes[i] == PanelType.GAME_LIST_PANEL)
+                {
+                    m_panels[i] = new CGamesPanel(data.title, panelTypes[i], data.percentWidth, data.percentHeight, this);
+                }
+                else if(panelTypes[i] == PanelType.GAME_INFO_PANEL)
+                {
+                    m_panels[i] = new CGameInfoPanel(data.title, panelTypes[i], data.percentWidth, data.percentHeight, this);
                 }
 
                 if(m_panels[i] != null)
                 {
-                    OnFocus += m_panels[i].OnSetFocus;
+                    FocusChange += m_panels[i].OnSetFocus;
                 }
             }
 
-            m_panels[(int)PanelIndex.cPlatform].OnDirty += m_panels[(int)PanelIndex.cGameList].OnUpdateData;
-            //m_panels[(int)PanelIndex.cGameList].OnDirty += m_panels[(int)PanelIndex.cGameInfo].OnUpdateData;
+            m_panels[PanelType.PLATFORM_PANEL.Code].OnDataChangedString  += m_panels[PanelType.GAME_LIST_PANEL.Code].OnUpdateData;
+            m_panels[PanelType.GAME_LIST_PANEL.Code].OnDataChangedString += m_panels[PanelType.GAME_INFO_PANEL.Code].OnUpdateData;
 
-            OnFocus.Invoke(this, new GenericEventArgs<int>((int)PanelIndex.cPlatform));
+            FireFocusChangeEvent(PanelType.PLATFORM_PANEL);
             CalculatePanelLayout();
             Redraw(true);
         }
 
-        public override void OnTab()
+        public override void Initialise()
         {
-            m_activePanel = (m_activePanel == (int)PanelIndex.cPlatform) ? (int)PanelIndex.cGameList : (int)PanelIndex.cPlatform;
-            OnFocus.Invoke(this, new GenericEventArgs<int>(m_activePanel));
+            throw new NotImplementedException();
+        }
+
+        public override void KeyPressed(ConsoleKeyInfo keyInfo)
+        {
+            if(keyInfo.Key == ConsoleKey.Tab)
+            {
+                m_focusedPanelIndex = (m_focusedPanelIndex == (int)PanelIndex.cPlatform) ? (int)PanelIndex.cGameList : (int)PanelIndex.cPlatform;
+                FireFocusChangeEvent(m_panels[m_focusedPanelIndex].PanelType);
+            }
+            else
+            {
+                m_panels[m_focusedPanelIndex].KeyPressed(keyInfo);
+            }
+        }
+
+        public override void OnResize(object sender, ResizeEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }

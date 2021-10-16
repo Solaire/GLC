@@ -1,4 +1,4 @@
-﻿using GLC_Structs;
+﻿using ConsoleUI.Structs;
 
 namespace GLC
 {
@@ -7,8 +7,8 @@ namespace GLC
     /// </summary>
     public static class CConstants
     {
-        public static int DEFAULT_WINDOW_WIDTH  = 60;
-        public static int DEFAULT_WINDOW_HEIGHT = 100;
+        public static int DEFAULT_WINDOW_WIDTH  = 100;
+        public static int DEFAULT_WINDOW_HEIGHT = 48;
 
         public static int TEXT_PADDING_LEFT  = 1;
         public static int TEXT_PADDING_RIGHT = 1;
@@ -16,10 +16,9 @@ namespace GLC
         // Initialise the panel array and each individual panel
         public static readonly PanelData[] PANEL_DATA =
         {
-            new PanelData(PanelType.cPlatforms, "Platforms",    50, 100),
-            new PanelData(PanelType.cGames,     "Games",        50, 100),
-            new PanelData(PanelType.cGameInfo,  "GameInfo",     50, 100),
-            new PanelData(PanelType.cKeyConfig, "Key Bindings", 50, 100),
+            new PanelData(PanelType.PLATFORM_PANEL,  "Platforms", 50, 100),
+            new PanelData(PanelType.GAME_LIST_PANEL, "Games",     50, 70),
+            new PanelData(PanelType.GAME_INFO_PANEL, "GameInfo",  50, 30),
         };
 
         private static readonly System.ConsoleColor[] DEFAULT_COLOUR_ARRAY =
