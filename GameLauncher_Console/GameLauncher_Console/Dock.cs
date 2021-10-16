@@ -1302,7 +1302,11 @@ namespace GameLauncher_Console
 						PlatformGOG.StartGame(game);
 						break;
 					default:
-						Process.Start(game.Launch);
+						CLogger.LogInfo($"Launch: {game.Launch}");
+						if (OperatingSystem.IsWindows())
+							StartShellExecute(game.Launch);
+						else
+							Process.Start(game.Launch);
 						break;
 				}
 				return true;
@@ -1913,19 +1917,16 @@ namespace GameLauncher_Console
 		}
 
 		[SupportedOSPlatform("windows")]
-		public static void StartAndRedirect(string file)
+		public static void StartShellExecute(string file)
 		{
-			StartAndRedirect(file, "", "");
+			Process cmdProcess = new();
+			cmdProcess.StartInfo.FileName = file;
+			cmdProcess.StartInfo.UseShellExecute = true;
+			cmdProcess.Start();
 		}
 
 		[SupportedOSPlatform("windows")]
-		public static void StartAndRedirect(string file, string args)
-		{
-			StartAndRedirect(file, args, "");
-		}
-
-		[SupportedOSPlatform("windows")]
-		public static void StartAndRedirect(string file, string args, string dir)
+		public static void StartAndRedirect(string file, string args = "", string dir = "")
 		{
 			Process cmdProcess = new();
 			cmdProcess.StartInfo.FileName = file;
