@@ -511,8 +511,6 @@ namespace GameLauncher_Console
 				if (m_ConsoleState == ConsoleState.cState_Insert)
 				{
 					code = HandleInsertMenu(nStartY, nStopY, cfgv, cols, false, false, ref game, options);
-					if (code > -1)
-						CDock.m_nCurrentSelection = code;
 					CLogger.LogDebug("HandleInsertMenu:{0},{1}", code, CDock.m_nCurrentSelection);
 				}
 				else //if (m_ConsoleState == ConsoleState.cState_Navigate)
@@ -567,7 +565,11 @@ namespace GameLauncher_Console
 			Console.CursorVisible = false;
 
 			ConsoleKey key;
-			int nLastSelection = CDock.m_nCurrentSelection;
+			int nLastSelection = 0;
+			if (IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
+				nLastSelection = CDock.m_nCurrentSelection;
+			else
+				CDock.m_nCurrentSelection = 0;
 
 			EnlargeWindow(nStartY, options);
 
@@ -585,20 +587,20 @@ namespace GameLauncher_Console
 			{
 				int maxTitles = (Math.Min(9, Console.WindowHeight - nStartY - CDock.INPUT_BOTTOM_CUSHION - CDock.INPUT_ITEM_CUSHION - 1));
 				options = GetPlatformTitles(GamePlatform.All).ToArray();
-				if (DoGameSearch(game, maxTitles, options, out string[] optionsNew, out int nMatches) && nMatches > 0)
+				if (DoGameSearch(game, maxTitles, options, out int nMatches) && nMatches > 0)
 				{
 					CDock.m_nSelectedPlatform = (int)GamePlatform.Search;
 					CDock.m_nSelectedGame = 0;
 					nPage = 0;
-					options = optionsNew;
+					options = GetPlatformTitles(GamePlatform.Search).ToArray();
 					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{
-						if (optionsNew.Length == 1) //nMatches == 1)
+						if (options.Length == 1) //nMatches == 1)
 							return (int)DockSelection.cSel_Default;
 						return (int)DockSelection.cSel_Exit;
 					}
-
-					//DrawMenuTitle(cols);
+					
+					DrawMenuTitle(cols);
 				}
 				else
 				{
@@ -625,6 +627,9 @@ namespace GameLauncher_Console
 
 			if (cfgv.imageSize > 0 && cfgv.imageBorder)
 				CConsoleImage.ShowImageBorder(CDock.sizeImage, CDock.locImage, CDock.IMG_BORDER_X_CUSHION, CDock.IMG_BORDER_Y_CUSHION);
+
+			if (!IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
+				CDock.m_nCurrentSelection = 0;
 
 			if (m_MenuType == MenuType.cType_List)
 				DrawListMenu(CDock.m_nCurrentSelection, nPage, nStartY, nStopY, cfgv, cols, options);
@@ -658,7 +663,8 @@ namespace GameLauncher_Console
 						if (CDock.m_nSelectedPlatform > -1)
 						{
 							CGame selectedGame = GetPlatformGame((GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
-							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.sizeImage, CDock.locImage, imageColour);
+							if (selectedGame != null)
+								CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.sizeImage, CDock.locImage, imageColour);
 						}
 						else
 							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection], options[CDock.m_nCurrentSelection], true, CDock.sizeImage, CDock.locImage, imageColour);
@@ -866,18 +872,20 @@ namespace GameLauncher_Console
 			{
 				int maxTitles = (Math.Min(9, Console.WindowHeight - nStartY - CDock.INPUT_BOTTOM_CUSHION - CDock.INPUT_ITEM_CUSHION - 1));
 				options = GetPlatformTitles(GamePlatform.All).ToArray();
-				if (DoGameSearch(game, maxTitles, options, out string[] optionsNew, out int nMatches) && nMatches > 0)
+				if (DoGameSearch(game, maxTitles, options, out int nMatches) && nMatches > 0)
 				{
 					CDock.m_nSelectedPlatform = (int)GamePlatform.Search;
-					options = optionsNew;
+					CDock.m_nSelectedGame = 0;
+					nPage = 0;
+					options = GetPlatformTitles(GamePlatform.Search).ToArray();
 					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{
-						if (optionsNew.Length == 1) //nMatches == 1)
+						if (options.Length == 1) //nMatches == 1)
 							return (int)DockSelection.cSel_Default;
 						return (int)DockSelection.cSel_Exit;
 					}
 
-					//DrawMenuTitle(cols);
+					DrawMenuTitle(cols);
 				}
 				else
 				{
@@ -887,7 +895,7 @@ namespace GameLauncher_Console
 					Console.WriteLine("{0}: {1}!", CGameData.GetDescription(GamePlatform.Search), CGameData.GetDescription(Match.NoMatches));
 					if ((bool)CConfig.GetConfigBool(CConfig.CFG_USECMD))
 					{
-						//options = new string[0];
+						options = Array.Empty<string>();
 						return (int)DockSelection.cSel_Exit;
 					}
 
@@ -1020,29 +1028,32 @@ namespace GameLauncher_Console
 					string ratingString = "";
 					CGame selectedGame = GetPlatformGame((GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
 
-					if (selectedGame.Alias.Length > 0)
-						aliasString = string.Format(" {0} {1}", CDock.SEPARATOR_SYMBOL, selectedGame.Alias);
-
-					if (selectedGame.Rating > 0)
+					if (selectedGame != null)
 					{
-						if (string.IsNullOrEmpty(CDock.RATING_SYMBOL.ToString()))
-							ratingString = string.Format(" {0} {1} *", CDock.SEPARATOR_SYMBOL, selectedGame.Rating);
-						else
-							//ratingString = string.Format(" {0} {1}", CDock.SEPARATOR_SYMBOL, new string(CDock.RATING_SYMBOL, selectedGame.Rating));
-							ratingString = string.Format(" {0} {1} {2}", CDock.SEPARATOR_SYMBOL, selectedGame.Rating, CDock.RATING_SYMBOL);
-					}
+						if (selectedGame.Alias.Length > 0)
+							aliasString = string.Format(" {0} {1}", CDock.SEPARATOR_SYMBOL, selectedGame.Alias);
 
-					leftSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selectedGame.Title + aliasString + ratingString);
-					/*
-					if (CDock.m_nSelectedPlatform == (int)GamePlatform.All ||
-						CDock.m_nSelectedPlatform == (int)GamePlatform.Favourites ||
-						CDock.m_nSelectedPlatform == (int)GamePlatform.Hidden ||
-						CDock.m_nSelectedPlatform == (int)GamePlatform.New ||
-						CDock.m_nSelectedPlatform == (int)GamePlatform.NotInstalled ||
-						CDock.m_nSelectedPlatform == (int)GamePlatform.Search ||
-						CDock.m_nSelectedPlatform == (int)GamePlatform.Unknown)
-					*/
-					rightSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selectedGame.PlatformString);
+						if (selectedGame.Rating > 0)
+						{
+							if (string.IsNullOrEmpty(CDock.RATING_SYMBOL.ToString()))
+								ratingString = string.Format(" {0} {1} *", CDock.SEPARATOR_SYMBOL, selectedGame.Rating);
+							else
+								//ratingString = string.Format(" {0} {1}", CDock.SEPARATOR_SYMBOL, new string(CDock.RATING_SYMBOL, selectedGame.Rating));
+								ratingString = string.Format(" {0} {1} {2}", CDock.SEPARATOR_SYMBOL, selectedGame.Rating, CDock.RATING_SYMBOL);
+						}
+
+						leftSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selectedGame.Title + aliasString + ratingString);
+						/*
+						if (CDock.m_nSelectedPlatform == (int)GamePlatform.All ||
+							CDock.m_nSelectedPlatform == (int)GamePlatform.Favourites ||
+							CDock.m_nSelectedPlatform == (int)GamePlatform.Hidden ||
+							CDock.m_nSelectedPlatform == (int)GamePlatform.New ||
+							CDock.m_nSelectedPlatform == (int)GamePlatform.NotInstalled ||
+							CDock.m_nSelectedPlatform == (int)GamePlatform.Search ||
+							CDock.m_nSelectedPlatform == (int)GamePlatform.Unknown)
+						*/
+						rightSide = string.Format("{0} {1} {0}", CDock.SEPARATOR_SYMBOL, selectedGame.PlatformString);
+					}
 				}
 				else
 				{
@@ -1436,7 +1447,7 @@ namespace GameLauncher_Console
 		/// <summary>
 		/// Search for a game by title or alias
 		/// </summary>
-		public static bool DoGameSearch(string strInput, int maxTitles, string[] options, out string[] optionsNew, out int nMatches)
+		public static bool DoGameSearch(string strInput, int maxTitles, string[] options, out int nMatches)
         {
 			Dictionary<string, int> matches = new();
 			List<CMatch> searchResults = new();
@@ -1448,8 +1459,6 @@ namespace GameLauncher_Console
 			{
 				CLogger.LogInfo("{0}: {1}! [{2}]", GetDescription(GamePlatform.Search), GetDescription(Match.ExactTitle), nSelection);
 				nMatches = 1;
-				optionsNew = new string[1];
-				optionsNew[0] = GetPlatformGame(GamePlatform.All, nSelection).Title;
 				nSelection = 0;
 				bValid = true;
 			}
@@ -1463,14 +1472,11 @@ namespace GameLauncher_Console
 					if (consoleOutput) Console.WriteLine("{0}: {1} matches found!", CGameData.GetDescription(GamePlatform.Search), nMatches);
 					CLogger.LogInfo("{0}: {1} matches found!", CGameData.GetDescription(GamePlatform.Search), nMatches);
 					int i = 0;
-					optionsNew = new string[nMatches];
 					foreach (var match in matches.OrderByDescending(j => j.Value))
 					{
 						CLogger.LogInfo("- [{0}%] {1}. {2}", match.Value, i, match.Key);
 						if (i == 0 && match.Value >= (int)Match.ExactAlias)
 						{
-							optionsNew = new string[1];
-							optionsNew[0] = match.Key;
 							CDock.m_nCurrentSelection = Array.FindIndex(options, s => s.Equals(match.Key, CDock.IGNORE_CASE));
 							if (consoleOutput)
 							{
@@ -1481,7 +1487,6 @@ namespace GameLauncher_Console
 								break;
 							}
 						}
-						else optionsNew[i] = match.Key;
 
 						if (consoleOutput)
 						{
@@ -1493,14 +1498,14 @@ namespace GameLauncher_Console
 					}
 					if (nMatches == 1) CDock.m_nCurrentSelection = 0;
 					bValid = true;
+					if (consoleOutput) { CJsonWrapper.ExportSearch(searchResults); }
 				}
 				else
 				{
 					CLogger.LogInfo("{0}: {1}!", CGameData.GetDescription(GamePlatform.Search), CGameData.GetDescription(Match.NoMatches));
-					optionsNew = null;
 				}
-				if (consoleOutput) { CJsonWrapper.ExportSearch(searchResults); }
 			//}
+
 			return bValid;
 		}
 
