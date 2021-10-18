@@ -884,7 +884,10 @@ namespace GameLauncher_Console
 									PlatformBattlenet.Launch();
 									break;
 								case GamePlatform.Rockstar:         // TODO?
-									Process.Start(CPlatform.ROCKSTAR_PROTOCOL);
+									if (OperatingSystem.IsWindows())
+										StartShellExecute(CPlatform.ROCKSTAR_PROTOCOL);
+									else
+										Process.Start(CPlatform.ROCKSTAR_PROTOCOL);
 									break;
 								case GamePlatform.Amazon:
 									PlatformAmazon.Launch();
@@ -893,7 +896,10 @@ namespace GameLauncher_Console
 									PlatformBigFish.Launch();
 									break;
 								case GamePlatform.Arc:              // TODO?
-									Process.Start(CPlatform.ARC_PROTOCOL);
+									if (OperatingSystem.IsWindows())
+										StartShellExecute(CPlatform.ARC_PROTOCOL);
+									else
+										Process.Start(CPlatform.ARC_PROTOCOL);
 									break;
 								case GamePlatform.Itch:
 									PlatformItch.Launch();
@@ -902,18 +908,25 @@ namespace GameLauncher_Console
 									PlatformParadox.Launch();
 									break;
 								case GamePlatform.Plarium:          // TODO?
-									Process.Start(CPlatform.PLARIUM_PROTOCOL);
+									if (OperatingSystem.IsWindows())
+										StartShellExecute(CPlatform.PLARIUM_PROTOCOL);
+									else
+										Process.Start(CPlatform.PLARIUM_PROTOCOL);
 									break;
 								case GamePlatform.Twitch:           // TODO?
 									break;
 								case GamePlatform.Wargaming:        // TODO?
-									Process.Start(CPlatform.WARGAMING_PROTOCOL);
+									if (OperatingSystem.IsWindows())
+										StartShellExecute(CPlatform.WARGAMING_PROTOCOL);
+									else
+										Process.Start(CPlatform.WARGAMING_PROTOCOL);
 									break;
 								case GamePlatform.IGClient:
 									PlatformIGClient.Launch();
 									break;
 								case GamePlatform.Microsoft:        // TODO?
-									PlatformMicrosoft.Launch();
+									if (OperatingSystem.IsWindows())
+										PlatformMicrosoft.Launch();
 									break;
 								case GamePlatform.Oculus:
 									PlatformOculus.Launch();
@@ -1273,7 +1286,10 @@ namespace GameLauncher_Console
 			Console.WriteLine($"Uninstalling game: {game.Title}");
 			try
 			{
-				Process.Start(game.Uninstaller);
+				if (OperatingSystem.IsWindows())
+					StartShellExecute(game.Uninstaller);
+				else
+					Process.Start(game.Uninstaller);
 				return true;
 			}
 			catch (Exception e)

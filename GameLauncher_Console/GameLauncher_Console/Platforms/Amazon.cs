@@ -35,12 +35,21 @@ namespace GameLauncher_Console
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
-        public static void Launch() => Process.Start(PROTOCOL);
+        public static void Launch()
+        {
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(PROTOCOL);
+            else
+                Process.Start(PROTOCOL);
+        }
 
 		public static void InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
-			Process.Start(START_GAME + "/" + game.ID);
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(START_GAME + "/" + game.ID);
+            else
+                Process.Start(START_GAME + "/" + game.ID);
 		}
 
 		[SupportedOSPlatform("windows")]
