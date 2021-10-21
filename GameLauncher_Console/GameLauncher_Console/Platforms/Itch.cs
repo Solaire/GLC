@@ -113,7 +113,7 @@ namespace GameLauncher_Console
                             string strTitle = rdr.GetString(1);
                             string strAlias = "";
                             string strLaunch = "";
-                            string strPlatform = GetPlatformString(GamePlatform.Itch);
+                            string strPlatform = GetPlatformString(ENUM);
                             DateTime lastRun = DateTime.MinValue;
 
                             string iconUrl = rdr.GetString(4);

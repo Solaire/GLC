@@ -92,7 +92,7 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformBattlenet());
 			platforms.AddSupportedPlatform(new PlatformBethesda());
 			platforms.AddSupportedPlatform(new PlatformBigFish());
-			//platforms.AddSupportedPlatform(new PlatformCustom());
+			//platforms.AddSupportedPlatform(new PlatformCustom());  // See CPlatform.ScanGames()
 			platforms.AddSupportedPlatform(new PlatformEpic());
 			platforms.AddSupportedPlatform(new PlatformGOG());
 			platforms.AddSupportedPlatform(new PlatformIGClient());
@@ -104,6 +104,7 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformOculus());
 			platforms.AddSupportedPlatform(new PlatformOrigin());
 			platforms.AddSupportedPlatform(new PlatformParadox());
+			platforms.AddSupportedPlatform(new PlatformRockstar());
 			platforms.AddSupportedPlatform(new PlatformSteam());
 			platforms.AddSupportedPlatform(new PlatformUplay());
 			bool import, parseError = false;
@@ -883,11 +884,8 @@ namespace GameLauncher_Console
 								case GamePlatform.Battlenet:
 									PlatformBattlenet.Launch();
 									break;
-								case GamePlatform.Rockstar:         // TODO?
-									if (OperatingSystem.IsWindows())
-										StartShellExecute(CPlatform.ROCKSTAR_PROTOCOL);
-									else
-										Process.Start(CPlatform.ROCKSTAR_PROTOCOL);
+								case GamePlatform.Rockstar:
+									PlatformRockstar.Launch();
 									break;
 								case GamePlatform.Amazon:
 									PlatformAmazon.Launch();

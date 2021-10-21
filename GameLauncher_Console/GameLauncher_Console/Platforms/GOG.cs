@@ -154,7 +154,7 @@ namespace GameLauncher_Console
                             string strAlias = "";
                             string strLaunch = "";
                             string strIconPath = "";
-                            string strPlatform = GetPlatformString(GamePlatform.GOG);
+                            string strPlatform = GetPlatformString(ENUM);
                             bool hidden = false;
                             List<string> tagList = new();
                             DateTime lastRun = DateTime.MinValue;

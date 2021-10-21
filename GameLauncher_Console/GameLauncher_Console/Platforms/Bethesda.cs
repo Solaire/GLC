@@ -77,7 +77,7 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(GamePlatform.Bethesda);
+					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);

@@ -95,12 +95,6 @@ namespace GameLauncher_Console
 		public const string PLARIUM_PROTOCOL		= "plariumplay://";
 		//private const string PLARIUM_UNREG		= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
 
-		// Rockstar Games Launcher
-		public const string ROCKSTAR_NAME			= "Rockstar";
-		public const string ROCKSTAR_NAME_LONG		= "Rockstar Games Launcher";
-		public const string ROCKSTAR_PROTOCOL		= "rockstar://";
-		//private const string ROCKSTAR_REG			= @"SOFTWARE\WOW6432Node\Rockstar Games\Launcher"; // HKLM32
-
 		// Twitch [deprecated, now Amazon Games]
 		/*
 		public const string TWITCH_NAME				= "Twitch";

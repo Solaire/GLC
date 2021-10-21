@@ -85,7 +85,7 @@ namespace GameLauncher_Console
                             string strTitle = "";
                             string strLaunch = "";
                             string strAlias = "";
-                            string strPlatform = GetPlatformString(GamePlatform.IGClient);
+                            string strPlatform = GetPlatformString(ENUM);
 
                             element.TryGetProperty("target", out JsonElement target);
                             if (!target.Equals(null))
@@ -183,7 +183,7 @@ namespace GameLauncher_Console
                                         {
                                             string strTitle = GetStringProperty(prod, "prod_name");
                                             CLogger.LogDebug($"- *{strTitle}");
-                                            string strPlatform = GetPlatformString(GamePlatform.IGClient);
+                                            string strPlatform = GetPlatformString(ENUM);
                                             gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 
                                             // Use prod_dev_image to download not-installed icons

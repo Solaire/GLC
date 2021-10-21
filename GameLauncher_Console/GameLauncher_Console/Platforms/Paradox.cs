@@ -79,7 +79,7 @@ namespace GameLauncher_Console
                                 string strTitle = "";
                                 string strLaunch = "";
                                 string strAlias = "";
-                                string strPlatform = GetPlatformString(GamePlatform.Paradox);
+                                string strPlatform = GetPlatformString(ENUM);
 
                                 strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
                                 CLogger.LogDebug($"- {strTitle}");
@@ -152,7 +152,7 @@ namespace GameLauncher_Console
                                                 string strID = id.ToString();
                                                 string strTitle = title.ToString();
                                                 CLogger.LogDebug($"- *{strTitle}");
-                                                string strPlatform = GetPlatformString(GamePlatform.Paradox);
+                                                string strPlatform = GetPlatformString(ENUM);
                                                 gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
                                             }
                                         }

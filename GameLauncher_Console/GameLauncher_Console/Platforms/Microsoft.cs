@@ -65,7 +65,7 @@ namespace GameLauncher_Console
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			string strPlatform = GetPlatformString(GamePlatform.Microsoft);
+			string strPlatform = GetPlatformString(ENUM);
 
 			// Registry + URI method
 			List<RegistryKey> appList = new();
@@ -294,7 +294,7 @@ namespace GameLauncher_Console
 				string strIconPath = "";
 				string strUninstall = "";
 				string strAlias = "";
-				string strPlatform = GetPlatformString(GamePlatform.Microsoft);
+				string strPlatform = GetPlatformString(ENUM);
 				try
 				{
 					strID = ""; //package.Id.Name;

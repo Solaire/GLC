@@ -166,7 +166,7 @@ namespace GameLauncher_Console
 						string strIconPath = "";
 						string strUninstall = "";
 						string strAlias = "";
-						string strPlatform = GetPlatformString(GamePlatform.Steam);
+						string strPlatform = GetPlatformString(ENUM);
 
 						strAlias = GetAlias(strTitle);
 						if (!string.IsNullOrEmpty(strLaunch))
@@ -348,7 +348,7 @@ namespace GameLauncher_Console
                                     if (!found)
                                     {
                                         string strTitle = GetStringProperty(game, "name");
-                                        string strPlatform = GetPlatformString(GamePlatform.Steam);
+                                        string strPlatform = GetPlatformString(ENUM);
 
                                         // Add not-installed games
                                         CLogger.LogDebug($"- *{strTitle}");

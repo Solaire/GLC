@@ -78,7 +78,7 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(GamePlatform.Uplay);
+					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);
@@ -122,7 +122,7 @@ namespace GameLauncher_Console
 						string strID = "";
 						string strTitle = "";
 						string strIconPath = "";
-						string strPlatform = GetPlatformString(GamePlatform.Uplay);
+						string strPlatform = GetPlatformString(ENUM);
 
 						CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
 						uplayCfg.AddRange(File.ReadAllLines(uplayCfgFile));

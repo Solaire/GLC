@@ -66,7 +66,7 @@ namespace GameLauncher_Console
                     CLogger.LogDebug($"- {strTitle}");
                     string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
                     string strAlias = "";
-                    string strPlatform = GetPlatformString(GamePlatform.Epic);
+                    string strPlatform = GetPlatformString(ENUM);
 
                     if (!string.IsNullOrEmpty(strLaunch))
                     {

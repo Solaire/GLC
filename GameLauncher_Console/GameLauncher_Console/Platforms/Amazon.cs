@@ -125,7 +125,7 @@ namespace GameLauncher_Console
                         strUninstall = Path.Combine(Directory.GetParent(dir).FullName, UNINST_GAME) + " " + UNINST_ARGS + " " + strID;
                     }
                     string strAlias = GetAlias(strTitle);
-                    string strPlatform = GetPlatformString(GamePlatform.Amazon);
+                    string strPlatform = GetPlatformString(ENUM);
 
                     if (!string.IsNullOrEmpty(strLaunch))
                     {
@@ -134,6 +134,7 @@ namespace GameLauncher_Console
                         gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
                     }
                 }
+                con.Close();
             }
 			catch (Exception e)
 			{
@@ -169,7 +170,7 @@ namespace GameLauncher_Console
                             {
                                 string strTitle = rdr.GetString(3);
                                 CLogger.LogDebug($"- *{strTitle}");
-                                string strPlatform = GetPlatformString(GamePlatform.Amazon);
+                                string strPlatform = GetPlatformString(ENUM);
                                 gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 
                                 // Use ProductIconUrl to download not-installed icons
@@ -180,6 +181,7 @@ namespace GameLauncher_Console
                                 }
                             }
                         }
+                        con.Close();
                     }
 					catch (Exception e)
 					{
