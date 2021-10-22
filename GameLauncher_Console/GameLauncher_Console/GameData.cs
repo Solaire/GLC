@@ -51,7 +51,7 @@ namespace GameLauncher_Console
 			Amazon = 13,
 			[Description("Big Fish")]
 			BigFish = 14,
-			[Description("Arc")]			// TODO
+			[Description("Arc")]
 			Arc = 15,
 			[Description("itch")]
 			Itch = 16,
@@ -67,7 +67,7 @@ namespace GameLauncher_Console
 			IGClient = 21,
 			[Description("New games")]
 			New = 22,
-			[Description("Not installed")]	// TODO
+			[Description("Not installed")]
 			NotInstalled = 23,
 			[Description("Microsoft Store")] // TODO
 			Microsoft = 24,

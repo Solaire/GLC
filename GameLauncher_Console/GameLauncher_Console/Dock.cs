@@ -97,16 +97,19 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformGOG());
 			platforms.AddSupportedPlatform(new PlatformIGClient());
 			platforms.AddSupportedPlatform(new PlatformItch());
-#if DEBUG
-			// an experiment for now
-			platforms.AddSupportedPlatform(new PlatformMicrosoft());
-#endif
 			platforms.AddSupportedPlatform(new PlatformOculus());
 			platforms.AddSupportedPlatform(new PlatformOrigin());
 			platforms.AddSupportedPlatform(new PlatformParadox());
 			platforms.AddSupportedPlatform(new PlatformRockstar());
 			platforms.AddSupportedPlatform(new PlatformSteam());
 			platforms.AddSupportedPlatform(new PlatformUplay());
+#if DEBUG
+			// experiments for now
+			platforms.AddSupportedPlatform(new PlatformArc());
+			platforms.AddSupportedPlatform(new PlatformMicrosoft());
+			//platforms.AddSupportedPlatform(new PlatformPlarium());
+			//platforms.AddSupportedPlatform(new PlatformWargaming());
+#endif
 			bool import, parseError = false;
 			import = CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols);
 			if (!import) parseError = true;
@@ -893,11 +896,8 @@ namespace GameLauncher_Console
 								case GamePlatform.BigFish:
 									PlatformBigFish.Launch();
 									break;
-								case GamePlatform.Arc:              // TODO?
-									if (OperatingSystem.IsWindows())
-										StartShellExecute(CPlatform.ARC_PROTOCOL);
-									else
-										Process.Start(CPlatform.ARC_PROTOCOL);
+								case GamePlatform.Arc:
+									PlatformArc.Launch();
 									break;
 								case GamePlatform.Itch:
 									PlatformItch.Launch();
@@ -906,18 +906,13 @@ namespace GameLauncher_Console
 									PlatformParadox.Launch();
 									break;
 								case GamePlatform.Plarium:          // TODO?
-									if (OperatingSystem.IsWindows())
-										StartShellExecute(CPlatform.PLARIUM_PROTOCOL);
-									else
-										Process.Start(CPlatform.PLARIUM_PROTOCOL);
+									//PlatformPlarium.Launch();
 									break;
 								case GamePlatform.Twitch:           // TODO?
+									//PlatformTwitch.Launch();
 									break;
 								case GamePlatform.Wargaming:        // TODO?
-									if (OperatingSystem.IsWindows())
-										StartShellExecute(CPlatform.WARGAMING_PROTOCOL);
-									else
-										Process.Start(CPlatform.WARGAMING_PROTOCOL);
+									//PlatformWargaming.Launch();
 									break;
 								case GamePlatform.IGClient:
 									PlatformIGClient.Launch();

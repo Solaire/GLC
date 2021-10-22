@@ -28,11 +28,11 @@ namespace GameLauncher_Console
 		/// Looks for a key-value pair inside the specified root.
 		/// </summary>
 		/// <param name="root">Root folder that will be scanned</param>
-		/// <param name="strValue">The target value in the subkey</param>
-		/// <param name="strKeyName">The target key that should contain the target value</param>
+		/// <param name="strValData">A substring of the target value data in the subkey</param>
+		/// <param name="strValName">The target value name that should contain the target value data</param>
 		/// <param name="ignore">Function will ignore these subkey names (used to ignore things like launchers)</param>
 		/// <returns>List of game registry keys</returns>
-		public static List<RegistryKey> FindGameKeys(RegistryKey root, string strValue, string strKeyName, string[] ignoreKeys)
+		public static List<RegistryKey> FindGameKeys(RegistryKey root, string strValData, string strValName, string[] ignoreKeys)
 		{
 			LinkedList<RegistryKey> toCheck = new();
 			List<RegistryKey> gameKeys = new();
@@ -48,9 +48,9 @@ namespace GameLauncher_Console
 				{
 					foreach(var name in root.GetValueNames())
 					{
-						if(root.GetValueKind(name) == RegistryValueKind.String && name == strKeyName)
+						if(root.GetValueKind(name) == RegistryValueKind.String && name.Equals(strValName))
 						{
-							if(((string)root.GetValue(name)).Contains(strValue, CDock.IGNORE_CASE))
+							if(((string)root.GetValue(name)).Contains(strValData, CDock.IGNORE_CASE))
 							{
 								gameKeys.Add(root);
 								break;
