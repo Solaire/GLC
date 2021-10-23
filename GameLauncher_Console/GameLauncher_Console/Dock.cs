@@ -89,6 +89,7 @@ namespace GameLauncher_Console
 		{
 			CPlatform platforms = new();
 			platforms.AddSupportedPlatform(new PlatformAmazon());
+			platforms.AddSupportedPlatform(new PlatformArc());
 			platforms.AddSupportedPlatform(new PlatformBattlenet());
 			platforms.AddSupportedPlatform(new PlatformBethesda());
 			platforms.AddSupportedPlatform(new PlatformBigFish());
@@ -100,15 +101,14 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformOculus());
 			platforms.AddSupportedPlatform(new PlatformOrigin());
 			platforms.AddSupportedPlatform(new PlatformParadox());
+			platforms.AddSupportedPlatform(new PlatformPlarium());
 			platforms.AddSupportedPlatform(new PlatformRockstar());
 			platforms.AddSupportedPlatform(new PlatformSteam());
 			platforms.AddSupportedPlatform(new PlatformUplay());
+			platforms.AddSupportedPlatform(new PlatformWargaming());
 #if DEBUG
-			// experiments for now
-			platforms.AddSupportedPlatform(new PlatformArc());
+			// an experiment for now
 			platforms.AddSupportedPlatform(new PlatformMicrosoft());
-			//platforms.AddSupportedPlatform(new PlatformPlarium());
-			//platforms.AddSupportedPlatform(new PlatformWargaming());
 #endif
 			bool import, parseError = false;
 			import = CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols);
@@ -905,14 +905,14 @@ namespace GameLauncher_Console
 								case GamePlatform.Paradox:
 									PlatformParadox.Launch();
 									break;
-								case GamePlatform.Plarium:          // TODO?
-									//PlatformPlarium.Launch();
+								case GamePlatform.Plarium:
+									PlatformPlarium.Launch();
 									break;
 								case GamePlatform.Twitch:           // TODO?
 									//PlatformTwitch.Launch();
 									break;
-								case GamePlatform.Wargaming:        // TODO?
-									//PlatformWargaming.Launch();
+								case GamePlatform.Wargaming:
+									PlatformWargaming.Launch();
 									break;
 								case GamePlatform.IGClient:
 									PlatformIGClient.Launch();

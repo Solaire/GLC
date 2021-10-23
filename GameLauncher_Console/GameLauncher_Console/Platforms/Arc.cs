@@ -7,7 +7,7 @@ using System.IO;
 using System.Runtime.Versioning;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CRegScanner;
-using static System.Environment;
+//using static System.Environment;
 
 namespace GameLauncher_Console
 {

@@ -57,11 +57,11 @@ namespace GameLauncher_Console
 			Itch = 16,
 			[Description("Paradox")]
 			Paradox = 17,
-			[Description("Plarium Play")]	// TODO
+			[Description("Plarium Play")]
 			Plarium = 18,
 			[Description("Twitch")]			// TODO
 			Twitch = 19,
-			[Description("Wargaming.net")]	// TODO
+			[Description("Wargaming.net")]
 			Wargaming = 20,
 			[Description("Indiegala Client")]
 			IGClient = 21,
