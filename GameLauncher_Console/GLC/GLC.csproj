@@ -15,4 +15,8 @@
     <Folder Include="ConsoleUI_dll\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\LibGLC\LibGLC.csproj" />
+  </ItemGroup>
+
 </Project>

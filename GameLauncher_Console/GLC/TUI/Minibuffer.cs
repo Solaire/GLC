@@ -1,44 +1,31 @@
 ﻿using System;
-using ConsoleUI;
-using ConsoleUI.Event;
-using ConsoleUI.Structs;
+using ConsoleUI.Type;
+using ConsoleUI.Helper;
 
 namespace GLC
 {
     /// <summary>
     /// A control containing a status bar and a user input line.
     /// </summary>
-    public class CMinibuffer : CElement, IInteractive
+    public class CMinibuffer
     {
-        private CWindow m_parent;
-        private string  m_status;
+        private ConsoleRect m_rect;
+
+        private string  m_statusBuffer;
         private string  m_inputBuffer;
         private int     m_inputPosition;
 
-        public CMinibuffer(CWindow parent, ConsoleRect area) : base(area)
+        public CMinibuffer(ConsoleRect rect)
         {
-            m_parent        = parent;
-            m_status        = "";
+            m_rect          = rect;
+            m_statusBuffer  = "";
             m_inputBuffer   = "";
             m_inputPosition = 0;
-
-            /*
-            // Buffer will cover bottom 2 lines
-            m_area.x = 0;
-            m_area.y = parent.m_rect.height - 2;
-            m_area.width = parent.m_rect.width;
-            m_area.height = 2;
-            */
-        }
-
-        public override void Initialise()
-        {
-            Redraw();
         }
 
         public void SetStatus(string status)
         {
-            m_status = status;
+            m_statusBuffer = status;
             DrawStatus();
         }
 
@@ -46,27 +33,26 @@ namespace GLC
         {
             m_inputBuffer   = "";
             m_inputPosition = 0;
+            DrawBuffer();
         }
 
         public void SetCursor()
         {
             Console.CursorLeft = m_inputPosition + CConstants.TEXT_PADDING_LEFT;
-            Console.CursorTop = m_area.y + 1;
+            Console.CursorTop  = m_rect.y + 1;
         }
-
 
         private void DrawStatus()
         {
             Console.CursorVisible = false;
-            string statusCpy      = m_status;
+            string statusCpy      = m_statusBuffer;
 
-            if(statusCpy.Length > m_area.width - 2) // 2 char padding
+            if(statusCpy.Length > m_rect.width - 2) // 2 char padding
             {
-                statusCpy = statusCpy.Remove(statusCpy.Length - m_area.width - 5); // 2 char padding + space for an Ellipsis
+                statusCpy = statusCpy.Remove(statusCpy.Length - m_rect.width - 5); // 2 char padding + space for an Ellipsis
                 statusCpy += "...";
             }
-            //Console.Write(statusCpy.PadRight(m_rect.width));
-            CConsoleEx.WriteText(statusCpy, m_area.x, m_area.y, CConstants.TEXT_PADDING_LEFT, m_area.width, m_parent.m_colours[ColourThemeIndex.cStatusBG], m_parent.m_colours[ColourThemeIndex.cStatusFG]);
+            CConsoleDraw.WriteText(statusCpy.PadRight(m_rect.width), m_rect.x, m_rect.y, ConsoleColor.Black, ConsoleColor.White);
         }
 
         private void DrawBuffer()
@@ -74,17 +60,17 @@ namespace GLC
             Console.CursorVisible = false;
             string bufferCpy      = m_inputBuffer.ToString();
 
-            if (bufferCpy.Length > m_area.width - 1) // 1 char padding
+            if (bufferCpy.Length > m_rect.width - 1) // 1 char padding
             {
-                bufferCpy = bufferCpy.Remove(bufferCpy.Length - m_area.width - 1); // 1 char padding
+                bufferCpy = bufferCpy.Remove(bufferCpy.Length - m_rect.width - 1); // 1 char padding
             }
 
             //Console.Write(bufferCpy.PadRight(m_rect.width));
 
-            CConsoleEx.WriteText(bufferCpy, m_area.x, m_area.y + 1, CConstants.TEXT_PADDING_LEFT, m_area.width, m_parent.m_colours[ColourThemeIndex.cDefaultBG], m_parent.m_colours[ColourThemeIndex.cDefaultFG]);
+            CConsoleDraw.WriteText(bufferCpy.PadRight(m_rect.width), m_rect.x, m_rect.y + 1, ConsoleColor.White, ConsoleColor.Black);
 
             Console.CursorVisible = true;
-            Console.CursorLeft = m_inputPosition;
+            Console.CursorLeft    = m_inputPosition;
         }
 
         private void AddInput(ConsoleKeyInfo key)
@@ -94,7 +80,7 @@ namespace GLC
             {
                 // Allow
             }
-            else if(char.IsControl(key.KeyChar) || m_inputBuffer.Length == m_area.width - 2)
+            else if(char.IsControl(key.KeyChar) || m_inputBuffer.Length == m_rect.width - 2)
             {
                 return; // Cannot add anything
             }
@@ -127,20 +113,6 @@ namespace GLC
             DrawBuffer();
         }
 
-        /// <summary>
-        /// Redraw the microbuffer and status texts
-        /// </summary>
-        public void Redraw()
-        {
-            DrawStatus();
-            DrawBuffer();
-        }
-
-        public override void OnResize(object sender, ResizeEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         public void KeyPressed(ConsoleKeyInfo keyInfo)
         {
             switch(keyInfo.Key)
@@ -171,13 +143,6 @@ namespace GLC
         /// </summary>
         private void OnEnter()
         {
-            // Despatch the command back to the parent to deal with
-            if(m_parent != null)
-            {
-                // TODO:
-                //m_parent.Command = m_inputBuffer;
-            }
-
             // TODO: Temporary
             SetStatus(m_inputBuffer);
             m_inputBuffer = "";
@@ -190,17 +155,6 @@ namespace GLC
         /// <param name="delta">Movement delta, positive is right, negative is left</param>
         private void MoveCursor(int delta)
         {
-            /*
-            if(delta > 0) // Move x spaces right
-            {
-                m_inputPosition = (m_inputPosition + delta > m_inputBuffer.Length) ? m_inputBuffer.Length : m_inputPosition + delta;
-            }
-            else if(delta < 0) // Move x spaces left
-            {
-                m_inputPosition = (m_inputPosition - delta < 0) ? 0 : m_inputPosition - delta;
-            }
-            */
-
             if(delta != 0)
             {
                 m_inputPosition = Math.Min(m_inputBuffer.Length, Math.Max(0, m_inputPosition + delta));

@@ -1,4 +1,5 @@
-﻿using ConsoleUI.Structs;
+﻿using System;
+using ConsoleUI.Type;
 
 namespace GLC
 {
@@ -12,7 +13,7 @@ namespace GLC
             ConsoleRect rect = new ConsoleRect(0, 0, 100, 48);
             const int PAGE_COUNT = 1;
 
-            CAppWindow window = new CAppWindow("GLC 2.0 test", rect, CConstants.DEFAULT_THEME, PAGE_COUNT);
+            CAppFrame window = new CAppFrame("GLC 2.0 test", rect, PAGE_COUNT);
             window.Initialise();
             window.WindowMain();
         }
