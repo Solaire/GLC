@@ -103,7 +103,7 @@ namespace GameLauncher_Console
 
 					try
 					{
-						strID = data.Name.ToUpper();
+						strID = Path.GetFileName(data.Name).ToUpper();
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
 						CLogger.LogDebug($"- {strTitle}");
 						string installPath = GetRegStrVal(data, GAME_INSTALL_LOCATION);
@@ -111,6 +111,9 @@ namespace GameLauncher_Console
 						//installDict.Remove(installPath);
 						strLaunch = FindGameBinaryFile(installPath, strTitle);
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON);
+						int iconIndex = strIconPath.IndexOf(',');
+						if (iconIndex > -1)
+							strIconPath = strIconPath.Substring(0, iconIndex);
 						strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING);
 						strAlias = GetAlias(Path.GetFileNameWithoutExtension(strLaunch.Trim(new char[] { ' ', '\'', '"' })));
 						if (strAlias.Length > strTitle.Length)
