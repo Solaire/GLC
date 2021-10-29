@@ -18,9 +18,6 @@ namespace GLC
         private CListView m_gameListView;
         private CInfoboxView m_gameInfoView;
 
-        private CGameObject     m_gameObject;
-        private CPlatformObject m_platformObject;
-
         public CLibraryPage(string title, ConsoleRect rect, int componentCount, CFrame parent) : base(title, rect, componentCount, parent)
         {
             m_platforms = new List<string>();
@@ -33,9 +30,6 @@ namespace GLC
             m_platformListView = new CListView(CConstants.PANEL_DATA[0], new CListWrapper(m_platforms), true , this);
             m_gameListView     = new CListView(CConstants.PANEL_DATA[1], new CListWrapper(null)       , false, this);
             m_gameInfoView     = new CInfoboxView(CConstants.PANEL_DATA[2], null, false, this);
-
-            m_gameObject      = new CGameObject();
-            m_platformObject  = new CPlatformObject();
         }
 
         public override void Initialise()
@@ -69,11 +63,13 @@ namespace GLC
 
         public void PlatformListView_SelectedChange(CListViewItemEventArgs e)
         {
-            List<Game> newGameList;
+            /*
+            List<CGame.GameObject> newGameList;
             string newPlatform = e.Value.ToString();
             newGameList = m_gameObject.GetByPlatform(newPlatform); // Will handle all games
             m_gameListView.SetSource(new GameListDataSource(newGameList));
             m_gameListView.Draw(true);
+            */
             /*
             m_gameListView.Clear();
             for(int i = 0; i < 15; i++)
@@ -86,18 +82,20 @@ namespace GLC
 
         public void GameListView_SelectedChange(CListViewItemEventArgs e)
         {
+            /*
             string selectedGame = e.Value.ToString();
             Game newGame = m_gameObject.GetByName(selectedGame);
             m_gameInfoView.SetSource(new CGameInfoDataSource(newGame));
             m_gameInfoView.Draw(true);
+            */
         }
 
         internal class GameListDataSource : IListDataSource
         {
-            private List<Game> m_source;
+            private List<CGame.GameObject> m_source;
             private int   m_focusIndex;
 
-            public GameListDataSource(List<Game> gameList)
+            public GameListDataSource(List<CGame.GameObject> gameList)
             {
                 if(gameList != null)
                 {
@@ -117,7 +115,7 @@ namespace GLC
 
                 for(int i = 0; i < count && first + i < Count; i++)
                 {
-                    CConsoleDraw.WriteText(m_source[first + i].name.PadRight(lengthX), startX, startY++, colourFG, colourBG);
+                    CConsoleDraw.WriteText(m_source[first + i].Title.PadRight(lengthX), startX, startY++, colourFG, colourBG);
                 }
             }
 
@@ -128,7 +126,7 @@ namespace GLC
                     return;
                 }
 
-                CConsoleDraw.WriteText(m_source[index].name.PadRight(lengthX), startX, startY, colourFG, colourBG);
+                CConsoleDraw.WriteText(m_source[index].Title.PadRight(lengthX), startX, startY, colourFG, colourBG);
             }
 
             public bool IsFocused(int index)
@@ -157,16 +155,16 @@ namespace GLC
 
         internal class CGameInfoDataSource : IInfoboxDataSource
         {
-            private Game m_game;
+            private CGame.GameObject m_game;
 
-            public CGameInfoDataSource(Game game)
+            public CGameInfoDataSource(CGame.GameObject game)
             {
                 m_game = game;
             }
 
             public void Render(int startX, int startY, int lengthX, ConsoleColor colourFG, ConsoleColor colourBG)
             {
-                CConsoleDraw.WriteText(m_game.name.PadRight(lengthX), startX, startY, colourFG, colourBG);
+                CConsoleDraw.WriteText(m_game.Title.PadRight(lengthX), startX, startY, colourFG, colourBG);
             }
         }
     }

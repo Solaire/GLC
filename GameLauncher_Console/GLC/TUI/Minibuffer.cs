@@ -23,6 +23,12 @@ namespace GLC
             m_inputPosition = 0;
         }
 
+        public void Initialise()
+        {
+            DrawBuffer();
+            DrawStatus();
+        }
+
         public void SetStatus(string status)
         {
             m_statusBuffer = status;
