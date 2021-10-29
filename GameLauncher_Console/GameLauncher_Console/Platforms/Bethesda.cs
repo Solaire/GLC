@@ -33,7 +33,13 @@ namespace GameLauncher_Console
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
-        public static void Launch() => Process.Start(PROTOCOL);
+		public static void Launch()
+		{
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(PROTOCOL);
+			else
+				Process.Start(PROTOCOL);
+		}
 
 		public static void InstallGame(CGame game) => throw new NotImplementedException();
 
@@ -71,7 +77,7 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(GamePlatform.Bethesda);
+					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);

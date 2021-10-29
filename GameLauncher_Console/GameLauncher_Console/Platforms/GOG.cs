@@ -39,50 +39,65 @@ namespace GameLauncher_Console
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
-        public static void Launch() => Process.Start(PROTOCOL);
+        public static void Launch()
+        {
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(PROTOCOL);
+            else
+                Process.Start(PROTOCOL);
+        }
 
-		/*
+        /*
 		public static void Launch()
         {
-			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-			{
-				string launcherPath = Path.Combine(GetRegStrVal(key, "client"), LAUNCH);
-				if (File.Exists(launcherPath))
-					Process.Start(launcherPath);
-				else
-				{
-					//SetFgColour(cols.errorCC, cols.errorLtCC);
-					CLogger.LogWarn("Cannot start {0} launcher.", _name.ToUpper());
-					Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-					//Console.ResetColor();
-				}
-			}
+            if (OperatingSystem.IsWindows())
+            {    
+			    using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+			    {
+				    string launcherPath = Path.Combine(GetRegStrVal(key, "client"), LAUNCH);
+				    if (File.Exists(launcherPath))
+					    Process.Start(launcherPath);
+				    else
+				    {
+					    //SetFgColour(cols.errorCC, cols.errorLtCC);
+					    CLogger.LogWarn("Cannot start {0} launcher.", _name.ToUpper());
+					    Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
+					    //Console.ResetColor();
+				    }
+			    }
+            }
 		}
 		*/
 
-		public static void InstallGame(CGame game)
+        public static void InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
-			Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(INSTALL_GAME + "/" + GetGameID(game.ID));
+            else
+                Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
 		}
 
-		public static void StartGame(CGame game)
+        public static void StartGame(CGame game)
         {
-			//CLogger.LogInfo("Setting up a {0} game...", GOG.NAME_LONG);
-			ProcessStartInfo gogProcess = new();
-			string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
-			string gogArguments = game.Launch.Contains(".") ? game.Launch[(game.Launch.IndexOf('.') + 4)..] : string.Empty;
-			CLogger.LogInfo($"gogClientPath: {gogClientPath}");
-			CLogger.LogInfo($"gogArguments: {gogArguments}");
-			gogProcess.FileName = gogClientPath;
-			gogProcess.Arguments = gogArguments;
-			Process.Start(gogProcess);
-			Thread.Sleep(4000);
-			Process[] procs = Process.GetProcessesByName("GalaxyClient");
-			foreach (Process proc in procs)
-			{
-                CDock.WindowMessage.ShowWindowAsync(procs[0].MainWindowHandle, CDock.WindowMessage.SW_FORCEMINIMIZE);
-			}
+            //CLogger.LogInfo("Setting up a {0} game...", GOG.NAME_LONG);
+            ProcessStartInfo gogProcess = new();
+            string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
+            string gogArguments = game.Launch.Contains(".") ? game.Launch[(game.Launch.IndexOf('.') + 4)..] : string.Empty;
+            CLogger.LogInfo($"gogClientPath: {gogClientPath}");
+            CLogger.LogInfo($"gogArguments: {gogArguments}");
+            gogProcess.FileName = gogClientPath;
+            gogProcess.Arguments = gogArguments;
+            Process.Start(gogProcess);
+            if (OperatingSystem.IsWindows())
+            {
+                Thread.Sleep(4000);
+                Process[] procs = Process.GetProcessesByName("GalaxyClient");
+                foreach (Process proc in procs)
+                {
+                    CDock.WindowMessage.ShowWindowAsync(procs[0].MainWindowHandle, CDock.WindowMessage.SW_FORCEMINIMIZE);
+                }
+            }
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -139,7 +154,7 @@ namespace GameLauncher_Console
                             string strAlias = "";
                             string strLaunch = "";
                             string strIconPath = "";
-                            string strPlatform = GetPlatformString(GamePlatform.GOG);
+                            string strPlatform = GetPlatformString(ENUM);
                             bool hidden = false;
                             List<string> tagList = new();
                             DateTime lastRun = DateTime.MinValue;

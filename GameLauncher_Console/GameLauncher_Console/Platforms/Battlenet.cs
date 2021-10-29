@@ -38,7 +38,13 @@ namespace GameLauncher_Console
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
-        public static void Launch() => Process.Start(PROTOCOL);
+        public static void Launch()
+        {
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(PROTOCOL);
+            else
+                Process.Start(PROTOCOL);
+        }
 
         public static void InstallGame(CGame game) => throw new NotImplementedException();
 
@@ -157,7 +163,7 @@ namespace GameLauncher_Console
                                                     break;
                                                 string strUninstall = $"\"{uninstallExe}\" --lang={lang} --uid={code} --displayname=\"{strTitle}\"";
                                                 string strAlias = "";
-                                                string strPlatform = GetPlatformString(GamePlatform.Battlenet);
+                                                string strPlatform = GetPlatformString(ENUM);
                                                 long lLastRun = 0;
                                                 if (!string.IsNullOrEmpty(strConfigData))
                                                 {
@@ -201,7 +207,7 @@ namespace GameLauncher_Console
                     }
                 }
             }
-            
+
             /*
 			List<RegistryKey> keyList;
 
@@ -225,7 +231,7 @@ namespace GameLauncher_Console
 					//string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(GamePlatform.Battlenet);
+					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);

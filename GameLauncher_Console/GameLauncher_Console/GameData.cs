@@ -41,7 +41,7 @@ namespace GameLauncher_Console
 			Bethesda = 8,
 			[Description("Battle.net")]
 			Battlenet = 9,
-			[Description("Rockstar")]		// TODO
+			[Description("Rockstar")]
 			Rockstar = 10,
 			[Description("Hidden games")]	// TODO
 			Hidden = 11,
@@ -51,23 +51,23 @@ namespace GameLauncher_Console
 			Amazon = 13,
 			[Description("Big Fish")]
 			BigFish = 14,
-			[Description("Arc")]			// TODO
+			[Description("Arc")]
 			Arc = 15,
 			[Description("itch")]
 			Itch = 16,
 			[Description("Paradox")]
 			Paradox = 17,
-			[Description("Plarium Play")]	// TODO
+			[Description("Plarium Play")]
 			Plarium = 18,
 			[Description("Twitch")]			// TODO
 			Twitch = 19,
-			[Description("Wargaming.net")]	// TODO
+			[Description("Wargaming.net")]
 			Wargaming = 20,
 			[Description("Indiegala Client")]
 			IGClient = 21,
 			[Description("New games")]
 			New = 22,
-			[Description("Not installed")]	// TODO
+			[Description("Not installed")]
 			NotInstalled = 23,
 			[Description("Microsoft Store")] // TODO
 			Microsoft = 24,
@@ -134,7 +134,7 @@ namespace GameLauncher_Console
 			public List<string> m_tags;
 			public DateTime m_dateLastRun;
 			public ushort m_rating;
-			private uint m_numRuns;
+			public uint m_numRuns;
 
 			public ImportGameData(string strID, string strTitle, string strLaunch, string strIconPath, string strUninstall, string strAlias, bool bInstalled, string strPlatform, bool bFavourite = false, bool bHidden = false, List<string> tags = default, DateTime dateLastRun = default, ushort rating = 0, uint numRuns = 0)
 			{

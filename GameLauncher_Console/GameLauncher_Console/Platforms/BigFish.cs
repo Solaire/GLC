@@ -135,7 +135,7 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(GamePlatform.BigFish);
+					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						//found = true;

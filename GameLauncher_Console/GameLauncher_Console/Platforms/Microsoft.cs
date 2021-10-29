@@ -58,13 +58,14 @@ namespace GameLauncher_Console
 
 		string IPlatform.Description => GetPlatformString(ENUM);
 
+		[SupportedOSPlatform("windows")]
 		public static void Launch() => Process.Start($"explorer.exe shell:AppsFolder\\{MSSTORE_APP}"); // Microsoft Store
-		//public static void Launch() => Process.Start(PROTOCOL); // Xbox app
+		//public static void Launch() => CDock.StartShellExecute(PROTOCOL); // Xbox app
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			string strPlatform = GetPlatformString(GamePlatform.Microsoft);
+			string strPlatform = GetPlatformString(ENUM);
 
 			// Registry + URI method
 			List<RegistryKey> appList = new();
@@ -293,7 +294,7 @@ namespace GameLauncher_Console
 				string strIconPath = "";
 				string strUninstall = "";
 				string strAlias = "";
-				string strPlatform = GetPlatformString(GamePlatform.Microsoft);
+				string strPlatform = GetPlatformString(ENUM);
 				try
 				{
 					strID = ""; //package.Id.Name;

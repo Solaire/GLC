@@ -79,12 +79,12 @@ namespace GameLauncher_Console
                                 string strTitle = "";
                                 string strLaunch = "";
                                 string strAlias = "";
-                                string strPlatform = GetPlatformString(GamePlatform.Paradox);
+                                string strPlatform = GetPlatformString(ENUM);
 
                                 strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
                                 CLogger.LogDebug($"- {strTitle}");
                                 strLaunch = CGameFinder.FindGameBinaryFile(dir, strTitle);
-                                strAlias = GetAlias(strLaunch);
+                                strAlias = GetAlias(Path.GetFileNameWithoutExtension(strLaunch));
                                 if (strAlias.Length > strTitle.Length)
                                     strAlias = GetAlias(strTitle);
                                 if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -152,7 +152,7 @@ namespace GameLauncher_Console
                                                 string strID = id.ToString();
                                                 string strTitle = title.ToString();
                                                 CLogger.LogDebug($"- *{strTitle}");
-                                                string strPlatform = GetPlatformString(GamePlatform.Paradox);
+                                                string strPlatform = GetPlatformString(ENUM);
                                                 gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
                                             }
                                         }

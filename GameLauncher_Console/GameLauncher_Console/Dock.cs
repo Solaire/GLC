@@ -89,23 +89,27 @@ namespace GameLauncher_Console
 		{
 			CPlatform platforms = new();
 			platforms.AddSupportedPlatform(new PlatformAmazon());
+			platforms.AddSupportedPlatform(new PlatformArc());
 			platforms.AddSupportedPlatform(new PlatformBattlenet());
 			platforms.AddSupportedPlatform(new PlatformBethesda());
 			platforms.AddSupportedPlatform(new PlatformBigFish());
-			//platforms.AddSupportedPlatform(new PlatformCustom());
+			//platforms.AddSupportedPlatform(new PlatformCustom());  // See CPlatform.ScanGames()
 			platforms.AddSupportedPlatform(new PlatformEpic());
 			platforms.AddSupportedPlatform(new PlatformGOG());
 			platforms.AddSupportedPlatform(new PlatformIGClient());
 			platforms.AddSupportedPlatform(new PlatformItch());
+			platforms.AddSupportedPlatform(new PlatformOculus());
+			platforms.AddSupportedPlatform(new PlatformOrigin());
+			platforms.AddSupportedPlatform(new PlatformParadox());
+			platforms.AddSupportedPlatform(new PlatformPlarium());
+			platforms.AddSupportedPlatform(new PlatformRockstar());
+			platforms.AddSupportedPlatform(new PlatformSteam());
+			platforms.AddSupportedPlatform(new PlatformUplay());
+			platforms.AddSupportedPlatform(new PlatformWargaming());
 #if DEBUG
 			// an experiment for now
 			platforms.AddSupportedPlatform(new PlatformMicrosoft());
 #endif
-			platforms.AddSupportedPlatform(new PlatformOculus());
-			platforms.AddSupportedPlatform(new PlatformOrigin());
-			platforms.AddSupportedPlatform(new PlatformParadox());
-			platforms.AddSupportedPlatform(new PlatformSteam());
-			platforms.AddSupportedPlatform(new PlatformUplay());
 			bool import, parseError = false;
 			import = CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols);
 			if (!import) parseError = true;
@@ -883,8 +887,8 @@ namespace GameLauncher_Console
 								case GamePlatform.Battlenet:
 									PlatformBattlenet.Launch();
 									break;
-								case GamePlatform.Rockstar:         // TODO?
-									Process.Start(CPlatform.ROCKSTAR_PROTOCOL);
+								case GamePlatform.Rockstar:
+									PlatformRockstar.Launch();
 									break;
 								case GamePlatform.Amazon:
 									PlatformAmazon.Launch();
@@ -892,8 +896,8 @@ namespace GameLauncher_Console
 								case GamePlatform.BigFish:
 									PlatformBigFish.Launch();
 									break;
-								case GamePlatform.Arc:              // TODO?
-									Process.Start(CPlatform.ARC_PROTOCOL);
+								case GamePlatform.Arc:
+									PlatformArc.Launch();
 									break;
 								case GamePlatform.Itch:
 									PlatformItch.Launch();
@@ -901,19 +905,21 @@ namespace GameLauncher_Console
 								case GamePlatform.Paradox:
 									PlatformParadox.Launch();
 									break;
-								case GamePlatform.Plarium:          // TODO?
-									Process.Start(CPlatform.PLARIUM_PROTOCOL);
+								case GamePlatform.Plarium:
+									PlatformPlarium.Launch();
 									break;
 								case GamePlatform.Twitch:           // TODO?
+									//PlatformTwitch.Launch();
 									break;
-								case GamePlatform.Wargaming:        // TODO?
-									Process.Start(CPlatform.WARGAMING_PROTOCOL);
+								case GamePlatform.Wargaming:
+									PlatformWargaming.Launch();
 									break;
 								case GamePlatform.IGClient:
 									PlatformIGClient.Launch();
 									break;
 								case GamePlatform.Microsoft:        // TODO?
-									PlatformMicrosoft.Launch();
+									if (OperatingSystem.IsWindows())
+										PlatformMicrosoft.Launch();
 									break;
 								case GamePlatform.Oculus:
 									PlatformOculus.Launch();
@@ -1273,7 +1279,10 @@ namespace GameLauncher_Console
 			Console.WriteLine($"Uninstalling game: {game.Title}");
 			try
 			{
-				Process.Start(game.Uninstaller);
+				if (OperatingSystem.IsWindows())
+					StartShellExecute(game.Uninstaller);
+				else
+					Process.Start(game.Uninstaller);
 				return true;
 			}
 			catch (Exception e)
@@ -1302,7 +1311,11 @@ namespace GameLauncher_Console
 						PlatformGOG.StartGame(game);
 						break;
 					default:
-						Process.Start(game.Launch);
+						CLogger.LogInfo($"Launch: {game.Launch}");
+						if (OperatingSystem.IsWindows())
+							StartShellExecute(game.Launch);
+						else
+							Process.Start(game.Launch);
 						break;
 				}
 				return true;
@@ -1913,19 +1926,16 @@ namespace GameLauncher_Console
 		}
 
 		[SupportedOSPlatform("windows")]
-		public static void StartAndRedirect(string file)
+		public static void StartShellExecute(string file)
 		{
-			StartAndRedirect(file, "", "");
+			Process cmdProcess = new();
+			cmdProcess.StartInfo.FileName = file;
+			cmdProcess.StartInfo.UseShellExecute = true;
+			cmdProcess.Start();
 		}
 
 		[SupportedOSPlatform("windows")]
-		public static void StartAndRedirect(string file, string args)
-		{
-			StartAndRedirect(file, args, "");
-		}
-
-		[SupportedOSPlatform("windows")]
-		public static void StartAndRedirect(string file, string args, string dir)
+		public static void StartAndRedirect(string file, string args = "", string dir = "")
 		{
 			Process cmdProcess = new();
 			cmdProcess.StartInfo.FileName = file;

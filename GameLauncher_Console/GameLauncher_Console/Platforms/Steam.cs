@@ -45,12 +45,21 @@ namespace GameLauncher_Console
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
-        public static void Launch() => Process.Start(LAUNCH);
+		public static void Launch()
+		{
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(LAUNCH);
+			else
+				Process.Start(LAUNCH);
+		}
 
 		public static void InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
-			Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(INSTALL_GAME + "/" + GetGameID(game.ID));
+			else
+				Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -157,7 +166,7 @@ namespace GameLauncher_Console
 						string strIconPath = "";
 						string strUninstall = "";
 						string strAlias = "";
-						string strPlatform = GetPlatformString(GamePlatform.Steam);
+						string strPlatform = GetPlatformString(ENUM);
 
 						strAlias = GetAlias(strTitle);
 						if (!string.IsNullOrEmpty(strLaunch))
@@ -339,7 +348,7 @@ namespace GameLauncher_Console
                                     if (!found)
                                     {
                                         string strTitle = GetStringProperty(game, "name");
-                                        string strPlatform = GetPlatformString(GamePlatform.Steam);
+                                        string strPlatform = GetPlatformString(ENUM);
 
                                         // Add not-installed games
                                         CLogger.LogDebug($"- *{strTitle}");

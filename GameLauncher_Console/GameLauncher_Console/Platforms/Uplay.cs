@@ -29,9 +29,21 @@ namespace GameLauncher_Console
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
-        public static void Launch() => Process.Start(PROTOCOL);
+		public static void Launch()
+		{
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(PROTOCOL);
+			else
+				Process.Start(PROTOCOL);
+		}
 
-		public static void InstallGame(CGame game) => Process.Start(START_GAME + "/" + GetGameID(game.ID));
+		public static void InstallGame(CGame game)
+		{
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(START_GAME + "/" + GetGameID(game.ID));
+			else
+				Process.Start(START_GAME + "/" + GetGameID(game.ID));
+		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
@@ -66,7 +78,7 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(GamePlatform.Uplay);
+					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);
@@ -110,7 +122,7 @@ namespace GameLauncher_Console
 						string strID = "";
 						string strTitle = "";
 						string strIconPath = "";
-						string strPlatform = GetPlatformString(GamePlatform.Uplay);
+						string strPlatform = GetPlatformString(ENUM);
 
 						CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
 						uplayCfg.AddRange(File.ReadAllLines(uplayCfgFile));

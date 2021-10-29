@@ -83,36 +83,12 @@ namespace GameLauncher_Console
 
 		// POTENTIAL FUTURE PLATFORMS:
 
-		// Arc
-		public const string ARC_NAME				= "Arc";
-		public const string ARC_NAME_LONG			= "Arc";
-		public const string ARC_PROTOCOL			= "arc://";
-		//private const string ARC_UNREG			= "{CED8E25B-122A-4E80-B612-7F99B93284B3}"; // HKLM32 Uninstall
-
-		// Plarium Play
-		public const string PLARIUM_NAME			= "Plarium";
-		public const string PLARIUM_NAME_LONG		= "Plarium Play";
-		public const string PLARIUM_PROTOCOL		= "plariumplay://";
-		//private const string PLARIUM_UNREG		= "{970D6975-3C2A-4AF9-B190-12AF8837331F}"; // HKLM32 Uninstall
-
-		// Rockstar Games Launcher
-		public const string ROCKSTAR_NAME			= "Rockstar";
-		public const string ROCKSTAR_NAME_LONG		= "Rockstar Games Launcher";
-		public const string ROCKSTAR_PROTOCOL		= "rockstar://";
-		//private const string ROCKSTAR_REG			= @"SOFTWARE\WOW6432Node\Rockstar Games\Launcher"; // HKLM32
-
 		// Twitch [deprecated, now Amazon Games]
 		/*
 		public const string TWITCH_NAME				= "Twitch";
 		public const string TWITCH_NAME_LONG		= "Twitch";
 		private const string TWITCH_UNREG			= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
 		*/
-
-		// Wargaming.net Game Center
-		public const string WARGAMING_NAME			= "Wargaming";
-		public const string WARGAMING_NAME_LONG		= "Wargaming.net Game Center";
-		public const string WARGAMING_PROTOCOL		= "wgc://";
-		//private const string WARGAMING_UNREG		= "Wargaming.net Game Center"; // HKCU64 Uninstall
 
 		#region Query definitions
 

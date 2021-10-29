@@ -38,7 +38,13 @@ namespace GameLauncher_Console
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
-        public static void Launch() => Process.Start(PROTOCOL);
+        public static void Launch()
+		{
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(PROTOCOL);
+            else
+                Process.Start(PROTOCOL);
+        }
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
@@ -71,7 +77,7 @@ namespace GameLauncher_Console
 				//string strIconPath = "";
 				string strUninstall = "";
 				string strAlias = "";
-				string strPlatform = GetPlatformString(GamePlatform.Origin);
+				string strPlatform = GetPlatformString(ENUM);
 
 				try
 				{

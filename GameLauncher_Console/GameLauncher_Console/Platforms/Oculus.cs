@@ -10,7 +10,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Runtime.Versioning;
+using System.ServiceProcess;
 using System.Text.Json;
+using System.Threading;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
 using static GameLauncher_Console.CRegScanner;
@@ -22,13 +24,13 @@ namespace GameLauncher_Console
 	// [installed games only]
 	public class PlatformOculus : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Oculus;
-		public const string PROTOCOL = "oculus://";
+		public const GamePlatform ENUM          = GamePlatform.Oculus;
+		public const string PROTOCOL            = "oculus://";
 		//private const string OCULUS_UNREG		= "Oculus"; // HKLM64 Uninstall
-		private const string OCULUS_LIBS = @"SOFTWARE\Oculus VR, LLC\Oculus\Libraries"; // HKCU64
-		private const string OCULUS_DB = @"Oculus\sessions\_oaf\data.sqlite"; // AppData\Roaming
-		private const string OCULUS_LIBPATH = "OriginalPath"; // "Path" might be better, but may require converting "\\?\Volume{guid}\" to drive letter
-		private const ulong OCULUS_ENV_RIFT = 3082125255194578;
+		private const string OCULUS_LIBS        = @"SOFTWARE\Oculus VR, LLC\Oculus\Libraries"; // HKCU64
+		private const string OCULUS_DB          = @"Oculus\sessions\_oaf\data.sqlite"; // AppData\Roaming
+		private const string OCULUS_LIBPATH     = "OriginalPath"; // "Path" might be better, but may require converting "\\?\Volume{guid}\" to drive letter
+		private const ulong OCULUS_ENV_RIFT     = 3082125255194578;
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -38,11 +40,34 @@ namespace GameLauncher_Console
 
 		string IPlatform.Description => GetPlatformString(ENUM);
 
-		public static void Launch() => Process.Start(PROTOCOL);
+        public static void Launch()
+        {
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(PROTOCOL);
+            else
+                Process.Start(PROTOCOL);
+        }
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
+            // Stop service (otherwise database is locked)
+            ServiceController sc = new("OVRService");
+            bool restartSvc = false;
+            try
+            {
+                if (sc.Status.Equals(ServiceControllerStatus.Running) || sc.Status.Equals(ServiceControllerStatus.StartPending))
+                {
+                    restartSvc = true;
+                    sc.Stop();
+                    sc.WaitForStatus(ServiceControllerStatus.Stopped);
+                }
+            }
+            catch (Exception e)
+            {
+                CLogger.LogError(e);
+            }
+
 			List<string> libPaths = new();
 			Dictionary<ulong, string> exePaths = new();
 			string db = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), OCULUS_DB);
@@ -109,12 +134,12 @@ namespace GameLauncher_Console
 				CultureInfo ci = new("en-GB");
 				TextInfo ti = ci.TextInfo;
 				string userName = CConfig.GetConfigString(CConfig.CFG_OCULUSID);
-				ulong userId = 0;
+				//ulong userId = 0;
 
 				using var con = new SQLiteConnection($"Data Source={db}");
-				con.Open();
+                con.Open();
 
-				// Get the user ID to check entitlements for expired trials
+                // Get the user ID to check entitlements for expired trials
                 /*
 				using (var cmdU = new SQLiteCommand("SELECT hashkey, value FROM Objects WHERE typename = 'User'", con))
 				{
@@ -151,7 +176,7 @@ namespace GameLauncher_Console
                     string strTitle = "";
                     string strLaunch = "";
                     string strAlias = "";
-                    string strPlatform = GetPlatformString(GamePlatform.Oculus);
+                    string strPlatform = GetPlatformString(ENUM);
 
                     string url = "";
                     /*
@@ -173,7 +198,7 @@ namespace GameLauncher_Console
                     rdr.GetBytes(1, 0, val, 0, val.Length);
                     string strVal = System.Text.Encoding.Default.GetString(val);
 
-                    ulong.TryParse(ParseBlob(strVal, "ApplicationAssetBundle", "can_access_feature_keys", -1, 0), out ulong assets);
+                    _ = ulong.TryParse(ParseBlob(strVal, "ApplicationAssetBundle", "can_access_feature_keys", -1, 0), out ulong assets);
                     //ulong.TryParse(ParseBlob(strVal, "PCBinary", "livestreaming_status", -1, 0), out ulong bin);
                     string name = ParseBlob(strVal, "canonical_name", "category");
                     strTitle = ParseBlob(strVal, "display_name", "display_short_description");
@@ -295,22 +320,26 @@ namespace GameLauncher_Console
                                     }
                                 }
 //#if !DEBUG
-									File.Delete(zipfile);
+                                File.Delete(zipfile);
 //#endif
                             }
                             catch (Exception e)
                             {
-                                CLogger.LogError(e);
+                                CLogger.LogError(e, string.Format("Malformed {0} zip file!", _name.ToUpper()));
                             }
                         }
                     }
                 }
+                con.Close();
             }
 			catch (Exception e)
 			{
-				CLogger.LogError(e);
-			}
-			CLogger.LogDebug("--------------------");
+                CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
+            }
+            //if (restartSvc)
+            //    sc.Start();
+
+            CLogger.LogDebug("--------------------");
 		}
 
         static string ParseBlob(string strVal, string strStart, string strEnd, int startAdjust = 0, int stopAdjust = 0, string strStart1 = "")
