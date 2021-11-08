@@ -15,13 +15,9 @@ namespace GLC
 
         public CScannerDlg(string title, ConsoleRect rect) : base(title, rect)
         {
-            m_scanner        = new CScanner();
+            m_scanner        = new CScanner(Scanner_NewPlatform, Scanner_NewGame, Scanner_Finished);
             m_buffer         = new List<string>();
             m_targetPlatform = "";
-
-            m_scanner.PlatformStarted += Scanner_NewPlatform;
-            m_scanner.NewGameRead     += Scanner_NewGame;
-            m_scanner.ScannerFinished += Scanner_Finished;
         }
 
         public void SetTarget(string target)
@@ -33,7 +29,7 @@ namespace GLC
         {
             int ret = 0;
             Draw(true);
-            m_scanner.StartScanner(m_targetPlatform);
+            m_scanner.ScanForGames(m_targetPlatform);
 
             int bufferMax = Math.Max(0, m_buffer.Count - (m_rect.height - 3));
             int bufferPos = bufferMax;
@@ -78,14 +74,14 @@ namespace GLC
             // Do nothing
         }
 
-        private void Scanner_NewPlatform(CScannerPlatformEventArgs e)
+        private void Scanner_NewPlatform(CNewPlatformEventArgs e)
         {
-            WriteLine(string.Format("Searching for {0} games", e.Platform));
+            WriteLine(string.Format("Searching for {0} games", e.Value));
         }
 
-        private void Scanner_NewGame(CScannerGameReadEventArgs e)
+        private void Scanner_NewGame(CNewGameFoundEventArgs e)
         {
-            WriteLine(string.Format("   Found {0}", e.Game.Title));
+            WriteLine(string.Format("   Found {0}", e.Value));
         }
 
         private void Scanner_Finished(EventArgs e)
