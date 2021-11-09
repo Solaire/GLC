@@ -16,7 +16,12 @@ namespace LibGLC.PlatformReaders
 		private const string ORIGIN_CONTENT   = @"\Origin\LocalContent";
 		private const string ORIGIN_PATH      = "dipinstallpath=";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private COriginScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Origin);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			int gameCount = 0;
 			List<RegistryKey> keyList = new List<RegistryKey>();
@@ -32,10 +37,10 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("{0} directory read error: {1}", ORIGIN_NAME.ToUpper(), path));
+				CLogger.LogError(e, string.Format("{0} directory read error: {1}", m_platformName.ToUpper(), path));
 			}
 
-			CLogger.LogInfo("{0} {1} games found", dirs.Count, ORIGIN_NAME.ToUpper());
+			CLogger.LogInfo("{0} {1} games found", dirs.Count, m_platformName.ToUpper());
 			foreach(string dir in dirs)
 			{
 				string[] files = { };
@@ -47,7 +52,7 @@ namespace LibGLC.PlatformReaders
 				//string strIconPath = "";
 				string strUninstall = "";
 				string strAlias = "";
-				string strPlatform = "Origin";//CGameData.GetPlatformString(CGameData.GamePlatform.Origin);
+				string strPlatform = m_platformName;
 
 				try
 				{
@@ -72,7 +77,7 @@ namespace LibGLC.PlatformReaders
 					}
 					catch(Exception e)
 					{
-						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", ORIGIN_NAME.ToUpper(), file));
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), file));
 					}
 				}
 
@@ -111,8 +116,7 @@ namespace LibGLC.PlatformReaders
 
 					if(!(string.IsNullOrEmpty(strLaunch)))
 					{
-						//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
-						CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
+						CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
 						gameCount++;
 					}
 				}

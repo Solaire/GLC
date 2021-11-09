@@ -15,10 +15,14 @@ namespace LibGLC.PlatformReaders
 		private const string PARADOX_NAME = "Paradox";
 		private const string PARADOX_REG = @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; //HKLM32
 		private const string PARADOX_PATH = "Path";
-		//private const string PARADOX_UNREG = "{ED2CDA1D-39E4-4CBB-992C-5C1D08672128}"; //HKLM32
 		private const string PARADOX_JSON_FOLDER = @"\Paradox Interactive\launcher";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CParadoxScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Paradox);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			List<string> dirs = new List<string>();
 			int gameCount = 0;
@@ -28,7 +32,7 @@ namespace LibGLC.PlatformReaders
 			{
 				if(key == null)
                 {
-					CLogger.LogInfo("{0} client not found in the registry.", PARADOX_NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
 				}
 				else
 				{
@@ -48,7 +52,7 @@ namespace LibGLC.PlatformReaders
 								string strTitle = "";
 								string strLaunch = "";
 								string strAlias = "";
-								string strPlatform = "Paradox";// CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
+								string strPlatform = m_platformName;
 
 								strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
 								CLogger.LogDebug($"- {strTitle}");
@@ -64,8 +68,7 @@ namespace LibGLC.PlatformReaders
 								}
 								if(!(string.IsNullOrEmpty(strLaunch)))
 								{
-									//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-									CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+									CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 									gameCount++;
 								}
 							}

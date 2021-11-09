@@ -14,7 +14,12 @@ namespace LibGLC.PlatformReaders
 		private const string ITCH_NAME = "itch";
 		private const string ITCH_DB = @"\itch\db\butler.db";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CItchScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Itch);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			int gameCount = 0;
 
@@ -22,7 +27,7 @@ namespace LibGLC.PlatformReaders
 			string db = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + ITCH_DB;
 			if(!File.Exists(db))
 			{
-				CLogger.LogInfo("{0} database not found.", ITCH_NAME.ToUpper());
+				CLogger.LogInfo("{0} database not found.", m_platformName.ToUpper());
 				return false;
 			}
 
@@ -47,7 +52,7 @@ namespace LibGLC.PlatformReaders
 								string strTitle = rdr.GetString(1);
 								string strAlias = "";
 								string strLaunch = "";
-								string strPlatform = "Itch";// CGameData.GetPlatformString(CGameData.GamePlatform.Itch);
+								string strPlatform = m_platformName;
 
 								// SELECT path FROM install_locations;
 								// SELECT install_folder FROM downloads;
@@ -84,8 +89,7 @@ namespace LibGLC.PlatformReaders
 											if(!string.IsNullOrEmpty(strLaunch))
 											{
 												CLogger.LogDebug($"- {strTitle}");
-												//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-												CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+												CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 												gameCount++;
 											}
 										}
@@ -107,7 +111,7 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} database output!", ITCH_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", m_platformName.ToUpper()));
 			}
 			return gameCount > 0;
 		}

@@ -14,17 +14,22 @@ namespace LibGLC.PlatformReaders
 		private const string EPIC_NAME = "Epic";
 		private const string EPIC_ITEMS_FOLDER = @"\Epic\EpicGamesLauncher\Data\Manifests";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CEpicGamesScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Epic);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			int found = 0;
 			string dir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + EPIC_ITEMS_FOLDER;
 			if(!Directory.Exists(dir))
 			{
-				CLogger.LogInfo("{0} games not found in ProgramData.", EPIC_NAME.ToUpper());
+				CLogger.LogInfo("{0} games not found in ProgramData.", m_platformName.ToUpper());
 				return false;
 			}
 			string[] files = Directory.GetFiles(dir, "*.item", SearchOption.TopDirectoryOnly);
-			CLogger.LogInfo("{0} {1} games found", files.Count(), EPIC_NAME.ToUpper());
+			CLogger.LogInfo("{0} {1} games found", files.Count(), m_platformName.ToUpper());
 
 			var options = new JsonDocumentOptions
 			{
@@ -49,7 +54,7 @@ namespace LibGLC.PlatformReaders
 						CLogger.LogDebug($"- {strTitle}");
 						string strLaunch = CJsonHelper.GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
 						string strAlias = "";
-						string strPlatform = "Epic";// CGameData.GetPlatformString(CGameData.GamePlatform.Epic);
+						string strPlatform = m_platformName;
 
 						if(!string.IsNullOrEmpty(strLaunch))
 						{
@@ -63,15 +68,14 @@ namespace LibGLC.PlatformReaders
 							{
 								strAlias = "";
 							}
-							//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-							CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+							CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 							found++;
 						}
 					}
 				}
 				catch(Exception e)
 				{
-					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", EPIC_NAME.ToUpper(), file));
+					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), file));
 				}
 			}
 			return found > 0;

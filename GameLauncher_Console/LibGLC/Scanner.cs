@@ -116,10 +116,10 @@ namespace LibGLC
 		{
 			if(ScannerFinished != null)
 			{
-				ScannerFinished.Invoke(new EventArgs());
+				ScannerFinished.Invoke(EventArgs.Empty);
 			}
 			m_currentPlatform = 0;
-			CEventDispatcher.Unsubscribe();
+			CEventDispatcher.Unsubscribe(); // Avoid memory leaks
 		}
 	}
 	
@@ -189,9 +189,9 @@ namespace LibGLC
 		/// Raise new platform event to subscriber
 		/// </summary>
 		/// <param name="platformName">Name of the platform</param>
-		public static void NewPlatformStarted(string platformName)
+		public static void OnPlatformStarted(string platformName)
 		{
-			if(PlatformStarted != null)
+			if(PlatformStarted != null && platformName.Length > 0)
 			{
 				PlatformStarted.Invoke(new CNewPlatformEventArgs(platformName));
 				CLogger.LogInfo("Scanning platform: {0}", platformName);
@@ -202,7 +202,7 @@ namespace LibGLC
 		/// Rase new game found event to subscriber
 		/// </summary>
 		/// <param name="gameData">The game data structure</param>
-		public static void NewGameFound(RawGameData gameData)
+		public static void OnGameFound(RawGameData gameData)
 		{
 			if(GameFound != null)
 			{
@@ -213,7 +213,6 @@ namespace LibGLC
 
 		/// <summary>
 		/// Unsubscribe from all event handlers
-		/// To avoid memory leaks
 		/// </summary>
 		public static void Unsubscribe()
         {

@@ -38,6 +38,9 @@ namespace LibGLC.PlatformReaders
         {
             return Activator.CreateInstance(typeof(T), true) as T;
         }
+
+		protected string m_platformName;
+
 		#endregion Singleton code
 
 		// ===== Shared constants ===== //
@@ -559,6 +562,7 @@ namespace LibGLC.PlatformReaders
 		/// <returns>True if at least one game was found, otherwise false</returns>
 		public virtual bool GetGames(bool getNonInstalled, bool expensiveIcons)
         {
+			CEventDispatcher.OnPlatformStarted(m_platformName);
 			bool success = GetInstalledGames(expensiveIcons);
 			if(getNonInstalled)
             {

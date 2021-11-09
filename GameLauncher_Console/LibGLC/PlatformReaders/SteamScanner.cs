@@ -28,7 +28,12 @@ namespace LibGLC.PlatformReaders
 		private const string STEAM_USRARR       = "users";
 		private const string STEAM_REG          = @"SOFTWARE\WOW6432Node\Valve\Steam"; // HKLM32
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CSteamScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Steam);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			int gameCount = 0;
 			string strInstallPath = "";
@@ -39,7 +44,7 @@ namespace LibGLC.PlatformReaders
 			{
 				if(key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", STEAM_NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
 					return false;
 				}
 
@@ -50,7 +55,7 @@ namespace LibGLC.PlatformReaders
 			// Ensure that the client actually exist in the retrieved directory
 			if(!Directory.Exists(strClientPath))
 			{
-				CLogger.LogInfo("{0} library not found: {1}", STEAM_NAME.ToUpper(), strClientPath);
+				CLogger.LogInfo("{0} library not found: {1}", m_platformName.ToUpper(), strClientPath);
 				return false;
 			}
 
@@ -102,7 +107,7 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} file: {1}", STEAM_NAME.ToUpper(), libFile));
+				CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), libFile));
 				nLibs--;
 			}
 
@@ -115,11 +120,11 @@ namespace LibGLC.PlatformReaders
 				{
 					libFiles = Directory.GetFiles(lib, "appmanifest_*.acf", SearchOption.TopDirectoryOnly).ToList();
 					allFiles.AddRange(libFiles);
-					CLogger.LogInfo("{0} {1} games found in library {2}", libFiles.Count, STEAM_NAME.ToUpper(), lib);
+					CLogger.LogInfo("{0} {1} games found in library {2}", libFiles.Count, m_platformName.ToUpper(), lib);
 				}
 				catch(Exception e)
 				{
-					CLogger.LogError(e, string.Format("{0} directory read error: ", STEAM_NAME.ToUpper(), lib));
+					CLogger.LogError(e, string.Format("{0} directory read error: ", m_platformName.ToUpper(), lib));
 					continue;
 				}
 
@@ -144,7 +149,7 @@ namespace LibGLC.PlatformReaders
 						string strIconPath = "";
 						string strUninstall = "";
 						string strAlias = "";
-						string strPlatform = "Steam";// CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+						string strPlatform = m_platformName;
 
 						if(!string.IsNullOrEmpty(strLaunch))
 						{
@@ -178,16 +183,13 @@ namespace LibGLC.PlatformReaders
 								strAlias = "";
 							}
 							strUninstall = STEAM_UNINST + id;
-
-							//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-							CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+							CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 							gameCount++;
-							//gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						}
 					}
 					catch(Exception e)
 					{
-						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", STEAM_NAME.ToUpper(), file));
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), file));
 					}
 				}
 				i++;

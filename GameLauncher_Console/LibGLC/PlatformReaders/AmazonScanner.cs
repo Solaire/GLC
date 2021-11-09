@@ -15,8 +15,11 @@ namespace LibGLC.PlatformReaders
 		private const string AMAZON_LAUNCH = "amazon-games://play/";
 		private const string AMAZON_DB = @"\Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite";
 		private const string AMAZON_OWN_DB = @"\Amazon Games\Data\Games\Sql\GameProductInfo.sqlite";
-		//private const string AMAZON_UNINST_EXE = @"\__InstallData__\Amazon Game Remover.exe";
-		//private const string AMAZON_UNINST_SUFFIX = "-m Game -p";
+
+		private CAmazonScanner()
+        {
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Amazon);
+		}
 
         protected override bool GetInstalledGames(bool expensiveIcons)
         {
@@ -24,7 +27,7 @@ namespace LibGLC.PlatformReaders
 			string db = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + AMAZON_DB;
 			if(!File.Exists(db))
 			{
-				CLogger.LogInfo("{0} installed game database not found.", AMAZON_NAME.ToUpper());
+				CLogger.LogInfo("{0} installed game database not found.", m_platformName.ToUpper());
 				return false;
 			}
 
@@ -72,8 +75,7 @@ namespace LibGLC.PlatformReaders
 									{
 										strAlias = "";
 									}
-									//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-									CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+									CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 									gameCount++;
 								}
 							}
@@ -83,7 +85,7 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", m_platformName.ToUpper()));
 			}
 			return gameCount > 0;
 		}
@@ -93,12 +95,12 @@ namespace LibGLC.PlatformReaders
 			string db = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + AMAZON_OWN_DB;
 			if(!File.Exists(db))
 			{
-				CLogger.LogInfo("{0} not-installed game database not found.", AMAZON_NAME.ToUpper());
+				CLogger.LogInfo("{0} not-installed game database not found.", m_platformName.ToUpper());
 				return false;
 			}
 
 			int found = 0;
-			CLogger.LogDebug("{0} not-installed games:", AMAZON_NAME.ToUpper());
+			CLogger.LogDebug("{0} not-installed games:", m_platformName.ToUpper());
 			try
 			{
 				using(var con = new SQLiteConnection($"Data Source={db}"))
@@ -114,9 +116,8 @@ namespace LibGLC.PlatformReaders
 								string strID = rdr.GetString(2); // TODO: Should I use Id or ProductIdStr?
 								string strTitle = rdr.GetString(3);
 								CLogger.LogDebug($"- *{strTitle}");
-								string strPlatform = "Amazon";//CGameData.GetPlatformString(CGameData.GamePlatform.Amazon);
-															  //gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-								CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+								string strPlatform = m_platformName;
+								CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 								found++;
 							}
 						}
@@ -125,7 +126,7 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} database output!", AMAZON_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", m_platformName.ToUpper()));
 			}
 			return found > 0;
 		}

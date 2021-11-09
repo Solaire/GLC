@@ -18,7 +18,12 @@ namespace LibGLC.PlatformReaders
 		private const string GOG_GALAXY_EXE = "\\GalaxyClient.exe";
 		private const string GOG_REG_CLIENT = @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CGogScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.GOG);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			/*
 			productId from ProductAuthorizations
@@ -35,7 +40,7 @@ namespace LibGLC.PlatformReaders
 			string db = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + GOG_DB;
 			if(!File.Exists(db))
 			{
-				CLogger.LogInfo("{0} database not found.", GOG_NAME.ToUpper());
+				CLogger.LogInfo("{0} database not found.", m_platformName.ToUpper());
 				return false;
 			}
 			string launcherPath = "";
@@ -75,7 +80,7 @@ namespace LibGLC.PlatformReaders
 									string strAlias = "";
 									string strLaunch = "";
 									string strIconPath = "";
-									string strPlatform = "Gog";// CGameData.GetPlatformString(CGameData.GamePlatform.GOG);
+									string strPlatform = m_platformName;
 
 									strAlias = CRegHelper.GetAlias(strTitle);
 									if(strAlias.Equals(strTitle, StringComparison.CurrentCultureIgnoreCase))
@@ -122,8 +127,7 @@ namespace LibGLC.PlatformReaders
 																}
 															}
 															CLogger.LogDebug($"- {strTitle}");
-															//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
-															CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
+															CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
 															gameCount++;
 														}
 													}
@@ -174,7 +178,7 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} database output!", GOG_NAME.ToUpper()));
+				CLogger.LogError(e, string.Format("Malformed {0} database output!", m_platformName.ToUpper()));
 			}
 			return gameCount > 0;
 		}

@@ -16,7 +16,12 @@ namespace LibGLC.PlatformReaders
 		private const string UPLAY_INSTALL   = "Uplay Install ";
 		private const string UPLAY_LAUNCH    = "uplay://launch/";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CUbisoftScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Uplay);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			int gameCount = 0;
 			List<RegistryKey> keyList; //= new List<RegistryKey>();
@@ -28,7 +33,7 @@ namespace LibGLC.PlatformReaders
 			{
 				if(uplayKey == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", UPLAY_NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
 					return false;
 				}
 				uplayLoc = CRegHelper.GetRegStrVal(uplayKey, GAME_INSTALL_LOCATION);
@@ -38,7 +43,7 @@ namespace LibGLC.PlatformReaders
 			{
 				keyList = CRegHelper.FindGameFolders(key, UPLAY_INSTALL);
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, UPLAY_NAME.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", keyList.Count, m_platformName.ToUpper());
 				foreach(var data in keyList)
 				{
 					string loc = CRegHelper.GetRegStrVal(data, GAME_INSTALL_LOCATION);
@@ -80,8 +85,7 @@ namespace LibGLC.PlatformReaders
 					}
 					if(!(string.IsNullOrEmpty(strLaunch)))
 					{
-						//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-						CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+						CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						gameCount++;
 					}
 				}

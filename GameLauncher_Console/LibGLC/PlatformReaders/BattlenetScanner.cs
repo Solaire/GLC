@@ -13,8 +13,12 @@ namespace LibGLC.PlatformReaders
     {
 		private const string BATTLENET_NAME          = "Battlenet";
 		private const string BATTLENET_NAME_LONG     = "Battle.net";
-		//private const string BATTLE_NET_UNREG		= "Battle.net"; // HKLM32 Uninstall
 		private const string BATTLE_NET_REG         = @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
+
+		private CBattlenetScanner()
+        {
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Battlenet);
+		}
 
         protected override bool GetInstalledGames(bool expensiveIcons)
         {
@@ -25,13 +29,13 @@ namespace LibGLC.PlatformReaders
 			{
 				if(key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", BATTLENET_NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
 					return false;
 				}
 
 				keyList = CRegHelper.FindGameKeys(key, BATTLE_NET_REG, GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_REG });
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, BATTLENET_NAME.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", keyList.Count, m_platformName.ToUpper());
 				foreach(var data in keyList)
 				{
 					string strID = "";
@@ -40,7 +44,7 @@ namespace LibGLC.PlatformReaders
 					//string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = "Battlenet";// CGameData.GetPlatformString(CGameData.GamePlatform.Battlenet);
+					string strPlatform = m_platformName;
 					try
 					{
 						strID = Path.GetFileName(data.Name);
@@ -64,8 +68,7 @@ namespace LibGLC.PlatformReaders
 					}
 					if(!(string.IsNullOrEmpty(strLaunch)))
 					{
-						//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
-						CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
+						CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
 						gameCount++;
 					}
 				}

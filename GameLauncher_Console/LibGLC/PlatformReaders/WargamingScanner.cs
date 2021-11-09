@@ -5,6 +5,11 @@
     /// </summary>
     public sealed class CWargamingScanner : CBasePlatformScanner<CWargamingScanner>
     {
+        private CWargamingScanner()
+        {
+            m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Wargaming);
+        }
+
         protected override bool GetInstalledGames(bool expensiveIcons)
         {
             return false;

@@ -14,7 +14,12 @@ namespace LibGLC.PlatformReaders
 		private const string IG_JSON_FILE       = @"\IGClient\storage\installed.json";
 		private const string IG_OWN_JSON_FILE   = @"\IGClient\config.json";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CIndiegalaScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.IGClient);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			int found = 0;
 
@@ -22,7 +27,7 @@ namespace LibGLC.PlatformReaders
 			string file = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + IG_JSON_FILE;
 			if(!File.Exists(file))
 			{
-				CLogger.LogInfo("{0} installed games not found in AppData", IG_NAME.ToUpper());
+				CLogger.LogInfo("{0} installed games not found in AppData", m_platformName.ToUpper());
 				return false;
 			}
 			else
@@ -36,7 +41,7 @@ namespace LibGLC.PlatformReaders
 
 				if(string.IsNullOrEmpty(strDocumentData))
 				{
-					CLogger.LogWarn(string.Format("Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+					CLogger.LogWarn(string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), file));
 				}
 				else
 				{
@@ -85,7 +90,7 @@ namespace LibGLC.PlatformReaders
 										strAlias = "";
 									}
 									//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-									CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+									CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 									found++;
 								}
 							}
@@ -93,7 +98,7 @@ namespace LibGLC.PlatformReaders
 					}
 					catch(Exception e)
 					{
-						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", IG_NAME.ToUpper(), file));
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), file));
 					}
 				}
 			}

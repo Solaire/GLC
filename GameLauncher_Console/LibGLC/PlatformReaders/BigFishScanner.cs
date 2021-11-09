@@ -14,7 +14,6 @@ namespace LibGLC.PlatformReaders
 		private const string BIGFISH_NAME            = "BigFish";
 		private const string BIGFISH_NAME_LONG       = "Big Fish";
 		private const string BIGFISH_GAME_FOLDER    = "BFG-";
-		//private const string BIGFISH_LAUNCH			= "LaunchGame.bfg";
 		private const string BIGFISH_REG             = @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
 		private const string BIGFISH_GAMES          = @"SOFTWARE\WOW6432Node\Big Fish Games\Persistence\GameDB"; // HKLM32
 		private const string BIGFISH_ID             = "WrapID";
@@ -23,7 +22,12 @@ namespace LibGLC.PlatformReaders
 		private const string BIGFISH_DAYS           = "DaysLeft";
 		private const string BIGFISH_TIME           = "TimeLeft";
 
-        protected override bool GetInstalledGames(bool expensiveIcons)
+		private CBigFishScanner()
+		{
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.BigFish);
+		}
+
+		protected override bool GetInstalledGames(bool expensiveIcons)
         {
 			List<RegistryKey> keyList;
 			int gameCount = 0;
@@ -32,13 +36,13 @@ namespace LibGLC.PlatformReaders
 			{
 				if(key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", BIGFISH_NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
 					return false;
 				}
 
 				keyList = CRegHelper.FindGameFolders(key, "");
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, BIGFISH_NAME.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", keyList.Count, m_platformName.ToUpper());
 				foreach(var data in keyList)
 				{
 					string wrap = Path.GetFileName(data.Name);
@@ -53,7 +57,7 @@ namespace LibGLC.PlatformReaders
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = "BigFish";// CGameData.GetPlatformString(CGameData.GamePlatform.BigFish);
+					string strPlatform = m_platformName;
 					try
 					{
 						bool found = false;
@@ -96,8 +100,7 @@ namespace LibGLC.PlatformReaders
 							}
 							if(!(string.IsNullOrEmpty(strLaunch)))
 							{
-								//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-								CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+								CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 								gameCount++;
 							}
 						}

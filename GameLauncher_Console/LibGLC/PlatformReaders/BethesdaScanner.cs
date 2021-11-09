@@ -18,8 +18,11 @@ namespace LibGLC.PlatformReaders
 		private const string BETHESDA_CREATION_KIT  = "Creation Kit";
 		private const string BETHESDA_LAUNCH        = "bethesda://run/";
 		private const string BETHESDA_PRODUCT_ID    = "ProductID";
-		//private const string BETHESDA_UNREG			= "{3448917E-E4FE-4E30-9502-9FD52EABB6F5}_is1"; // HKLM32 Uninstall
-		//private const string BETHESDA_REG			= @"SOFTWARE\WOW6432Node\Bethesda Softworks\Bethesda.net"; // HKLM32
+
+		private CBethesdaScanner()
+        {
+			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Bethesda);
+		}
 
         protected override bool GetInstalledGames(bool expensiveIcons)
         {
@@ -30,13 +33,13 @@ namespace LibGLC.PlatformReaders
 			{
 				if(key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", BETHESDA_NAME.ToUpper());
+					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
 					return false;
 				}
 
 				keyList = CRegHelper.FindGameKeys(key, BETHESDA_NET, BETHESDA_PATH, new string[] { BETHESDA_CREATION_KIT });
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, BETHESDA_NAME.ToUpper());
+				CLogger.LogInfo("{0} {1} games found", keyList.Count, m_platformName.ToUpper());
 				foreach(var data in keyList)
 				{
 					string loc = CRegHelper.GetRegStrVal(data, BETHESDA_PATH);
@@ -47,7 +50,7 @@ namespace LibGLC.PlatformReaders
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = "Bethesda";// CGameData.GetPlatformString(CGameData.GamePlatform.Bethesda);
+					string strPlatform = m_platformName;
 					try
 					{
 						strID = Path.GetFileName(data.Name);
@@ -76,8 +79,7 @@ namespace LibGLC.PlatformReaders
 					}
 					if(!(string.IsNullOrEmpty(strLaunch)))
 					{
-						//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-						CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+						CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						gameCount++;
 					}
 				}
