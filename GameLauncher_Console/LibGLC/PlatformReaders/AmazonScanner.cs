@@ -73,7 +73,7 @@ namespace LibGLC.PlatformReaders
 										strAlias = "";
 									}
 									//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-									NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+									CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 									gameCount++;
 								}
 							}
@@ -115,8 +115,8 @@ namespace LibGLC.PlatformReaders
 								string strTitle = rdr.GetString(3);
 								CLogger.LogDebug($"- *{strTitle}");
 								string strPlatform = "Amazon";//CGameData.GetPlatformString(CGameData.GamePlatform.Amazon);
-								//gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-								NewGameFound(new RawGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+															  //gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+								CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 								found++;
 							}
 						}

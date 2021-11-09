@@ -180,7 +180,7 @@ namespace LibGLC.PlatformReaders
 							strUninstall = STEAM_UNINST + id;
 
 							//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-							NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+							CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 							gameCount++;
 							//gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						}

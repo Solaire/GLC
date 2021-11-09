@@ -123,7 +123,7 @@ namespace LibGLC.PlatformReaders
 															}
 															CLogger.LogDebug($"- {strTitle}");
 															//gameList.Add(new GameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
-															NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
+															CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform));
 															gameCount++;
 														}
 													}

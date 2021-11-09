@@ -19,7 +19,7 @@ namespace GLC
         {
             ConsoleRect minibufRect = new ConsoleRect(0, rect.Bottom - 2, rect.width, 2);
             m_minibuffer    = new CMinibuffer(minibufRect);
-            m_scannerDlg    = new CScannerDlg("Scanner", new ConsoleRect((m_rect.width / 2) - 20, (m_rect.height / 2) - 20, 40, 20));
+            m_scannerDlg    = new CScannerDlg("Scanner", new ConsoleRect((m_rect.width / 2) - ((m_rect.width - 10) / 2), (m_rect.height / 2) - ((m_rect.height - 10) / 2), m_rect.width - 10, m_rect.height - 10));
         }
 
         public override void Initialise()

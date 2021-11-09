@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using LibGLC.PlatformReaders;
+using Logger;
 
 namespace LibGLC
 {
@@ -22,11 +22,9 @@ namespace LibGLC
 		{
 			m_currentPlatform = 0;
 
-			// The CBasePlatformScanner events are static, so it doesn't matter which instance we use to link
-			// Can't use the base class since it's a generic
-			CSteamScanner.PlatformStarted += OnPlatformStarted;
-			CSteamScanner.GameFound		  += OnGameFound;
-			ScannerFinished				  += OnScanFinish;
+			CEventDispatcher.PlatformStarted += OnPlatformStarted;
+			CEventDispatcher.GameFound		 += OnGameFound;
+			ScannerFinished					 += OnScanFinish;
 		}
 
 		/// <summary>
@@ -43,53 +41,7 @@ namespace LibGLC
 			{
 				ScanSinglePlatform(target.ToLower());
 			}
-
 			ScannerFinish();
-
-			// TEST code
-			/*
-            string[] test = new string[]
-            {
-                "Scanning, Steam",
-                "Found - Dark souls 3",
-                "Found - Divinity 2",
-                "Found - Tekken 7",
-                "Found - Civ V",
-                "Found - MK 11",
-                "Found - Overcooked 2",
-                "Found - Quake",
-
-                "Scanning, GOG",
-                "Found - Gothic 2 NK",
-                "Found - Heroes 3",
-                "Found - Witcher 3",
-                "Found - Baldur's gate",
-                "Found - Project warlock",
-
-                "Scanning, Uplay",
-                "Found - Assassin's Creed",
-                "Found - Far Cry 4",
-                "Found - Ghost Recon - wildlands",
-                "Found - Settlers",
-                "Found - Heroes of might and magic",
-            };
-
-            int platformsFound = 0;
-            int gamesFound = 0;
-
-            for(int i = 0; i < test.Length; i++)
-            {
-                if(test[i].Contains("Scanning, "))
-                {
-                    OnPlatformStart(++platformsFound, test[i]);
-                }
-                else if(test[i].Contains("Found - "))
-                {
-                    OnNewGameFound(++gamesFound, new CGame.GameObject(0, "test", test[i], "test", "test", "test"));
-                }
-                Thread.Sleep(150);
-            }
-            */
 		}
 
 		/// <summary>
@@ -112,23 +64,23 @@ namespace LibGLC
 		{
 			switch(platform)
 			{
-				case CPlatform.GamePlatform.Steam:		return CSteamScanner.		Instance.GetGames(false, false); // FindSteamGames();
-				case CPlatform.GamePlatform.GOG:		return CGogScanner.			Instance.GetGames(false, false); // FindGogGames();
-				case CPlatform.GamePlatform.Uplay:		return CUbisoftScanner.		Instance.GetGames(false, false); // FindUbisoftGames();
-				case CPlatform.GamePlatform.Origin:		return COriginScanner.		Instance.GetGames(false, false); // FindOriginGames();	
-				case CPlatform.GamePlatform.Epic:		return CEpicGamesScanner.	Instance.GetGames(false, false); // FindEpicGames();		
-				case CPlatform.GamePlatform.Bethesda:	return CBethesdaScanner.	Instance.GetGames(false, false); // FindBethesdaGames();	
-				case CPlatform.GamePlatform.Battlenet:	return CBattlenetScanner.	Instance.GetGames(false, false); // FindBattlenetGames();	
-				case CPlatform.GamePlatform.Rockstar:	return CRockstarScanner.	Instance.GetGames(false, false); // FindRockstarGames();	
-				case CPlatform.GamePlatform.Amazon:		return CAmazonScanner.		Instance.GetGames(false, false); // FindAmazonGames();	
-				case CPlatform.GamePlatform.BigFish:	return CBigFishScanner.		Instance.GetGames(false, false); // FindBigFishGames();	
-				case CPlatform.GamePlatform.Arc:		return CArcScanner.			Instance.GetGames(false, false); // FindArcGames();		
-				case CPlatform.GamePlatform.Itch:		return CItchScanner.		Instance.GetGames(false, false); // FindItchGames();		
-				case CPlatform.GamePlatform.Paradox:	return CParadoxScanner.		Instance.GetGames(false, false); // FindParadoxGames();	
-				case CPlatform.GamePlatform.Plarium:	return CPlariumScanner.		Instance.GetGames(false, false); // FindPlariumGames();	
-				//case CPlatform.GamePlatform.Twitch:	return CTwitchParser.		Instance.GetGames(false, false); // FindTwitchGames();	
-				case CPlatform.GamePlatform.Wargaming:	return CWargamingScanner.	Instance.GetGames(false, false); // FindWargamingGames();	
-				case CPlatform.GamePlatform.IGClient:	return CIndiegalaScanner.	Instance.GetGames(false, false); // FindIndiegalaGames();	
+				case CPlatform.GamePlatform.Steam:		return CSteamScanner.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.GOG:		return CGogScanner.			Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Uplay:		return CUbisoftScanner.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Origin:		return COriginScanner.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Epic:		return CEpicGamesScanner.	Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Bethesda:	return CBethesdaScanner.	Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Battlenet:	return CBattlenetScanner.	Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Rockstar:	return CRockstarScanner.	Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Amazon:		return CAmazonScanner.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.BigFish:	return CBigFishScanner.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Arc:		return CArcScanner.			Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Itch:		return CItchScanner.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Paradox:	return CParadoxScanner.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Plarium:	return CPlariumScanner.		Instance.GetGames(false, false);
+				//case CPlatform.GamePlatform.Twitch:	return CTwitchParser.		Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.Wargaming:	return CWargamingScanner.	Instance.GetGames(false, false);
+				case CPlatform.GamePlatform.IGClient:	return CIndiegalaScanner.	Instance.GetGames(false, false);
 
 				case CPlatform.GamePlatform.Unknown:
 				default:
@@ -146,11 +98,14 @@ namespace LibGLC
 			{
 				return false;
 			}
-			if(!ScanSinglePlatform(m_currentPlatform++))
-			{
-				m_currentPlatform = CPlatform.GamePlatform.Unknown;
-				return false;
+
+			int platformCount = Enum.GetNames(typeof(CPlatform.GamePlatform)).Length - 1;
+			m_currentPlatform = CPlatform.GamePlatform.Unknown;
+			while((int)m_currentPlatform++ < platformCount)
+            {
+				ScanSinglePlatform(m_currentPlatform);
 			}
+
 			return true;
 		}
 
@@ -164,6 +119,7 @@ namespace LibGLC
 				ScannerFinished.Invoke(new EventArgs());
 			}
 			m_currentPlatform = 0;
+			CEventDispatcher.Unsubscribe();
 		}
 	}
 	
@@ -217,6 +173,66 @@ namespace LibGLC
 		public CNewGameFoundEventArgs(RawGameData value)
 		{
 			Value = value;
+		}
+	}
+
+	/// <summary>
+	/// Static class for dispatching events created to omit requiring
+	/// all singleton-children from subscribing their events
+	/// </summary>
+	internal static class CEventDispatcher
+	{
+		public static event Action<CNewPlatformEventArgs>  PlatformStarted;
+		public static event Action<CNewGameFoundEventArgs> GameFound;
+
+		/// <summary>
+		/// Raise new platform event to subscriber
+		/// </summary>
+		/// <param name="platformName">Name of the platform</param>
+		public static void NewPlatformStarted(string platformName)
+		{
+			if(PlatformStarted != null)
+			{
+				PlatformStarted.Invoke(new CNewPlatformEventArgs(platformName));
+				CLogger.LogInfo("Scanning platform: {0}", platformName);
+			}
+		}
+
+		/// <summary>
+		/// Rase new game found event to subscriber
+		/// </summary>
+		/// <param name="gameData">The game data structure</param>
+		public static void NewGameFound(RawGameData gameData)
+		{
+			if(GameFound != null)
+			{
+				GameFound.Invoke(new CNewGameFoundEventArgs(gameData));
+				CLogger.LogInfo("Found game: {0}", gameData.m_strTitle);
+			}
+		}
+
+		/// <summary>
+		/// Unsubscribe from all event handlers
+		/// To avoid memory leaks
+		/// </summary>
+		public static void Unsubscribe()
+        {
+			if(PlatformStarted != null)
+            {
+				Delegate[] subArr = PlatformStarted.GetInvocationList();
+				foreach(Delegate sub in subArr)
+                {
+					PlatformStarted -= (sub as Action<CNewPlatformEventArgs>);
+                }
+            }
+			if(GameFound != null)
+			{
+				Delegate[] subArr = GameFound.GetInvocationList();
+				foreach(Delegate sub in subArr)
+				{
+					GameFound -= (sub as Action<CNewGameFoundEventArgs>);
+				}
+			}
 		}
 	}
 }

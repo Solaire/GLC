@@ -54,37 +54,6 @@ namespace LibGLC.PlatformReaders
 
 		#endregion Shared constants
 
-		// ===== Event code ===== //
-		#region Event code
-
-        public static event Action<CNewPlatformEventArgs>  PlatformStarted;
-        public static event Action<CNewGameFoundEventArgs> GameFound;
-
-        /// <summary>
-        /// Raise new platform event to subscriber
-        /// </summary>
-        /// <param name="platformName">Name of the platform</param>
-        protected void NewPlatformStarted(string platformName)
-        {
-            if(PlatformStarted != null)
-            {
-                PlatformStarted.Invoke(new CNewPlatformEventArgs(platformName));
-            }
-        }
-
-        /// <summary>
-        /// Rase new game found event to subscriber
-        /// </summary>
-        /// <param name="gameData">The game data structure</param>
-        protected void NewGameFound(RawGameData gameData)
-        {
-            if(GameFound != null)
-            {
-                GameFound.Invoke(new CNewGameFoundEventArgs(gameData));
-            }
-        }
-		#endregion Event code
-
 		// ===== Internal registry helper class ===== //
 		#region Internal registry helper class
 

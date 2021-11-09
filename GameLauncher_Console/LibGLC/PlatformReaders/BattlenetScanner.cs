@@ -65,7 +65,7 @@ namespace LibGLC.PlatformReaders
 					if(!(string.IsNullOrEmpty(strLaunch)))
 					{
 						//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
-						NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
+						CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
 						gameCount++;
 					}
 				}

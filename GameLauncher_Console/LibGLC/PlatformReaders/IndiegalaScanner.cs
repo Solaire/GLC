@@ -85,7 +85,7 @@ namespace LibGLC.PlatformReaders
 										strAlias = "";
 									}
 									//gameList.Add(new GameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-									NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+									CEventDispatcher.NewGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 									found++;
 								}
 							}

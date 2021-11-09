@@ -29,7 +29,8 @@ namespace GLC
         {
             int ret = 0;
             Draw(true);
-            m_scanner.ScanForGames(m_targetPlatform);
+            //m_scanner.ScanForGames(m_targetPlatform);
+            m_scanner.ScanForGames("all");
 
             int bufferMax = Math.Max(0, m_buffer.Count - (m_rect.height - 3));
             int bufferPos = bufferMax;
@@ -81,7 +82,7 @@ namespace GLC
 
         private void Scanner_NewGame(CNewGameFoundEventArgs e)
         {
-            WriteLine(string.Format("   Found {0}", e.Value));
+            WriteLine(string.Format("Found {0}", e.Value.m_strTitle));
         }
 
         private void Scanner_Finished(EventArgs e)
