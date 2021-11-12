@@ -27,6 +27,12 @@ namespace LibGLC
 			ScannerFinished					 += OnScanFinish;
 		}
 
+		~CScanner()
+        {
+			// Static class isn't garbage collected
+			CEventDispatcher.Unsubscribe();
+		}
+
 		/// <summary>
 		/// Look for games in the specified platform
 		/// </summary>
@@ -119,7 +125,6 @@ namespace LibGLC
 				ScannerFinished.Invoke(EventArgs.Empty);
 			}
 			m_currentPlatform = 0;
-			CEventDispatcher.Unsubscribe(); // Avoid memory leaks
 		}
 	}
 	

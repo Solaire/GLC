@@ -30,7 +30,7 @@ namespace GLC
             int ret = 0;
             Draw(true);
             //m_scanner.ScanForGames(m_targetPlatform);
-            m_scanner.ScanForGames("all");
+            m_scanner.ScanForGames("GOG Galaxy");
 
             int bufferMax = Math.Max(0, m_buffer.Count - (m_rect.height - 3));
             int bufferPos = bufferMax;
@@ -77,17 +77,17 @@ namespace GLC
 
         private void Scanner_NewPlatform(CNewPlatformEventArgs e)
         {
-            WriteLine(string.Format("Searching for {0} games", e.Value));
+            WriteLine(string.Format("Scanning {0}", e.Value));
         }
 
         private void Scanner_NewGame(CNewGameFoundEventArgs e)
         {
-            WriteLine(string.Format("Found {0}", e.Value.m_strTitle));
+            WriteLine(string.Format("   - {0}", e.Value.m_strTitle));
         }
 
         private void Scanner_Finished(EventArgs e)
         {
-            WriteLine(string.Format("Scanning finished"));
+            WriteLine(string.Format("Finished"));
             CConsoleDraw.WriteText(" [Close] ".PadCenter(m_rect.width - 2), m_rect.x + 1, m_rect.Bottom - 1, ConsoleColor.Black, ConsoleColor.White);
         }
 

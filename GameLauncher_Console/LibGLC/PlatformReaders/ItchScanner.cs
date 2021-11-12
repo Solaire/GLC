@@ -3,122 +3,231 @@ using System.Data.SQLite;
 using System.IO;
 using System.Text.Json;
 using Logger;
+using SqlDB;
 
 namespace LibGLC.PlatformReaders
 {
 	/// <summary>
 	/// Scanner for Itch.io
+	/// This scanner is using an SQLite database to get game information
 	/// </summary>
-    public sealed class CItchScanner : CBasePlatformScanner<CItchScanner>
+	public sealed class CItchScanner : CBasePlatformScanner<CItchScanner>
     {
-		private const string ITCH_NAME = "itch";
 		private const string ITCH_DB = @"\itch\db\butler.db";
+
+		#region SQL Queries
+
+		/// <summary>
+		/// SQL query for getting installed games
+		/// </summary>
+		private class CQryGetInstalledGames : CSqlQry
+		{
+			public CQryGetInstalledGames(CSqlConn sqlConn)
+				: base("games G" +
+					  " LEFT JOIN caves C ON C.game_id = G.id",
+					  " G.Classification IN ('game', 'tool') AND C.game_id IS NOT NULL",
+					  "",
+					  sqlConn)
+			{
+				m_sqlRow["id"]					= new CSqlFieldString("G.id"				 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["title"]				= new CSqlFieldString("G.title"				 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["cover_url"]			= new CSqlFieldString("G.cover_url"			 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["still_cover_url"]		= new CSqlFieldString("G.still_cover_url"	 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["verdict"]				= new CSqlFieldString("C.verdict"			 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["install_folder_name"] = new CSqlFieldString("C.install_folder_name", CSqlField.QryFlag.cSelRead);
+			}
+			public string ID
+			{
+				get { return m_sqlRow["id"].String; }
+				set { m_sqlRow["id"].String = value; }
+			}
+			public string Title
+			{
+				get { return m_sqlRow["title"].String; }
+				set { m_sqlRow["title"].String = value; }
+			}
+			public string CoverUrl
+			{
+				get { return m_sqlRow["cover_url"].String; }
+				set { m_sqlRow["cover_url"].String = value; }
+			}
+			public string StillCoverUrl
+			{
+				get { return m_sqlRow["still_cover_url"].String; }
+				set { m_sqlRow["still_cover_url"].String = value; }
+			}
+			public string Verdict
+			{
+				get { return m_sqlRow["verdict"].String; }
+				set { m_sqlRow["verdict"].String = value; }
+			}
+			public string InstallFolderName
+			{
+				get { return m_sqlRow["install_folder_name"].String; }
+				set { m_sqlRow["install_folder_name"].String = value; }
+			}
+		}
+
+		/// <summary>
+		/// SQL query for getting non-installed games
+		/// </summary>
+		private class CQryGetNonInstalledGames : CSqlQry
+		{
+			public CQryGetNonInstalledGames(CSqlConn sqlConn)
+				: base("games G",
+					  " G.Classification IN ('game', 'tool') AND NOT EXISTS (SELECT C.game_id FROM caves C WHERE C.game_id = G.id)",
+					  "",
+					  sqlConn)
+			{
+				m_sqlRow["id"]				= new CSqlFieldString("G.id"			 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["title"]			= new CSqlFieldString("G.title"			 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["cover_url"]		= new CSqlFieldString("G.cover_url"		 , CSqlField.QryFlag.cSelRead);
+				m_sqlRow["still_cover_url"] = new CSqlFieldString("G.still_cover_url", CSqlField.QryFlag.cSelRead);
+			}
+			public string ID
+			{
+				get { return m_sqlRow["id"].String; }
+				set { m_sqlRow["id"].String = value; }
+			}
+			public string Title
+			{
+				get { return m_sqlRow["title"].String; }
+				set { m_sqlRow["title"].String = value; }
+			}
+			public string CoverUrl
+			{
+				get { return m_sqlRow["cover_url"].String; }
+				set { m_sqlRow["cover_url"].String = value; }
+			}
+			public string StillCoverUrl
+			{
+				get { return m_sqlRow["still_cover_url"].String; }
+				set { m_sqlRow["still_cover_url"].String = value; }
+			}
+		}
+
+		#endregion SQL Queries
 
 		private CItchScanner()
 		{
 			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.Itch);
 		}
 
-		protected override bool GetInstalledGames(bool expensiveIcons)
-        {
-			int gameCount = 0;
+		/// <summary>
+		/// Override.
+		/// Create an sql connection to the local database and retrieve games
+		/// </summary>
+		/// <param name="getNonInstalled">If true, try to get non-installed games</param>
+		/// <param name="expensiveIcons">(not used) If true, try to get expensive icons</param>
+		/// <returns>True if at least one game was found. False if no games found or if the data source is unavailable</returns>
+		public override bool GetGames(bool getNonInstalled, bool expensiveIcons)
+		{
+			CEventDispatcher.OnPlatformStarted(m_platformName);
 
-			// Get installed games
-			string db = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + ITCH_DB;
-			if(!File.Exists(db))
+			CSqlConn conn = new CSqlConn(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + ITCH_DB);
+			if(!conn.IsOpen())
 			{
-				CLogger.LogInfo("{0} database not found.", m_platformName.ToUpper());
+				CLogger.LogInfo("{0}: Could not open database.", m_platformName.ToUpper());
 				return false;
 			}
 
-			try
+			bool success = GetInstalledGames(conn);
+			if(getNonInstalled)
 			{
-				using(var con = new SQLiteConnection($"Data Source={db}"))
+				success = success && GetNonInstalledGames(conn);
+			}
+			conn.Close();
+			return success;
+		}
+
+
+		/// <summary>
+		/// Overload.
+		/// Use the sql connection to get list of installed games
+		/// </summary>
+		/// <param name="conn">SQLite connection instance</param>
+		/// <returns>True is found at least one game, false if no games found or data connection is closed</returns>
+		private bool GetInstalledGames(CSqlConn conn)
+        {
+			if(!conn.IsOpen())
+            {
+				return false;
+            }
+
+			CQryGetInstalledGames qry = new CQryGetInstalledGames(conn);
+			int  gameCount  = 0;
+			bool isOk       = qry.Select() == SQLiteErrorCode.Ok;
+
+			while(isOk)
+            {
+				string launch = "";
+				var options = new JsonDocumentOptions
 				{
-					con.Open();
-
-					// Get both installed and not-installed games
-
-					// TODO: Use still_cover_url, or cover_url if it doesn't exist, to download not-installed icons
-					using(var cmd = new SQLiteCommand(string.Format("SELECT id, title, classification, cover_url, still_cover_url FROM games;"), con))
-					using(SQLiteDataReader rdr = cmd.ExecuteReader())
+					AllowTrailingCommas = true
+				};
+				using(JsonDocument document = JsonDocument.Parse(qry.Verdict, options))
+				{
+					string basePath = CJsonHelper.GetStringProperty(document.RootElement, "basePath");
+					if( document.RootElement.TryGetProperty("candidates", out JsonElement candidates) && !string.IsNullOrEmpty(candidates.ToString()) ) // 'candidates' object exists
 					{
-						while(rdr.Read())
+						foreach(JsonElement jElement in candidates.EnumerateArray())
 						{
-							if(!rdr.GetString(2).Equals("assets"))  // i.e., just "game" or "tool"
-							{
-								int id = rdr.GetInt32(0);
-								string strID = $"itch_{id}";
-								string strTitle = rdr.GetString(1);
-								string strAlias = "";
-								string strLaunch = "";
-								string strPlatform = m_platformName;
-
-								// SELECT path FROM install_locations;
-								// SELECT install_folder FROM downloads;
-								// SELECT verdict FROM caves;
-								using(var cmd2 = new SQLiteCommand($"SELECT verdict, install_folder_name FROM caves WHERE game_id = {id};", con))
-								using(SQLiteDataReader rdr2 = cmd2.ExecuteReader())
-								{
-									while(rdr2.Read())
-									{
-										string verdict = rdr2.GetString(0);
-										strAlias = CRegHelper.GetAlias(strTitle);
-										if(strAlias.Equals(strTitle, StringComparison.CurrentCultureIgnoreCase))
-											strAlias = "";
-
-										var options = new JsonDocumentOptions
-										{
-											AllowTrailingCommas = true
-										};
-
-										using(JsonDocument document = JsonDocument.Parse(@verdict, options))
-										{
-											string basePath = CJsonHelper.GetStringProperty(document.RootElement, "basePath");
-											if(document.RootElement.TryGetProperty("candidates", out JsonElement candidates)) // 'candidates' object exists
-											{
-												if(!string.IsNullOrEmpty(candidates.ToString()))
-												{
-													foreach(JsonElement jElement in candidates.EnumerateArray())
-													{
-														strLaunch = string.Format("{0}\\{1}", basePath, CJsonHelper.GetStringProperty(jElement, "path"));
-													}
-												}
-											}
-											// Add installed games
-											if(!string.IsNullOrEmpty(strLaunch))
-											{
-												CLogger.LogDebug($"- {strTitle}");
-												CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-												gameCount++;
-											}
-										}
-									}
-								}
-								// Add not-installed games
-								/*
-								if(string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
-								{
-									CLogger.LogDebug($"- *{strTitle}");
-									gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-								}
-								*/
-							}
+							launch = string.Format("{0}\\{1}", basePath, CJsonHelper.GetStringProperty(jElement, "path"));
 						}
 					}
-					con.Close();
 				}
-			}
-			catch(Exception e)
+
+				if(launch.Length > 0)
+                {
+					string strAlias = CRegHelper.GetAlias(qry.Title);
+					if(strAlias.Equals(qry.Title, StringComparison.CurrentCultureIgnoreCase))
+                    {
+						strAlias = "";
+					}
+
+					CEventDispatcher.OnGameFound(new RawGameData($"itch_{qry.ID}", qry.Title, launch, launch, "", strAlias, true, m_platformName));
+					gameCount++;
+				}
+				isOk = qry.Fetch();
+            }
+			return gameCount > 0;
+        }
+
+		/// <summary>
+		/// Overload.
+		/// Use the sql connection to get list of non-installed games
+		/// </summary>
+		/// <param name="conn">SQLite connection instance</param>
+		/// <returns>True is found at least one game, false if no games found or data connection is closed</returns>
+		private bool GetNonInstalledGames(CSqlConn conn)
+		{
+			if(!conn.IsOpen())
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} database output!", m_platformName.ToUpper()));
+				return false;
 			}
+
+			CQryGetNonInstalledGames qry = new CQryGetNonInstalledGames(conn);
+			int  gameCount  = 0;
+			bool isOk       = qry.Select() == SQLiteErrorCode.Ok;
+
+			while(isOk)
+			{
+				CEventDispatcher.OnGameFound(new RawGameData($"itch_{qry.ID}", qry.Title, "", "", "", "", false, m_platformName));
+				gameCount++;
+				isOk = qry.Fetch();
+			}
+
 			return gameCount > 0;
 		}
 
-        protected override bool GetNonInstalledGames(bool expensiveIcons)
-        {
-			return false;
-        }
-    }
+		protected override bool GetInstalledGames(bool expensiveIcons)
+		{
+			throw new NotSupportedException("Use the overloaded function");
+		}
+
+		protected override bool GetNonInstalledGames(bool expensiveIcons)
+		{
+			throw new NotSupportedException("Use the overloaded function");
+		}
+	}
 }

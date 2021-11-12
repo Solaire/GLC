@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Win32;
 using Logger;
+using System.Linq;
 
 namespace LibGLC.PlatformReaders
 {
 	/// <summary>
 	/// Scanner for BigFish games
+	/// This scanner uses the Registry to access game data
 	/// </summary>
-    public sealed class CBigFishScanner : CBasePlatformScanner<CBigFishScanner>
+	public sealed class CBigFishScanner : CBasePlatformScanner<CBigFishScanner>
     {
-		private const string BIGFISH_NAME            = "BigFish";
-		private const string BIGFISH_NAME_LONG       = "Big Fish";
 		private const string BIGFISH_GAME_FOLDER    = "BFG-";
-		private const string BIGFISH_REG             = @"SOFTWARE\WOW6432Node\Big Fish Games\Client"; // HKLM32
 		private const string BIGFISH_GAMES          = @"SOFTWARE\WOW6432Node\Big Fish Games\Persistence\GameDB"; // HKLM32
 		private const string BIGFISH_ID             = "WrapID";
 		private const string BIGFISH_PATH           = "ExecutablePath";
@@ -22,46 +21,59 @@ namespace LibGLC.PlatformReaders
 		private const string BIGFISH_DAYS           = "DaysLeft";
 		private const string BIGFISH_TIME           = "TimeLeft";
 
+		private readonly string[] IGNORE =
+		{
+			"F7315T1L1" // Big Fish casino
+		};
+
 		private CBigFishScanner()
 		{
 			m_platformName = CExtensions.GetDescription(CPlatform.GamePlatform.BigFish);
 		}
 
-		protected override bool GetInstalledGames(bool expensiveIcons)
+		/// <summary>
+		/// Override.
+		/// No easy way of splitting the function into installed and non-installed
+		/// </summary>
+		/// <param name="getNonInstalled">If true, try to get non-installed games</param>
+		/// <param name="expensiveIcons">If true, try to get expensive icons</param>
+		/// <returns></returns>
+		public override bool GetGames(bool getNonInstalled, bool expensiveIcons)
         {
-			List<RegistryKey> keyList;
+			CEventDispatcher.OnPlatformStarted(m_platformName);
+
+			List<RegistryKey> keyList = new List<RegistryKey>();
 			int gameCount = 0;
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(BIGFISH_GAMES, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
 				if(key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
+					CLogger.LogInfo("{0}: Client not found in the registry.", m_platformName.ToUpper());
 					return false;
 				}
 
 				keyList = CRegHelper.FindGameFolders(key, "");
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, m_platformName.ToUpper());
+				CLogger.LogInfo("{0} games found", keyList.Count);
 				foreach(var data in keyList)
 				{
 					string wrap = Path.GetFileName(data.Name);
-					if(wrap.Equals("F7315T1L1"))  // Big Fish Casino
+					if(IGNORE.Contains(wrap))
 					{
 						continue;
 					}
 
-					string strID = "bfg_" + wrap;
-					string strTitle = "";
-					string strLaunch = "";
-					string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = m_platformName;
+					string id = "bfg_" + wrap;
+					string title = "";
+					string launch = "";
+					string iconPath = "";
+					string uninstall = "";
+					string alias = "";
 					try
 					{
 						bool found = false;
-						strTitle = CRegHelper.GetRegStrVal(data, "Name");
+						title = CRegHelper.GetRegStrVal(data, "Name");
 
 						// If this is an expired trial, count it as not-installed
 						int activated = (int)CRegHelper.GetRegDWORDVal(data, BIGFISH_ACTIV);
@@ -70,12 +82,11 @@ namespace LibGLC.PlatformReaders
 						if(activated > 0 || timeLeft > 0 || daysLeft > 0)
 						{
 							found = true;
-							CLogger.LogDebug($"- {strTitle}");
-							strLaunch = CRegHelper.GetRegStrVal(data, BIGFISH_PATH);
-							strAlias = CRegHelper.GetAlias(strTitle);
-							if(strAlias.Equals(strTitle, StringComparison.CurrentCultureIgnoreCase))
+							launch = CRegHelper.GetRegStrVal(data, BIGFISH_PATH);
+							alias = CRegHelper.GetAlias(title);
+							if(alias.Equals(title, StringComparison.CurrentCultureIgnoreCase))
 							{
-								strAlias = "";
+								alias = "";
 							}
 
 							List<RegistryKey> unKeyList;
@@ -88,31 +99,29 @@ namespace LibGLC.PlatformReaders
 									{
 										if(CRegHelper.GetRegStrVal(data2, BIGFISH_ID).Equals(wrap))
 										{
-											strIconPath = CRegHelper.GetRegStrVal(data2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-											strUninstall = CRegHelper.GetRegStrVal(data2, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
+											iconPath = CRegHelper.GetRegStrVal(data2, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+											uninstall = CRegHelper.GetRegStrVal(data2, GAME_UNINSTALL_STRING).Trim(new char[] { ' ', '"' });
 										}
 									}
 								}
 							}
-							if(string.IsNullOrEmpty(strIconPath) && expensiveIcons)
+							if(string.IsNullOrEmpty(iconPath) && expensiveIcons)
 							{
-								strIconPath = CDirectoryHelper.FindGameBinaryFile(Path.GetDirectoryName(strLaunch), strTitle);
+								iconPath = CDirectoryHelper.FindGameBinaryFile(Path.GetDirectoryName(launch), title);
 							}
-							if(!(string.IsNullOrEmpty(strLaunch)))
+							if(!(string.IsNullOrEmpty(launch)))
 							{
-								CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+								CEventDispatcher.OnGameFound(new RawGameData(id, title, launch, iconPath, uninstall, alias, true, m_platformName));
 								gameCount++;
 							}
 						}
 
 						// Add not-installed games
-						/*
-						if(!found)
+						if(getNonInstalled && !found)
 						{
-							CLogger.LogDebug($"- *{strTitle}");
-							gameList.Add(new GameData(strID, strTitle, "", "", "", "", false, strPlatform));
+							CEventDispatcher.OnGameFound(new RawGameData(id, title, "", "", "", "", false, m_platformName));
+							gameCount++;
 						}
-						*/
 					}
 					catch(Exception e)
 					{
@@ -123,9 +132,14 @@ namespace LibGLC.PlatformReaders
 			return gameCount > 0;
 		}
 
+        protected override bool GetInstalledGames(bool expensiveIcons)
+        {
+			return false;
+		}
+
         protected override bool GetNonInstalledGames(bool expensiveIcons)
         {
-            throw new NotImplementedException();
+			return false;
         }
     }
 }

@@ -4,13 +4,15 @@ using System.Globalization;
 using System.IO;
 using Microsoft.Win32;
 using Logger;
+using System.Text.Json;
 
 namespace LibGLC.PlatformReaders
 {
 	/// <summary>
 	/// Scanner for Paradox Store (Paradox Interactive)
+	/// This scanner uses the Registry to access game data
 	/// </summary>
-    public sealed class CParadoxScanner : CBasePlatformScanner<CParadoxScanner>
+	public sealed class CParadoxScanner : CBasePlatformScanner<CParadoxScanner>
     {
 		private const string PARADOX_NAME = "Paradox";
 		private const string PARADOX_REG = @"SOFTWARE\WOW6432Node\Paradox Interactive\Paradox Launcher\LauncherPath"; //HKLM32
@@ -32,133 +34,127 @@ namespace LibGLC.PlatformReaders
 			{
 				if(key == null)
                 {
-					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
+					CLogger.LogInfo("Client not found in the registry.", m_platformName.ToUpper());
+					return false;
 				}
-				else
+
+				string path = key.GetValue(PARADOX_PATH).ToString();
+				try
 				{
-					string path = key.GetValue(PARADOX_PATH).ToString();
-
-					try
+					if(!path.Equals(null) && Directory.Exists(path))
 					{
-						if(!path.Equals(null) && Directory.Exists(path))
+						dirs.AddRange(Directory.GetDirectories(Directory.GetParent(Directory.GetParent(path).ToString()) + "\\games", "*.*", SearchOption.TopDirectoryOnly));
+						foreach(string dir in dirs)
 						{
-							dirs.AddRange(Directory.GetDirectories(Directory.GetParent(Directory.GetParent(path).ToString()) + "\\games", "*.*", SearchOption.TopDirectoryOnly));
-							foreach(string dir in dirs)
+							CultureInfo ci = new CultureInfo("en-GB");
+							TextInfo ti = ci.TextInfo;
+
+							string strID = Path.GetFileName(dir);
+							string strTitle = "";
+							string strLaunch = "";
+							string strAlias = "";
+
+							strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
+							CLogger.LogDebug($"- {strTitle}");
+							strLaunch = CDirectoryHelper.FindGameBinaryFile(dir, strTitle);
+							strAlias = CRegHelper.GetAlias(strLaunch);
+							if(strAlias.Length > strTitle.Length)
 							{
-								CultureInfo ci = new CultureInfo("en-GB");
-								TextInfo ti = ci.TextInfo;
-
-								string strID = Path.GetFileName(dir);
-								string strTitle = "";
-								string strLaunch = "";
-								string strAlias = "";
-								string strPlatform = m_platformName;
-
-								strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
-								CLogger.LogDebug($"- {strTitle}");
-								strLaunch = CDirectoryHelper.FindGameBinaryFile(dir, strTitle);
-								strAlias = CRegHelper.GetAlias(strLaunch);
-								if(strAlias.Length > strTitle.Length)
-								{
-									strAlias = CRegHelper.GetAlias(strTitle);
-								}
-								if(strAlias.Equals(strTitle, StringComparison.CurrentCultureIgnoreCase))
-								{
-									strAlias = "";
-								}
-								if(!(string.IsNullOrEmpty(strLaunch)))
-								{
-									CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-									gameCount++;
-								}
+								strAlias = CRegHelper.GetAlias(strTitle);
 							}
-
+							if(strAlias.Equals(strTitle, StringComparison.CurrentCultureIgnoreCase))
+							{
+								strAlias = "";
+							}
+							if(!(string.IsNullOrEmpty(strLaunch)))
+							{
+								CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, m_platformName));
+								gameCount++;
+							}
 						}
 					}
-					catch(Exception e)
-					{
-						CLogger.LogError(e);
-					}
+				}
+				catch(Exception e)
+				{
+					CLogger.LogError(e);
 				}
 			}
 			return gameCount > 0;
 		}
 
+		//TODO:
         protected override bool GetNonInstalledGames(bool expensiveIcons)
         {
-			/*
-			if(!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+			string folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + PARADOX_JSON_FOLDER;
+			if(!Directory.Exists(folder))
 			{
-				string folder = GetFolderPath(SpecialFolder.LocalApplicationData) + PARADOX_JSON_FOLDER;
-				if(!Directory.Exists(folder))
-				{
-					CLogger.LogInfo("{0} games not found in Local AppData.", PARADOX_NAME.ToUpper());
-				}
-				else
-				{
-					string[] files = Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly);
+				CLogger.LogInfo("Games not found in Local AppData.", PARADOX_NAME.ToUpper());
+				return false;
+			}
 
-					var options = new JsonDocumentOptions
-					{
-						AllowTrailingCommas = true
-					};
+			int gameCount = 0;
+			string[] files = Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly);
+			var options = new JsonDocumentOptions
+			{
+				AllowTrailingCommas = true
+			};
 
-					foreach(string file in files)
+			foreach(string file in files)
+			{
+				if(file.EndsWith("_installableGames.json") && !(file.StartsWith("_noUser")))
+				{
+					string strDocumentData = File.ReadAllText(file);
+					if(string.IsNullOrEmpty(strDocumentData))
+                    {
+						continue;
+					}
+
+					try
 					{
-						if(file.EndsWith("_installableGames.json") && !(file.StartsWith("_noUser")))
+						using(JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
 						{
-							string strDocumentData = File.ReadAllText(file);
-
-							if(string.IsNullOrEmpty(strDocumentData))
-								continue;
-
-							CLogger.LogDebug("{0} not-installed games:", PARADOX_NAME.ToUpper());
-
-							try
+							document.RootElement.TryGetProperty("content", out JsonElement content);
+							if(content.Equals(null))
 							{
-								using(JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
-								{
-									document.RootElement.TryGetProperty("content", out JsonElement content);
-									if(!content.Equals(null))
-									{
-										foreach(JsonElement game in content.EnumerateArray())
-										{
-											game.TryGetProperty("_name", out JsonElement id);
+								return false;
+							}
 
-											// Check if game is already installed
-											bool found = false;
-											foreach(string dir in dirs)
-											{
-												if(id.ToString().Equals(Path.GetFileName(dir)))
-													found = true;
-											}
-											if(!found)
-											{
-												game.TryGetProperty("_displayName", out JsonElement title);
-												game.TryGetProperty("_owned", out JsonElement owned);
-												if(!id.Equals(null) && !title.Equals(null) && owned.ToString().ToLower().Equals("true"))
-												{
-													string strID = id.ToString();
-													string strTitle = title.ToString();
-													CLogger.LogDebug($"- *{strTitle}");
-													string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Paradox);
-													gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-												}
-											}
-										}
+							List<string> dirs = new List<string>();
+							foreach(JsonElement game in content.EnumerateArray())
+							{
+								game.TryGetProperty("_name", out JsonElement id);
+
+								// Check if game is already installed
+								bool found = false;
+								foreach(string dir in dirs)
+								{
+									if(id.ToString().Equals(Path.GetFileName(dir)))
+                                    {
+										found = true;
+									}
+								}
+								if(!found)
+								{
+									game.TryGetProperty("_displayName", out JsonElement title);
+									game.TryGetProperty("_owned", out JsonElement owned);
+									if(!id.Equals(null) && !title.Equals(null) && owned.ToString().ToLower().Equals("true"))
+									{
+										string strID = id.ToString();
+										string strTitle = title.ToString();
+										CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, "", "", "", "", false, m_platformName));
+										gameCount++;
 									}
 								}
 							}
-							catch(Exception e)
-							{
-								CLogger.LogError(e, string.Format("Malformed {0} file: {1}", PARADOX_NAME.ToUpper(), file));
-							}
 						}
+					}
+					catch(Exception e)
+					{
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", PARADOX_NAME.ToUpper(), file));
 					}
 				}
 			}
-			*/
-			return false;
+			return gameCount > 0;
 		}
 	}
 }

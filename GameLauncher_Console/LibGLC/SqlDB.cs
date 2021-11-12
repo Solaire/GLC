@@ -18,40 +18,13 @@ namespace SqlDB
     /// </summary>
     public sealed class CSqlDB
     {
-        private const string SQL_MAIN_DATA_SOURCE = "database.db";
-        private static CSqlDB m_instance = new CSqlDB();
+        private const string  SQL_MAIN_DATA_SOURCE  = "database.db";
+        private static CSqlDB m_instance            = new CSqlDB();
+        private CSqlConn      m_sqlConn             = null;
 
         public static CSqlDB Instance
         {
-            get
-            {
-                return m_instance;
-            }
-        }
-
-        /// <summary>
-        /// Open a separate data source and return the connection
-        /// </summary>
-        /// <param name="dataSource">Path to the data source</param>
-        /// <returns><c>SQLiteConnection</c> object or <c>null</c> if not found</returns>
-        public static SQLiteConnection OpenSeparateConnection(string dataSource)
-        {
-            if(!File.Exists(dataSource))
-            {
-                return null;
-            }
-            SQLiteConnection connection = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=False;Compress=True;");
-            try
-            {
-                CLogger.LogInfo("Connecting to Data Source " + dataSource);
-                connection.Open();
-            }
-            catch(SQLiteException e)
-            {
-                CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
-                return null;
-            }
-            return connection;
+            get { return m_instance; }
         }
 
         static CSqlDB()
@@ -73,7 +46,12 @@ namespace SqlDB
         /// <returns><c>True</c> if open, otherwise <c>false</c></returns>
         public bool IsOpen()
         {
-            return (m_sqlite_conn != null) && (m_sqlite_conn.State == System.Data.ConnectionState.Open);
+            return (m_sqlConn != null) && (m_sqlConn.State == System.Data.ConnectionState.Open);
+        }
+
+        public CSqlConn Conn
+        {
+            get { return m_sqlConn; } 
         }
 
         /// <summary>
@@ -92,6 +70,7 @@ namespace SqlDB
             bool exists = File.Exists(dataSource);
             if(exists || create) // Only open if it's there or if we're making a new one
             {
+                /*
                 m_sqlite_conn = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=False;Compress=True;");
                 try
                 {
@@ -102,6 +81,12 @@ namespace SqlDB
                 {
                     CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
                     return e.ResultCode;
+                }
+                */
+                m_sqlConn = new CSqlConn(dataSource);
+                if(m_sqlConn.State == System.Data.ConnectionState.Broken)
+                {
+                    return m_sqlConn.LastError;
                 }
             }
 
@@ -119,7 +104,7 @@ namespace SqlDB
                 }
                 if(script.Length > 0)
                 {
-                    Execute(script);
+                    m_sqlConn.Execute(script);
                 }
             }
             return MaybeUpdateSchema();
@@ -137,6 +122,89 @@ namespace SqlDB
                     Apply any schema files in ascending order and update 'SCHEMA_VERSION' attribute
             */
             return SQLiteErrorCode.Ok;
+        }
+    }
+
+    /// <summary>
+    /// Wrapper class for SQLiteConnection class
+    /// </summary>
+    public class CSqlConn
+    {
+        private SQLiteConnection m_sqlite_conn = null;
+        private SQLiteErrorCode  m_lastError   = SQLiteErrorCode.Ok;
+
+        /// <summary>
+        /// Connection instance getter
+        /// </summary>
+        public SQLiteConnection SqlConn 
+        { 
+            get { return m_sqlite_conn; } 
+        }
+
+        public SQLiteErrorCode LastError 
+        { 
+            get { return m_lastError; } 
+        }
+
+        public System.Data.ConnectionState State 
+        { 
+            get 
+            { 
+                if(m_sqlite_conn != null)
+                {
+                    return m_sqlite_conn.State;
+                }
+                else
+                {
+                    return System.Data.ConnectionState.Broken;
+                }
+            } 
+        }
+
+        public bool IsOpen()
+        {
+            return (m_sqlite_conn != null) && (m_sqlite_conn.State == System.Data.ConnectionState.Open);
+        }
+
+        public void Close()
+        {
+            if(m_sqlite_conn != null)
+            {
+                m_sqlite_conn.Close();
+            }
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// Connect to the data source
+        /// </summary>
+        /// <param name="dataSource">Data source string</param>
+        /// <param name="create">If true, new database will be created</param>
+        public CSqlConn(string dataSource, bool create = false)
+        {
+            if(!File.Exists(dataSource))
+            {
+                m_lastError = SQLiteErrorCode.CantOpen;
+                m_sqlite_conn = null;
+                return;
+            }
+            m_sqlite_conn = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=False;Compress=True;");
+            try
+            {
+                CLogger.LogInfo("Connecting to Data Source " + dataSource);
+                m_sqlite_conn.Open();
+            }
+            catch(SQLiteException e)
+            {
+                CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
+                m_lastError = e.ResultCode;
+                m_sqlite_conn = null;
+            }
+        }
+
+        ~CSqlConn()
+        {
+            Close();
         }
 
         /// <summary>
@@ -157,6 +225,7 @@ namespace SqlDB
             {
                 CLogger.LogWarn("Could not execute statement\n" + qry);
                 CLogger.LogWarn(e.Message);
+                m_lastError = e.ResultCode;
                 return e.ResultCode;
             }
             return SQLiteErrorCode.Ok;
@@ -182,11 +251,11 @@ namespace SqlDB
                 CLogger.LogWarn("Could not execute statement\n" + qry);
                 CLogger.LogWarn(e.Message);
                 dataReader = null;
+                m_lastError = e.ResultCode;
                 return e.ResultCode;
             }
             return SQLiteErrorCode.Ok;
         }
-        private SQLiteConnection m_sqlite_conn;
     }
 
     /// <summary>
@@ -382,6 +451,7 @@ namespace SqlDB
 
         protected CSqlRow m_sqlRow;
         protected SQLiteDataReader m_selectResult;
+        private   CSqlConn m_sqlConn;
 
         /// <summary>
         /// Constructor, set up the table name and the select condition strings
@@ -389,13 +459,14 @@ namespace SqlDB
         /// <param name="table">The table name. This string should also include any JOIN tables</param>
         /// <param name="selectCondition">Select condition string for more complex queries. Use the field and value masks as templates (eg. & <= ?), those will be populated when query is constructed based on the CSqlRow's field insert order</param>
         /// <param name="selectExtraCondition">Any additional select conditions such as ORDER BY or GROUP BY</param>
-        protected CSqlQry(string table, string selectCondition, string selectExtraCondition)
+        protected CSqlQry(string table, string selectCondition, string selectExtraCondition, CSqlConn conn = null)
         {
             m_tableName = table;
             m_selectCondition = selectCondition;
             SelectExtraCondition = selectExtraCondition;
             m_selectResult = null;
             m_sqlRow = new CSqlRow();
+            m_sqlConn = (conn != null) ? conn : CSqlDB.Instance.Conn;
         }
 
         public string SelectExtraCondition { get; set; }
@@ -624,7 +695,7 @@ namespace SqlDB
             {
                 query += " " + SelectExtraCondition;
             }
-            SQLiteErrorCode err = CSqlDB.Instance.ExecuteRead(query, out m_selectResult);
+            SQLiteErrorCode err = m_sqlConn.ExecuteRead(query, out m_selectResult);
             if(err == SQLiteErrorCode.Ok)
             {
                 if(!Fetch()) // Perform a fetch on the first row, if available
@@ -649,7 +720,7 @@ namespace SqlDB
             {
                 query += " VALUES (" + insertValues + ") ";
             }
-            return CSqlDB.Instance.Execute(query);
+            return m_sqlConn.Execute(query);
         }
 
         /// <summary>
@@ -666,7 +737,7 @@ namespace SqlDB
             {
                 query += " WHERE " + whereCondition;
             }
-            return CSqlDB.Instance.Execute(query);
+            return m_sqlConn.Execute(query);
         }
 
         /// <summary>
@@ -683,7 +754,7 @@ namespace SqlDB
             {
                 query += " WHERE " + whereCondition;
             }
-            return CSqlDB.Instance.Execute(query);
+            return m_sqlConn.Execute(query);
         }
 
         /// <summary>

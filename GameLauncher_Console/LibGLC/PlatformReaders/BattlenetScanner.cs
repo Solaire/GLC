@@ -8,12 +8,11 @@ namespace LibGLC.PlatformReaders
 {
 	/// <summary>
 	/// Scanner for Battlenet (Blizzard)
+	/// This scanner uses the Registry to access game data
 	/// </summary>
     public sealed class CBattlenetScanner : CBasePlatformScanner<CBattlenetScanner>
     {
-		private const string BATTLENET_NAME          = "Battlenet";
-		private const string BATTLENET_NAME_LONG     = "Battle.net";
-		private const string BATTLE_NET_REG         = @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
+		private const string BATTLE_NET_REG = @"SOFTWARE\WOW6432Node\Blizzard Entertainment\Battle.net"; // HKLM32
 
 		private CBattlenetScanner()
         {
@@ -22,53 +21,51 @@ namespace LibGLC.PlatformReaders
 
         protected override bool GetInstalledGames(bool expensiveIcons)
         {
-			List<RegistryKey> keyList; //= new List<RegistryKey>();
+			List<RegistryKey> keyList = new List<RegistryKey>();
 			int gameCount = 0;
 
 			using(RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
 				if(key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
+					CLogger.LogInfo("{0}: Client not found in the registry.", m_platformName.ToUpper());
 					return false;
 				}
 
 				keyList = CRegHelper.FindGameKeys(key, BATTLE_NET_REG, GAME_UNINSTALL_STRING, new string[] { BATTLE_NET_REG });
 
-				CLogger.LogInfo("{0} {1} games found", keyList.Count, m_platformName.ToUpper());
+				CLogger.LogInfo("{0} games found", keyList.Count);
 				foreach(var data in keyList)
 				{
-					string strID = "";
-					string strTitle = "";
-					string strLaunch = "";
-					//string strIconPath = "";
-					string strUninstall = "";
-					string strAlias = "";
-					string strPlatform = m_platformName;
+					string id = "";
+					string title = "";
+					string launch = "";
+					//string iconPath = "";
+					string uninstall = "";
+					string alias = "";
 					try
 					{
-						strID = Path.GetFileName(data.Name);
-						strTitle = CRegHelper.GetRegStrVal(data, GAME_DISPLAY_NAME);
-						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = CRegHelper.GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-						strUninstall = CRegHelper.GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
-						strAlias = CRegHelper.GetAlias(Path.GetFileNameWithoutExtension(CRegHelper.GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"' })));
-						if(strAlias.Length > strTitle.Length)
+						id = Path.GetFileName(data.Name);
+						title = CRegHelper.GetRegStrVal(data, GAME_DISPLAY_NAME);
+						launch = CRegHelper.GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+						uninstall = CRegHelper.GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
+						alias = CRegHelper.GetAlias(Path.GetFileNameWithoutExtension(CRegHelper.GetRegStrVal(data, GAME_INSTALL_LOCATION).Trim(new char[] { ' ', '\'', '"' })));
+						if(alias.Length > title.Length)
 						{
-							strAlias = CRegHelper.GetAlias(strTitle);
+							alias = CRegHelper.GetAlias(title);
 						}
-						if(strAlias.Equals(strTitle, StringComparison.CurrentCultureIgnoreCase))
+						if(alias.Equals(title, StringComparison.CurrentCultureIgnoreCase))
 						{
-							strAlias = "";
+							alias = "";
 						}
 					}
 					catch(Exception e)
 					{
 						CLogger.LogError(e);
 					}
-					if(!(string.IsNullOrEmpty(strLaunch)))
+					if(!string.IsNullOrEmpty(launch))
 					{
-						CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
+						CEventDispatcher.OnGameFound(new RawGameData(id, title, launch, launch, uninstall, alias, true, m_platformName));
 						gameCount++;
 					}
 				}

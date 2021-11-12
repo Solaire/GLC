@@ -463,6 +463,7 @@ namespace LibGLC.PlatformReaders
 				}
 				return "";
 			}
+			
 			/*
 			/// <summary>
 			/// Find and import games from the binaries found in the "CustomGames" directory
@@ -473,8 +474,8 @@ namespace LibGLC.PlatformReaders
 				FindCustomLinkFiles(ref tempGameSet);
 				FindCustomBinaries(ref tempGameSet);
 			}
-			*/
-			/*
+			
+			
 			/// <summary>
 			/// Search the "CustomGames" folder for file shortcuts (.lnk) to import.
 			/// </summary>
@@ -507,8 +508,8 @@ namespace LibGLC.PlatformReaders
 					}
 				}
 			}
-			*/
-			/*
+			
+			
 			/// <summary>
 			/// Search the "CustomGames" folder for binaries (.exe) files to import
 			/// </summary>
@@ -532,7 +533,7 @@ namespace LibGLC.PlatformReaders
 					tempGameSet.InsertGame(strID, strTitle, strLaunch, strLaunch, strUninstall, true, false, true, false, strAlias, CUSTOM_PLATFORM, 0f);
 				}
 			}
-			*/
+			
 			/// <summary>
 			/// Check if the folders "CustomImages" and "CustomGames" exist in the same directory as the application - create if not found
 			/// </summary>
@@ -547,6 +548,7 @@ namespace LibGLC.PlatformReaders
 					Directory.CreateDirectory(GAME_FOLDER_NAME);
 				}
 			}
+			*/
 		}
 		#endregion Internal directory helper class
 
@@ -558,7 +560,6 @@ namespace LibGLC.PlatformReaders
 		/// </summary>
 		/// <param name="getNonInstalled">If true, try to get non-installed games</param>
 		/// <param name="expensiveIcons">If true, try to get expensive icons</param>
-		/// <param name="gameList">Reference to the game list, where new games should be added</param>
 		/// <returns>True if at least one game was found, otherwise false</returns>
 		public virtual bool GetGames(bool getNonInstalled, bool expensiveIcons)
         {
@@ -571,19 +572,19 @@ namespace LibGLC.PlatformReaders
 			return success;
         }
 
-        /// <summary>
-        /// Scan platform for installed games
-        /// </summary>
-        /// <param name="gameList">Reference to the list that will hold the game data</param>
-        /// <returns>True if at least one game was found, otherwise false</returns>
-        protected abstract bool GetInstalledGames(bool expensiveIcons);
+		/// <summary>
+		/// Scan platform for installed games
+		/// </summary>
+		/// <param name="expensiveIcons">If true, try to get expensive icons</param>
+		/// <returns>True if at least one game was found, otherwise false</returns>
+		protected abstract bool GetInstalledGames(bool expensiveIcons);
 
-        /// <summary>
-        /// Scan platform for non-installed games
-        /// </summary>
-        /// <param name="gameList">Reference to the list that will hold the game data</param>
-        /// <returns>True if at least one game was found, otherwise false</returns>
-        protected abstract bool GetNonInstalledGames(bool expensiveIcons);
+		/// <summary>
+		/// Scan platform for non-installed games
+		/// </summary>
+		/// <param name="expensiveIcons">If true, try to get expensive icons</param>
+		/// <returns>True if at least one game was found, otherwise false</returns>
+		protected abstract bool GetNonInstalledGames(bool expensiveIcons);
 		#endregion Game scanner methods
 	}
 }

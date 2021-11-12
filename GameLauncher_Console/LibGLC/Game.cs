@@ -623,7 +623,7 @@ namespace LibGLC
         /// <param name="gameID">gameID of the game to increment</param>
         public static void NormaliseFrequencies(int gameID)
         {
-            CSqlDB.Instance.Execute("UPDATE Game SET Frequency = (CASE GameID WHEN " + gameID + " THEN Frequency + 5 ELSE Frequency * 0.9 END)");
+            CSqlDB.Instance.Conn.Execute("UPDATE Game SET Frequency = (CASE GameID WHEN " + gameID + " THEN Frequency + 5 ELSE Frequency * 0.9 END)");
         }
 
         /// <summary>

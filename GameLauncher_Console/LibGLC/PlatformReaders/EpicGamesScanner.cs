@@ -8,10 +8,10 @@ namespace LibGLC.PlatformReaders
 {
 	/// <summary>
 	/// Scanner for Epic Games store
+	/// This scanner uses a JSON file to access game data
 	/// </summary>
-    public sealed class CEpicGamesScanner : CBasePlatformScanner<CEpicGamesScanner>
+	public sealed class CEpicGamesScanner : CBasePlatformScanner<CEpicGamesScanner>
     {
-		private const string EPIC_NAME = "Epic";
 		private const string EPIC_ITEMS_FOLDER = @"\Epic\EpicGamesLauncher\Data\Manifests";
 
 		private CEpicGamesScanner()
@@ -21,15 +21,16 @@ namespace LibGLC.PlatformReaders
 
 		protected override bool GetInstalledGames(bool expensiveIcons)
         {
-			int found = 0;
+			int gameCount = 0;
 			string dir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + EPIC_ITEMS_FOLDER;
+
 			if(!Directory.Exists(dir))
 			{
-				CLogger.LogInfo("{0} games not found in ProgramData.", m_platformName.ToUpper());
+				CLogger.LogInfo("{0}: Games not found in ProgramData.", m_platformName.ToUpper());
 				return false;
 			}
 			string[] files = Directory.GetFiles(dir, "*.item", SearchOption.TopDirectoryOnly);
-			CLogger.LogInfo("{0} {1} games found", files.Count(), m_platformName.ToUpper());
+			CLogger.LogInfo("{0} games found", files.Count());
 
 			var options = new JsonDocumentOptions
 			{
@@ -38,47 +39,45 @@ namespace LibGLC.PlatformReaders
 
 			foreach(string file in files)
 			{
-				string strDocumentData = File.ReadAllText(file);
+				string documentData = File.ReadAllText(file);
 
-				if(string.IsNullOrEmpty(strDocumentData))
+				if(string.IsNullOrEmpty(documentData))
 				{
 					continue;
 				}
 
 				try
 				{
-					using(JsonDocument document = JsonDocument.Parse(@strDocumentData, options))
+					using(JsonDocument document = JsonDocument.Parse(documentData, options))
 					{
-						string strID = Path.GetFileName(file);
-						string strTitle = CJsonHelper.GetStringProperty(document.RootElement, "DisplayName");
-						CLogger.LogDebug($"- {strTitle}");
-						string strLaunch = CJsonHelper.GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
-						string strAlias = "";
-						string strPlatform = m_platformName;
+						string id = Path.GetFileName(file);
+						string title = CJsonHelper.GetStringProperty(document.RootElement, "DisplayName");
+						string launch = CJsonHelper.GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
+						string alias = "";
 
-						if(!string.IsNullOrEmpty(strLaunch))
+						if(!string.IsNullOrEmpty(launch))
 						{
-							strLaunch = Path.Combine(CJsonHelper.GetStringProperty(document.RootElement, "InstallLocation"), strLaunch);
-							strAlias = CRegHelper.GetAlias(CJsonHelper.GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
-							if(strAlias.Length > strTitle.Length)
+							launch = Path.Combine(CJsonHelper.GetStringProperty(document.RootElement, "InstallLocation"), launch);
+							alias = CRegHelper.GetAlias(CJsonHelper.GetStringProperty(document.RootElement, "MandatoryAppFolderName"));
+							if(alias.Length > title.Length)
 							{
-								strAlias = CRegHelper.GetAlias(strTitle);
+								alias = CRegHelper.GetAlias(title);
 							}
-							if(strAlias.Equals(strTitle, StringComparison.CurrentCultureIgnoreCase))
+							if(alias.Equals(title, StringComparison.CurrentCultureIgnoreCase))
 							{
-								strAlias = "";
+								alias = "";
 							}
-							CEventDispatcher.OnGameFound(new RawGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-							found++;
+							CEventDispatcher.OnGameFound(new RawGameData(id, title, launch, launch, "", alias, true, m_platformName));
+							gameCount++;
 						}
 					}
 				}
 				catch(Exception e)
 				{
-					CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), file));
+					CLogger.LogError(e, string.Format("Malformed file: {0}", file));
 				}
 			}
-			return found > 0;
+			return gameCount > 0;
 		}
 
         protected override bool GetNonInstalledGames(bool expensiveIcons)

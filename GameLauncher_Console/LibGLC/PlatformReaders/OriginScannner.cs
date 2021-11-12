@@ -8,11 +8,11 @@ namespace LibGLC.PlatformReaders
 {
 	/// <summary>
 	/// Scanner for Origin (EA games)
+	/// This scanner uses the Registry to access game data
 	/// </summary>
-    public sealed class COriginScanner : CBasePlatformScanner<COriginScanner>
+	public sealed class COriginScanner : CBasePlatformScanner<COriginScanner>
     {
 		private const string ORIGIN_NAME      = "Origin"; //"EA"
-		private const string ORIGIN_NAME_LONG = "Origin"; //"EA Desktop";
 		private const string ORIGIN_CONTENT   = @"\Origin\LocalContent";
 		private const string ORIGIN_PATH      = "dipinstallpath=";
 
@@ -37,10 +37,10 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("{0} directory read error: {1}", m_platformName.ToUpper(), path));
+				CLogger.LogError(e, string.Format("Directory read error: {1}", path));
 			}
 
-			CLogger.LogInfo("{0} {1} games found", dirs.Count, m_platformName.ToUpper());
+			CLogger.LogInfo("{0} games found", dirs.Count);
 			foreach(string dir in dirs)
 			{
 				string[] files = { };
@@ -72,12 +72,14 @@ namespace LibGLC.PlatformReaders
 						foreach(string sub in subs)
 						{
 							if(sub.StartsWith(ORIGIN_PATH))
+                            {
 								install = sub.Substring(15);
+							}
 						}
 					}
 					catch(Exception e)
 					{
-						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), file));
+						CLogger.LogError(e, string.Format("Malformed file: {1}", file));
 					}
 				}
 
@@ -99,7 +101,6 @@ namespace LibGLC.PlatformReaders
 						}
 					}
 
-					CLogger.LogDebug($"- {strTitle}");
 					if(string.IsNullOrEmpty(strLaunch))
 					{
 						strLaunch = CDirectoryHelper.FindGameBinaryFile(install, strTitle);

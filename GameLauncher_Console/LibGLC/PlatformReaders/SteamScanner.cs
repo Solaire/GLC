@@ -10,8 +10,9 @@ namespace LibGLC.PlatformReaders
 {
 	/// <summary>
 	/// Scanner for Steam (Valve)
+	/// This scanner uses the Registry, manifest files and web requests to read game data
 	/// </summary>
-    public sealed class CSteamScanner : CBasePlatformScanner<CSteamScanner>
+	public sealed class CSteamScanner : CBasePlatformScanner<CSteamScanner>
 	{
 		private const string STEAM_NAME         = "Steam";
 		private const int STEAM_MAX_LIBS        = 64;
@@ -44,7 +45,7 @@ namespace LibGLC.PlatformReaders
 			{
 				if(key == null)
 				{
-					CLogger.LogInfo("{0} client not found in the registry.", m_platformName.ToUpper());
+					CLogger.LogInfo("Cient not found in the registry.");
 					return false;
 				}
 
@@ -55,7 +56,7 @@ namespace LibGLC.PlatformReaders
 			// Ensure that the client actually exist in the retrieved directory
 			if(!Directory.Exists(strClientPath))
 			{
-				CLogger.LogInfo("{0} library not found: {1}", m_platformName.ToUpper(), strClientPath);
+				CLogger.LogInfo("Library not found: {1}", strClientPath);
 				return false;
 			}
 
@@ -107,7 +108,7 @@ namespace LibGLC.PlatformReaders
 			}
 			catch(Exception e)
 			{
-				CLogger.LogError(e, string.Format("Malformed {0} file: {1}", m_platformName.ToUpper(), libFile));
+				CLogger.LogError(e, string.Format("Malformed file: {1}", libFile));
 				nLibs--;
 			}
 
@@ -120,11 +121,11 @@ namespace LibGLC.PlatformReaders
 				{
 					libFiles = Directory.GetFiles(lib, "appmanifest_*.acf", SearchOption.TopDirectoryOnly).ToList();
 					allFiles.AddRange(libFiles);
-					CLogger.LogInfo("{0} {1} games found in library {2}", libFiles.Count, m_platformName.ToUpper(), lib);
+					CLogger.LogInfo("{0} games found in library {2}", libFiles.Count, lib);
 				}
 				catch(Exception e)
 				{
-					CLogger.LogError(e, string.Format("{0} directory read error: ", m_platformName.ToUpper(), lib));
+					CLogger.LogError(e, string.Format("Directory read error: {0}", lib));
 					continue;
 				}
 
@@ -193,173 +194,183 @@ namespace LibGLC.PlatformReaders
 					}
 				}
 				i++;
-				if(i > nLibs)
-				{
-					CLogger.LogDebug("---------------------");
-				}
 			}
 			return gameCount > 0;
 		}
 
-        protected override bool GetNonInstalledGames(bool expensiveIcons)
+		// TODO
+		protected override bool GetNonInstalledGames(bool expensiveIcons)
         {
-			/*
-			if(getNonInstalled)
+			// First get Steam user ID
+			ulong userId = 0;//(ulong)CConfig.GetConfigULong(CConfig.CFG_STEAMID);
+			int gameCount = 0;
+			
+			if(userId < 1)
 			{
-				// First get Steam user ID
-				ulong userId = (ulong)CConfig.GetConfigULong(CConfig.CFG_STEAMID);
-
-				if(userId < 1)
+				try
 				{
-					try
+					string strInstallPath = "";
+					string strClientPath = "";
+
+					// Find steam client in the registry
+					using(RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 					{
-						ulong userIdTmp = 0;
-						string userName = "";
-						string userNameTmp = "";
-						string strConfigPath = Path.Combine(strInstallPath, "config");
-						string appFile = Path.Combine(strConfigPath, STEAM_APPFILE);
-
-						if(File.Exists(appFile))
+						if(key == null)
 						{
-							SteamWrapper appDoc = new SteamWrapper(appFile);
-							ACF_Struct appDocData = appDoc.ACFFileToStruct();
-							ACF_Struct appData = appDocData.SubACF[STEAM_APPDATA];
+							CLogger.LogInfo("Cient not found in the registry.");
+							return false;
+						}
 
-							appData.SubItems.TryGetValue("AutoLoginUser", out userName);
+						strInstallPath = CRegHelper.GetRegStrVal(key, GAME_INSTALL_PATH);
+						strClientPath = Path.Combine(strInstallPath, STEAM_PATH);
+					}
 
-							SteamWrapper usrDoc = new SteamWrapper(Path.Combine(strConfigPath, STEAM_USRFILE));
-							ACF_Struct usrDocData = usrDoc.ACFFileToStruct();
-							ACF_Struct usrData = usrDocData.SubACF[STEAM_USRARR];
+					ulong userIdTmp = 0;
+					string userName = "";
+					string userNameTmp = "";
+					string strConfigPath = Path.Combine(strInstallPath, "config");
+					string appFile = Path.Combine(strConfigPath, STEAM_APPFILE);
 
-							foreach(KeyValuePair<string, ACF_Struct> user in usrData.SubACF)
+					if(File.Exists(appFile))
+					{
+						SteamWrapper appDoc = new SteamWrapper(appFile);
+						ACF_Struct appDocData = appDoc.ACFFileToStruct();
+						ACF_Struct appData = appDocData.SubACF[STEAM_APPDATA];
+
+						appData.SubItems.TryGetValue("AutoLoginUser", out userName);
+
+						SteamWrapper usrDoc = new SteamWrapper(Path.Combine(strConfigPath, STEAM_USRFILE));
+						ACF_Struct usrDocData = usrDoc.ACFFileToStruct();
+						ACF_Struct usrData = usrDocData.SubACF[STEAM_USRARR];
+
+						foreach(KeyValuePair<string, ACF_Struct> user in usrData.SubACF)
+						{
+							ulong.TryParse(user.Key, out userIdTmp);
+
+							foreach(KeyValuePair<string, string> userVal in user.Value.SubItems)
 							{
-								ulong.TryParse(user.Key, out userIdTmp);
-
-								foreach(KeyValuePair<string, string> userVal in user.Value.SubItems)
+								if(userVal.Key.Equals("AccountName"))
 								{
-									if(userVal.Key.Equals("AccountName"))
-									{
-										userNameTmp = userVal.Value;
-										if(userNameTmp.Equals(userName))
-											ulong.TryParse(user.Key, out userId);
-									}
-									if(userVal.Key.Equals("MostRecent") && userVal.Value.Equals("1") && string.IsNullOrEmpty(userName))
-									{
-										userId = userIdTmp;
-										userName = userNameTmp;
-										break;
-									}
+									userNameTmp = userVal.Value;
+									if(userNameTmp.Equals(userName))
+										ulong.TryParse(user.Key, out userId);
+								}
+								if(userVal.Key.Equals("MostRecent") && userVal.Value.Equals("1") && string.IsNullOrEmpty(userName))
+								{
+									userId = userIdTmp;
+									userName = userNameTmp;
+									break;
 								}
 							}
-							if(userId < 1)
-							{
-								userId = userIdTmp;
-								userName = userNameTmp;
-							}
 						}
-						if(userId > 0)
+						if(userId < 1)
 						{
-							CLogger.LogInfo("Setting default {0} user to {1} #{2}", STEAM_NAME.ToUpper(), userName, userId);
-							CConfig.SetConfigValue(CConfig.CFG_STEAMID, userId);
-							ExportConfig();
+							userId = userIdTmp;
+							userName = userNameTmp;
 						}
 					}
-					catch(Exception e)
+					if(userId > 0)
 					{
-						CLogger.LogError(e, string.Format("Malformed {0} file: {1} or {2}", STEAM_NAME.ToUpper(), STEAM_APPFILE, STEAM_USRFILE));
+						CLogger.LogInfo("Setting default {0} user to {1} #{2}", STEAM_NAME.ToUpper(), userName, userId);
+						//CConfig.SetConfigValue(CConfig.CFG_STEAMID, userId);
+						//ExportConfig();
 					}
 				}
-
-				if(userId > 0)
+				catch(Exception e)
 				{
-					// Download game list from public user profile
-					try
-					{
-						string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", userId);
-						/*
-						#if DEBUG
-												string tmpfile = $"tmp_{STEAM_NAME}.html";
-												if (!File.Exists(tmpfile))
-												{
-													using (var client = new WebClient())
-													{
-														client.DownloadFile(url, tmpfile);
-													}
-												}
-												HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument
-												{
-													OptionUseIdAttribute = true
-												};
-												doc.Load(tmpfile);
-						#else
-						* /
-						HtmlWeb web = new HtmlWeb();
-						web.UseCookies = true;
-						HtmlAgilityPack.HtmlDocument doc = web.Load(url);
-						doc.OptionUseIdAttribute = true;
-						//#endif
-						HtmlNode gameList = doc.DocumentNode.SelectSingleNode("//script[@language='javascript']");
-						if(gameList != null)
-						{
-							CLogger.LogDebug("{0} not-installed games (user #{1}):", STEAM_NAME.ToUpper(), userId);
-
-							var options = new JsonDocumentOptions
-							{
-								AllowTrailingCommas = true
-							};
-							string rgGames = gameList.InnerText.Remove(0, gameList.InnerText.IndexOf('['));
-							rgGames = rgGames.Remove(rgGames.IndexOf(';'));
-
-							using(JsonDocument document = JsonDocument.Parse(@rgGames, options))
-							{
-								foreach(JsonElement game in document.RootElement.EnumerateArray())
-								{
-									ulong id = GetULongProperty(game, "appid");
-									if(id > 0)
-									{
-										// Check if game is already installed
-										string strID = $"appmanifest_{id}.acf";
-										bool found = false;
-										foreach(string file in allFiles)
-										{
-											if(file.EndsWith(strID))
-												found = true;
-										}
-										if(!found)
-										{
-											string strTitle = GetStringProperty(game, "name");
-											//string strIconPath = GetStringProperty(game, "logo");  // TODO: Use logo to download icon
-											string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
-
-											// Add not-installed games
-											CLogger.LogDebug($"- *{strTitle}");
-											gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-										}
-									}
-								}
-							}
-						}
-						else
-						{
-							CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
-											"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
-								STEAM_NAME.ToUpper());
-						}
-						/*
-						#if DEBUG
-												File.Delete(tmpfile);
-						#endif
-						* /
-					}
-					catch(Exception e)
-					{
-						CLogger.LogError(e);
-					}
-					CLogger.LogDebug("---------------------");
+					CLogger.LogError(e, string.Format("Malformed {0} file: {1} or {2}", STEAM_NAME.ToUpper(), STEAM_APPFILE, STEAM_USRFILE));
 				}
 			}
-			*/
-			return false;
+			if(userId > 0)
+			{
+				/*
+				// Download game list from public user profile
+				try
+				{
+					string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", userId);
+					/*
+					#if DEBUG
+											string tmpfile = $"tmp_{STEAM_NAME}.html";
+											if (!File.Exists(tmpfile))
+											{
+												using (var client = new WebClient())
+												{
+													client.DownloadFile(url, tmpfile);
+												}
+											}
+											HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument
+											{
+												OptionUseIdAttribute = true
+											};
+											doc.Load(tmpfile);
+					#else
+					* /
+					HtmlWeb web = new HtmlWeb();
+					web.UseCookies = true;
+					HtmlAgilityPack.HtmlDocument doc = web.Load(url);
+					doc.OptionUseIdAttribute = true;
+					//#endif
+					HtmlNode gameList = doc.DocumentNode.SelectSingleNode("//script[@language='javascript']");
+					if(gameList != null)
+					{
+						CLogger.LogDebug("{0} not-installed games (user #{1}):", STEAM_NAME.ToUpper(), userId);
+
+						var options = new JsonDocumentOptions
+						{
+							AllowTrailingCommas = true
+						};
+						string rgGames = gameList.InnerText.Remove(0, gameList.InnerText.IndexOf('['));
+						rgGames = rgGames.Remove(rgGames.IndexOf(';'));
+
+						using(JsonDocument document = JsonDocument.Parse(@rgGames, options))
+						{
+							foreach(JsonElement game in document.RootElement.EnumerateArray())
+							{
+								ulong id = GetULongProperty(game, "appid");
+								if(id > 0)
+								{
+									// Check if game is already installed
+									string strID = $"appmanifest_{id}.acf";
+									bool found = false;
+									foreach(string file in allFiles)
+									{
+										if(file.EndsWith(strID))
+											found = true;
+									}
+									if(!found)
+									{
+										string strTitle = GetStringProperty(game, "name");
+										//string strIconPath = GetStringProperty(game, "logo");  // TODO: Use logo to download icon
+										string strPlatform = CGameData.GetPlatformString(CGameData.GamePlatform.Steam);
+
+										// Add not-installed games
+										CLogger.LogDebug($"- *{strTitle}");
+										gameDataList.Add(new CRegScanner.RegistryGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+									}
+								}
+							}
+						}
+					}
+					else
+					{
+						CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
+										"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
+							STEAM_NAME.ToUpper());
+					}
+					/*
+					#if DEBUG
+											File.Delete(tmpfile);
+					#endif
+					* /
+				}
+				catch(Exception e)
+				{
+					CLogger.LogError(e);
+				}
+				*/
+			}
+
+			return gameCount > 0;
 		}
 	}
 
