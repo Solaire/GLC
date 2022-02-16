@@ -7,12 +7,13 @@ using ConsoleUI.Views;
 using ConsoleUI.Helper;
 
 using LibGLC;
+using System.Linq;
 
 namespace GLC
 {
     class CLibraryPage : CPage
     {
-        private List<string> m_platforms;
+        List<CPlatform.PlatformObject> m_platforms;
 
         private CListView m_platformListView;
         private CListView m_gameListView;
@@ -20,15 +21,16 @@ namespace GLC
 
         public CLibraryPage(string title, ConsoleRect rect, int componentCount, CFrame parent) : base(title, rect, componentCount, parent)
         {
-            m_platforms = new List<string>();
+            m_platforms = CPlatform.GetPlatforms(true);
+            m_platforms.Add(new CPlatform.PlatformObject(-1, "All games", CGame.GetGameCount(-1), ""));
+            m_platforms.Add(new CPlatform.PlatformObject(0, "Favourites", CGame.GetFavouriteCount(-1), ""));
+            m_platforms.Sort((a, b) => a.PlatformID.CompareTo(b.PlatformID));
 
-            for(int i = 0; i < 15; i++)
-            {
-                m_platforms.Add(string.Format("Platform -> {0}", i));
-            }
+            CGame.GameSet allGames = CGame.GetAllGames();
+            allGames.SortGames(CGame.GameSet.SortFlag.cSortFrequency, false, false);
 
-            m_platformListView = new CListView(CConstants.PANEL_DATA[0], new CListWrapper(m_platforms), true , this);
-            m_gameListView     = new CListView(CConstants.PANEL_DATA[1], new CListWrapper(null)       , false, this);
+            m_platformListView = new CListView(CConstants.PANEL_DATA[0], new CPlatformListDataSource(m_platforms), true, this);
+            m_gameListView     = new CListView(CConstants.PANEL_DATA[1], new GameListDataSource(allGames.ToList()), false, this);
             m_gameInfoView     = new CInfoboxView(CConstants.PANEL_DATA[2], null, false, this);
         }
 
@@ -45,6 +47,8 @@ namespace GLC
 
             // Set the view sizes
             CalculateComponentPositions();
+
+            m_platformListView.SetFocusedIndex(0);
         }
 
         public override void KeyPress(ConsoleKeyInfo keyInfo)
@@ -63,31 +67,91 @@ namespace GLC
 
         public void PlatformListView_SelectedChange(CListViewItemEventArgs e)
         {
-            /*
-            List<CGame.GameObject> newGameList;
-            string newPlatform = e.Value.ToString();
-            newGameList = m_gameObject.GetByPlatform(newPlatform); // Will handle all games
-            m_gameListView.SetSource(new GameListDataSource(newGameList));
-            m_gameListView.Draw(true);
-            */
-            /*
-            m_gameListView.Clear();
-            for(int i = 0; i < 15; i++)
+            CPlatform.PlatformObject selection = (CPlatform.PlatformObject)e.Value;
+            GameListDataSource newSource = new GameListDataSource(null);
+
+            switch(selection.PlatformID)
             {
-                m_gameListView.Add(string.Format("Category {0}: Item {1}", e.Item, i));
+                case -1: newSource.SetSource(CGame.GetAllGames().ToList());                 break;
+                case 0:  newSource.SetSource(CGame.GetFavouriteGames().ToList());           break;
+                default: newSource.SetSource(CGame.GetPlatformGames(selection.PlatformID)); break;
             }
+
+            m_gameListView.SetSource(newSource);
             m_gameListView.Draw(true);
-            */
         }
 
         public void GameListView_SelectedChange(CListViewItemEventArgs e)
         {
-            /*
-            string selectedGame = e.Value.ToString();
-            Game newGame = m_gameObject.GetByName(selectedGame);
-            m_gameInfoView.SetSource(new CGameInfoDataSource(newGame));
+            CGame.GameObject gameInfo = (CGame.GameObject)e.Value;
+            m_gameInfoView.SetSource(new CGameInfoDataSource(gameInfo));
             m_gameInfoView.Draw(true);
-            */
+        }
+
+        /// <summary>
+        /// Data source implementation for the platform list view
+        /// </summary>
+        internal class CPlatformListDataSource : IListDataSource
+        {
+            private List<CPlatform.PlatformObject> m_source;
+            private int   m_focusIndex;
+
+            public CPlatformListDataSource(List<CPlatform.PlatformObject> platformList)
+            {
+                if(platformList != null)
+                {
+                    m_focusIndex = -1;
+                    m_source = platformList;
+                }
+            }
+
+            public int Count { get { return (m_source != null) ? m_source.Count : 0; } }
+
+            public void Render(int startX, int startY, int lengthX, int first, int count, ConsoleColor colourFG, ConsoleColor colourBG)
+            {
+                if(m_source == null)
+                {
+                    return;
+                }
+
+                for(int i = 0; i < count && first + i < Count; i++)
+                {
+                    CConsoleDraw.WriteText(m_source[first + i].Name.PadRight(lengthX), startX, startY++, colourFG, colourBG);
+                }
+            }
+
+            public void Render(int startX, int startY, int lengthX, int index, ConsoleColor colourFG, ConsoleColor colourBG)
+            {
+                if(m_source == null || (index < 0 || index >= Count))
+                {
+                    return;
+                }
+
+                CConsoleDraw.WriteText(m_source[index].Name.PadRight(lengthX), startX, startY, colourFG, colourBG);
+            }
+
+            public bool IsFocused(int index)
+            {
+                if(m_source == null || (index < 0 || index >= Count))
+                {
+                    return false;
+                }
+                return m_focusIndex == index;
+            }
+
+            public void SetFocused(int index)
+            {
+                if(m_source == null || (index < 0 || index >= Count))
+                {
+                    m_focusIndex = -1;
+                }
+                m_focusIndex = index;
+            }
+
+            public IList ToList()
+            {
+                return m_source;
+            }
         }
 
         internal class GameListDataSource : IListDataSource
@@ -95,12 +159,12 @@ namespace GLC
             private List<CGame.GameObject> m_source;
             private int   m_focusIndex;
 
-            public GameListDataSource(List<CGame.GameObject> gameList)
+            public GameListDataSource(List<CGame.GameObject> platformList)
             {
-                if(gameList != null)
+                if(platformList != null)
                 {
                     m_focusIndex = -1;
-                    m_source = gameList;
+                    m_source = platformList;
                 }
             }
 
@@ -150,6 +214,12 @@ namespace GLC
             public IList ToList()
             {
                 return m_source;
+            }
+
+            public void SetSource(List<CGame.GameObject> newSource)
+            {
+                m_focusIndex = -1;
+                m_source = newSource;
             }
         }
 

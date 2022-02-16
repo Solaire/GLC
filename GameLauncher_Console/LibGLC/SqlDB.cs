@@ -70,20 +70,7 @@ namespace SqlDB
             bool exists = File.Exists(dataSource);
             if(exists || create) // Only open if it's there or if we're making a new one
             {
-                /*
-                m_sqlite_conn = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=False;Compress=True;");
-                try
-                {
-                    CLogger.LogInfo("Connecting to Data Source " + dataSource);
-                    m_sqlite_conn.Open();
-                }
-                catch(SQLiteException e)
-                {
-                    CLogger.LogWarn("Database connection could not be established: " + e.ResultCode);
-                    return e.ResultCode;
-                }
-                */
-                m_sqlConn = new CSqlConn(dataSource);
+                m_sqlConn = new CSqlConn(dataSource, true);
                 if(m_sqlConn.State == System.Data.ConnectionState.Broken)
                 {
                     return m_sqlConn.LastError;
@@ -182,13 +169,14 @@ namespace SqlDB
         /// <param name="create">If true, new database will be created</param>
         public CSqlConn(string dataSource, bool create = false)
         {
-            if(!File.Exists(dataSource))
+            bool exists = File.Exists(dataSource);
+            if(!exists && !create)
             {
                 m_lastError = SQLiteErrorCode.CantOpen;
                 m_sqlite_conn = null;
                 return;
             }
-            m_sqlite_conn = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=False;Compress=True;");
+            m_sqlite_conn = new SQLiteConnection("Data source=" + dataSource + ";Version=3;New=" + ((!exists && create) ? "True" : "False") + ";Compress=True;UseUTF8Encoding=True;");
             try
             {
                 CLogger.LogInfo("Connecting to Data Source " + dataSource);

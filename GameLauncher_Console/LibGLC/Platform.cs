@@ -68,9 +68,9 @@ namespace LibGLC
 				"LEFT JOIN Game G on PlatformID = G.PlatformFK",
 				"", " GROUP BY PlatformID")
 			{
-				m_sqlRow["PlatformID"] = new CSqlFieldInteger("PlatformID", CSqlField.QryFlag.cSelWhere);
-				m_sqlRow["Name"] = new CSqlFieldString("Name", CSqlField.QryFlag.cSelRead);
-				m_sqlRow["GameCount"] = new CSqlFieldString("COUNT(G.GameID) as GameCount", CSqlField.QryFlag.cSelRead);
+				m_sqlRow["PlatformID"]	= new CSqlFieldInteger("PlatformID", CSqlField.QryFlag.cSelRead |CSqlField.QryFlag.cSelWhere);
+				m_sqlRow["Name"]		= new CSqlFieldString("Name", CSqlField.QryFlag.cSelRead);
+				m_sqlRow["GameCount"]	= new CSqlFieldString("COUNT(G.GameID) as GameCount", CSqlField.QryFlag.cSelRead);
 			}
 			public int PlatformID
 			{
@@ -118,12 +118,15 @@ namespace LibGLC
 			}
 		}
 
+		/// <summary>
+		/// Query for counting the number of supported platforms
+		/// </summary>
 		public class CQryPlatformCount : CSqlQry
         {
 			public CQryPlatformCount()
 				: base("Platform", "", "")
             {
-				m_sqlRow["PlatformCount"] = new CSqlFieldInteger("COUNT(*)", CSqlField.QryFlag.cSelRead);
+				m_sqlRow["PlatformCount"] = new CSqlFieldInteger("COUNT(*) as PlatformCount", CSqlField.QryFlag.cSelRead);
             }
 
 			public int PlatformCount
@@ -133,11 +136,37 @@ namespace LibGLC
 			}
 		}
 
+		/// <summary>
+		/// Query for retrieveing the platformID based on string
+		/// </summary>
+		public class CQryGetPlatform : CSqlQry
+		{
+			public CQryGetPlatform()
+				: base("Platform", "", "")
+			{
+				m_sqlRow["PlatformID"] = new CSqlFieldInteger("PlatformID", CSqlField.QryFlag.cSelRead);
+				m_sqlRow["Name"]	   = new CSqlFieldString("Name"		  , CSqlField.QryFlag.cSelWhere);
+			}
+
+			public int PlatformID
+			{
+				get { return m_sqlRow["PlatformID"].Integer; }
+				set { m_sqlRow["PlatformID"].Integer = value; }
+			}
+
+			public string Name
+			{
+				get { return m_sqlRow["Name"].String; }
+				set { m_sqlRow["Name"].String = value; }
+			}
+		}
+
 		#endregion // Query definitions
 
 		private static CQryReadPlatforms m_qryRead			= new CQryReadPlatforms();
 		private static CQryWritePlatforms m_qryWrite		= new CQryWritePlatforms();
 		private static CQryPlatformCount m_qryPlatformCount = new CQryPlatformCount();
+		private static CQryGetPlatform m_qryGetPlatform		= new CQryGetPlatform();
 
 		/// <summary>
 		/// Container for a single platform
@@ -170,21 +199,30 @@ namespace LibGLC
 			public string Name { get; }
 			public int GameCount { get; private set; }
 			public string Description { get; }
+
+			public bool SortByPlatformID(PlatformObject other)
+            {
+				return PlatformID > other.PlatformID;
+            }
 		}
 
 		/// <summary>
 		/// Get list of platforms from the database
 		/// </summary>
 		/// <returns>List of PlatformObjects</returns>
-		public static Dictionary<string, PlatformObject> GetPlatforms()
+		public static List<PlatformObject> GetPlatforms(bool excludeEmptyPlatforms)
 		{
-			Dictionary<string, PlatformObject> platforms = new Dictionary<string, PlatformObject>();
+			List<PlatformObject> platforms = new List<PlatformObject>();
 			m_qryRead.MakeFieldsNull();
 			if(m_qryRead.Select() == SQLiteErrorCode.Ok)
 			{
 				do
 				{
-					platforms[m_qryRead.Name] = new PlatformObject(m_qryRead);
+					if(m_qryRead.GameCount == 0 && excludeEmptyPlatforms)
+                    {
+						continue;
+                    }
+					platforms.Add(new PlatformObject(m_qryRead));
 				} while(m_qryRead.Fetch());
 			}
 			return platforms;
@@ -248,6 +286,23 @@ namespace LibGLC
 			m_qryWrite.MakeFieldsNull();
 			m_qryWrite.PlatformID = platformID;
 			return m_qryWrite.Delete() == SQLiteErrorCode.Ok;
+		}
+
+		/// <summary>
+		/// Find the platformID from a string name
+		/// </summary>
+		/// <param name="platformName">The platform name</param>
+		/// <returns>Non-zero value on match, otherwise 0</returns>
+		public static int GetPlatformFromString(string platformName)
+        {
+			if(platformName.Length == 0)
+            {
+				return 0;
+            }
+			m_qryGetPlatform.MakeFieldsNull();
+			m_qryGetPlatform.Name = platformName;
+			m_qryGetPlatform.Select();
+			return m_qryGetPlatform.PlatformID;
 		}
 	}
 }

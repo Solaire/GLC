@@ -67,3 +67,23 @@ INSERT INTO "SystemAttribute"
 	("AttributeName", "AttributeIndex", "AttributeValue")
 VALUES
 	('SCHEMA_VERSION', 0, '1.0.0');
+	
+INSERT INTO "Platform"
+	("Name")
+VALUES
+	("Steam"),
+	("Gog Galaxy"),
+	("Ubisoft Connect"),
+	("Origin"),
+	("Epic"),
+	("Bethesda.net"),
+	("Battle.net"),
+	("Rockstar"),
+	("Amazon"),
+	("Big Fish"),
+	("Arc"),
+	("itch"),
+	("Paradox"),
+	("Plarium Play"),
+	("Wargaming.net"),
+	("Indiegala Client");

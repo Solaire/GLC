@@ -200,10 +200,10 @@ namespace LibGLC
         public class CQryGameCount : CSqlQry
         {
             public CQryGameCount()
-                : base("Game", "(& = ?)", "")
+                : base("Game", "", "")
             {
-                m_sqlRow["GameCount"]  = new CSqlFieldInteger("COUNT(*)",   CSqlField.QryFlag.cSelRead);
-                m_sqlRow["PlatformFK"] = new CSqlFieldInteger("PlatformFK", CSqlField.QryFlag.cSelWhere);
+                m_sqlRow["GameCount"]  = new CSqlFieldInteger("COUNT(*) as GameCount",  CSqlField.QryFlag.cSelRead);
+                m_sqlRow["PlatformFK"] = new CSqlFieldInteger("PlatformFK",             CSqlField.QryFlag.cSelWhere);
             }
 
             public int GameCount
@@ -223,7 +223,6 @@ namespace LibGLC
 
         private static CQryGame m_qryGame           = new CQryGame();
         private static CQryGameCount m_qryGameCount = new CQryGameCount();
-
         private static CDbAttribute m_gameAttribute = new CDbAttribute("Game");
         private static GameSet m_currentGames = new GameSet();
 
@@ -231,7 +230,8 @@ namespace LibGLC
         /// Dictionary collection implementation for the game object
         /// Encapsulates all sorting and direct manipulation of the collection
         /// </summary>
-        public class GameSet : Dictionary<string, GameObject>
+        //public class GameSet : Dictionary<string, GameObject>
+        public class GameSet : HashSet<GameObject>
         {
             /// <summary>
             /// Enum used when returning sorted lists of games
@@ -298,7 +298,7 @@ namespace LibGLC
                 }
                 if(used == 1) // Remove tailing comma
                 {
-                    orderByString.Remove(',');
+                    orderByString.Remove(orderByString.Length - 2);
                 }
                 else if(used == 0) // Clear if no flags (just in case)
                 {
@@ -355,7 +355,8 @@ namespace LibGLC
             /// <param name="alias">Game alias</param>
             /// <param name="launch">Game executable path or launch string</param>
             /// <param name="uninstall">Game uninstaller path or uninstall string</param>
-            public GameObject(int platformFK, string identifier, string title, string alias, string launch, string uninstall)
+            /// <param name="icon">The icon data</param>
+            public GameObject(int platformFK, string identifier, string title, string alias, string launch, string uninstall, string icon)
             {
                 PlatformFK = platformFK;
                 Identifier = identifier;
@@ -363,10 +364,10 @@ namespace LibGLC
                 Alias = alias;
                 Launch = launch;
                 Uninstall = uninstall;
+                Icon = icon;
 
                 // Default rest
                 GameID = 0;
-                Icon = "";
                 IsInstalled = false;
                 IsFavourite = false;
                 IsNew = false;
@@ -401,7 +402,7 @@ namespace LibGLC
             public override bool Equals(object other)
             {
                 // We're only interested in comparing the titles
-                return (other is GameObject game && this.Title == game.Title);
+                return (other is GameObject game && Title == game.Title);
             }
 
             /// <summary>
@@ -410,7 +411,7 @@ namespace LibGLC
             /// <returns>Hash code</returns>
             public override int GetHashCode()
             {
-                return this.Title.GetHashCode();
+                return Title.GetHashCode();
             }
         }
 
@@ -425,7 +426,7 @@ namespace LibGLC
             // No point running the query if we want the same information
             if(m_currentGames.Platform == platformFK && m_currentGames.Count > 0)
             {
-                return m_currentGames.Values.ToList();
+                return m_currentGames.ToList();
             }
             m_currentGames.Clear();
             m_currentGames.Platform = platformFK;
@@ -437,16 +438,31 @@ namespace LibGLC
             {
                 do
                 {
-                    m_currentGames[m_qryGame.Title] = new GameObject(m_qryGame);
+                    m_currentGames.Add(new GameObject(m_qryGame));
                 } while(m_qryGame.Fetch());
             }
-            return m_currentGames.Values.ToList();
+            return m_currentGames.ToList();
         }
 
-        public static HashSet<GameObject> GetAllGames()
+        public static GameSet GetAllGames()
         {
-            HashSet<GameObject> outHashSet = new HashSet<GameObject>();
+            GameSet outHashSet = new GameSet();
             m_qryGame.MakeFieldsNull();
+            if(m_qryGame.Select() == SQLiteErrorCode.Ok)
+            {
+                do
+                {
+                    outHashSet.Add(new GameObject(m_qryGame));
+                } while(m_qryGame.Fetch());
+            }
+            return outHashSet;
+        }
+
+        public static GameSet GetFavouriteGames()
+        {
+            GameSet outHashSet = new GameSet();
+            m_qryGame.MakeFieldsNull();
+            m_qryGame.IsFavourite = true;
             if(m_qryGame.Select() == SQLiteErrorCode.Ok)
             {
                 do
@@ -479,7 +495,7 @@ namespace LibGLC
                 // If the same platform as last query, add to the hashset.
                 if(m_currentGames.Platform == game.PlatformFK)
                 {
-                    m_currentGames[game.Title] = game;
+                    m_currentGames.Add(game);
                 }
                 return true;
             }
@@ -514,7 +530,8 @@ namespace LibGLC
                 // If the same platform as last query, switch object
                 if(m_currentGames.Platform == game.PlatformFK)
                 {
-                    m_currentGames[game.Title] = game;
+                    m_currentGames.Remove(game);
+                    m_currentGames.Add(game);
                 }
                 return true;
             }
@@ -537,7 +554,8 @@ namespace LibGLC
                 // If the same platform as last query, switch object
                 if(m_currentGames.Platform == game.PlatformFK)
                 {
-                    m_currentGames[game.Title] = game;
+                    m_currentGames.Remove(game);
+                    m_currentGames.Add(game);
                 }
                 return true;
             }
@@ -560,7 +578,8 @@ namespace LibGLC
                 // If the same platform as last query, switch object
                 if(m_currentGames.Platform == game.PlatformFK)
                 {
-                    m_currentGames[game.Title] = game;
+                    m_currentGames.Remove(game);
+                    m_currentGames.Add(game);
                 }
                 return true;
             }
@@ -583,7 +602,8 @@ namespace LibGLC
                 // If the same platform as last query, switch object
                 if(m_currentGames.Platform == game.PlatformFK)
                 {
-                    m_currentGames[game.Title] = game;
+                    m_currentGames.Remove(game);
+                    m_currentGames.Add(game);
                 }
                 return true;
             }
@@ -595,23 +615,26 @@ namespace LibGLC
         /// Add any new and remove any missing games from the database
         /// </summary>
         /// <param name="games">Game set to merge</param>
-        public static void MergeGameSets(GameSet games)
+        public static void MergeGameSets(GameSet games, bool save)
         {
-            HashSet<GameObject> newGames = games.Values.ToHashSet();
-            HashSet<GameObject> allGames = GetAllGames().ToHashSet();
+            HashSet<GameObject> newGames = games;
+            HashSet<GameObject> allGames = GetAllGames();
 
             HashSet<GameObject> toAdd = new HashSet<GameObject>(newGames);
             toAdd.ExceptWith(allGames);
             HashSet<GameObject> toRemove = new HashSet<GameObject>(allGames);
             toRemove.ExceptWith(newGames);
 
-            foreach(GameObject game in toAdd)
+            if(save)
             {
-                InsertGame(game);
-            }
-            foreach(GameObject game in toRemove)
-            {
-                RemoveGame(game.GameID);
+                foreach(GameObject game in toAdd)
+                {
+                    InsertGame(game);
+                }
+                foreach(GameObject game in toRemove)
+                {
+                    RemoveGame(game.GameID);
+                }
             }
         }
 
@@ -643,9 +666,27 @@ namespace LibGLC
             if(platformFK <= 0) // Count all games
             {
                 m_qryGameCount.SelectExtraCondition = "OR (1 = 1)";
+                m_qryGameCount.PlatformFK = -1;
             }
             else // Count games for platform
             {
+                m_qryGameCount.PlatformFK = platformFK;
+            }
+            m_qryGameCount.Select();
+            return m_qryGameCount.GameCount;
+        }
+
+        public static int GetFavouriteCount(int platformFK)
+        {
+            m_qryGameCount.MakeFieldsNull();
+            if(platformFK <= 0) // Count all games
+            {
+                m_qryGameCount.SelectExtraCondition = "OR (1 = 1) AND (IsFavourite = 1)";
+                m_qryGameCount.PlatformFK = -1;
+            }
+            else // Count games for platform
+            {
+                m_qryGameCount.SelectExtraCondition = "AND (IsFavourite = 1)";
                 m_qryGameCount.PlatformFK = platformFK;
             }
             m_qryGameCount.Select();

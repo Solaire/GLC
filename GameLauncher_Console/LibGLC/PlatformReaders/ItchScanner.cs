@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data.SQLite;
-using System.IO;
 using System.Text.Json;
 using Logger;
 using SqlDB;
@@ -124,7 +123,7 @@ namespace LibGLC.PlatformReaders
 		{
 			CEventDispatcher.OnPlatformStarted(m_platformName);
 
-			CSqlConn conn = new CSqlConn(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + ITCH_DB);
+			CSqlConn conn = new CSqlConn(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + ITCH_DB);
 			if(!conn.IsOpen())
 			{
 				CLogger.LogInfo("{0}: Could not open database.", m_platformName.ToUpper());
