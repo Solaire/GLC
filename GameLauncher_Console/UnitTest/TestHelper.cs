@@ -22,7 +22,7 @@ namespace UnitTest
         /// </summary>
         public static void InitLogger()
         {
-            if (LoggerInit)
+            if(LoggerInit)
             {
                 return;
             }
@@ -40,7 +40,7 @@ namespace UnitTest
         /// </summary>
         public static void DatabaseSetup()
         {
-            if (!OpenedDB && CSqlDB.Instance.Open(true, SQL_TEST_DATA_SOURCE) == SQLiteErrorCode.Ok)
+            if(!OpenedDB && CSqlDB.Instance.Open(true, SQL_TEST_DATA_SOURCE) == SQLiteErrorCode.Ok)
             {
                 OpenedDB = true;
             }
@@ -53,11 +53,11 @@ namespace UnitTest
         /// </summary>
         public static void RemoveDatabase()
         {
-            if (RemovedDB)
+            if(RemovedDB)
             {
                 return;
             }
-            if (File.Exists(SQL_TEST_DATA_SOURCE))
+            if(File.Exists(SQL_TEST_DATA_SOURCE))
             {
                 File.Delete(SQL_TEST_DATA_SOURCE);
             }

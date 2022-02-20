@@ -18,7 +18,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataConversionTool", "DataC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLC", "GLC\GLC.csproj", "{98219DE0-60C6-451F-9E5E-8005559E7E1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibGLC", "LibGLC\LibGLC.csproj", "{D8DD8280-F6EF-4D1D-A6EC-D188BBE5A85F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibGLC", "LibGLC\LibGLC.csproj", "{D8DD8280-F6EF-4D1D-A6EC-D188BBE5A85F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLC_console", "GLC_console\GLC_console.csproj", "{210A833F-6271-4251-BBF1-CB64FC02C100}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,6 +48,10 @@ Global
 		{D8DD8280-F6EF-4D1D-A6EC-D188BBE5A85F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8DD8280-F6EF-4D1D-A6EC-D188BBE5A85F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8DD8280-F6EF-4D1D-A6EC-D188BBE5A85F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{210A833F-6271-4251-BBF1-CB64FC02C100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{210A833F-6271-4251-BBF1-CB64FC02C100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{210A833F-6271-4251-BBF1-CB64FC02C100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{210A833F-6271-4251-BBF1-CB64FC02C100}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
