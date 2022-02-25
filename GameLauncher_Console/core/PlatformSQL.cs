@@ -123,6 +123,7 @@ namespace core
 		private static CQryPlatformCount m_qryPlatformCount = new CQryPlatformCount();
 		private static CQryGetPlatform m_qryGetPlatform     = new CQryGetPlatform();
 
+#nullable enable
 		/// <summary>
 		/// Load the platform by name lookup
 		/// </summary>
@@ -149,6 +150,7 @@ namespace core
 			platform = factory.Create(m_qryGetPlatform.PlatformID, m_qryGetPlatform.Name, "", "");
 			return true;
 		}
+#nullable disable
 
 		/// <summary>
 		/// Insert platform into the database
@@ -174,138 +176,5 @@ namespace core
 			m_qryWrite.PlatformID = platformID;
 			return m_qryWrite.Delete() == SQLiteErrorCode.Ok;
 		}
-
-		/*
-		/// <summary>
-		/// Load platforms from database
-		/// </summary>
-		/// <param name="excludeEmptyPlatforms">If true, platforms with 0 games will be ignored</param>
-		/// <returns>List of platform objects</returns>
-		public static List<PlatformObject> LoadPlatforms(bool excludeEmptyPlatforms)
-        {
-			List<PlatformObject> platforms = new List<PlatformObject>();
-			m_qryRead.MakeFieldsNull();
-			if(m_qryRead.Select() == SQLiteErrorCode.Ok)
-			{
-				do
-				{
-					if(m_qryRead.GameCount == 0 && excludeEmptyPlatforms)
-					{
-						continue;
-					}
-					platforms.Add(new PlatformObject(m_qryRead));
-				} while(m_qryRead.Fetch());
-			}
-			return platforms;
-		}
-
-		/// <summary>
-		/// Load platform by name lookup
-		/// </summary>
-		/// <param name="name">The platform name</param>
-		/// <param name="platform">nullable out parameter which will store retrieved platform</param>
-		/// <returns>True if lookup success, otherwise false</returns>
-		public static bool LoadPlatform(string name, out PlatformObject ? platform)
-		{
-			if(name.Length == 0)
-			{
-				platform = null;
-				return false;
-			}
-			m_qryGetPlatform.MakeFieldsNull();
-			m_qryGetPlatform.Name = name;
-			m_qryGetPlatform.Select();
-			if(m_qryGetPlatform.PlatformID <= 0)
-            {
-				platform = null;
-				return false;
-			}
-			platform = new PlatformObject(m_qryGetPlatform.PlatformID, m_qryGetPlatform.Name, true);
-			return true;
-		}
-
-		/// <summary>
-		/// Load platform by ID lookup
-		/// </summary>
-		/// <param name="id">The platform ID</param>
-		/// <param name="platform">nullable out parameter which will store retrieved platform</param>
-		/// <returns>True if lookup success, otherwise false</returns>
-		public static bool LoadPlatform(int id, out PlatformObject ? platform)
-		{
-			m_qryRead.MakeFieldsNull();
-			m_qryRead.PlatformID = id;
-			m_qryRead.Select();
-			if(m_qryRead.PlatformID <= 0)
-			{
-				platform = null;
-				return false;
-			}
-			platform = new PlatformObject(m_qryRead, true);
-			return true;
-		}
-
-		/// <summary>
-		/// Get number of platforms in the database
-		/// </summary>
-		/// <returns>Number of platforms in the database</returns>
-		public static int GetPlatformCount()
-		{
-			m_qryPlatformCount.MakeFieldsNull();
-			m_qryPlatformCount.Select();
-			return m_qryPlatformCount.PlatformCount;
-		}
-
-		/// <summary>
-		/// Insert specified platform into the database
-		/// </summary>
-		/// <param name="platform">The PlatformObject to insert</param>
-		/// <returns>True on insert success, otherwise false</returns>
-		public static bool InsertPlatform(PlatformObject platform)
-		{
-			m_qryWrite.MakeFieldsNull();
-			m_qryWrite.Name = platform.Name;
-			m_qryWrite.Description = "";
-			return m_qryWrite.Insert() == SQLiteErrorCode.Ok;
-		}
-
-		/// <summary>
-		/// Insert specified platform into the database
-		/// </summary>
-		/// <param name="title">Platform title</param>
-		/// <returns>True on insert success, otherwise false</returns>
-		public static bool InsertPlatform(string title)
-		{
-			m_qryWrite.MakeFieldsNull();
-			m_qryWrite.Name = title;
-			m_qryWrite.Description = "";
-			return m_qryWrite.Insert() == SQLiteErrorCode.Ok;
-		}
-
-		/// <summary>
-		/// Update specified platform
-		/// </summary>
-		/// <param name="platform">The PlatformObject to write</param>
-		/// <returns>True on update success, otherwise false</returns>
-		public static bool UpdatePlatform(PlatformObject platform)
-		{
-			m_qryWrite.MakeFieldsNull();
-			m_qryWrite.PlatformID = platform.ID;
-			m_qryWrite.Name = platform.Name;
-			m_qryWrite.Description = "";
-			return m_qryWrite.Update() == SQLiteErrorCode.Ok;
-		}
-
-		/// <summary>
-		/// Remove platform with selected ID from the database
-		/// </summary>
-		/// <param name="platformID">The platformID</param>
-		/// <returns>True on delete success, otherwise false</returns>
-		public static bool RemovePlatform(int platformID)
-		{
-			m_qryWrite.MakeFieldsNull();
-			m_qryWrite.PlatformID = platformID;
-			return m_qryWrite.Delete() == SQLiteErrorCode.Ok;
-		}
-		*/
 	}
 }
