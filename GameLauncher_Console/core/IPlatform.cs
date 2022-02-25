@@ -111,11 +111,46 @@ namespace core
         }
 
         /// <summary>
-        /// Scan for games for the platform
+        /// Save newly found games into the database and remove uninstalled games
         /// </summary>
-        /// <returns>True if scan was successful, otherwise false</returns>
-        public abstract bool ScanForGames();
+        /// <param name="newGames">The HashSet containing new games</param>
+        protected virtual void SaveNewGames(HashSet<GameObject> newGames)
+        {
+            HashSet<GameObject> allGames = CGameSQL.LoadPlatformGames(this.ID);
+            HashSet<GameObject> gamesToAdd = new HashSet<GameObject>(newGames);
+            HashSet<GameObject> gamesToRemove = new HashSet<GameObject>(allGames);
 
+            gamesToAdd.ExceptWith(allGames);
+            gamesToRemove.ExceptWith(newGames);
+
+            foreach(GameObject game in gamesToAdd)
+            {
+                m_gameDictionary[game.Group].Add(game);
+                CGameSQL.InsertGame(game);
+            }
+            foreach(GameObject game in gamesToRemove)
+            {
+                m_gameDictionary[game.Group].Remove(game);
+                CGameSQL.DeleteGame(game.ID);
+            }
+        }
+
+        #region Abstract functions
+
+        /// <summary>
+        /// Search for platform games
+        /// </summary>
+        /// <returns>HashSet of GameObjects</returns>
+        public abstract HashSet<GameObject> GameScanner();
+
+        /// <summary>
+        /// Launch or activate specified game
+        /// </summary>
+        /// <param name="game">The game to launch</param>
+        /// <returns>True on success</returns>
+        public abstract bool GameLaunch(GameObject game);
+
+        #endregion Abstract functions
     }
 
     /// <summary>
