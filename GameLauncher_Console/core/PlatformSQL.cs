@@ -1,5 +1,4 @@
 ﻿using SqlDB;
-using System.Collections.Generic;
 using System.Data.SQLite;
 
 namespace core
@@ -11,117 +10,147 @@ namespace core
     {
 		#region Query definitions
 
+		// Query parameter names
+		private const string FIELD_PLATFORM_ID	= "PlatformID";
+		private const string FIELD_NAME			= "Name";
+		private const string FIELD_DESCRIPTION	= "Description";
+		private const string FIELD_PATH			= "Path";
+		private const string FIELD_IS_ACTIVE	= "IsActive";
+		private const string FIELD_GAME_COUNT   = "GameCount";
+
 		/// <summary>
-		/// Retrieve the platform information from the database
-		/// Also returns the game count for each platform
+		/// Query for inserting new platforms into the database
 		/// </summary>
-		public class CQryReadPlatforms : CSqlQry
+		public class CQryNewPlatform : CSqlQry
 		{
-			public CQryReadPlatforms()
+			public CQryNewPlatform()
+				: base(
+				"Platform ", "", "")
+			{
+				m_sqlRow[FIELD_NAME]		= new CSqlFieldString(FIELD_NAME		, CSqlField.QryFlag.cInsWrite);
+				m_sqlRow[FIELD_DESCRIPTION] = new CSqlFieldString(FIELD_DESCRIPTION	, CSqlField.QryFlag.cInsWrite);
+				m_sqlRow[FIELD_PATH]		= new CSqlFieldString(FIELD_PATH		, CSqlField.QryFlag.cInsWrite);
+				m_sqlRow[FIELD_IS_ACTIVE]	= new CSqlFieldBoolean(FIELD_IS_ACTIVE	, CSqlField.QryFlag.cInsWrite);
+			}
+			public string Name
+			{
+				get { return m_sqlRow[FIELD_NAME].String; }
+				set { m_sqlRow[FIELD_NAME].String = value; }
+			}
+			public string Description
+			{
+				get { return m_sqlRow[FIELD_DESCRIPTION].String; }
+				set { m_sqlRow[FIELD_DESCRIPTION].String = value; }
+			}
+			public string Path
+			{
+				get { return m_sqlRow[FIELD_PATH].String; }
+				set { m_sqlRow[FIELD_PATH].String = value; }
+			}
+			public bool IsActive
+			{
+				get { return m_sqlRow[FIELD_IS_ACTIVE].Bool; }
+				set { m_sqlRow[FIELD_IS_ACTIVE].Bool = value; }
+			}
+		}
+
+		/// <summary>
+		/// Query for updating and removing a platform from database
+		/// </summary>
+		public class CQryUpdatePlatform : CSqlQry
+		{
+			public CQryUpdatePlatform()
+				: base(
+				"Platform ", "", "")
+			{
+				m_sqlRow[FIELD_PLATFORM_ID] = new CSqlFieldInteger(FIELD_PLATFORM_ID, CSqlField.QryFlag.cUpdWhere | CSqlField.QryFlag.cDelWhere);
+				m_sqlRow[FIELD_NAME]		= new CSqlFieldString(FIELD_NAME		, CSqlField.QryFlag.cUpdWrite);
+				m_sqlRow[FIELD_DESCRIPTION] = new CSqlFieldString(FIELD_DESCRIPTION	, CSqlField.QryFlag.cUpdWrite);
+				m_sqlRow[FIELD_PATH]		= new CSqlFieldString(FIELD_PATH		, CSqlField.QryFlag.cUpdWrite);
+				m_sqlRow[FIELD_IS_ACTIVE]	= new CSqlFieldBoolean(FIELD_IS_ACTIVE	, CSqlField.QryFlag.cUpdWrite);
+			}
+			public int PlatformID
+			{
+				get { return m_sqlRow[FIELD_PLATFORM_ID].Integer; }
+				set { m_sqlRow[FIELD_PLATFORM_ID].Integer = value; }
+			}
+			public string Name
+			{
+				get { return m_sqlRow[FIELD_NAME].String; }
+				set { m_sqlRow[FIELD_NAME].String = value; }
+			}
+			public string Description
+			{
+				get { return m_sqlRow[FIELD_DESCRIPTION].String; }
+				set { m_sqlRow[FIELD_DESCRIPTION].String = value; }
+			}
+			public string Path
+			{
+				get { return m_sqlRow[FIELD_PATH].String; }
+				set { m_sqlRow[FIELD_PATH].String = value; }
+			}
+			public bool IsActive
+			{
+				get { return m_sqlRow[FIELD_IS_ACTIVE].Bool; }
+				set { m_sqlRow[FIELD_IS_ACTIVE].Bool = value; }
+			}
+		}
+
+		/// <summary>
+		/// Query for retrieving platform data
+		/// </summary>
+		public class CQryReadPlatform : CSqlQry
+		{
+			public CQryReadPlatform()
 				: base(
 				"Platform " +
 				"LEFT JOIN Game G on PlatformID = G.PlatformFK",
 				"", " GROUP BY PlatformID")
 			{
-				m_sqlRow["PlatformID"] = new CSqlFieldInteger("PlatformID", CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
-				m_sqlRow["Name"] = new CSqlFieldString("Name", CSqlField.QryFlag.cSelRead);
-				m_sqlRow["GameCount"] = new CSqlFieldString("COUNT(G.GameID) as GameCount", CSqlField.QryFlag.cSelRead);
+				m_sqlRow[FIELD_PLATFORM_ID] = new CSqlFieldInteger(FIELD_PLATFORM_ID, CSqlField.QryFlag.cSelWhere | CSqlField.QryFlag.cSelRead);
+				m_sqlRow[FIELD_NAME]		= new CSqlFieldString(FIELD_NAME		, CSqlField.QryFlag.cSelWhere | CSqlField.QryFlag.cSelRead);
+				m_sqlRow[FIELD_DESCRIPTION] = new CSqlFieldString(FIELD_DESCRIPTION	, CSqlField.QryFlag.cSelRead);
+				m_sqlRow[FIELD_PATH]		= new CSqlFieldString(FIELD_PATH		, CSqlField.QryFlag.cSelRead);
+				m_sqlRow[FIELD_IS_ACTIVE]	= new CSqlFieldBoolean(FIELD_IS_ACTIVE	, CSqlField.QryFlag.cSelRead);
+				m_sqlRow[FIELD_GAME_COUNT]	= new CSqlFieldInteger("COUNT(G.GameID) as GameCount", CSqlField.QryFlag.cSelRead);
 			}
 			public int PlatformID
 			{
-				get { return m_sqlRow["PlatformID"].Integer; }
-				set { m_sqlRow["PlatformID"].Integer = value; }
+				get { return m_sqlRow[FIELD_PLATFORM_ID].Integer; }
+				set { m_sqlRow[FIELD_PLATFORM_ID].Integer = value; }
 			}
 			public string Name
 			{
-				get { return m_sqlRow["Name"].String; }
-				set { m_sqlRow["Name"].String = value; }
-			}
-			public int GameCount
-			{
-				get { return m_sqlRow["GameCount"].Integer; }
-				set { m_sqlRow["GameCount"].Integer = value; }
-			}
-		}
-
-		/// <summary>
-		/// Query for writing to the platform table
-		/// </summary>
-		public class CQryWritePlatforms : CSqlQry
-		{
-			public CQryWritePlatforms()
-				: base("Platform", "", "")
-			{
-				m_sqlRow["PlatformID"] = new CSqlFieldInteger("PlatformID", CSqlField.QryFlag.cUpdWhere | CSqlField.QryFlag.cDelWhere);
-				m_sqlRow["Name"] = new CSqlFieldString("Name", CSqlField.QryFlag.cUpdWrite | CSqlField.QryFlag.cInsWrite);
-				m_sqlRow["Description"] = new CSqlFieldString("Description", CSqlField.QryFlag.cUpdWrite | CSqlField.QryFlag.cInsWrite);
-			}
-			public int PlatformID
-			{
-				get { return m_sqlRow["PlatformID"].Integer; }
-				set { m_sqlRow["PlatformID"].Integer = value; }
-			}
-			public string Name
-			{
-				get { return m_sqlRow["Name"].String; }
-				set { m_sqlRow["Name"].String = value; }
+				get { return m_sqlRow[FIELD_NAME].String; }
+				set { m_sqlRow[FIELD_NAME].String = value; }
 			}
 			public string Description
 			{
-				get { return m_sqlRow["Description"].String; }
-				set { m_sqlRow["Description"].String = value; }
+				get { return m_sqlRow[FIELD_DESCRIPTION].String; }
+				set { m_sqlRow[FIELD_DESCRIPTION].String = value; }
+			}
+			public string Path
+			{
+				get { return m_sqlRow[FIELD_PATH].String; }
+				set { m_sqlRow[FIELD_PATH].String = value; }
+			}
+			public bool IsActive
+			{
+				get { return m_sqlRow[FIELD_IS_ACTIVE].Bool; }
+				set { m_sqlRow[FIELD_IS_ACTIVE].Bool = value; }
+			}
+			public int GameCount
+			{
+				get { return m_sqlRow[FIELD_GAME_COUNT].Integer; }
+				set { m_sqlRow[FIELD_GAME_COUNT].Integer = value; }
 			}
 		}
 
-		/// <summary>
-		/// Query for counting the number of supported platforms
-		/// </summary>
-		public class CQryPlatformCount : CSqlQry
-		{
-			public CQryPlatformCount()
-				: base("Platform", "", "")
-			{
-				m_sqlRow["PlatformCount"] = new CSqlFieldInteger("COUNT(*) as PlatformCount", CSqlField.QryFlag.cSelRead);
-			}
+		#endregion Query definitions
 
-			public int PlatformCount
-			{
-				get { return m_sqlRow["PlatformCount"].Integer; }
-				set { m_sqlRow["PlatformCount"].Integer = value; }
-			}
-		}
-
-		/// <summary>
-		/// Query for retrieveing the platformID based on string
-		/// </summary>
-		public class CQryGetPlatform : CSqlQry
-		{
-			public CQryGetPlatform()
-				: base("Platform", "", "")
-			{
-				m_sqlRow["PlatformID"] = new CSqlFieldInteger("PlatformID", CSqlField.QryFlag.cSelRead);
-				m_sqlRow["Name"] = new CSqlFieldString("Name", CSqlField.QryFlag.cSelWhere);
-			}
-
-			public int PlatformID
-			{
-				get { return m_sqlRow["PlatformID"].Integer; }
-				set { m_sqlRow["PlatformID"].Integer = value; }
-			}
-
-			public string Name
-			{
-				get { return m_sqlRow["Name"].String; }
-				set { m_sqlRow["Name"].String = value; }
-			}
-		}
-
-		#endregion // Query definitions
-
-		private static CQryReadPlatforms m_qryRead          = new CQryReadPlatforms();
-		private static CQryWritePlatforms m_qryWrite        = new CQryWritePlatforms();
-		private static CQryPlatformCount m_qryPlatformCount = new CQryPlatformCount();
-		private static CQryGetPlatform m_qryGetPlatform     = new CQryGetPlatform();
+		private static CQryNewPlatform		m_qryNewPlatform	= new CQryNewPlatform();
+		private static CQryUpdatePlatform	m_qryUpdatePlatform	= new CQryUpdatePlatform();
+		private static CQryReadPlatform		m_qryReadPlatform	= new CQryReadPlatform();
 
 #nullable enable
 		/// <summary>
@@ -139,15 +168,15 @@ namespace core
 				platform = null;
 				return false;
 			}
-			m_qryGetPlatform.MakeFieldsNull();
-			m_qryGetPlatform.Name = name;
-			m_qryGetPlatform.Select();
-			if(m_qryGetPlatform.PlatformID <= 0)
+			m_qryReadPlatform.MakeFieldsNull();
+			m_qryReadPlatform.Name = name;
+			m_qryReadPlatform.Select();
+			if(m_qryReadPlatform.PlatformID <= 0)
 			{
 				platform = null;
 				return false;
 			}
-			platform = factory.Create(m_qryGetPlatform.PlatformID, m_qryGetPlatform.Name, "", "");
+			platform = factory.Create(m_qryReadPlatform.PlatformID, m_qryReadPlatform.Name, "", "");
 			return true;
 		}
 #nullable disable
@@ -159,10 +188,12 @@ namespace core
 		/// <returns>True if insert was successful</returns>
 		public static bool InsertPlatform(CPlatform platform)
         {
-			m_qryWrite.MakeFieldsNull();
-			m_qryWrite.Name			= platform.Name;
-			m_qryWrite.Description	= platform.Description;
-			return m_qryWrite.Insert() == SQLiteErrorCode.Ok;
+			m_qryNewPlatform.MakeFieldsNull();
+			m_qryNewPlatform.Name			= platform.Name;
+			m_qryNewPlatform.Description	= platform.Description;
+			m_qryNewPlatform.Path			= platform.Path;
+			m_qryNewPlatform.IsActive		= platform.IsActive;
+			return m_qryNewPlatform.Insert() == SQLiteErrorCode.Ok;
 		}
 
 		/// <summary>
@@ -172,9 +203,31 @@ namespace core
 		/// <returns>True if delete success</returns>
 		public static bool DeletePlatform(int platformID)
         {
-			m_qryWrite.MakeFieldsNull();
-			m_qryWrite.PlatformID = platformID;
-			return m_qryWrite.Delete() == SQLiteErrorCode.Ok;
+			if(platformID <= 0)
+            {
+				return true;
+            }
+			m_qryUpdatePlatform.MakeFieldsNull();
+			m_qryUpdatePlatform.PlatformID = platformID;
+			return m_qryUpdatePlatform.Delete() == SQLiteErrorCode.Ok;
+		}
+
+		/// <summary>
+		/// Toggle the Active flag for the platform
+		/// </summary>
+		/// <param name="platformID">The platformID</param>
+		/// <param name="isActive">New Active value</param>
+		/// <returns>True on update success</returns>
+		public static bool ToggleActive(int platformID, bool isActive)
+        {
+			if(platformID <= 0)
+            {
+				return true;
+            }
+			m_qryUpdatePlatform.MakeFieldsNull();
+			m_qryUpdatePlatform.PlatformID = platformID;
+			m_qryUpdatePlatform.IsActive = isActive;
+			return m_qryUpdatePlatform.Update() == SQLiteErrorCode.Ok;
 		}
 	}
 }
