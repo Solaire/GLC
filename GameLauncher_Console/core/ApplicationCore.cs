@@ -9,14 +9,14 @@ namespace core
     /// Main entry point into the core library
     /// Should be inherited by the implementing app class
     /// </summary>
-    public abstract class CGlcCore
+    public abstract class CApplicationCore
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected CGlcCore()
+        protected CApplicationCore()
         {
-
+            Initialise();
         }
 
         /// <summary>
@@ -32,11 +32,6 @@ namespace core
             if(!InitialiseDatabase())
             {
                 CLogger.LogWarn("Error initialising the database: {0}", CSqlDB.Instance.Conn.LastError);
-                return false;
-            }
-            if(!LoadConfiguration())
-            {
-                CLogger.LogWarn("Error loading the configuration: {0}", CSqlDB.Instance.Conn.LastError);
                 return false;
             }
             if(InitialiseExtensions())
@@ -80,16 +75,7 @@ namespace core
         /// Initialise the database connection
         /// </summary>
         /// <returns>True on initialise success</returns>
-        private bool InitialiseDatabase()
-        {
-            return CSqlDB.Instance.Open(true) == System.Data.SQLite.SQLiteErrorCode.Ok;
-        }
-
-        /// <summary>
-        /// Load the app configuration
-        /// </summary>
-        /// <returns>True on initialise success</returns>
-        protected abstract bool LoadConfiguration();
+        protected abstract bool InitialiseDatabase();
 
         /// <summary>
         /// Detect and load any plug-in extensions

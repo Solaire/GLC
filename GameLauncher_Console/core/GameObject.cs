@@ -146,7 +146,7 @@
         /// Create a full game object from the database entry.
         /// </summary>
         /// <param name="qry">The game query</param>
-        public GameObject(CGameSQL.CQryGame qry)
+        public GameObject(CGameSQL.CQryReadGame qry)
         {
             this.ID         = qry.GameID;
             this.PlatformFK = qry.PlatformFK;
