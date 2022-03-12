@@ -25,7 +25,6 @@ namespace core
         protected CConfig()
         {
             m_systemAttribute = new CDbAttribute("System");
-            m_systemAttribute.MasterID = 1;
         }
     }
 }

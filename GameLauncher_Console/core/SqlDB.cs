@@ -11,14 +11,14 @@ namespace SqlDB
     /// SQL database core implementation as a singleton pattern.
     /// Handle connections, executions and transactions
     /// The acual data read/write queries for Platform or Game objects should be defined elsewhere
-    /// 
-    /// TODOs: 
+    ///
+    /// TODOs:
     ///     On startup, check if the database exists, if not create it and create any tables/constraints
     ///     Once the DB connection is made, perform a schema version check and apply new schema if necessary
     /// </summary>
     public sealed class CSqlDB
     {
-        private const string  SQL_MAIN_DATA_SOURCE  = "database.db";
+        private const string  SQL_DEFAULT_DATA_SOURCE  = "database.db";
         private static CSqlDB m_instance            = new CSqlDB();
         private CSqlConn      m_sqlConn             = null;
 
@@ -57,10 +57,10 @@ namespace SqlDB
         /// <summary>
         /// Create SQLiteConnection and open the data source
         /// </summary>
-        /// <param name="create">If <c>true</c> and data source is not found, create new one and apply schema</param>
+        /// <param name="create">If true create databae if not found</param>
         /// <param name="dataSource">Path to the data source</param>
-        /// <returns>SQL success/failure error code</returns>
-        public SQLiteErrorCode Open(bool create, string dataSource = SQL_MAIN_DATA_SOURCE)
+        /// <returns>SQLiteErrorCode.Ok on success, LastError on failure, SQLiteErrorCode.Schema if new database created</returns>
+        public SQLiteErrorCode Open(bool create, string dataSource = SQL_DEFAULT_DATA_SOURCE)
         {
             if(IsOpen())
             {
@@ -76,39 +76,7 @@ namespace SqlDB
                     return m_sqlConn.LastError;
                 }
             }
-
-            if(create && !exists) // New DB. Apply schema
-            {
-                string script;
-                try
-                {
-                    script = File.ReadAllText("CreateDB.sql");
-                }
-                catch(IOException e)
-                {
-                    CLogger.LogError(e);
-                    return SQLiteErrorCode.Unknown; // Use unknown for non-sql issues
-                }
-                if(script.Length > 0)
-                {
-                    m_sqlConn.Execute(script);
-                }
-            }
-            return MaybeUpdateSchema();
-        }
-
-        /// <summary>
-        /// Check database schema and update if out of data
-        /// </summary>
-        /// <returns>SQL success/failure status code</returns>
-        private SQLiteErrorCode MaybeUpdateSchema()
-        {
-            /* TODOs:
-                    Find the latest 'SCHEMA_VERSION' attribute in SystemAttribute table,
-                    Check if there exist any shecma files with higher version (each schema file should look like this: schema_x.y.z.sql
-                    Apply any schema files in ascending order and update 'SCHEMA_VERSION' attribute
-            */
-            return SQLiteErrorCode.Ok;
+            return (create && !exists) ? SQLiteErrorCode.Schema : SQLiteErrorCode.Ok;
         }
     }
 
@@ -419,8 +387,8 @@ namespace SqlDB
 
     /// <summary>
     /// Abstract base class for managing SQL queries
-    /// This class contains all query information such as 
-    /// 
+    /// This class contains all query information
+    ///
     /// TODOs:
     ///     Some extra comments/documentation wouldn't hurt
     ///     Support fot he following:
@@ -778,7 +746,7 @@ namespace SqlDB
     /// Class for handling Attribute tables
     /// Provide a table name without the attribute (ie. Game) and the 'Attribute' will be added in the construction
     /// MasterID (foreign key) must be specified before first use
-    /// 
+    ///
     /// TODOs:
     ///     When adding a new value, override the first index or increment the index and add
     ///     Support for more types

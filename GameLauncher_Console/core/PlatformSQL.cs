@@ -157,26 +157,20 @@ namespace core
 		/// Load the platform by name lookup
 		/// </summary>
 		/// <typeparam name="T">Type T which must derive from the abstract CPlatform class</typeparam>
-		/// <param name="name">The platform name</param>
 		/// <param name="factory">Implementation of the Platform factory interface which will create the instance of T</param>
 		/// <param name="platform">Out parameter of type T which is the loaded CPlatform instance</param>
 		/// <returns>True if load is successful</returns>
-		public static bool LoadPlatform<T>(string name, IPlatformFactory<T> factory, out T? platform) where T : CPlatform
+		public static bool LoadPlatform<T>(IPlatformFactory<T> factory, out T? platform) where T : CPlatform
 		{
-			if(name.Length == 0)
-			{
-				platform = null;
-				return false;
-			}
 			m_qryReadPlatform.MakeFieldsNull();
-			m_qryReadPlatform.Name = name;
+			m_qryReadPlatform.Name = factory.GetPlatformName();
 			m_qryReadPlatform.Select();
 			if(m_qryReadPlatform.PlatformID <= 0)
 			{
 				platform = null;
 				return false;
 			}
-			platform = factory.Create(m_qryReadPlatform.PlatformID, m_qryReadPlatform.Name, "", "");
+			platform = factory.CreateFromDatabase(m_qryReadPlatform.PlatformID, m_qryReadPlatform.Name, "", "", m_qryReadPlatform.IsActive);
 			return true;
 		}
 #nullable disable
@@ -193,7 +187,12 @@ namespace core
 			m_qryNewPlatform.Description	= platform.Description;
 			m_qryNewPlatform.Path			= platform.Path;
 			m_qryNewPlatform.IsActive		= platform.IsActive;
-			return m_qryNewPlatform.Insert() == SQLiteErrorCode.Ok;
+			if(m_qryNewPlatform.Insert() != SQLiteErrorCode.Ok)
+            {
+				return false;
+            }
+			platform.ID = (int)CSqlDB.Instance.Conn.SqlConn.LastInsertRowId;
+			return true;
 		}
 
 		/// <summary>
