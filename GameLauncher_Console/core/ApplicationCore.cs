@@ -112,16 +112,16 @@ namespace core
         }
 
         /// <summary>
-        /// Initialise the platforms using the database and plug-ins
-        /// If a platform exists in the database, but the plug-in is missing, deactivate the platform.
-        /// If a platform does not exist and the plug-in is loaded, create the platform object and add to database
+        /// Load the plugins found in the "platforms" folder.
+        /// Either load the plaftorms from the database (if exist) or
+        /// create default instance and insert into the database
         /// </summary>
         /// <returns>True on initialise success</returns>
         private bool InitialisePlatforms()
         {
-            var pluginLoader = new GenericPluginLoader<IPlatformFactory<CPlatform>>();
+            var pluginLoader = new PluginLoader<IPlatformFactory<CPlatform>>();
             var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\GameLauncher_Console\neo_glc\bin\Debug\net5.0\platforms");
-            Console.WriteLine($"Loaded {plugins.Count} plugin(s)");
+            CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 
             foreach(var plugin in plugins)
             {
@@ -134,22 +134,34 @@ namespace core
                 m_platforms.Add(platform);
             }
 
+            // We've loaded all data, no longer need to keep the DLLs loaded.
+            pluginLoader.UnloadAll();
             return true;
         }
 
         protected abstract void LoadConfig();
     }
 
-    internal class GenericPluginLoader<T> where T : class
+    /// <summary>
+    /// Generic plugin loader class
+    /// </summary>
+    /// <typeparam name="T">Generic type T</typeparam>
+    internal class PluginLoader<T> where T : class
     {
-        private readonly List<GenericAssemblyLoadContext<T>> loadContexts = new List<GenericAssemblyLoadContext<T>>();
+        private readonly List<PluginAssemblyLoadContext<T>> loadContexts = new List<PluginAssemblyLoadContext<T>>();
 
-        public List<T> LoadAll(string pluginPath, string filter = "*.dll", params object[] constructorArgs)
+        /// <summary>
+        /// Load all available plugins found in the specified folder
+        /// Plugins must match the generic type T
+        /// </summary>
+        /// <param name="pluginFolder">The plugin folder absolute path</param>
+        /// <returns>List of objects of generic type T</returns>
+        public List<T> LoadAll(string pluginFolder)
         {
             List<T> plugins = new List<T>();
-            foreach(var filePath in Directory.EnumerateFiles(pluginPath, filter, SearchOption.AllDirectories))
+            foreach(var filePath in Directory.EnumerateFiles(pluginFolder, "*.dll", SearchOption.AllDirectories))
             {
-                var plugin = Load(filePath, constructorArgs);
+                T plugin = Load(filePath);
                 if(plugin != null)
                 {
                     plugins.Add(plugin);
@@ -158,35 +170,53 @@ namespace core
             return plugins;
         }
 
-        private T Load(string pluginPath, params object[] constructorArgs)
+        /// <summary>
+        /// Load plugin from dll file, adding its context to the internal list
+        /// </summary>
+        /// <param name="pluginPath">The absolute path to DLL file</param>
+        /// <returns>Generic instance of type T</returns>
+        private T Load(string pluginPath)
         {
-            var loadContext = new GenericAssemblyLoadContext<T>(pluginPath);
+            PluginAssemblyLoadContext<T> loadContext = new PluginAssemblyLoadContext<T>(pluginPath);
             loadContexts.Add(loadContext);
 
-            var assembly = loadContext.LoadFromAssemblyPath(pluginPath);
+            Assembly assembly = loadContext.LoadFromAssemblyPath(pluginPath);
             var type = assembly.GetTypes().FirstOrDefault(t => typeof(T).IsAssignableFrom(t));
             if(type == null)
             {
                 return null;
             }
-            return (T)Activator.CreateInstance(type, constructorArgs);
+            return (T)Activator.CreateInstance(type);
         }
 
+        /// <summary>
+        /// Unload all plugins from internal list
+        /// </summary>
         public void UnloadAll()
         {
-            foreach(var loadContext in loadContexts)
+            foreach(PluginAssemblyLoadContext<T> loadContext in loadContexts)
             {
                 loadContext.Unload();
             }
         }
     }
 
-    internal class GenericAssemblyLoadContext<T> : AssemblyLoadContext where T : class
+    /// <summary>
+    /// Generic plugin context class
+    /// </summary>
+    /// <typeparam name="T">Generic type T</typeparam>
+    internal class PluginAssemblyLoadContext<T> : AssemblyLoadContext where T : class
     {
         private AssemblyDependencyResolver resolver;
         private HashSet<string> assembliesToNotLoadIntoContext;
 
-        public GenericAssemblyLoadContext(string pluginPath) : base(isCollectible: true)
+        /// <summary>
+        /// Constructor.
+        /// Creatre plugin context from plugin file
+        /// </summary>
+        /// <param name="pluginPath">The absolute path to the plugin DLL file</param>
+        public PluginAssemblyLoadContext(string pluginPath)
+            : base(isCollectible: true)
         {
             var pluginInterfaceAssembly = typeof(T).Assembly.FullName;
             assembliesToNotLoadIntoContext = GetReferencedAssemblyFullNames(pluginInterfaceAssembly);
@@ -195,6 +225,11 @@ namespace core
             resolver = new AssemblyDependencyResolver(pluginPath);
         }
 
+        /// <summary>
+        /// Get the hashset of referenced assembly names
+        /// </summary>
+        /// <param name="ReferencedBy">The string describing the referer of the target assemblies</param>
+        /// <returns>String hashset</returns>
         private HashSet<string> GetReferencedAssemblyFullNames(string ReferencedBy)
         {
             return AppDomain.CurrentDomain
@@ -202,33 +237,6 @@ namespace core
                 .GetReferencedAssemblies()
                 .Select(t => t.FullName)
                 .ToHashSet();
-        }
-        protected override Assembly Load(AssemblyName assemblyName)
-        {
-            //Do not load the Plugin Interface DLL into the adapter's context
-            //otherwise IsAssignableFrom is false.
-            if(assembliesToNotLoadIntoContext.Contains(assemblyName.FullName))
-            {
-                return null;
-            }
-
-            string assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
-            if(assemblyPath != null)
-            {
-                return LoadFromAssemblyPath(assemblyPath);
-            }
-
-            return null;
-        }
-        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
-        {
-            string libraryPath = resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
-            if(libraryPath != null)
-            {
-                return LoadUnmanagedDllFromPath(libraryPath);
-            }
-
-            return IntPtr.Zero;
         }
     }
 }
