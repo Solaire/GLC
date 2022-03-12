@@ -125,11 +125,13 @@ namespace core
 
             foreach(var plugin in plugins)
             {
+                CLogger.LogInfo($"Loaded plugin: {plugin.GetPlatformName()}");
                 CPlatform platform = null;
                 if(!CPlatformSQL.LoadPlatform(plugin, out platform))
                 {
                     platform = plugin.CreateDefault();
                     CPlatformSQL.InsertPlatform(platform);
+                    CLogger.LogInfo($"Added new platform: {platform.Name}");
                 }
                 m_platforms.Add(platform);
             }
