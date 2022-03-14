@@ -19,7 +19,7 @@ namespace PlatformExtension
         public override HashSet<GameObject> GameScanner()
         {
             //throw new System.NotImplementedException();
-            System.Console.WriteLine("This is the test platform");
+            System.Console.WriteLine("This is the gog platform");
             return null;
         }
     }
@@ -38,7 +38,7 @@ namespace PlatformExtension
 
         public string GetPlatformName()
         {
-            return "Test";
+            return "Gog";
         }
     }
 }

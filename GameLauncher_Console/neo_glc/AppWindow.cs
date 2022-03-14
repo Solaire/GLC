@@ -31,7 +31,7 @@ namespace glc
                 CanFocus = false,
             };
             m_tabView.AddTab(new CLibraryTab(platforms), true);
-            m_tabView.AddTab(new CSettingsTab(platforms), false);
+            //m_tabView.AddTab(new CSettingsTab(platforms), false);
 
             // Create the status bar
             m_statusBar = new StatusBar()
