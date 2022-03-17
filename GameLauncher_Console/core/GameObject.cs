@@ -60,7 +60,7 @@
         /// Custom property which allows games to be grouped
         /// eg. installed and non-installed
         /// </summary>
-        public string Group         { get; private set; }
+        public string Tag           { get; private set; }
 
         /// <summary>
         /// Game icon bytearray
@@ -124,15 +124,15 @@
         /// <param name="identifier">The unique identifier</param>
         /// <param name="alias">The alias</param>
         /// <param name="launch">The launch command</param>
-        /// <param name="group">The game's group</param>
-        public GameObject(string title, int platformFK, string identifier, string alias, string launch, string group)
+        /// <param name="tag">The game's tag</param>
+        public GameObject(string title, int platformFK, string identifier, string alias, string launch, string tag)
         {
             this.PlatformFK = platformFK;
             this.Identifier = identifier;
             this.Title      = title;
             this.Alias      = alias;
             this.Launch     = launch;
-            this.Group      = group;
+            this.Tag        = tag;
 
             this.ID         = 0;
             this.Frequency  = 0.0;
@@ -158,7 +158,7 @@
             this.IsFavourite= qry.IsFavourite;
             this.IsHidden   = qry.IsHidden;
             this.Icon       = qry.Icon;
-            this.Group      = qry.Group;
+            this.Tag        = qry.Tag;
         }
 
         /// <summary>

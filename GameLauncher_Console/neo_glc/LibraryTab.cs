@@ -1,6 +1,4 @@
-﻿#define TREE
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,31 +15,26 @@ namespace glc
 
 		private static CPlatformPanel	m_platformPanel;
 		private static CGamePanel		m_gamePanel;
+		private static CGameInfoPanel	m_infoPanel;
 
 		public CLibraryTab(List<CPlatform> platforms)
         {
 			Text = "Library";
 
 			// Construct the panels
-			m_platformPanel = new CPlatformPanel(platforms, "Platforms", 0, 0, 50, Dim.Fill(), true, Key.CtrlMask | Key.C);
+			m_platformPanel = new CPlatformPanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Fill(), true, Key.CtrlMask | Key.C);
 
 			List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].ID).ToList() : new List<GameObject>();
-			m_gamePanel		= new CGamePanel(gameList, "Games", 50, 0, Dim.Fill(), Dim.Fill(), true, Key.CtrlMask | Key.S);
+			m_gamePanel	= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true, Key.CtrlMask | Key.S);
+			m_infoPanel = new CGameInfoPanel("", Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill());
 
 			// Hook up the triggers
 			// Event triggers for the list view
-			//m_platformPanel.ContainerView.OpenSelectedItem += (a) =>
-			/*
-			m_platformPanel.ContainerView.ObjectActivated += (a) =>
-			{
-				m_gamePanel.FrameView.SetFocus();
-			};
-			*/
-			//m_platformPanel.ContainerView.SelectedItemChanged += PlatformListView_SelectedChanged;
 			m_platformPanel.ContainerView.SelectionChanged += PlatformListView_SelectedChanged;
-			m_platformPanel.ContainerView.ObjectActivated += M_containerView_ObjectActivated;
+			m_platformPanel.ContainerView.ObjectActivated += PlatformListView_ObjectActivated;
 
 			m_gamePanel.ContainerView.OpenSelectedItem += GameListView_OpenSelectedItem;
+			m_gamePanel.ContainerView.SelectedItemChanged += GameListView_SelectedChanged;
 
 			// Container to store all frames
 			m_container = new View()
@@ -54,6 +47,7 @@ namespace glc
 			};
 			m_container.Add(m_platformPanel.FrameView);
 			m_container.Add(m_gamePanel.FrameView);
+			m_container.Add(m_infoPanel.FrameView);
 
 			View = m_container;
 		}
@@ -62,27 +56,40 @@ namespace glc
 		/// Handle change in the platform list view
 		/// </summary>
 		/// <param name="e">The event argument</param>
-#if TREE
 		private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<CPlatformNode> e)
         {
 			var val = e.NewValue;
-
-			if(m_platformPanel.ContentList.Count == 0 || val == null || !(val is PlatformRootNode))
-			{
+			if(val == null)
+            {
 				return;
+            }
+
+			if(val is PlatformRootNode)
+            {
+				PlatformRootNode node = (PlatformRootNode)val;
+				m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID).ToList();
+				m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
 			}
-			PlatformRootNode node = (PlatformRootNode)val;
-
-			//m_gamePanel.ListSelection = (m_platformPanel.ListSelection != m_platformPanel.ContainerView.SelectedItem) ? 0 : m_gamePanel.ContainerView.SelectedItem;
-
-			//m_platformPanel.ListSelection = m_platformPanel.ContainerView.SelectedItem;
-			//CPlatform platform = m_platformPanel.ContentList[m_platformPanel.ListSelection];
-			m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID).ToList();
-			m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
-			m_gamePanel.ContainerView.SelectedItem = m_gamePanel.ListSelection;
+			else if(val is PlatformLeafNode)
+            {
+				PlatformLeafNode node = (PlatformLeafNode)val;
+				if(node.Tag.ToLower() == "favourites") // TODO: change
+                {
+					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, true).ToList();
+				}
+				else
+                {
+					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, node.Tag).ToList();
+				}
+				m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
+			}
+			else
+            {
+				return;
+            }
 		}
 
-		private static void M_containerView_ObjectActivated(ObjectActivatedEventArgs<CPlatformNode> obj)
+		private static void PlatformListView_ObjectActivated(ObjectActivatedEventArgs<CPlatformNode> obj)
 		{
 			if(obj.ActivatedObject is PlatformRootNode root)
 			{
@@ -101,22 +108,6 @@ namespace glc
 				m_gamePanel.ContainerView.SetFocus();
 			}
 		}
-#else
-		private static void PlatformListView_SelectedChanged(SelectionChangedEventArgs<string> e)
-		{
-			if(m_platformPanel.ContentList.Count == 0)
-			{
-				return;
-			}
-			m_gamePanel.ListSelection = (m_platformPanel.ListSelection != m_platformPanel.ContainerView.SelectedItem) ? 0 : m_gamePanel.ContainerView.SelectedItem;
-
-			m_platformPanel.ListSelection = m_platformPanel.ContainerView.SelectedItem;
-			CPlatform platform = m_platformPanel.ContentList[m_platformPanel.ListSelection];
-			m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(platform.ID).ToList();
-			m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
-			m_gamePanel.ContainerView.SelectedItem = m_gamePanel.ListSelection;
-		}
-#endif // TREE
 
 		/// <summary>
 		/// Handle game selection event
@@ -128,7 +119,7 @@ namespace glc
             {
 				return;
             }
-			GameObject game = m_gamePanel.ContentList[m_gamePanel.ListSelection];
+			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
 
 			int width = 30;
 			int height = 10;
@@ -157,6 +148,17 @@ namespace glc
 			var dialog = new Dialog (game.Title, width, height, buttons.ToArray());
 
 			Application.Run(dialog);
+		}
+
+		private static void GameListView_SelectedChanged(ListViewItemEventArgs e)
+        {
+			if(m_gamePanel.ContentList.Count == 0)
+			{
+				m_infoPanel.FrameView.RemoveAll();
+				return;
+			}
+			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			m_infoPanel.SwitchGameInfo(game);
 		}
 	}
 }

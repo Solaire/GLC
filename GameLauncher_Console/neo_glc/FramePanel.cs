@@ -20,12 +20,6 @@ namespace glc
 			set { m_contentList = value; }
 		}
 
-		public int       ListSelection
-		{
-			get { return m_listSelection; }
-			set { m_listSelection = value; }
-		}
-
 		public CFramePanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
         {
 			m_contentList = new List<T>();
