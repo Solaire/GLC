@@ -1,19 +1,12 @@
-﻿#define TREE
-
-using Terminal.Gui;
+﻿using Terminal.Gui;
 using core;
-using System;
 using System.Collections.Generic;
 using Terminal.Gui.Trees;
 using System.Linq;
 
 namespace glc
 {
-#if TREE
     public class CPlatformPanel : CFramePanel<CPlatform, TreeView<CPlatformNode>>
-#else
-    //public class CPlatformPanel : CFramePanel<CPlatform, ListView>
-#endif // TREE
     {
         public CPlatformPanel(List<CPlatform> platforms, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
             : base(name, x, y, width, height, canFocus, focusShortCut)
@@ -24,7 +17,6 @@ namespace glc
 
         public override void CreateContainerView()
         {
-#if TREE
             m_containerView = new TreeView<CPlatformNode>()
             {
                 X = 0,
@@ -38,71 +30,38 @@ namespace glc
 
             foreach(CPlatform platform in m_contentList)
             {
-                List<PlatformLeafNode> groups = new List<PlatformLeafNode>
+                List<PlatformLeafNode> tags = new List<PlatformLeafNode>
                 {
-                    new PlatformLeafNode("Favourites"),
-                    new PlatformLeafNode("Installed"),
-                    new PlatformLeafNode("Not installed")
+                    new PlatformLeafNode("Favourites", platform.ID),
+                    new PlatformLeafNode("Installed", platform.ID),
+                    new PlatformLeafNode("Not installed", platform.ID)
                 };
 
                 PlatformRootNode root = new PlatformRootNode()
                 {
                     Name = platform.Name,
                     ID = platform.ID,
-                    Groups = groups
+                    Tags = tags
                 };
 
                 m_containerView.AddObject(root);
             }
 
-#else
-            m_containerView = new ListView(new CPlatformDataSource(m_contentList))
-            {
-                X = 0,
-                Y = 0,
-                Width = Dim.Fill(0),
-                Height = Dim.Fill(0),
-                AllowsMarking = false,
-                CanFocus = true,
-            };
-#endif // TREE
-
             m_frameView.Add(m_containerView);
-        }
-    }
-
-    internal class CPlatformDataSource : CGenericDataSource<CPlatform>
-    {
-        public CPlatformDataSource(List<CPlatform> itemList)
-            : base(itemList)
-        {
-
-        }
-
-        protected override string ConstructString(int itemIndex)
-        {
-            return String.Format(String.Format("{{0,{0}}}", 0), ItemList[itemIndex].Name);
-        }
-
-        protected override string GetString(int itemIndex)
-        {
-            return ItemList[itemIndex].Description;
         }
     }
 
     public abstract class CPlatformNode
     {
-
+        public int ID { get; set; }
     }
 
     public class PlatformRootNode : CPlatformNode
     {
-        public int ID { get; set; }
         public string Name { get; set; }
-
         public bool IsExpanded { get; set; }
 
-        public List<PlatformLeafNode> Groups { get; set; }
+        public List<PlatformLeafNode> Tags { get; set; }
 
         public override string ToString()
         {
@@ -113,16 +72,17 @@ namespace glc
 
     public class PlatformLeafNode : CPlatformNode
     {
-        public string Group { get; set; }
+        public string Tag { get; set; }
 
-        public PlatformLeafNode(string name)
+        public PlatformLeafNode(string name, int id)
         {
-            Group = name;
+            Tag = name;
+            ID = id;
         }
 
         public override string ToString()
         {
-            return Group;
+            return Tag;
         }
     }
 
@@ -139,7 +99,7 @@ namespace glc
         {
             if(model is PlatformRootNode a)
             {
-                return a.Groups;
+                return a.Tags;
             }
 
             return Enumerable.Empty<CPlatformNode>();

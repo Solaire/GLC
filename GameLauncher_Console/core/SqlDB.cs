@@ -299,7 +299,7 @@ namespace SqlDB
 
         public bool Bool
         {
-            get { return m_value == "1"; }
+            get { return m_value == "1" || m_value.ToLower() == "true"; }
             set { m_value = (value) ? "1" : "0"; }
         }
     }
@@ -434,6 +434,7 @@ namespace SqlDB
             {
                 field.Value.MakeNull();
             }
+            SelectExtraCondition = "";
         }
 
         /// <summary>

@@ -53,24 +53,24 @@ namespace core
         }
 
         /// <summary>
-        /// Game dictionary, grouped by Game's Group property
+        /// Game dictionary, grouped by Game's Tag property
         /// </summary>
         public Dictionary<string, HashSet<GameObject>> Games { get { return m_gameDictionary; } }
 
         /// <summary>
-        /// Retrieve specific group of games
+        /// Retrieve games with specific tag
         /// </summary>
-        /// <param name="group">The group name</param>
+        /// <param name="tag">The tag name</param>
         /// <returns>HashSet of GameObject types</returns>
-        public HashSet<GameObject> this[string group]
+        public HashSet<GameObject> this[string tag]
         {
             get
             {
-                if(!m_gameDictionary.ContainsKey(group))
+                if(!m_gameDictionary.ContainsKey(tag))
                 {
-                    m_gameDictionary[group] = new HashSet<GameObject>();
+                    m_gameDictionary[tag] = new HashSet<GameObject>();
                 }
-                return m_gameDictionary[group];
+                return m_gameDictionary[tag];
             }
         }
 
@@ -119,11 +119,11 @@ namespace core
         /// <summary>
         /// Insert the gamge object into the dictionary
         /// </summary>
-        /// <param name="group">The group to store the game in</param>
+        /// <param name="tag">The tag to store the game in</param>
         /// <param name="game">The GameObject instance</param>
-        public void AddGame(string group, GameObject game)
+        public void AddGame(string tag, GameObject game)
         {
-            this[group].Add(game);
+            this[tag].Add(game);
         }
 
         /// <summary>
@@ -141,12 +141,12 @@ namespace core
 
             foreach(GameObject game in gamesToAdd)
             {
-                m_gameDictionary[game.Group].Add(game);
+                m_gameDictionary[game.Tag].Add(game);
                 CGameSQL.InsertGame(game);
             }
             foreach(GameObject game in gamesToRemove)
             {
-                m_gameDictionary[game.Group].Remove(game);
+                m_gameDictionary[game.Tag].Remove(game);
                 CGameSQL.DeleteGame(game.ID);
             }
         }
