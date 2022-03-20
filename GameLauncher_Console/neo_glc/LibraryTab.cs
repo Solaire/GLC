@@ -18,6 +18,7 @@ namespace glc
 		private static CGameInfoPanel	m_infoPanel;
 
 		public CLibraryTab(List<CPlatform> platforms)
+			: base()
         {
 			Text = "Library";
 

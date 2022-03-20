@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Logger;
@@ -25,7 +26,7 @@ public static class CExtensions
     /// <summary>
     /// StringBuilder extension method
     /// Returns the index of the start of the contents in a StringBuilder
-    /// </summary>        
+    /// </summary>
     /// <param name="value">The string to find</param>
     /// <param name="startIndex">The starting index.</param>
     /// <param name="ignoreCase">if set totrue it will ignore case</param>
@@ -80,8 +81,12 @@ public static class CExtensions
     /// </summary>
     /// <returns>description string</returns>
     /// <param name="enum">Enum</param>
-    public static string GetDescription<T>(this T source)
+    public static T GetDescription<T>(this Enum source) where T : Attribute
     {
+        var enumType = source.GetType();
+        var name = Enum.GetName(enumType, source);
+        return enumType.GetField(name).GetCustomAttributes(false).OfType<T>().SingleOrDefault();
+        /*
         try
         {
             FieldInfo field = source.GetType().GetField(source.ToString());
@@ -100,6 +105,7 @@ public static class CExtensions
         if(!string.IsNullOrEmpty(output))
             return output;
         return source.ToString();
+        */
     }
 
     public static T GetValueFromDescription<T>(string description, T defaultValue = default(T)) where T : Enum

@@ -30,7 +30,8 @@ namespace glc
                 Height = Dim.Fill(1),
                 CanFocus = false,
             };
-            m_tabView.AddTab(new CLibraryTab(platforms), false);
+            m_tabView.AddTab(new CLibraryTab(platforms), true);
+            m_tabView.AddTab(new CSettingsTab(), false);
 
             // Create the status bar
             m_statusBar = new StatusBar()
