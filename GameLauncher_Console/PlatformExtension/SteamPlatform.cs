@@ -24,7 +24,7 @@ namespace PlatformExtension
         }
     }
 
-    public class CSteamFactory : IPlatformFactory<CPlatform>
+    public class CSteamFactory : CPlatformFactory<CPlatform>
     {
         public CPlatform CreateDefault()
         {
