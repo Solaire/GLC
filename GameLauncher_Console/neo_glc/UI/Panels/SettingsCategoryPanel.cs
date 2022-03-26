@@ -4,38 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
+using glc.Settings;
 
 namespace glc
 {
-    public enum SettingType
-    {
-        cSelect = 0,
-        cMultiSelect = 1,
-        cDialog = 2,
-    }
-
-    class SettingTypeAttribute : System.Attribute
-    {
-        public SettingType Type { get; private set; }
-
-        public SettingTypeAttribute(SettingType type)
-        {
-            this.Type = type;
-        }
-    }
-
-    public enum SettingCategory
-    {
-        [Category("General"),   Description("Main application settings"),   SettingTypeAttribute(SettingType.cSelect)]
-        cGeneral  = 0,
-        [Category("Theme"),     Description("Change and edit colour themes"), SettingTypeAttribute(SettingType.cSelect)]
-        cTheme    = 1,
-        [Category("Platform"),  Description("Manage platforms extensions"), SettingTypeAttribute(SettingType.cSelect)]
-        cPlatform = 2,
-        [Category("Tags"),      Description("Edit game tags"),              SettingTypeAttribute(SettingType.cSelect)]
-        cTags     = 3,
-    }
-
     public class CSettingsCategoriesPanel : CFramePanel<SettingCategory, ListView>
     {
         public CSettingsCategoriesPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)

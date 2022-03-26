@@ -1,4 +1,5 @@
 ﻿using SqlDB;
+using System.Collections.Generic;
 using System.Data.SQLite;
 
 namespace core
@@ -160,7 +161,7 @@ namespace core
 		/// <param name="factory">Implementation of the Platform factory interface which will create the instance of T</param>
 		/// <param name="platform">Out parameter of type T which is the loaded CPlatform instance</param>
 		/// <returns>True if load is successful</returns>
-		public static bool LoadPlatform<T>(IPlatformFactory<T> factory, out T? platform) where T : CPlatform
+		public static bool LoadPlatform<T>(CPlatformFactory<T> factory, out T? platform) where T : CPlatform
 		{
 			m_qryReadPlatform.MakeFieldsNull();
 			m_qryReadPlatform.Name = factory.GetPlatformName();
@@ -174,6 +175,20 @@ namespace core
 			return true;
 		}
 #nullable disable
+
+		public static List<CBasicPlatform> ListPlatforms()
+        {
+			List<CBasicPlatform> nodes = new List<CBasicPlatform>();
+			m_qryReadPlatform.MakeFieldsNull();
+			if(m_qryReadPlatform.Select() == SQLiteErrorCode.Ok)
+            {
+				do
+				{
+					nodes.Add(new CBasicPlatform(m_qryReadPlatform));
+				} while(m_qryReadPlatform.Fetch());
+			}
+			return nodes;
+		}
 
 		/// <summary>
 		/// Insert platform into the database

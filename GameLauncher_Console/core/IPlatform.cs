@@ -2,12 +2,7 @@
 
 namespace core
 {
-    /// <summary>
-    /// Abstract base for managing a platform instance.
-    /// Since platforms will be implemented as plug-in components the
-    /// child class will have to implement the scanning logic
-    /// </summary>
-    public abstract class CPlatform
+    public class CBasicPlatform
     {
         protected readonly string m_name;
         protected readonly string m_description;
@@ -15,29 +10,26 @@ namespace core
 
         protected int    m_id;
         protected bool   m_isActive;
-        protected Dictionary<string, HashSet<GameObject>> m_gameDictionary;
-
-        #region Properties
 
         /// <summary>
         /// Platform unique name
         /// </summary>
-        public string   Name        { get { return m_name; } }
+        public string Name { get { return m_name; } }
 
         /// <summary>
         /// Platform description
         /// </summary>
-        public string   Description { get { return m_description; } }
+        public string Description { get { return m_description; } }
 
         /// <summary>
         /// Path to the platform root directory
         /// </summary>
-        public string   Path        { get { return m_path; } }
+        public string Path { get { return m_path; } }
 
         /// <summary>
         /// The PlatformID database primary key getter and setter
         /// </summary>
-        public int      ID
+        public int ID
         {
             get { return m_id; }
             set { m_id = value; }
@@ -51,6 +43,47 @@ namespace core
             get { return m_isActive; }
             set { m_isActive = value; }
         }
+
+        public CBasicPlatform(int id, string name, string description, string path, bool isActive)
+        {
+            m_id = id;
+            m_name = name;
+            m_description = description;
+            m_path = path;
+            m_isActive = isActive;
+        }
+
+        public CBasicPlatform(CPlatformSQL.CQryReadPlatform qry)
+        {
+            m_id            = qry.PlatformID;
+            m_name          = qry.Name;
+            m_description   = qry.Description;
+            m_path          = qry.Path;
+            m_isActive      = qry.IsActive;
+        }
+
+        /// <summary>
+        /// Comparison function.
+        /// Compare this platform with another, based on ID property
+        /// </summary>
+        /// <param name="other">The other platform object</param>
+        /// <returns>True if this.ID > other.ID</returns>
+        public bool SortByID(CPlatform other)
+        {
+            return this.ID > other.ID;
+        }
+    }
+
+    /// <summary>
+    /// Abstract base for managing a platform instance.
+    /// Since platforms will be implemented as plug-in components the
+    /// child class will have to implement the scanning logic
+    /// </summary>
+    public abstract class CPlatform : CBasicPlatform
+    {
+        protected Dictionary<string, HashSet<GameObject>> m_gameDictionary;
+
+        #region Properties
 
         /// <summary>
         /// Game dictionary, grouped by Game's Tag property
@@ -85,24 +118,9 @@ namespace core
         /// <param name="path">The path to platform directory</param>
         /// <param name="isActive">IsActive flag</param>
         public CPlatform(int id, string name, string description, string path, bool isActive)
+            : base(id, name, description, path, isActive)
         {
-            m_id            = id;
-            m_name          = name;
-            m_description   = description;
-            m_path          = path;
-            m_isActive      = isActive;
             m_gameDictionary = new Dictionary<string, HashSet<GameObject>>();
-        }
-
-        /// <summary>
-        /// Comparison function.
-        /// Compare this platform with another, based on ID property
-        /// </summary>
-        /// <param name="other">The other platform object</param>
-        /// <returns>True if this.ID > other.ID</returns>
-        public bool SortByID(CPlatform other)
-        {
-            return this.ID > other.ID;
         }
 
         /// <summary>
@@ -173,7 +191,7 @@ namespace core
     /// Platform factory interface for creating instances of T (derived classes)
     /// </summary>
     /// <typeparam name="T">Type that inherits from CPlatform abstract class</typeparam>
-    public interface IPlatformFactory<T> where T : CPlatform
+    public abstract class CPlatformFactory<T> where T : CPlatform
     {
         /// <summary>
         /// Create instance of child CPlatform with exisitng data
@@ -184,18 +202,18 @@ namespace core
         /// <param name="path">The path to platform directory</param>
         /// <param name="isActive">IsActive flag</param>
         /// <returns>Instance of T (child of CPlatform)</returns>
-        T CreateFromDatabase(int id, string name, string description, string path, bool isActive);
+        public abstract T CreateFromDatabase(int id, string name, string description, string path, bool isActive);
 
         /// <summary>
         /// Create default instance of child CPlatform
         /// </summary>
         /// <returns>Instance of T (child of CPlatform)</returns>
-        T CreateDefault();
+        public abstract T CreateDefault();
 
         /// <summary>
         /// Return the name of the platform.
         /// </summary>
         /// <returns>Platform name string</returns>
-        string GetPlatformName();
+        public abstract string GetPlatformName();
     }
 }

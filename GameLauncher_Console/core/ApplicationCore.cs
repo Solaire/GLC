@@ -119,7 +119,7 @@ namespace core
         /// <returns>True on initialise success</returns>
         private bool InitialisePlatforms()
         {
-            var pluginLoader = new PluginLoader<IPlatformFactory<CPlatform>>();
+            var pluginLoader = new PluginLoader<CPlatformFactory<CPlatform>>();
             var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\GameLauncher_Console\neo_glc\bin\Debug\net5.0\platforms");
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 

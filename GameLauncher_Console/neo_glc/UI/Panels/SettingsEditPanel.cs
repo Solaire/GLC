@@ -1,9 +1,112 @@
-﻿using Terminal.Gui;
+﻿#define TEST
+
+using Terminal.Gui;
 using core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
+using glc.Settings;
+using static core.CSystemAttributeSQL;
+
+#if TEST
+
+namespace glc
+{
+    public class CSettingsEditPanel : CFramePanel<SystemAttributeNode, ListView>
+    {
+        public CSettingsEditPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
+            : base(name, x, y, width, height, canFocus, focusShortCut)
+        {
+            m_contentList = CSystemAttributeSQL.GetAllNodes();
+            Initialise(name, x, y, width, height, canFocus, focusShortCut);
+        }
+
+        public override void CreateContainerView()
+        {
+            m_containerView = new ListView(new CSettingsEditDataSource(m_contentList))
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(0),
+                Height = Dim.Fill(0),
+                AllowsMarking = false,
+                CanFocus = true
+            };
+
+            m_frameView.Add(m_containerView);
+        }
+
+        public void EditValue()
+        {
+            SystemAttributeNode selected = m_contentList[ContainerView.SelectedItem];
+            CEditDlg dlg;
+            switch(selected.AttributeType)
+            {
+                case AttributeType.cTypeInteger:
+                    dlg = new CEditIntDlg(selected.AttributeDescription, selected.AttributeValue);
+                    break;
+
+                case AttributeType.cTypeBool:
+                    dlg = new CEditBoolDlg(selected.AttributeDescription, selected.IsTrue());
+                    break;
+
+                case AttributeType.cTypeString:
+                default:
+                    dlg = new CEditStringDlg(selected.AttributeDescription, selected.AttributeValue);
+                    break;
+            }
+
+            if(dlg.Run(ref selected))
+            {
+                CSystemAttributeSQL.UpdateNode(selected);
+                m_contentList[ContainerView.SelectedItem] = selected;
+            }
+        }
+    }
+
+    internal class CSettingsEditDataSource : CGenericDataSource<SystemAttributeNode>
+    {
+        private readonly long m_maxDescLength;
+
+        public CSettingsEditDataSource(List<SystemAttributeNode> itemList)
+            : base(itemList)
+        {
+            for(int i = 0; i < itemList.Count; i++)
+            {
+                string description = ItemList[i].AttributeDescription;
+                if(description.Length > m_maxDescLength)
+                {
+                    m_maxDescLength = description.Length;
+                }
+            }
+        }
+
+        protected override string ConstructString(int itemIndex)
+        {
+            string description = ItemList[itemIndex].AttributeDescription;
+            string value       = ResolveValue(itemIndex);
+            String s1 = String.Format(String.Format("{{0,{0}}}", -m_maxDescLength), description);
+            return $"{s1}  {value}";
+        }
+
+        protected override string GetString(int itemIndex)
+        {
+            return ItemList[itemIndex].AttributeDescription;
+        }
+
+        private string ResolveValue(int itemIndex)
+        {
+            if(ItemList[itemIndex].AttributeType == AttributeType.cTypeBool)
+            {
+                return ItemList[itemIndex].IsTrue() ? "true" : "false";
+            }
+            return ItemList[itemIndex].AttributeValue;
+        }
+    }
+}
+
+#else
 
 namespace glc
 {
@@ -21,11 +124,11 @@ namespace glc
         }
     }
 
-    public class CSettingsValuesPanel : CFramePanel<SettingNode, ListView>
+    public class CSettingsEditPanel : CFramePanel<SettingNode, ListView>
     {
         private SettingType m_settingType;
 
-        public CSettingsValuesPanel(SettingCategory category, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
+        public CSettingsEditPanel(SettingCategory category, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
             : base("", x, y, width, height, canFocus, focusShortCut)
         {
             m_contentList = new List<SettingNode>();
@@ -113,3 +216,5 @@ namespace glc
         }
     }
 }
+
+#endif // TEST
