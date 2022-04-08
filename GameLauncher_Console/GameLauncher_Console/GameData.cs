@@ -72,7 +72,9 @@ namespace GameLauncher_Console
 			[Description("Microsoft Store")] // TODO
 			Microsoft = 24,
 			[Description("Oculus")]
-			Oculus = 25
+			Oculus = 25,
+			[Description("Legacy")]
+			Legacy = 26
 		}
 
 		public enum Match

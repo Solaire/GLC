@@ -68,7 +68,7 @@ namespace GameLauncher_Console
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
 			" * Amazon * Battle.net * Bethesda * Big Fish * Epic * GOG * Indiegala * itch",
-			" * Oculus * Origin * Paradox * Steam * Ubisoft * custom",
+			" * Legacy * Oculus * Origin * Paradox * Steam * Ubisoft * custom",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
@@ -98,6 +98,7 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformGOG());
 			platforms.AddSupportedPlatform(new PlatformIGClient());
 			platforms.AddSupportedPlatform(new PlatformItch());
+			platforms.AddSupportedPlatform(new PlatformLegacy());
 			platforms.AddSupportedPlatform(new PlatformOculus());
 			platforms.AddSupportedPlatform(new PlatformOrigin());
 			platforms.AddSupportedPlatform(new PlatformParadox());
@@ -923,6 +924,9 @@ namespace GameLauncher_Console
 									break;
 								case GamePlatform.Oculus:
 									PlatformOculus.Launch();
+									break;
+								case GamePlatform.Legacy:
+									PlatformLegacy.Launch();
 									break;
 								default:
 									break;
@@ -1924,6 +1928,13 @@ namespace GameLauncher_Console
 				}
 			}
 		}
+
+		[SupportedOSPlatform("windows")]
+		public static Guid GetGuid()
+		{
+            using RegistryKey key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", RegistryKeyPermissionCheck.ReadSubTree); // HKLM64
+            return Guid.Parse((string)key.GetValue("MachineGuid"));
+        }
 
 		[SupportedOSPlatform("windows")]
 		public static void StartShellExecute(string file)

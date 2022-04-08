@@ -20,6 +20,15 @@ namespace GameLauncher_Console
 		//void Launch();
 		//void InstallGame(CGame game);
 		//void StartGame(CGame game);
+		/*
+		void Login();
+		void IsLoggedIn();
+		void Auth(string token);
+		void TokenLoad();
+		void TokenRefresh();
+		void GetEntitlements();
+		*/
+
 		void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons);
 		//string GetGameID(CGame game);
 	}
@@ -77,7 +86,9 @@ namespace GameLauncher_Console
 			[Description("Microsoft Store")]
 			Microsoft = 17,
 			[Description("Oculus")]
-			Oculus = 18
+			Oculus = 18,
+			[Description("Legacy")]
+			Legacy = 19
 		}
 		*/
 

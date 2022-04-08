@@ -69,7 +69,7 @@ namespace GameLauncher_Console
                     {
                         if (!path.Equals(null) && Directory.Exists(path))
                         {
-                            dirs.AddRange(Directory.GetDirectories(Directory.GetParent(Directory.GetParent(path).ToString()) + "\\games", "*.*", SearchOption.TopDirectoryOnly));
+                            dirs.AddRange(Directory.GetDirectories(Path.Combine(Directory.GetParent(Directory.GetParent(path).ToString()).ToString(), "games"), "*.*", SearchOption.TopDirectoryOnly));
                             foreach (string dir in dirs)
                             {
                                 CultureInfo ci = new("en-GB");
