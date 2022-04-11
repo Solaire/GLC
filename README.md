@@ -3,17 +3,18 @@
 This is a simple console program that will scan the system for video games, then allow the user to quickly launch any of these games from a single location, without having to store the icons on the desktop or to remember which client (Steam or Epic, etc.) to launch. The program currently supports the following platforms:
 - Amazon Games;
 - Battle&period;net;
-- Bethesda&period;net Launcher;
+- Bethesda&period;net Launcher [soon to be deprecated];
 - Big Fish Games;
 - Epic Games Launcher;
 - GOG Galaxy;
 - Indiegala Client;
 - itch;
+- Legacy Games;
 - Oculus;
-- Origin (soon to be EA Desktop);
+- Origin [soon to be EA Desktop];
 - Paradox Launcher;
 - Steam;
-- Ubisoft Connect (formerly Uplay).
+- Ubisoft Connect [formerly Uplay].
 
 You can also use it to launch custom programs (see [below](#Using) for instructions).
 
