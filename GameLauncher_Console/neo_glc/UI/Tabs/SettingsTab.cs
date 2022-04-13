@@ -29,7 +29,6 @@ namespace glc
 			m_settingCategoryPanel.ContainerView.SelectedItemChanged += Categories_SelectedChanged;
 
 			m_settingEditPanel.ContainerView.OpenSelectedItem += Values_OpenSelectedItem;
-			m_settingEditPanel.ContainerView.SelectedItemChanged += Values_SelectedChanged;
 
 			// Container to store all frames
 			m_container = new View()
@@ -52,12 +51,12 @@ namespace glc
 		/// <param name="e">The event argument</param>
 		private static void Categories_OpenSelectedItem(ListViewItemEventArgs e)
 		{
-			//m_settingValues = new CSettingsEditPanel(m_settingCategories.ContentList[m_settingCategories.ContainerView.SelectedItem], Pos.Percent(40), 0, Dim.Fill(), Dim.Fill(), true, Key.CtrlMask | Key.C);
+			m_settingEditPanel.FrameView.SetFocus();
 		}
 
 		private static void Categories_SelectedChanged(ListViewItemEventArgs e)
 		{
-			//m_settingEditPanel.LoadSettings(m_settingCategoryPanel.ContentList[m_settingCategoryPanel.ContainerView.SelectedItem]);
+			m_settingEditPanel.LoadCategory(m_settingCategoryPanel.ContentList[m_settingCategoryPanel.ContainerView.SelectedItem]);
 		}
 
 		/// <summary>
@@ -67,11 +66,6 @@ namespace glc
 		private static void Values_OpenSelectedItem(ListViewItemEventArgs e)
 		{
 			m_settingEditPanel.EditValue();
-		}
-
-		private static void Values_SelectedChanged(ListViewItemEventArgs e)
-		{
-
 		}
 	}
 }

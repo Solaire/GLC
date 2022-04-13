@@ -239,4 +239,89 @@ namespace glc
 			return true;
 		}
 	}
+
+	// TODO: Implement
+	/// <summary>
+	/// Implementation of the CEditDlg for editing colour themes
+	/// </summary>
+	public class CEditColourDlg : CEditDlg
+    {
+		protected Label			m_colourNormal;
+		protected Label			m_colourFocus;
+		protected Label			m_colourHotNormal;
+		protected Label         m_colourHotFocus;
+		protected Label			m_colourDisabled;
+
+		protected ColorScheme	m_colourScheme;
+
+		/// <summary>
+		/// Constructor.
+		/// Create the text edit box
+		/// </summary>
+		/// <param name="title">The dialog title</param>
+		/// <param name="initialScheme">Initial colour scheme</param>
+		public CEditColourDlg(string title, ColorScheme initialScheme)
+			: base(title)
+		{
+			m_colourScheme = initialScheme;
+
+			m_colourNormal = new Label()
+			{
+				X = 4,
+				Y = 4,
+				Width = Dim.Fill(),
+				Text = $"Normal Bg: {m_colourScheme.Normal.Background} | Fg: {m_colourScheme.Normal.Foreground}",
+			};
+			m_colourFocus = new Label()
+			{
+				X = 4,
+				Y = 5,
+				Width = Dim.Fill(),
+				Text = $"Focus Bg: {m_colourScheme.Focus.Background} | Fg: {m_colourScheme.Focus.Foreground}",
+			};
+			m_colourHotNormal = new Label()
+			{
+				X = 4,
+				Y = 6,
+				Width = Dim.Fill(),
+				Text = $"Hot Normal Bg: {m_colourScheme.HotNormal.Background} | Fg: {m_colourScheme.HotNormal.Foreground}",
+			};
+			m_colourHotFocus = new Label()
+			{
+				X = 4,
+				Y = 7,
+				Width = Dim.Fill(),
+				Text = $"Hot Focus Bg: {m_colourScheme.HotFocus.Background} | Fg: {m_colourScheme.HotFocus.Foreground}",
+			};
+			m_colourDisabled = new Label()
+			{
+				X = 4,
+				Y = 8,
+				Width = Dim.Fill(),
+				Text = $"Disabled Bg: {m_colourScheme.Disabled.Background} | Fg: {m_colourScheme.Disabled.Foreground}",
+			};
+
+			Add(m_colourNormal);
+			Add(m_colourFocus);
+			Add(m_colourHotNormal);
+			Add(m_colourHotFocus);
+			Add(m_colourDisabled);
+		}
+
+		/// <summary>
+		/// Function override.
+		/// If ok button was pressed, modify the node value with the new value
+		/// </summary>
+		/// <param name="node">Refernece to a system attribute node</param>
+		/// <returns>True if ok button was pressed</returns>
+		public override bool Run(ref SystemAttributeNode node)
+		{
+			if(base.Run(ref node))
+			{
+				//node.AttributeValue = m_textEdit.Text.ToString();
+				return true;
+			}
+			return false;
+		}
+	}
 }

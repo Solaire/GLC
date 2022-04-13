@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using Terminal.Gui;
+using static core.CSystemAttributeSQL;
 
 namespace glc.Settings
 {
@@ -7,10 +11,9 @@ namespace glc.Settings
     /// </summary>
     public enum SettingType
     {
-        cToggle         = 0, // on/off toggle value (boolean).
-        cValue          = 1, // Single value to write (string, number, etc)
-        cSingleSelect   = 2, // Select one item from the list (multiselect = off)
-        cObject         = 3, // Linked to a more advanced object (eg. colour theme). Open dialog
+        cValue          = 0, // Single value to write (string, number, bool, etc)
+        cSingleSelect   = 1, // Select one item from the list (multiselect = off)
+        cObject         = 2, // Linked to a more advanced object (eg. colour theme).
     }
 
     /// <summary>
@@ -45,30 +48,16 @@ namespace glc.Settings
     /// Base class for managing different types of settings, from simple on/off to more complex obejcts
     /// </summary>
     /// <typeparam name="T">Type T to be used in the list of settings</typeparam>
-    public abstract class CSettings<T>
+    public abstract class CSettingContainer
     {
-        /// <summary>
-        /// List of settings for the category
-        /// </summary>
-        public System.Collections.Generic.List<T> Settings { get; protected set; }
+        public IListDataSource DataSource   { get; protected set; }
 
-        /// <summary>
-        /// Constructor.
-        /// Load the settings
-        /// </summary>
-        public CSettings()
-        {
-            Load();
-        }
+        public abstract void EditNode(int selectionIndex);
+        public abstract void SelectNode(int selectionIndex);
+    }
 
-        /// <summary>
-        /// Load settings into the internal list
-        /// </summary>
-        protected abstract void Load();
-
-        /// <summary>
-        /// Save settings to database
-        /// </summary>
-        public abstract void Save(T node);
+    public abstract class CGenericSettingContainer<T> : CSettingContainer
+    {
+        protected List<T> DataList { get; set; }
     }
 }

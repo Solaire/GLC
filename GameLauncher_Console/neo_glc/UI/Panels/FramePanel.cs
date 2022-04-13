@@ -54,7 +54,7 @@ namespace glc
 
 		public List<T> ItemList { get; set; }
 
-		public bool IsMarked(int item) => false;
+		public virtual bool IsMarked(int item) => false;
 
 		public int Count => ItemList.Count;
 
@@ -73,7 +73,7 @@ namespace glc
 			var s = ConstructString(item); //String.Format (String.Format ("{{0,{0}}}", 0), Games[item].Title);
 			RenderUstr(driver, $"{s}", col, line, width, start);
 		}
-		public void SetMark(int item, bool value)
+		public virtual void SetMark(int item, bool value)
 		{
 		}
 
