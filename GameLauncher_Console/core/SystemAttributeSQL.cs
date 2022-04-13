@@ -21,9 +21,8 @@ namespace core
         private const string FIELD_ATTRIBUTE_DESC  = "AttributeDesc";
         private const string FIELD_ATTRIBUTE_TYPE  = "AttributeType";
 
-
-        private const string BOOL_VALUE_TRUE  = "Y";
-        private const string BOOL_VALUE_FALSE = "N";
+        private const string BOOL_VALUE_TRUE  = "true";
+        private const string BOOL_VALUE_FALSE = "false";
 
         public enum AttributeType
         {

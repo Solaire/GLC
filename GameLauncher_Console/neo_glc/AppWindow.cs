@@ -1,6 +1,7 @@
 ﻿using Terminal.Gui;
 using System.Collections.Generic;
 using core;
+using glc.Settings;
 
 namespace glc
 {
@@ -20,6 +21,15 @@ namespace glc
         {
             Application.Init();
             m_topLevel = Application.Top;
+
+            if(CColourSchemeSQL.GetActiveColour(out ColourNode colour))
+            {
+                if(colour.isSystem)
+                {
+                    colour.scheme = Colors.ColorSchemes[colour.name];
+                }
+                m_topLevel.ColorScheme = colour.scheme;
+            }
 
             // Create the tab view
             m_tabView = new TabView()
