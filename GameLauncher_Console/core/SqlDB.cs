@@ -434,7 +434,6 @@ namespace SqlDB
             {
                 field.Value.MakeNull();
             }
-            SelectExtraCondition = "";
         }
 
         /// <summary>
@@ -591,7 +590,7 @@ namespace SqlDB
             string update = "";
             foreach(KeyValuePair<string, CSqlField> field in m_sqlRow)
             {
-                if((field.Value.Flag & CSqlField.QryFlag.cUpdWrite) == 0)
+                if((field.Value.Flag & CSqlField.QryFlag.cUpdWrite) == 0 || field.Value.IsNull())
                 {
                     continue;
                 }
@@ -835,6 +834,35 @@ namespace SqlDB
                 response.Add(m_qry.AttributeValue ?? "");
             } while(m_qry.Fetch());
             return response.ToArray();
+        }
+
+        public int[] GetIntValues(string attributeName)
+        {
+            List<int> response = new List<int>();
+            m_qry.MakeFieldsNull();
+            m_qry.ForeignKey = MasterID;
+            m_qry.AttributeName = attributeName;
+            if(m_qry.Select() != SQLiteErrorCode.Ok)
+            {
+                return response.ToArray(); // Empty array
+            }
+
+            do
+            {
+                if(Int32.TryParse(m_qry.AttributeValue ?? "", out int intValue))
+                {
+                    response.Add(intValue);
+                }
+            } while(m_qry.Fetch());
+            return response.ToArray();
+        }
+
+        public bool DeleteAttribute(string attributeName)
+        {
+            m_qry.MakeFieldsNull();
+            m_qry.ForeignKey = MasterID;
+            m_qry.AttributeName = attributeName;
+            return (m_qry.Delete() == SQLiteErrorCode.Ok);
         }
 
         /// <summary>

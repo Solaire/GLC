@@ -171,6 +171,7 @@ namespace glc.Settings
             List<ColourNode> nodes = new List<ColourNode>();
 
             m_qryColourScheme.MakeFieldsNull();
+            m_qryColourScheme.SelectExtraCondition = "";
             if(m_qryColourScheme.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
