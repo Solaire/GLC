@@ -312,6 +312,7 @@ namespace core
             HashSet<GameObject> databaseGames = new HashSet<GameObject>();
 
             m_qryReadGame.MakeFieldsNull();
+            m_qryReadGame.SelectExtraCondition = "";
             if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
@@ -333,6 +334,7 @@ namespace core
             HashSet<GameObject> databaseGames = new HashSet<GameObject>();
 
             m_qryReadGame.MakeFieldsNull();
+            m_qryReadGame.SelectExtraCondition = "";
             m_qryReadGame.PlatformFK = platformFK;
             if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {

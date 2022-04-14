@@ -21,9 +21,11 @@ namespace glc
         public CSettingsEditPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
             : base(name, x, y, width, height, canFocus, focusShortCut)
         {
-            m_settingContainers = new CSettingContainer[2];
+            m_settingContainers = new CSettingContainer[4];
             m_settingContainers[0] = new CSystemAttributeContainer();
             m_settingContainers[1] = new CColourContainer();
+            m_settingContainers[2] = new CPlatformContainer();
+            m_settingContainers[3] = new CTagContainer();
 
             m_selectedContainer = 0;
 

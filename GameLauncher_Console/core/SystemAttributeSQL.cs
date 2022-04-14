@@ -172,7 +172,7 @@ namespace core
         /// <returns>True if value is "y", otherwise false</returns>
         private static bool IsTrue(string attributeValue)
         {
-            return attributeValue.ToUpper() == BOOL_VALUE_TRUE;
+            return attributeValue.ToLower() == BOOL_VALUE_TRUE;
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace core
 
             public bool IsTrue()
             {
-                return AttributeValue.ToUpper() == BOOL_VALUE_TRUE;
+                return AttributeValue.ToLower() == BOOL_VALUE_TRUE;
             }
 
             public void SetTrue(bool isTrue)

@@ -1,6 +1,7 @@
 ﻿using SqlDB;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Linq;
 
 namespace core
 {
@@ -106,7 +107,7 @@ namespace core
 				: base(
 				"Platform " +
 				"LEFT JOIN Game G on PlatformID = G.PlatformFK",
-				"", " GROUP BY PlatformID")
+				"", "GROUP BY PlatformID")
 			{
 				m_sqlRow[FIELD_PLATFORM_ID] = new CSqlFieldInteger(FIELD_PLATFORM_ID, CSqlField.QryFlag.cSelWhere | CSqlField.QryFlag.cSelRead);
 				m_sqlRow[FIELD_NAME]		= new CSqlFieldString(FIELD_NAME		, CSqlField.QryFlag.cSelWhere | CSqlField.QryFlag.cSelRead);
@@ -152,6 +153,7 @@ namespace core
 		private static CQryNewPlatform		m_qryNewPlatform	= new CQryNewPlatform();
 		private static CQryUpdatePlatform	m_qryUpdatePlatform	= new CQryUpdatePlatform();
 		private static CQryReadPlatform		m_qryReadPlatform	= new CQryReadPlatform();
+		private static CDbAttribute         m_platformAttribute = new CDbAttribute("Platform");
 
 #nullable enable
 		/// <summary>
@@ -242,6 +244,39 @@ namespace core
 			m_qryUpdatePlatform.PlatformID = platformID;
 			m_qryUpdatePlatform.IsActive = isActive;
 			return m_qryUpdatePlatform.Update() == SQLiteErrorCode.Ok;
+		}
+
+		public static void SetTags(int platformID, List<int> enabledTags)
+		{
+			m_platformAttribute.MasterID = platformID;
+			m_platformAttribute.DeleteAttribute("A_PLATFORM_TAG");
+
+			for(int i = 0; i < enabledTags.Count; i++)
+            {
+				m_platformAttribute.SetStringValue("A_PLATFORM_TAG", enabledTags[i].ToString(), i);
+			}
+		}
+
+		public static void SetTag(int platformID, int tagID, bool isEnabled)
+        {
+			m_platformAttribute.MasterID = platformID;
+			List<string> existing = m_platformAttribute.GetStringValues("A_PLATFORM_TAG").ToList();
+			int index = existing.FindIndex(tag => tag == tagID.ToString());
+
+			if(index == -1 && isEnabled)
+            {
+				m_platformAttribute.SetStringValue("A_PLATFORM_TAG", tagID.ToString(), existing.Count);
+			}
+			else if(index != -1 && !isEnabled)
+            {
+				// Delete and reinsert all tags to preserve the indexing (TODO: optimise)
+				existing.RemoveAt(index);
+				m_platformAttribute.DeleteAttribute("A_PLATFORM_TAG");
+				for(int i = 0; i < existing.Count; i++)
+				{
+					m_platformAttribute.SetStringValue("A_PLATFORM_TAG", existing[i].ToString(), i);
+				}
+			}
 		}
 	}
 }
