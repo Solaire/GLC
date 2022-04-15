@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 
 using core.Platform;
-using glc.Settings;
+using glc.UI.Library;
+using glc.UI.Settings;
+using glc.ColourScheme;
 
 namespace glc
 {
@@ -25,9 +27,9 @@ namespace glc
 
             if(CColourSchemeSQL.GetActiveColour(out ColourNode colour))
             {
-                if(colour.isSystem)
+                if(colour.IsSystem)
                 {
-                    colour.scheme = Colors.ColorSchemes[colour.name];
+                    colour.scheme = Colors.ColorSchemes[colour.Name];
                 }
                 m_topLevel.ColorScheme = colour.scheme;
             }
