@@ -23,10 +23,10 @@ namespace glc
 			Text = "Library";
 
 			// Construct the panels
-			m_platformPanel = new CPlatformPanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Fill(), true, Key.CtrlMask | Key.C);
+			m_platformPanel = new CPlatformPanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Fill(), true);
 
-			List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].ID).ToList() : new List<GameObject>();
-			m_gamePanel	= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true, Key.CtrlMask | Key.S);
+			List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].PrimaryKey).ToList() : new List<GameObject>();
+			m_gamePanel	= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
 			m_infoPanel = new CGameInfoPanel("", Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill());
 
 			// Hook up the triggers

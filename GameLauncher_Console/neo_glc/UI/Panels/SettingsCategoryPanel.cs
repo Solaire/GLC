@@ -10,13 +10,13 @@ namespace glc
 {
     public class CSettingsCategoriesPanel : CFramePanel<SettingCategory, ListView>
     {
-        public CSettingsCategoriesPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
-            : base(name, x, y, width, height, canFocus, focusShortCut)
+        public CSettingsCategoriesPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
+            : base(name, x, y, width, height, canFocus)
         {
             m_contentList = Enum.GetValues(typeof(SettingCategory))
                             .Cast<SettingCategory>()
                             .ToList();
-            Initialise(name, x, y, width, height, canFocus, focusShortCut);
+            Initialise(name, x, y, width, height, canFocus);
         }
 
         public override void CreateContainerView()

@@ -5,33 +5,37 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Terminal.Gui;
-using static core.CSystemAttributeSQL;
 
 namespace glc
 {
 	/// <summary>
-	/// Base class for creating edit dialogs
-	/// Only controls are the ok and cancel buttons
+	/// Base class for creating edit dialogs, inheriting from <see cref="Dialog"/> class.
+	/// By default only contains the [ok] and [cancel] buttons
 	/// </summary>
-	public abstract class CEditDlg : Dialog
+	public abstract class CEditDlg<T> : Dialog
 	{
-		protected bool m_isOkay;
+		protected bool	m_isOkayPressed;
+		protected T     m_editValue;
 
 		/// <summary>
-		/// Base constructor.
+		/// Constructor.
+		/// Initialise the base dialog with [ok] and [cancel] buttons
 		/// </summary>
 		/// <param name="title">The dialog title</param>
-		public CEditDlg(string title, int width = 40, int height = 10)
+		/// <param name="height">The dialog width. Defaults to 40</param>
+		/// <param name="width">The dialog height. Defaults to 10</param>
+		public CEditDlg(string title, T editValue, int width = 40, int height = 10)
             : base(title, width, height)
         {
-			m_isOkay = false;
+			m_isOkayPressed = false;
+			m_editValue		= editValue;
 
 			Button okButton = new Button("Ok");
 			okButton.Clicked += () =>
 			{
 				if(ValidateValue())
 				{
-					m_isOkay = true;
+					m_isOkayPressed = true;
 					Application.RequestStop();
 				}
 			};
@@ -40,116 +44,89 @@ namespace glc
 			Button cancelButton = new Button("Cancel");
 			cancelButton.Clicked += () =>
 			{
-				m_isOkay = false;
+				m_isOkayPressed = false;
 				Application.RequestStop();
 			};
 			AddButton(cancelButton);
 		}
 
 		/// <summary>
-		/// Run the dialog until it's closed.
+		/// Run the dialog until it is closed
 		/// </summary>
-		/// <param name="node">Refernece to a system attribute node</param>
-		/// <returns>True if 'ok' button was pressed; otherwise false</returns>
-		public virtual bool Run(ref SystemAttributeNode node)
+		/// <returns><see langword="true"/> if [okay] is pressed; otherwise <see langword="false"/></returns>
+		protected bool Run()
         {
 			Application.Run(this);
-			return m_isOkay;
+			return m_isOkayPressed;
 		}
 
 		/// <summary>
-		/// Check the new value of the setting to ensure it is allowed
+		/// Version of <see cref="Run()"/> which accepts a generic field for modification.
 		/// </summary>
-		/// <returns>Always true</returns>
+		/// <param name="currentValue">Variable that will be used to seed the dialog.</param>
+		/// <returns><see langword="true"/> if [okay] is pressed; otherwise <see langword="false"/></returns>
+		public virtual bool Run(ref T currentValue)
+		{
+			return Run();
+		}
+
+		/// <summary>
+		/// Validate values of internal members to make sure the dialog can be saved.
+		/// Should be overwritten for things like numeric type validation, etc.
+		/// </summary>
+		/// <returns><see langword="true"/></returns>
 		protected virtual bool ValidateValue()
         {
 			return true;
 		}
+
+		public bool IsOkayPressed()
+        {
+			return m_isOkayPressed;
+        }
     }
 
 	/// <summary>
-	/// Implementation of the CEditDlg for editing boolean values
+	/// Implementation of <see cref="CEditDlg"/> for handling <see langword="bool"/> type.
 	/// </summary>
-	public class CEditBoolDlg : CEditDlg
+	public class CEditBoolDlg : CEditDlg<bool>
 	{
-		private bool m_isTrue;
-		private CBoolRadio m_radio;
+		private CBinaryRadio m_radio;
 
 		/// <summary>
 		/// Constructor.
 		/// Create a radio control with true/false values
 		/// </summary>
 		/// <param name="title">The dialog title</param>
-		/// <param name="isInitialTrue">Initial boolean value</param>
-		public CEditBoolDlg(string title, bool isInitialTrue)
-			: base(title)
+		/// <param name="initialValue">Initial boolean value</param>
+		public CEditBoolDlg(string title, bool initialValue)
+			: base(title, initialValue)
 		{
-			m_isTrue = isInitialTrue;
-			m_radio = new CBoolRadio(2, 2, m_isTrue);
+			m_radio = new CBinaryRadio(2, 2, m_editValue);
 			Add(m_radio);
 		}
 
 		/// <summary>
-		/// Function override.
-		/// If ok button was pressed, modify the node value with the new value
+		/// Run dialog until
 		/// </summary>
-		/// <param name="node">Refernece to a system attribute node</param>
-		/// <returns>True if ok button was pressed</returns>
-		public override bool Run(ref SystemAttributeNode node)
+		/// <typeparam name="T"></typeparam>
+		/// <param name="currentValue"></param>
+		/// <returns></returns>
+        public override bool Run(ref bool currentValue)
         {
-			if(base.Run(ref node))
+			if(Run() && m_radio.BoolSelection != m_editValue)
             {
-				node.SetTrue(m_radio.SelectedItem == 0);
+				currentValue = m_radio.BoolSelection;
 				return true;
             }
 			return false;
-		}
-
-		/// <summary>
-		/// Child of RadioGroup, with pre-set configuration and extended key handler
-		/// </summary>
-		private class CBoolRadio : RadioGroup
-        {
-			/// <summary>
-			/// Constructor.
-			/// Create RadioGroup control with true/false values and set to horizontal view
-			/// </summary>
-			/// <param name="x"></param>
-			/// <param name="y"></param>
-			/// <param name="isInitialTrue">Initial boolean value to select</param>
-			public CBoolRadio(int x, int y, bool isInitialTrue)
-				: base(x, y, new ustring[] { "True", "False" }, (isInitialTrue) ? 0 : 1)
-            {
-				DisplayMode = DisplayModeLayout.Horizontal;
-				HorizontalSpace = 5;
-            }
-
-			/// <summary>
-			/// Fundtion override.
-			/// Handle left, right and enter buttons
-			/// </summary>
-			/// <param name="kb">The key event</param>
-			/// <returns>Result of base.ProcessKey()</returns>
-            public override bool ProcessKey(KeyEvent kb)
-            {
-				// The base class members are set to private, so we can't actually directly modify them
-				// We have to resort to a bit of a hack and treat the new keys as the keys already handled
-				// Luckily for our purposes this is all we need
-				switch(kb.Key)
-				{
-					case Key.CursorLeft:	return base.ProcessKey(new KeyEvent(Key.CursorUp,	new KeyModifiers()));
-					case Key.CursorRight:	return base.ProcessKey(new KeyEvent(Key.CursorDown, new KeyModifiers()));
-					case Key.Enter:			return base.ProcessKey(new KeyEvent(Key.Space,		new KeyModifiers()));
-				}
-				return base.ProcessKey(kb);
-			}
         }
 	}
 
 	/// <summary>
 	/// Implementation of the CEditDlg for editing string values
 	/// </summary>
-	public class CEditStringDlg : CEditDlg
+	public class CEditStringDlg : CEditDlg<string>
 	{
 		protected TextField m_textEdit;
 
@@ -159,16 +136,16 @@ namespace glc
 		/// </summary>
 		/// <param name="title">The dialog title</param>
 		/// <param name="initialText">Initial text value</param>
-		public CEditStringDlg(string title, string initialText)
-			: base(title)
+		public CEditStringDlg(string title, string initialString)
+			: base(title, initialString)
 		{
 			m_textEdit = new TextField()
 			{
 				X = 4,
 				Y = 4,
 				Width = Dim.Fill(),
-				Text = initialText,
-				CursorPosition = initialText.Length,
+				Text = initialString,
+				CursorPosition = initialString.Length,
 			};
 			Add(m_textEdit);
 			m_textEdit.SetFocus();
@@ -180,13 +157,13 @@ namespace glc
 		/// </summary>
 		/// <param name="node">Refernece to a system attribute node</param>
 		/// <returns>True if ok button was pressed</returns>
-		public override bool Run(ref SystemAttributeNode node)
+		public override bool Run(ref string currentValue)
         {
-			if(base.Run(ref node))
-			{
-				node.AttributeValue = m_textEdit.Text.ToString();
+			if(Run() && m_textEdit.Text.ToString() != m_editValue)
+            {
+				currentValue = m_textEdit.Text.ToString();
 				return true;
-			}
+            }
 			return false;
 		}
     }
@@ -216,14 +193,9 @@ namespace glc
 		/// </summary>
 		/// <param name="node">Refernece to a system attribute node</param>
 		/// <returns>True if ok button was pressed</returns>
-		public override bool Run(ref SystemAttributeNode node)
+		public override bool Run(ref string currentValue)
 		{
-			if(base.Run(ref node))
-			{
-				node.AttributeValue = m_textEdit.Text.ToString();
-				return true;
-			}
-			return false;
+			return base.Run(ref currentValue);
 		}
 
 		/// <summary>
@@ -232,7 +204,7 @@ namespace glc
 		/// If conversion fails, show a MessageBox with an error message.
 		/// </summary>
 		/// <returns>True if value can be converted; otherwise false</returns>
-        protected override bool ValidateValue()
+		protected override bool ValidateValue()
         {
             if(!Int32.TryParse(m_textEdit.Text.ToString(), out _))
             {
@@ -243,165 +215,111 @@ namespace glc
 		}
 	}
 
-	public class CEditPlatformDlg : CEditDlg
-    {
-		private Label m_isActiveLabel;
-
-		private bool m_isTrue;
-		private CBoolRadio m_radio;
-
-		private CTagPanel m_tagPanel;
-
-		public List<TagObject> Tags
-        {
-			get { return m_tagPanel.ContentList; }
-        }
+	/// <summary>
+	/// Child of RadioGroup, with pre-set configuration and extended key handler
+	/// </summary>
+	public class CBinaryRadio : RadioGroup
+	{
+		public bool BoolSelection
+		{
+			get { return SelectedItem == 0; }
+		}
 
 		/// <summary>
 		/// Constructor.
-		/// Create a radio control with true/false values
+		/// Create RadioGroup control with true/false values and set to horizontal view
 		/// </summary>
-		/// <param name="title">The dialog title</param>
-		/// <param name="isInitialTrue">Initial boolean value</param>
-		public CEditPlatformDlg(CBasicPlatform platform)
-			: base(platform.Name, 40, 25)
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="isInitialTrue">Initial boolean value to select</param>
+		public CBinaryRadio(int x, int y, bool isInitialTrue)
+			: base(x, y, new ustring[] { "True", "False" }, (isInitialTrue) ? 0 : 1)
 		{
-			m_isActiveLabel = new Label()
-			{
-				X = 3,
-				Y = 1,
-				Width = Dim.Fill(),
-				Text = "Enabled ",
-			};
-
-			m_tagPanel = new CTagPanel(platform.ID, platform.IsActive);
-
-			m_isTrue = platform.IsActive;
-			m_radio = new CBoolRadio(m_isActiveLabel.Text.Length + 5, 1, m_isTrue);
-			Add(m_isActiveLabel);
-			Add(m_radio);
-			Add(m_tagPanel.FrameView);
-
-            m_radio.SelectedItemChanged += M_radio_SelectedItemChanged;
-		}
-
-        private void M_radio_SelectedItemChanged(RadioGroup.SelectedItemChangedArgs obj)
-        {
-			bool enabled = (obj.SelectedItem == 0);
-			m_tagPanel.FrameView.Enabled = enabled;
-			m_tagPanel.FrameView.Visible = enabled;
-
-			SetNeedsDisplay();
-        }
-
-        /// <summary>
-        /// Function override.
-        /// If ok button was pressed, modify the node value with the new value
-        /// </summary>
-        /// <param name="node">Refernece to a system attribute node</param>
-        /// <returns>True if ok button was pressed</returns>
-        public override bool Run(ref SystemAttributeNode node)
-		{
-			if(base.Run(ref node))
-			{
-				node.SetTrue(m_radio.SelectedItem == 0);
-				return true;
-			}
-			return false;
+			DisplayMode = DisplayModeLayout.Horizontal;
+			HorizontalSpace = 5;
 		}
 
 		/// <summary>
-		/// Child of RadioGroup, with pre-set configuration and extended key handler
+		/// Fundtion override.
+		/// Handle left, right and enter buttons
 		/// </summary>
-		private class CBoolRadio : RadioGroup
+		/// <param name="kb">The key event</param>
+		/// <returns>Result of base.ProcessKey()</returns>
+		public override bool ProcessKey(KeyEvent kb)
 		{
-			/// <summary>
-			/// Constructor.
-			/// Create RadioGroup control with true/false values and set to horizontal view
-			/// </summary>
-			/// <param name="x"></param>
-			/// <param name="y"></param>
-			/// <param name="isInitialTrue">Initial boolean value to select</param>
-			public CBoolRadio(int x, int y, bool isInitialTrue)
-				: base(x, y, new ustring[] { "True", "False" }, (isInitialTrue) ? 0 : 1)
+			// The base class members are set to private, so we can't actually directly modify them
+			// We have to resort to a bit of a hack and treat the new keys as the keys already handled
+			// Luckily for our purposes this is all we need
+			switch(kb.Key)
 			{
-				DisplayMode = DisplayModeLayout.Horizontal;
-				HorizontalSpace = 5;
+				case Key.CursorLeft: return base.ProcessKey(new KeyEvent(Key.CursorUp, new KeyModifiers()));
+				case Key.CursorRight: return base.ProcessKey(new KeyEvent(Key.CursorDown, new KeyModifiers()));
+				case Key.Enter: return base.ProcessKey(new KeyEvent(Key.Space, new KeyModifiers()));
 			}
-
-			/// <summary>
-			/// Fundtion override.
-			/// Handle left, right and enter buttons
-			/// </summary>
-			/// <param name="kb">The key event</param>
-			/// <returns>Result of base.ProcessKey()</returns>
-			public override bool ProcessKey(KeyEvent kb)
-			{
-				// The base class members are set to private, so we can't actually directly modify them
-				// We have to resort to a bit of a hack and treat the new keys as the keys already handled
-				// Luckily for our purposes this is all we need
-				switch(kb.Key)
-				{
-					case Key.CursorLeft:	return base.ProcessKey(new KeyEvent(Key.CursorUp, new KeyModifiers()));
-					case Key.CursorRight:	return base.ProcessKey(new KeyEvent(Key.CursorDown, new KeyModifiers()));
-					case Key.Enter:			return base.ProcessKey(new KeyEvent(Key.Space, new KeyModifiers()));
-				}
-				return base.ProcessKey(kb);
-			}
+			return base.ProcessKey(kb);
 		}
+	}
 
-		private class CTagPanel : CFramePanel<TagObject, ListView>
+	public class CDialogSelectionPanel : CFramePanel<IDataNode, ListView>
+    {
+		private List<IDataNode> m_originalNodes;
+
+		public CDialogSelectionPanel(string title, int x, int y, List<IDataNode> nodes, bool isVisible)
+			: base(title, x, y, Dim.Fill(), Dim.Fill(), true)
         {
-			public CTagPanel(int platformID, bool isActive)
-				: base("Tags", 3, 4, Dim.Fill(), Dim.Fill(), true, Key.CtrlMask | Key.C)
-            {
-				m_contentList = CTagSQL.GetTagsforPlatform(platformID);
+			m_contentList = nodes;
+			m_originalNodes = new List<IDataNode>(nodes);
 
-				Initialise("Tags", 0, 4, Dim.Fill(), Dim.Fill(3), true, Key.CtrlMask | Key.C);
+			Initialise(title, x, y, Dim.Fill(), Dim.Fill(3), true);
 
-				m_frameView.Enabled = isActive;
-				m_frameView.Visible = isActive;
-			}
-
-			public override void CreateContainerView()
-			{
-				m_containerView = new ListView(new CTagsDataSource(m_contentList))
-				{
-					X = 0,
-					Y = 0,
-					Width = Dim.Fill(0),
-					Height = Dim.Fill(0),
-					AllowsMarking = true,
-					AllowsMultipleSelection = true,
-					CanFocus = true
-				};
-
-				m_frameView.Add(m_containerView);
-			}
+			m_frameView.Enabled = isVisible;
+			m_frameView.Visible = isVisible;
 		}
 
-		internal class CTagsDataSource : CGenericDataSource<TagObject>
+		public override void CreateContainerView()
+		{
+			m_containerView = new ListView(new CDialogSelectionDataSource(m_contentList))
+			{
+				X = 0,
+				Y = 0,
+				Width = Dim.Fill(0),
+				Height = Dim.Fill(0),
+				AllowsMarking = true,
+				AllowsMultipleSelection = true,
+				CanFocus = true
+			};
+
+			m_frameView.Add(m_containerView);
+		}
+
+		public bool IsSelectionDirty()
+        {
+			return m_originalNodes != m_contentList;
+        }
+
+		internal class CDialogSelectionDataSource : CGenericDataSource<IDataNode>
 		{
 			private BitArray marks;
 
-			public CTagsDataSource(List<TagObject> itemList)
+			public CDialogSelectionDataSource(List<IDataNode> itemList)
 				: base(itemList)
 			{
 				marks = new BitArray(Count);
+
 				for(int i = 0; i < itemList.Count; i++)
-                {
-					marks[i] = (itemList[i].isActive);
-                }
+				{
+					marks[i] = (itemList[i].IsEnabled);
+				}
 			}
 
 			protected override string ConstructString(int itemIndex)
 			{
-				return ItemList[itemIndex].name;
+				return ItemList[itemIndex].Name;
 			}
 
 			protected override string GetString(int itemIndex)
 			{
-				return ItemList[itemIndex].name;
+				return ItemList[itemIndex].Name;
 			}
 
 			public override bool IsMarked(int item)
@@ -419,45 +337,54 @@ namespace glc
 				{
 					marks[item] = value;
 
-					TagObject copy = ItemList[item];
-					copy.isActive = value;
+					IDataNode copy = ItemList[item];
+					copy.IsEnabled = value;
 					ItemList[item] = copy;
 				}
 			}
 		}
 	}
 
-	/// <summary>
-	///
-	/// </summary>
-	public class CEditTagDlg : CEditDlg
-	{
-		private Label m_isActiveLabel;
-		private Label m_nameLabel;
-		private Label m_descriptionLabel;
+	public class CDataNodeDataSource<T> : CGenericDataSource<T> where T : IDataNode
+    {
+		protected long m_maxNameLength;
+		protected long m_maxDescLength;
 
-		private bool m_isTrue;
-		private CBoolRadio m_radio;
-
-		private CPlatformPanel m_platformPanel;
-
-		protected TextField m_textEditName;
-		protected TextField m_textEditDescription;
-
-		public List<CBasicPlatform> Platforms
+		public CDataNodeDataSource(List<T> itemList)
+			: base(itemList)
 		{
-			get { return m_platformPanel.ContentList; }
+			for(int i = 0; i < itemList.Count; i++)
+			{
+				if(itemList[i].Name.Length > m_maxNameLength)
+				{
+					m_maxNameLength = itemList[i].Name.Length;
+				}
+				if(itemList[i].Description.Length > m_maxDescLength)
+				{
+					m_maxDescLength = itemList[i].Description.Length;
+				}
+			}
 		}
 
-		public string TagName
-        {
-			get { return m_textEditName.Text.ToString(); }
-        }
-
-		public string TagDescription
+		protected override string ConstructString(int itemIndex)
 		{
-			get { return m_textEditDescription.Text.ToString(); }
+			String s1 = String.Format(String.Format("{{0,{0}}}", -m_maxNameLength), ItemList[itemIndex].Name);
+			String s2 = String.Format(String.Format("{{0,{0}}}", -m_maxDescLength), ItemList[itemIndex].Description);
+			string enabled = (ItemList[itemIndex].IsEnabled) ? "Enabled" : "Disabled";
+
+			return $"{s1}  {s2}  {enabled}";
 		}
+
+		protected override string GetString(int itemIndex)
+		{
+			return ItemList[itemIndex].Name;
+		}
+	}
+
+	public class CEditSelectionDlg<T> : CEditDlg<T> where T : IDataNode
+    {
+		protected CBinaryRadio m_radio;
+		protected CDialogSelectionPanel m_selectionPanel;
 
 		/// <summary>
 		/// Constructor.
@@ -465,74 +392,32 @@ namespace glc
 		/// </summary>
 		/// <param name="title">The dialog title</param>
 		/// <param name="isInitialTrue">Initial boolean value</param>
-		public CEditTagDlg(TagObject tag)
-			: base(tag.name, 40, 30)
+		public CEditSelectionDlg(T node, List<IDataNode> selectionDataList)
+			: base(node.Name, node, 40, 25)
 		{
-			m_isActiveLabel = new Label()
+			Label isActiveLabel = new Label()
 			{
-				X = 1,
+				X = 3,
 				Y = 1,
 				Width = Dim.Fill(),
 				Text = "Enabled: ",
 			};
-			m_nameLabel = new Label()
-			{
-				X = 1,
-				Y = 2,
-				Width = Dim.Fill(),
-				Text = "Name: ",
-			};
-			m_descriptionLabel = new Label()
-			{
-				X = 1,
-				Y = 5,
-				Width = Dim.Fill(),
-				Text = "Description: ",
-			};
+			Add(isActiveLabel);
 
-			m_textEditName = new TextField()
-			{
-				X = 1,
-				Y = 3,
-				Width = Dim.Fill(),
-				Text = tag.name,
-				CursorPosition = tag.name.Length,
-				Enabled = !tag.isInternal,
-				CanFocus = !tag.isInternal,
-			};
-
-			m_textEditDescription = new TextField()
-			{
-				X = 1,
-				Y = 6,
-				Width = Dim.Fill(),
-				Text = tag.description,
-				CursorPosition = tag.description.Length,
-				Enabled = !tag.isInternal,
-				CanFocus = !tag.isInternal,
-			};
-
-			m_isTrue = tag.isActive;
-			m_radio = new CBoolRadio(m_isActiveLabel.Text.Length + 5, 1, m_isTrue);
-
-			m_platformPanel = new CPlatformPanel(tag.tagID, tag.isActive);
-
-			Add(m_isActiveLabel);
-			Add(m_radio);
-			Add(m_nameLabel);
-			Add(m_descriptionLabel);
-			Add(m_textEditName);
-			Add(m_textEditDescription);
-			Add(m_platformPanel.FrameView);
-
+			m_radio = new CBinaryRadio(isActiveLabel.Text.Length + 5, 1, node.IsEnabled);
 			m_radio.SelectedItemChanged += M_radio_SelectedItemChanged;
+			Add(m_radio);
+
+			//m_tagPanel = new CDialogSelectionPanel(platform.ID, platform.IsActive);
+			m_selectionPanel = new CDialogSelectionPanel("Tags", 0, 4, selectionDataList, node.IsEnabled);
+			Add(m_selectionPanel.FrameView);
 		}
 
 		private void M_radio_SelectedItemChanged(RadioGroup.SelectedItemChangedArgs obj)
 		{
 			bool enabled = (obj.SelectedItem == 0);
-			m_platformPanel.FrameView.Enabled = enabled;
-			m_platformPanel.FrameView.Visible = enabled;
+			m_selectionPanel.FrameView.Enabled = enabled;
+			m_selectionPanel.FrameView.Visible = enabled;
 
 			SetNeedsDisplay();
 		}
@@ -543,217 +428,19 @@ namespace glc
 		/// </summary>
 		/// <param name="node">Refernece to a system attribute node</param>
 		/// <returns>True if ok button was pressed</returns>
-		public override bool Run(ref SystemAttributeNode node)
+		public override bool Run(ref T currentValue)
 		{
-			if(base.Run(ref node))
+			if(base.Run(ref currentValue) && m_radio.BoolSelection != m_editValue.IsEnabled)
 			{
-				node.SetTrue(m_radio.SelectedItem == 0);
+				currentValue.IsEnabled = m_radio.BoolSelection;
 				return true;
 			}
 			return false;
 		}
 
-		/// <summary>
-		/// Child of RadioGroup, with pre-set configuration and extended key handler
-		/// </summary>
-		private class CBoolRadio : RadioGroup
+		public bool IsSelectionDirty()
 		{
-			/// <summary>
-			/// Constructor.
-			/// Create RadioGroup control with true/false values and set to horizontal view
-			/// </summary>
-			/// <param name="x"></param>
-			/// <param name="y"></param>
-			/// <param name="isInitialTrue">Initial boolean value to select</param>
-			public CBoolRadio(int x, int y, bool isInitialTrue)
-				: base(x, y, new ustring[] { "True", "False" }, (isInitialTrue) ? 0 : 1)
-			{
-				DisplayMode = DisplayModeLayout.Horizontal;
-				HorizontalSpace = 5;
-			}
-
-			/// <summary>
-			/// Fundtion override.
-			/// Handle left, right and enter buttons
-			/// </summary>
-			/// <param name="kb">The key event</param>
-			/// <returns>Result of base.ProcessKey()</returns>
-			public override bool ProcessKey(KeyEvent kb)
-			{
-				// The base class members are set to private, so we can't actually directly modify them
-				// We have to resort to a bit of a hack and treat the new keys as the keys already handled
-				// Luckily for our purposes this is all we need
-				switch(kb.Key)
-				{
-					case Key.CursorLeft: return base.ProcessKey(new KeyEvent(Key.CursorUp, new KeyModifiers()));
-					case Key.CursorRight: return base.ProcessKey(new KeyEvent(Key.CursorDown, new KeyModifiers()));
-					case Key.Enter: return base.ProcessKey(new KeyEvent(Key.Space, new KeyModifiers()));
-				}
-				return base.ProcessKey(kb);
-			}
-		}
-
-		private class CPlatformPanel : CFramePanel<CBasicPlatform, ListView>
-		{
-			public CPlatformPanel(int tagID, bool isActive)
-				: base("Platforms", 3, 10, Dim.Fill(), Dim.Fill(), true, Key.CtrlMask | Key.C)
-			{
-				m_contentList = CTagSQL.GetPlatformsForTag(tagID);
-
-				Initialise("Platforms", 0, 10, Dim.Fill(), Dim.Fill(3), true, Key.CtrlMask | Key.C);
-
-				m_frameView.Enabled = isActive;
-				m_frameView.Visible = isActive;
-			}
-
-			public override void CreateContainerView()
-			{
-				m_containerView = new ListView(new CPlatformDataSourceInternal(m_contentList))
-				{
-					X = 0,
-					Y = 0,
-					Width = Dim.Fill(0),
-					Height = Dim.Fill(0),
-					AllowsMarking = true,
-					AllowsMultipleSelection = true,
-					CanFocus = true
-				};
-
-				m_frameView.Add(m_containerView);
-			}
-		}
-
-		internal class CPlatformDataSourceInternal : CGenericDataSource<CBasicPlatform>
-		{
-			private BitArray marks;
-
-			public CPlatformDataSourceInternal(List<CBasicPlatform> itemList)
-				: base(itemList)
-			{
-				marks = new BitArray(Count);
-				for(int i = 0; i < itemList.Count; i++)
-				{
-					marks[i] = (itemList[i].IsActive);
-				}
-			}
-
-			protected override string ConstructString(int itemIndex)
-			{
-				return ItemList[itemIndex].Name;
-			}
-
-			protected override string GetString(int itemIndex)
-			{
-				return ItemList[itemIndex].Name;
-			}
-
-			public override bool IsMarked(int item)
-			{
-				if(item >= 0 && item < Count)
-				{
-					return marks[item];
-				}
-				return false;
-			}
-
-			public override void SetMark(int item, bool value)
-			{
-				if(item >= 0 && item < Count)
-				{
-					marks[item] = value;
-
-					CBasicPlatform copy = ItemList[item];
-					copy.IsActive = value;
-					ItemList[item] = copy;
-				}
-			}
+			return m_selectionPanel.IsSelectionDirty();
 		}
 	}
-
-	// TODO: Implement
-	/*
-	/// <summary>
-	/// Implementation of the CEditDlg for editing colour themes
-	/// </summary>
-	public class CEditColourDlg : CEditDlg
-    {
-		protected Label			m_colourNormal;
-		protected Label			m_colourFocus;
-		protected Label			m_colourHotNormal;
-		protected Label         m_colourHotFocus;
-		protected Label			m_colourDisabled;
-
-		protected ColorScheme	m_colourScheme;
-
-		/// <summary>
-		/// Constructor.
-		/// Create the text edit box
-		/// </summary>
-		/// <param name="title">The dialog title</param>
-		/// <param name="initialScheme">Initial colour scheme</param>
-		public CEditColourDlg(string title, ColorScheme initialScheme)
-			: base(title)
-		{
-			m_colourScheme = initialScheme;
-
-			m_colourNormal = new Label()
-			{
-				X = 4,
-				Y = 4,
-				Width = Dim.Fill(),
-				Text = $"Normal Bg: {m_colourScheme.Normal.Background} | Fg: {m_colourScheme.Normal.Foreground}",
-			};
-			m_colourFocus = new Label()
-			{
-				X = 4,
-				Y = 5,
-				Width = Dim.Fill(),
-				Text = $"Focus Bg: {m_colourScheme.Focus.Background} | Fg: {m_colourScheme.Focus.Foreground}",
-			};
-			m_colourHotNormal = new Label()
-			{
-				X = 4,
-				Y = 6,
-				Width = Dim.Fill(),
-				Text = $"Hot Normal Bg: {m_colourScheme.HotNormal.Background} | Fg: {m_colourScheme.HotNormal.Foreground}",
-			};
-			m_colourHotFocus = new Label()
-			{
-				X = 4,
-				Y = 7,
-				Width = Dim.Fill(),
-				Text = $"Hot Focus Bg: {m_colourScheme.HotFocus.Background} | Fg: {m_colourScheme.HotFocus.Foreground}",
-			};
-			m_colourDisabled = new Label()
-			{
-				X = 4,
-				Y = 8,
-				Width = Dim.Fill(),
-				Text = $"Disabled Bg: {m_colourScheme.Disabled.Background} | Fg: {m_colourScheme.Disabled.Foreground}",
-			};
-
-			Add(m_colourNormal);
-			Add(m_colourFocus);
-			Add(m_colourHotNormal);
-			Add(m_colourHotFocus);
-			Add(m_colourDisabled);
-		}
-
-		/// <summary>
-		/// Function override.
-		/// If ok button was pressed, modify the node value with the new value
-		/// </summary>
-		/// <param name="node">Refernece to a system attribute node</param>
-		/// <returns>True if ok button was pressed</returns>
-		public override bool Run(ref SystemAttributeNode node)
-		{
-			if(base.Run(ref node))
-			{
-				//node.AttributeValue = m_textEdit.Text.ToString();
-				return true;
-			}
-			return false;
-		}
-	}
-	*/
 }

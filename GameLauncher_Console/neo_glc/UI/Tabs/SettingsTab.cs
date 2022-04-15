@@ -20,8 +20,8 @@ namespace glc
 			: base()
 		{
 			Text = "Settings";
-			m_settingCategoryPanel = new CSettingsCategoriesPanel("Categories", 0, 0, Dim.Percent(40), Dim.Fill(), true, Key.CtrlMask | Key.C);
-			m_settingEditPanel = new CSettingsEditPanel("SystemAttribute", Pos.Percent(40), 0, Dim.Fill(), Dim.Fill(), true, Key.CtrlMask | Key.C);
+			m_settingCategoryPanel = new CSettingsCategoriesPanel("Categories", 0, 0, Dim.Percent(40), Dim.Fill(), true);
+			m_settingEditPanel = new CSettingsEditPanel("SystemAttribute", Pos.Percent(40), 0, Dim.Fill(), Dim.Fill(), true);
 
 			// Hook up the triggers
 			// Event triggers for the list view
