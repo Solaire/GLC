@@ -8,11 +8,11 @@ namespace glc
 {
     public class CPlatformPanel : CFramePanel<CPlatform, TreeView<CPlatformNode>>
     {
-        public CPlatformPanel(List<CPlatform> platforms, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
-            : base(name, x, y, width, height, canFocus, focusShortCut)
+        public CPlatformPanel(List<CPlatform> platforms, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
+            : base(name, x, y, width, height, canFocus)
         {
             m_contentList = platforms;
-            Initialise(name, x, y, width, height, canFocus, focusShortCut);
+            Initialise(name, x, y, width, height, canFocus);
         }
 
         public override void CreateContainerView()
@@ -32,15 +32,15 @@ namespace glc
             {
                 List<PlatformLeafNode> tags = new List<PlatformLeafNode>
                 {
-                    new PlatformLeafNode("Favourites", platform.ID),
-                    new PlatformLeafNode("Installed", platform.ID),
-                    new PlatformLeafNode("Not installed", platform.ID)
+                    new PlatformLeafNode("Favourites", platform.PrimaryKey),
+                    new PlatformLeafNode("Installed", platform.PrimaryKey),
+                    new PlatformLeafNode("Not installed", platform.PrimaryKey)
                 };
 
                 PlatformRootNode root = new PlatformRootNode()
                 {
                     Name = platform.Name,
-                    ID = platform.ID,
+                    ID = platform.PrimaryKey,
                     Tags = tags
                 };
 

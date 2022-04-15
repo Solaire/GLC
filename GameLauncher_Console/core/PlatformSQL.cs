@@ -203,12 +203,12 @@ namespace core
 			m_qryNewPlatform.Name			= platform.Name;
 			m_qryNewPlatform.Description	= platform.Description;
 			m_qryNewPlatform.Path			= platform.Path;
-			m_qryNewPlatform.IsActive		= platform.IsActive;
+			m_qryNewPlatform.IsActive		= platform.IsEnabled;
 			if(m_qryNewPlatform.Insert() != SQLiteErrorCode.Ok)
             {
 				return false;
             }
-			platform.ID = (int)CSqlDB.Instance.Conn.SqlConn.LastInsertRowId;
+			platform.PrimaryKey = (int)CSqlDB.Instance.Conn.SqlConn.LastInsertRowId;
 			return true;
 		}
 

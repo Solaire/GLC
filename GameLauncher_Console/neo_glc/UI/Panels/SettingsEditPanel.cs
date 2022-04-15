@@ -18,19 +18,19 @@ namespace glc
         private CSettingContainer[] m_settingContainers;
         private int m_selectedContainer;
 
-        public CSettingsEditPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
-            : base(name, x, y, width, height, canFocus, focusShortCut)
+        public CSettingsEditPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
+            : base(name, x, y, width, height, canFocus)
         {
             m_settingContainers = new CSettingContainer[4];
-            m_settingContainers[0] = new CSystemAttributeContainer();
+            m_settingContainers[0] = new CSystemSettingsContainer();
             m_settingContainers[1] = new CColourContainer();
-            m_settingContainers[2] = new CPlatformContainer();
-            m_settingContainers[3] = new CTagContainer();
+            m_settingContainers[2] = new CPlatformSettingsContainer();
+            m_settingContainers[3] = new CTagsSettingsContainer();
 
             m_selectedContainer = 0;
 
             //m_contentList = new List<SettingNode>();
-            Initialise(name, x, y, width, height, canFocus, focusShortCut);
+            Initialise(name, x, y, width, height, canFocus);
         }
 
         public override void CreateContainerView()
@@ -107,7 +107,7 @@ namespace glc
     }
 }
 
-#else
+#else // TODO remove
 
 namespace glc
 {

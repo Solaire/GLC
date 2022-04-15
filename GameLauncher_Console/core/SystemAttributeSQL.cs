@@ -21,8 +21,8 @@ namespace core
         private const string FIELD_ATTRIBUTE_DESC  = "AttributeDesc";
         private const string FIELD_ATTRIBUTE_TYPE  = "AttributeType";
 
-        private const string BOOL_VALUE_TRUE  = "true";
-        private const string BOOL_VALUE_FALSE = "false";
+        public const string BOOL_VALUE_TRUE  = "true";
+        public const string BOOL_VALUE_FALSE = "false";
 
         public enum AttributeType
         {
@@ -187,42 +187,42 @@ namespace core
             m_qryAttribute.AttributeValue = node.AttributeValue;
             return (m_qryAttribute.Update() == System.Data.SQLite.SQLiteErrorCode.Ok);
         }
+    }
 
-        /// <summary>
-        /// Structure representing a system attribute node
-        /// </summary>
-        public struct SystemAttributeNode
+    /// <summary>
+    /// Structure representing a system attribute node
+    /// </summary>
+    public struct SystemAttributeNode
+    {
+        public readonly string AttributeName { get; }
+        public readonly string AttributeDescription { get; }
+        public string AttributeValue { get; set; }
+        public CSystemAttributeSQL.AttributeType AttributeType { get; set; }
+
+        public SystemAttributeNode(string name, string description, string value, CSystemAttributeSQL.AttributeType type)
         {
-            public readonly string AttributeName { get; }
-            public readonly string AttributeDescription { get; }
-            public string AttributeValue { get; set; }
-            public AttributeType AttributeType { get; set; }
+            AttributeName = name;
+            AttributeDescription = description;
+            AttributeValue = value;
+            AttributeType = type;
+        }
 
-            public SystemAttributeNode(string name, string description, string value, AttributeType type)
-            {
-                AttributeName = name;
-                AttributeDescription = description;
-                AttributeValue = value;
-                AttributeType = type;
-            }
+        public SystemAttributeNode(CSystemAttributeSQL.CQryAttribute qryAttribute)
+        {
+            AttributeName = qryAttribute.AttributeName;
+            AttributeDescription = qryAttribute.AttributeDesc;
+            AttributeValue = qryAttribute.AttributeValue;
+            AttributeType = (CSystemAttributeSQL.AttributeType)qryAttribute.AttributeType;
+        }
 
-            public SystemAttributeNode(CQryAttribute qryAttribute)
-            {
-                AttributeName = qryAttribute.AttributeName;
-                AttributeDescription = qryAttribute.AttributeDesc;
-                AttributeValue = qryAttribute.AttributeValue;
-                AttributeType = (AttributeType)qryAttribute.AttributeType;
-            }
+        public bool IsTrue()
+        {
+            return AttributeValue.ToLower() == CSystemAttributeSQL.BOOL_VALUE_TRUE;
+        }
 
-            public bool IsTrue()
-            {
-                return AttributeValue.ToLower() == BOOL_VALUE_TRUE;
-            }
-
-            public void SetTrue(bool isTrue)
-            {
-                AttributeValue = (isTrue) ? BOOL_VALUE_TRUE : BOOL_VALUE_FALSE;
-            }
+        public void SetBool(bool isTrue)
+        {
+            AttributeValue = (isTrue) ? CSystemAttributeSQL.BOOL_VALUE_TRUE : CSystemAttributeSQL.BOOL_VALUE_FALSE;
         }
     }
 }

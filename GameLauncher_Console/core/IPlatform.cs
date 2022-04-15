@@ -2,14 +2,14 @@
 
 namespace core
 {
-    public class CBasicPlatform
+    public class CBasicPlatform : IDataNode
     {
         protected readonly string m_name;
         protected readonly string m_description;
         protected readonly string m_path;
 
         protected int    m_id;
-        protected bool   m_isActive;
+        protected bool   m_isEnabled;
 
         /// <summary>
         /// Platform unique name
@@ -29,7 +29,7 @@ namespace core
         /// <summary>
         /// The PlatformID database primary key getter and setter
         /// </summary>
-        public int ID
+        public int PrimaryKey
         {
             get { return m_id; }
             set { m_id = value; }
@@ -38,19 +38,19 @@ namespace core
         /// <summary>
         /// IsActive flag getter and setter
         /// </summary>
-        public bool IsActive
+        public bool IsEnabled
         {
-            get { return m_isActive; }
-            set { m_isActive = value; }
+            get { return m_isEnabled; }
+            set { m_isEnabled = value; }
         }
 
-        public CBasicPlatform(int id, string name, string description, string path, bool isActive)
+        public CBasicPlatform(int id, string name, string description, string path, bool isEnabled)
         {
             m_id = id;
             m_name = name;
             m_description = description;
             m_path = path;
-            m_isActive = isActive;
+            m_isEnabled = isEnabled;
         }
 
         public CBasicPlatform(CPlatformSQL.CQryReadPlatform qry)
@@ -59,7 +59,7 @@ namespace core
             m_name          = qry.Name;
             m_description   = qry.Description;
             m_path          = qry.Path;
-            m_isActive      = qry.IsActive;
+            m_isEnabled     = qry.IsActive;
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace core
         /// <returns>True if this.ID > other.ID</returns>
         public bool SortByID(CPlatform other)
         {
-            return this.ID > other.ID;
+            return this.PrimaryKey > other.PrimaryKey;
         }
     }
 
@@ -150,7 +150,7 @@ namespace core
         /// <param name="newGames">The HashSet containing new games</param>
         protected virtual void SaveNewGames(HashSet<GameObject> newGames)
         {
-            HashSet<GameObject> allGames = CGameSQL.LoadPlatformGames(this.ID);
+            HashSet<GameObject> allGames = CGameSQL.LoadPlatformGames(this.PrimaryKey);
             HashSet<GameObject> gamesToAdd = new HashSet<GameObject>(newGames);
             HashSet<GameObject> gamesToRemove = new HashSet<GameObject>(allGames);
 

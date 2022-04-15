@@ -7,11 +7,11 @@ namespace glc
 {
     public class CGamePanel : CFramePanel<GameObject, ListView>
     {
-        public CGamePanel(List<GameObject> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
-            : base(name, x, y, width, height, canFocus, focusShortCut)
+        public CGamePanel(List<GameObject> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
+            : base(name, x, y, width, height, canFocus)
         {
             m_contentList = games;
-            Initialise(name, x, y, width, height, canFocus, focusShortCut);
+            Initialise(name, x, y, width, height, canFocus);
         }
 
         public override void CreateContainerView()

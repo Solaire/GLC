@@ -20,13 +20,13 @@ namespace glc
 			set { m_contentList = value; }
 		}
 
-		public CFramePanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
+		public CFramePanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
         {
 			m_contentList = new List<T>();
 			m_listSelection = 0;
 		}
 
-		protected void Initialise(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus, Key focusShortCut)
+		protected void Initialise(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
         {
 			// FrameView construction
 			m_frameView = new FrameView(name)
@@ -36,7 +36,6 @@ namespace glc
 				Width = width,
 				Height = height,
 				CanFocus = canFocus,
-				Shortcut = focusShortCut
 			};
 			m_frameView.Title = $"{m_frameView.Title} ({m_frameView.ShortcutTag})";
 			m_frameView.ShortcutAction = () => m_frameView.SetFocus();
@@ -70,7 +69,7 @@ namespace glc
 		{
 			container.Move(col, line);
 			// Equivalent to an interpolated string like $"{Scenarios[item].Name, -widtestname}"; if such a thing were possible
-			var s = ConstructString(item); //String.Format (String.Format ("{{0,{0}}}", 0), Games[item].Title);
+			var s = ConstructString(item);
 			RenderUstr(driver, $"{s}", col, line, width, start);
 		}
 		public virtual void SetMark(int item, bool value)
@@ -87,8 +86,8 @@ namespace glc
 			int maxLength = 0;
 			for(int i = 0; i < ItemList.Count; i++)
 			{
-				var s = ConstructString(i); //String.Format (String.Format ("{{0,{0}}}", length), Games[i].Title);
-				var sc = $"{s}  {GetString(i)}";//$"{s}  {Games[i].Title}";
+				var s = ConstructString(i);
+				var sc = $"{s}  {GetString(i)}";
 				var l = sc.Length;
 				if(l > maxLength)
 				{
