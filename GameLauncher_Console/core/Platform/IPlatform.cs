@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace core
+using core.Game;
+
+namespace core.Platform
 {
     public class CBasicPlatform : IDataNode
     {

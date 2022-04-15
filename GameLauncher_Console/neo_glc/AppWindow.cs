@@ -1,6 +1,7 @@
 ﻿using Terminal.Gui;
 using System.Collections.Generic;
-using core;
+
+using core.Platform;
 using glc.Settings;
 
 namespace glc

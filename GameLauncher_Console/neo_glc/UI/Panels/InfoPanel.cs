@@ -1,8 +1,5 @@
-﻿using NStack;
-using System;
-using System.Collections.Generic;
+﻿using core.Game;
 using Terminal.Gui;
-using core;
 
 namespace glc
 {

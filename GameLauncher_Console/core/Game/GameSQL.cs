@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using SqlDB;
 
-namespace core
+namespace core.Game
 {
     public static class CGameSQL
     {

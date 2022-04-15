@@ -1,7 +1,7 @@
-﻿namespace core
+﻿namespace core.Game
 {
     /// <summary>
-    /// Structure containing information about a game
+    /// Structure describing a row in the game table.
     /// </summary>
     public struct GameObject : System.IEquatable<GameObject>
     {
