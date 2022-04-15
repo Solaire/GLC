@@ -1,8 +1,9 @@
-﻿using Terminal.Gui;
-using core;
-using System.Collections.Generic;
-using Terminal.Gui.Trees;
+﻿using System.Collections.Generic;
 using System.Linq;
+
+using core.Platform;
+using Terminal.Gui;
+using Terminal.Gui.Trees;
 
 namespace glc
 {

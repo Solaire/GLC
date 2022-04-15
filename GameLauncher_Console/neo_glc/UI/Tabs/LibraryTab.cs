@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
+﻿using System.Linq;
 using System.Collections.Generic;
-using NStack;
+
+using core.Platform;
+using core.Game;
+
 using Terminal.Gui;
-using core;
 using Terminal.Gui.Trees;
 
 namespace glc

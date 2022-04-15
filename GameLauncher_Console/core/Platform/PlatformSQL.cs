@@ -1,9 +1,8 @@
-﻿using SqlDB;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
 
-namespace core
+namespace core.Platform
 {
 	/// <summary>
 	/// Static class for platform read/write operations via the database

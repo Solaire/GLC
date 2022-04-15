@@ -1,7 +1,7 @@
-﻿using Terminal.Gui;
-using core;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using core.Game;
+using Terminal.Gui;
 
 namespace glc
 {

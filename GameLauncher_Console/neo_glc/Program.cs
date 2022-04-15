@@ -1,7 +1,4 @@
-﻿using SqlDB;
-using System.Data.SQLite;
-
-namespace glc
+﻿namespace glc
 {
     class Program
     {
