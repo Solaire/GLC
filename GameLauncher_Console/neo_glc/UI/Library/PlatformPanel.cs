@@ -2,23 +2,36 @@
 using System.Linq;
 
 using core.Platform;
+using core.Tag;
+
 using Terminal.Gui;
 using Terminal.Gui.Trees;
 
 namespace glc.UI.Library
 {
-    public class CPlatformPanel : CFramePanel<CBasicPlatform, TreeView<CPlatformNode>>
+    public class CPlatformTreePanel : CFramePanel<CBasicPlatform, TreeView<IPlatformTreeNode>>
     {
-        public CPlatformPanel(List<CBasicPlatform> platforms, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
+        PlatformRootNode m_searchNode;
+        bool m_gotSearchNode;
+
+        public CPlatformTreePanel(List<CBasicPlatform> platforms, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
             : base(name, x, y, width, height, canFocus)
         {
+            m_searchNode = new PlatformRootNode()
+            {
+                Name = "Search",
+                ID = -1,
+                Tags = new List<PlatformTagNode>(),
+            };
+            m_gotSearchNode = false;
+
             m_contentList = platforms;
             Initialise(name, x, y, width, height, canFocus);
         }
 
         public override void CreateContainerView()
         {
-            m_containerView = new TreeView<CPlatformNode>()
+            m_containerView = new TreeView<IPlatformTreeNode>()
             {
                 X = 0,
                 Y = 0,
@@ -31,19 +44,24 @@ namespace glc.UI.Library
 
             foreach(CPlatform platform in m_contentList)
             {
-                List<PlatformLeafNode> tags = new List<PlatformLeafNode>
-                {
-                    new PlatformLeafNode("Favourites", platform.PrimaryKey),
-                    new PlatformLeafNode("Installed", platform.PrimaryKey),
-                    new PlatformLeafNode("Not installed", platform.PrimaryKey)
-                };
-
                 PlatformRootNode root = new PlatformRootNode()
                 {
-                    Name = platform.Name,
-                    ID = platform.PrimaryKey,
-                    Tags = tags
+                    Name    = platform.Name,
+                    ID      = platform.PrimaryKey,
+                    Tags    = new List<PlatformTagNode>()
                 };
+
+                List<TagObject> tags = CTagSQL.GetTagsforPlatform(platform.PrimaryKey);
+
+                foreach(TagObject tag in tags)
+                {
+                    if(!tag.isEnabled)
+                    {
+                        continue;
+                    }
+
+                    root.Tags.Add(new PlatformTagNode(tag.PrimaryKey, tag.Name));
+                }
 
                 m_containerView.AddObject(root);
             }
@@ -53,78 +71,87 @@ namespace glc.UI.Library
 
         public void SetSearchResults(string searchTerm)
         {
-            m_containerView.RemoveAll();
-
-            List<PlatformLeafNode> tags = new List<PlatformLeafNode>
+            if(m_gotSearchNode && m_searchNode.Tags.FindIndex(tag => tag.Name == searchTerm) == -1)
             {
-                new PlatformLeafNode("Favourites", 0),
-                new PlatformLeafNode("Installed", 0),
-                new PlatformLeafNode("Not installed", 0)
-            };
+                m_searchNode.Tags.Add(new PlatformTagNode(0, searchTerm));
+                m_containerView.RefreshObject(m_searchNode);
+                return;
+            }
 
-            PlatformRootNode root = new PlatformRootNode()
-            {
-                Name = "Search",
-                ID = -1,
-                Tags = tags
-            };
-            m_containerView.AddObject(root);
-            m_containerView.AddObjects(m_contentList);
+            IEnumerable<IPlatformTreeNode> existing = new List<IPlatformTreeNode>(m_containerView.Objects);
+            m_containerView.ClearObjects();
+
+            m_searchNode.Tags.Add(new PlatformTagNode(0, searchTerm));
+            m_containerView.AddObject(m_searchNode);
+            m_containerView.AddObjects(existing);
+
+            m_gotSearchNode = true;
         }
     }
 
-    public abstract class CPlatformNode
+    public interface IPlatformTreeNode
     {
         public int ID { get; set; }
+
+        public string Name { get; set; }
     }
 
-    public class PlatformRootNode : CPlatformNode
+    public abstract class CPlatformTreeNode : IPlatformTreeNode
     {
-        public string Name { get; set; }
-        public bool IsExpanded { get; set; }
+        protected int id;
+        protected string name;
 
-        public List<PlatformLeafNode> Tags { get; set; }
+        public int ID
+        {
+            get { return id; }
+            set { id = value; }
+        }
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
 
         public override string ToString()
         {
             return Name;
         }
-
     }
 
-    public class PlatformLeafNode : CPlatformNode
+    public class PlatformRootNode : CPlatformTreeNode
     {
-        public string Tag { get; set; }
+        public bool IsExpanded { get; set; }
 
-        public PlatformLeafNode(string name, int id)
-        {
-            Tag = name;
-            ID = id;
-        }
+        public List<PlatformTagNode> Tags { get; set; }
+    }
 
-        public override string ToString()
+    public class PlatformTagNode : CPlatformTreeNode
+    {
+        public PlatformTagNode(int id, string name)
         {
-            return Tag;
+            this.id = id;
+            this.name = name;
         }
     }
 
-    public class PlatformTreeBuilder : ITreeBuilder<CPlatformNode>
+    public class PlatformTreeBuilder : ITreeBuilder<IPlatformTreeNode>
     {
         public bool SupportsCanExpand => true;
 
-        public bool CanExpand(CPlatformNode model)
+        public bool CanExpand(IPlatformTreeNode model)
         {
             return model is PlatformRootNode;
         }
 
-        public IEnumerable<CPlatformNode> GetChildren(CPlatformNode model)
+        public IEnumerable<IPlatformTreeNode> GetChildren(IPlatformTreeNode model)
         {
             if(model is PlatformRootNode a)
             {
                 return a.Tags;
             }
 
-            return Enumerable.Empty<CPlatformNode>();
+            return Enumerable.Empty<IPlatformTreeNode>();
         }
     }
 }

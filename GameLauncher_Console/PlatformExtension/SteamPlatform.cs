@@ -1,4 +1,5 @@
-﻿using core;
+﻿using core.Platform;
+using core.Game;
 using System.Collections.Generic;
 
 namespace PlatformExtension
@@ -19,26 +20,26 @@ namespace PlatformExtension
         public override HashSet<GameObject> GameScanner()
         {
             //throw new System.NotImplementedException();
-            System.Console.WriteLine("This is the gog platform");
+            System.Console.WriteLine("This is the steam platform");
             return null;
         }
     }
 
     public class CSteamFactory : CPlatformFactory<CPlatform>
     {
-        public CPlatform CreateDefault()
+        public override CPlatform CreateDefault()
         {
             return new CSteamPlatform(-1, GetPlatformName(), "", "", true);
         }
 
-        public CPlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
+        public override CPlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
         {
             return new CSteamPlatform(id, name, description, path, isActive);
         }
 
-        public string GetPlatformName()
+        public override string GetPlatformName()
         {
-            return "Gog";
+            return "Steam";
         }
     }
 }

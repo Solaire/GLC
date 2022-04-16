@@ -20,14 +20,14 @@ namespace core
     {
         private const string DATA_SCHEMA_PATH = "CreateDB.sql";
 
-        protected List<CPlatform> m_platforms;
+        protected List<CBasicPlatform> m_platforms;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         protected CApplicationCore()
         {
-            m_platforms = new List<CPlatform>();
+            m_platforms = new List<CBasicPlatform>();
             Initialise();
         }
 

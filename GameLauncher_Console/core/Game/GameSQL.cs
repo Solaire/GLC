@@ -352,7 +352,10 @@ namespace core.Game
 
             m_qryReadGame.MakeFieldsNull();
             m_qryReadGame.PlatformFK = platformFK;
-            m_qryReadGame.SelectExtraCondition = " AND (IsFavourite = 1)";
+            if(favourites)
+            {
+                m_qryReadGame.SelectExtraCondition = " AND (IsFavourite = 1)";
+            }
             if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do

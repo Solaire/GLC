@@ -196,7 +196,7 @@ namespace core.Platform
 		/// </summary>
 		/// <param name="platform">Instance of CPlatform</param>
 		/// <returns>True if insert was successful</returns>
-		public static bool InsertPlatform(CPlatform platform)
+		public static bool InsertPlatform(CBasicPlatform platform)
         {
 			m_qryNewPlatform.MakeFieldsNull();
 			m_qryNewPlatform.Name			= platform.Name;
