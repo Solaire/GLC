@@ -20,7 +20,7 @@ namespace glc
         /// <summary>
         /// Initialise the app window and UI components
         /// </summary>
-        public static void Initialise(List<CPlatform> platforms)
+        public static void Initialise(List<CBasicPlatform> platforms)
         {
             Application.Init();
             m_topLevel = Application.Top;

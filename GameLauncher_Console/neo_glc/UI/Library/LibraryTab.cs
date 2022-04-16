@@ -13,7 +13,7 @@ namespace glc.UI.Library
     {
 		private static View m_container;
 
-		private static CPlatformPanel	m_platformPanel;
+		private static CPlatformTreePanel   m_platformPanel;
 		private static CGamePanel		m_gamePanel;
 		private static CGameInfoPanel	m_infoPanel;
 
@@ -23,7 +23,7 @@ namespace glc.UI.Library
 			Text = "Library";
 
 			// Construct the panels
-			m_platformPanel = new CPlatformPanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Fill(), true);
+			m_platformPanel = new CPlatformTreePanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Fill(), true);
 
 			List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].PrimaryKey).ToList() : new List<GameObject>();
 			m_gamePanel	= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
@@ -59,7 +59,7 @@ namespace glc.UI.Library
 		/// Handle change in the platform list view
 		/// </summary>
 		/// <param name="e">The event argument</param>
-		private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<CPlatformNode> e)
+		private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<IPlatformTreeNode> e)
         {
 			var val = e.NewValue;
 			if(val == null)
@@ -73,16 +73,20 @@ namespace glc.UI.Library
 				m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID).ToList();
 				m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
 			}
-			else if(val is PlatformLeafNode)
+			else if(val is PlatformTagNode)
             {
-				PlatformLeafNode node = (PlatformLeafNode)val;
-				if(node.Tag.ToLower() == "favourites") // TODO: change
+				PlatformTagNode node = (PlatformTagNode)val;
+				if(node.ID < 0)
+                {
+					// TODO: handle special
+                }
+				else if(node.Name.ToLower() == "favourites") // TODO: change
                 {
 					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, true).ToList();
 				}
 				else
                 {
-					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, node.Tag).ToList();
+					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, node.Name).ToList();
 				}
 				m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
 			}
@@ -92,7 +96,7 @@ namespace glc.UI.Library
             }
 		}
 
-		private static void PlatformListView_ObjectActivated(ObjectActivatedEventArgs<CPlatformNode> obj)
+		private static void PlatformListView_ObjectActivated(ObjectActivatedEventArgs<IPlatformTreeNode> obj)
 		{
 			if(obj.ActivatedObject is PlatformRootNode root)
 			{
@@ -106,7 +110,7 @@ namespace glc.UI.Library
 				}
 				root.IsExpanded = !root.IsExpanded;
 			}
-			else if(obj.ActivatedObject is PlatformLeafNode leaf)
+			else if(obj.ActivatedObject is PlatformTagNode leaf)
             {
 				m_gamePanel.ContainerView.SetFocus();
 			}

@@ -29,6 +29,11 @@ namespace core.Platform
         public string Path { get { return m_path; } }
 
         /// <summary>
+        /// Check if this is a special platform
+        /// </summary>
+        public bool   IsSpecialPlatform { get { return m_id < 0; } }
+
+        /// <summary>
         /// The PlatformID database primary key getter and setter
         /// </summary>
         public int PrimaryKey
