@@ -163,6 +163,7 @@ namespace GameLauncher_Console
 		public const string CFG_UWPLIST		= "list_show_uwp_titles";
 #endif
 		// images only work in conhost (cmd or PowerShell and some 3rd party shells), but not in others, e.g., Windows Terminal, TCC, etc.
+		public const string CFG_ALIASLEN	= "num_alias_max_length";
 		public const string CFG_ICONSIZE	= "num_list_icons_max_size_in_characters";		// only in list mode, icons for all games on left; set to 0 to disable
 		public const string CFG_ICONRES		= "num_list_icons_resolution";					// up to 256, but setting higher than 48 causes icons with 32x32 max size to have a border and become smaller by comparison
 		public const string CFG_IMGSIZE		= "num_selected_image_max_size_in_characters";	// the icon for the selected game on right; set to 0 to disable

@@ -267,7 +267,7 @@ namespace GameLauncher_Console
 				linePercent = 4;
 			}
 			
-			for (int y = point.Y - yCushion; y < point.Y + size.Height + 1; ++y)
+			for (int y = point.Y - yCushion; y < point.Y + size.Height; ++y)
 			{
 				if (y < 0) y = 0;
 				Console.SetCursorPosition(point.X - xCushion - 1, y);

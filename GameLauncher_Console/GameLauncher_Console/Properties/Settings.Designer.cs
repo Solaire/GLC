@@ -339,6 +339,18 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        public ushort num_alias_max_length {
+            get {
+                return ((ushort)(this["num_alias_max_length"]));
+            }
+            set {
+                this["num_alias_max_length"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("2")]
         public ushort num_list_icons_max_size_in_characters {
             get {

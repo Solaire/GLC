@@ -67,8 +67,8 @@ namespace GameLauncher_Console
 		//  0|-------|---------|---------|---------|---------|---------|---------|---------|80
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
-			" * Amazon * Battle.net * Bethesda * Big Fish * Epic * GOG * Indiegala * itch",
-			" * Legacy * Oculus * Origin * Paradox * Steam * Ubisoft * custom",
+			" * Amazon * Battle.net * Big Fish * Epic * GOG * Indiegala * itch * Legacy",
+			" * Oculus * Origin * Paradox * Steam * Ubisoft * custom",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
@@ -91,9 +91,9 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformAmazon());
 			platforms.AddSupportedPlatform(new PlatformArc());
 			platforms.AddSupportedPlatform(new PlatformBattlenet());
-			platforms.AddSupportedPlatform(new PlatformBethesda());
+			//platforms.AddSupportedPlatform(new PlatformBethesda());	// deprecated May 2022
 			platforms.AddSupportedPlatform(new PlatformBigFish());
-			//platforms.AddSupportedPlatform(new PlatformCustom());  // See CPlatform.ScanGames()
+			//platforms.AddSupportedPlatform(new PlatformCustom());		// See CPlatform.ScanGames()
 			platforms.AddSupportedPlatform(new PlatformEpic());
 			platforms.AddSupportedPlatform(new PlatformGOG());
 			platforms.AddSupportedPlatform(new PlatformIGClient());
@@ -883,7 +883,11 @@ namespace GameLauncher_Console
 									PlatformEpic.Launch();
 									break;
 								case GamePlatform.Bethesda:
-									PlatformBethesda.Launch();
+									//PlatformBethesda.Launch();
+									//SetFgColour(cols.errorCC, cols.errorLtCC);
+									CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+									Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+									//Console.ResetColor();
 									break;
 								case GamePlatform.Battlenet:
 									PlatformBattlenet.Launch();
@@ -985,7 +989,7 @@ namespace GameLauncher_Console
 						Console.WriteLine("Frequency : {0}", selectedGame.Frequency);
 						Console.WriteLine("   Rating : {0}", selectedGame.Rating);
 						Console.WriteLine();
-						Console.WriteLine("DEBUG mode - game will not be launched; press Enter to exit...");
+						Console.Write("DEBUG mode - game will not be launched; press Enter to exit...");
 						if (noInteractive)
 							cfgv.imageSize = 0;
 						else
@@ -1003,7 +1007,14 @@ namespace GameLauncher_Console
 							{
 								CConsoleImage.ShowImageBorder(sizeImage, locImage, IMG_BORDER_X_CUSHION, IMG_BORDER_Y_CUSHION);
 								CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, sizeImage, locImage, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
-								Console.SetCursorPosition(0, 8);
+								int ww = Console.WindowWidth;
+								int y = 10;
+								if (ww > 62)
+								{
+									ww = 62;
+									y++;
+								}
+								Console.SetCursorPosition(ww, y);
 							}
 							else
 								CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, sizeImage, locImage, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
@@ -1311,6 +1322,13 @@ namespace GameLauncher_Console
 			{
 				switch (game.Platform)
 				{
+					case GamePlatform.Bethesda:
+						//PlatformBethesda.Launch();
+						//SetFgColour(cols.errorCC, cols.errorLtCC);
+						CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+						Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+						//Console.ResetColor();
+						return false;
 					case GamePlatform.GOG:
 						PlatformGOG.StartGame(game);
 						break;

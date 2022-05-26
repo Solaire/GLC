@@ -1027,6 +1027,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private static void SetNumberDefaults(bool force)
 		{
+			SetDefaultVal(CConfig.CFG_ALIASLEN, force);
 			SetDefaultVal(CConfig.CFG_ICONSIZE, force);
 			SetDefaultVal(CConfig.CFG_ICONRES, force);
 			SetDefaultVal(CConfig.CFG_IMGSIZE, force);

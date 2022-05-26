@@ -1319,6 +1319,8 @@ namespace GameLauncher_Console
 		public static string GetAlias(string title)
 		{
 			string alias = title.ToLower();
+			
+			// remove leading "for", "of", or "to"
 			/*
 			foreach (string prep in new List<string> { "for", "of", "to" })
 			{
@@ -1326,12 +1328,19 @@ namespace GameLauncher_Console
 					alias = alias.Substring(prep.Length + 1);
 			}
 			*/
+
+			// remove leading "the" or "a/an"
 			foreach (string art in articles)
 			{
 				if (alias.StartsWith(art + " "))
 					alias = alias[(art.Length + 1)..];
 			}
 			alias = new string(alias.Where(c => !char.IsWhiteSpace(c) && !char.IsPunctuation(c) && !char.IsSymbol(c)).ToArray());
+			ushort maxLength = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE);
+
+			// truncate if necessary
+			if (alias.Length > maxLength)
+				return alias.Substring(0, maxLength);
 			return alias;
 		}
 

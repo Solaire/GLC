@@ -80,6 +80,9 @@
     <Setting Name="list_show_uwp_titles" Type="System.String" Scope="User">
       <Value Profile="(Default)">Angry Birds 2|Angry Birds Friends|Bloons TD Battles|Bloons Monkey City|Candy Crush Saga|Candy Crush Soda Saga|Candy Crush Jelly Saga|Crossy Road|Minecraft|Phase 10 2|Roblox</Value>
     </Setting>
+    <Setting Name="num_alias_max_length" Type="System.UInt16" Scope="User">
+      <Value Profile="(Default)">15</Value>
+    </Setting>
     <Setting Name="num_list_icons_max_size_in_characters" Type="System.UInt16" Scope="User">
       <Value Profile="(Default)">2</Value>
     </Setting>
