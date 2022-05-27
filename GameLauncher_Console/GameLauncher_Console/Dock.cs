@@ -1196,8 +1196,10 @@ namespace GameLauncher_Console
 						}
 						return false;
 					case GamePlatform.Epic:
-						if ((bool)CConfig.GetConfigBool(CConfig.CFG_USELEG))
+						if ((bool)CConfig.GetConfigBool(CConfig.CFG_USELEG) && 
+							!string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_PATHLEG)))
 						{
+							string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
 							if (OperatingSystem.IsWindows())
 							{
 								CLogger.LogInfo($"Launch: cmd.exe /c '\"" + pathLeg + "\" -y install " + game.ID + " '");
@@ -1305,8 +1307,11 @@ namespace GameLauncher_Console
 			}
 			if (string.IsNullOrEmpty(game.Uninstaller))
 			{
-				if (game.Platform == GamePlatform.Epic && (bool)CConfig.GetConfigBool(CConfig.CFG_USELEG))
+				if (game.Platform == GamePlatform.Epic && 
+					(bool)CConfig.GetConfigBool(CConfig.CFG_USELEG) && 
+					!string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_PATHLEG)))
 				{
+					string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
 					if (OperatingSystem.IsWindows())
 					{
 						CLogger.LogInfo("Launch: cmd.exe /c '\"" + pathLeg + "\" -y uninstall " + game.ID + " '");
