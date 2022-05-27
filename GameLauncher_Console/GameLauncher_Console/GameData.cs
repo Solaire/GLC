@@ -1336,7 +1336,7 @@ namespace GameLauncher_Console
 					alias = alias[(art.Length + 1)..];
 			}
 			alias = new string(alias.Where(c => !char.IsWhiteSpace(c) && !char.IsPunctuation(c) && !char.IsSymbol(c)).ToArray());
-			ushort maxLength = (ushort)CConfig.GetConfigNum(CConfig.CFG_ICONSIZE);
+			ushort maxLength = (ushort)CConfig.GetConfigNum(CConfig.CFG_ALIASLEN);
 
 			// truncate if necessary
 			if (alias.Length > maxLength)
