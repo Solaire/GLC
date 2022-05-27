@@ -1010,6 +1010,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_IMGRTIO, force);
 			SetDefaultVal(CConfig.CFG_IMGBGLEG, force);
 			SetDefaultVal(CConfig.CFG_IMGSCAN, force);
+			SetDefaultVal(CConfig.CFG_SYNCLEG, force);
+			SetDefaultVal(CConfig.CFG_USELEG, force);
 		}
 
 		/// <summary>
@@ -1151,6 +1153,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private static void SetTextDefaults(bool force)
 		{
+			SetDefaultVal(CConfig.CFG_PATHLEG, force);
 			SetDefaultVal(CConfig.CFG_OCULUSID, force);
 			SetDefaultVal(CConfig.CFG_TXTMAINT, force);
 			SetDefaultVal(CConfig.CFG_TXTCFGT, force);

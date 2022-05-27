@@ -61,8 +61,10 @@ namespace GameLauncher_Console
 				try
 				{
                     using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
-                    string strID = Path.GetFileName(file);
-                    string strTitle = GetStringProperty(document.RootElement, "DisplayName");
+					string strID = GetStringProperty(document.RootElement, "AppName");
+					if (string.IsNullOrEmpty(strID))
+						strID = Path.GetFileName(file);
+					string strTitle = GetStringProperty(document.RootElement, "DisplayName");
                     CLogger.LogDebug($"- {strTitle}");
                     string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
                     string strAlias = "";

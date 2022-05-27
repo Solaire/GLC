@@ -159,6 +159,8 @@ namespace GameLauncher_Console
 		public const string CFG_IMGBGLEG	= "flag_image_use_legacy_background_colours";
 		public const string CFG_IMGSCAN		= "flag_image_do_not_do_deep_scan_for_icons";
 		public const string CFG_IMGDOWN		= "flag_image_do_not_download_missing";
+		public const string CFG_SYNCLEG		= "flag_sync_legendary_saves";
+		public const string CFG_USELEG		= "flag_use_legendary_for_epic";
 #if DEBUG
 		public const string CFG_UWPLIST		= "list_show_uwp_titles";
 #endif
@@ -262,6 +264,7 @@ namespace GameLauncher_Console
 		public const string CFG_KEYRATEDN2	= "key_rating_down_2";
 		public const string CFG_KEYDLIMG1	= "key_download_image_1";						// TODO
 		public const string CFG_KEYDLIMG2	= "key_download_image_2";
+		public const string CFG_PATHLEG		= "path_legendary_exe";
 		public const string CFG_TXTMAINT	= "text_main_menu_title";
 		public const string CFG_TXTCFGT		= "text_settings_title";
 		public const string CFG_TXTFILET	= "text_browse_title";

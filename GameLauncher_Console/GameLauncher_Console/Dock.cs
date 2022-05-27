@@ -1195,6 +1195,29 @@ namespace GameLauncher_Console
 							return true;
 						}
 						return false;
+					case GamePlatform.Epic:
+						if ((bool)CConfig.GetConfigBool(CConfig.CFG_USELEG))
+						{
+							if (OperatingSystem.IsWindows())
+							{
+								CLogger.LogInfo($"Launch: cmd.exe /c '\"" + pathLeg + "\" -y install " + game.ID + " '");
+								Process.Start("cmd.exe", "/c '\"" + pathLeg + "\" -y install " + game.ID + " '");
+							}
+							else
+							{
+								CLogger.LogInfo($"Launch: " + pathLeg + " -y install " + game.ID);
+								Process.Start(pathLeg, "-y install " + game.ID);
+							}
+							return true;
+						}
+						else
+						{
+							//SetFgColour(cols.errorCC, cols.errorLtCC);
+							CLogger.LogWarn("Install not supported for this platform.");
+							Console.WriteLine("Install not supported for this platform.");
+							//Console.ResetColor();
+						}
+						return false;
 					case GamePlatform.Uplay:
 						// Some games don't provide a valid ID; provide an error in that case
 						if (game.ID.StartsWith(PlatformUplay.UPLAY_PREFIX))
@@ -1282,10 +1305,27 @@ namespace GameLauncher_Console
 			}
 			if (string.IsNullOrEmpty(game.Uninstaller))
 			{
-				//SetFgColour(cols.errorCC, cols.errorLtCC);
-				CLogger.LogWarn("Uninstaller not found.");
-				Console.WriteLine("An uninstaller wasn't found.");
-				//Console.ResetColor();
+				if (game.Platform == GamePlatform.Epic && (bool)CConfig.GetConfigBool(CConfig.CFG_USELEG))
+				{
+					if (OperatingSystem.IsWindows())
+					{
+						CLogger.LogInfo("Launch: cmd.exe /c '\"" + pathLeg + "\" -y uninstall " + game.ID + " '");
+						Process.Start("cmd.exe", "/c '\"" + pathLeg + "\" -y uninstall " + game.ID + " '");
+					}
+					else
+					{
+						CLogger.LogInfo("Launch: " + pathLeg + " -y uninstall " + game.ID);
+						Process.Start(pathLeg, "-y uninstall " + game.ID);
+					}
+					return true;
+				}
+				else
+				{
+					//SetFgColour(cols.errorCC, cols.errorLtCC);
+					CLogger.LogWarn("Uninstaller not found.");
+					Console.WriteLine("An uninstaller wasn't found.");
+					//Console.ResetColor();
+				}
 				return false;
 			}
 			Console.ResetColor();
@@ -1294,6 +1334,7 @@ namespace GameLauncher_Console
 			Console.WriteLine($"Uninstalling game: {game.Title}");
 			try
 			{
+				CLogger.LogInfo("Launch: " + game.Uninstaller);
 				if (OperatingSystem.IsWindows())
 					StartShellExecute(game.Uninstaller);
 				else
@@ -1329,6 +1370,39 @@ namespace GameLauncher_Console
 						Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
 						//Console.ResetColor();
 						return false;
+					case GamePlatform.Epic:
+						bool useLeg = (bool)CConfig.GetConfigBool(CConfig.CFG_USELEG);
+						bool syncLeg = (bool)CConfig.GetConfigBool(CConfig.CFG_SYNCLEG);
+						string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
+
+						if (useLeg && !string.IsNullOrEmpty(pathLeg))
+						{
+							if (OperatingSystem.IsWindows())
+							{
+								string cmdLine = "\"" + pathLeg + "\" -y launch " + game.ID;
+								CLogger.LogInfo($"Launch: cmd.exe /c '" + cmdLine + " '");
+								if (syncLeg)
+									cmdLine = "\"" + pathLeg + "\" -y sync-saves " + game.ID + " & " + cmdLine + " & \"" + pathLeg + "\" -y sync-saves " + game.ID;
+								Process.Start("cmd.exe", "/c '" + cmdLine + " '");
+							}
+							else
+                            {
+								CLogger.LogInfo($"Launch: " + pathLeg + " -y launch " + game.ID);
+								if (syncLeg)
+									Process.Start(pathLeg, "-y sync-saves " + game.ID);
+								Process.Start(pathLeg, "-y launch " + game.ID);
+								if (syncLeg)
+									Process.Start(pathLeg, "-y sync-saves " + game.ID);
+							}
+						}
+						else
+                        {
+							if (OperatingSystem.IsWindows())
+								StartShellExecute(game.Launch);
+							else
+								Process.Start(game.Launch);
+						}
+						break;
 					case GamePlatform.GOG:
 						PlatformGOG.StartGame(game);
 						break;

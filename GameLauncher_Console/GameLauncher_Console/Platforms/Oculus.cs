@@ -53,12 +53,12 @@ namespace GameLauncher_Console
 		{
             // Stop service (otherwise database is locked)
             ServiceController sc = new("OVRService");
-            bool restartSvc = false;
+            //bool restartSvc = false;
             try
             {
                 if (sc.Status.Equals(ServiceControllerStatus.Running) || sc.Status.Equals(ServiceControllerStatus.StartPending))
                 {
-                    restartSvc = true;
+                    //restartSvc = true;
                     sc.Stop();
                     sc.WaitForStatus(ServiceControllerStatus.Stopped);
                 }

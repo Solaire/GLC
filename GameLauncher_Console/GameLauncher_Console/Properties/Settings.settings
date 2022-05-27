@@ -77,6 +77,12 @@
     <Setting Name="flag_image_do_not_download_missing" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="flag_sync_legendary_saves" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="flag_use_legendary_for_epic" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
     <Setting Name="list_show_uwp_titles" Type="System.String" Scope="User">
       <Value Profile="(Default)">Angry Birds 2|Angry Birds Friends|Bloons TD Battles|Bloons Monkey City|Candy Crush Saga|Candy Crush Soda Saga|Candy Crush Jelly Saga|Crossy Road|Minecraft|Phase 10 2|Roblox</Value>
     </Setting>
@@ -376,6 +382,9 @@
     </Setting>
     <Setting Name="key_download_image_2" Type="System.String" Scope="User">
       <Value Profile="(Default)">NoName</Value>
+    </Setting>
+    <Setting Name="path_legendary_exe" Type="System.String" Scope="User">
+      <Value Profile="(Default)">legendary.exe</Value>
     </Setting>
     <Setting Name="text_main_menu_title" Type="System.String" Scope="User">
       <Value Profile="(Default)">Main Menu</Value>
