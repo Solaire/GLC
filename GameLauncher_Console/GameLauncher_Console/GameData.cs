@@ -37,7 +37,7 @@ namespace GameLauncher_Console
 			Origin = 6,
 			[Description("Epic")]
 			Epic = 7,
-			[Description("Bethesda.net")]
+			[Description("Bethesda.net")]	// deprecated
 			Bethesda = 8,
 			[Description("Battle.net")]
 			Battlenet = 9,
@@ -59,7 +59,7 @@ namespace GameLauncher_Console
 			Paradox = 17,
 			[Description("Plarium Play")]
 			Plarium = 18,
-			[Description("Twitch")]			// TODO
+			[Description("Twitch")]			// deprecated
 			Twitch = 19,
 			[Description("Wargaming.net")]
 			Wargaming = 20,
@@ -74,7 +74,9 @@ namespace GameLauncher_Console
 			[Description("Oculus")]
 			Oculus = 25,
 			[Description("Legacy")]
-			Legacy = 26
+			Legacy = 26,
+			[Description("Riot Client")]
+			Riot = 27
 		}
 
 		public enum Match

@@ -68,7 +68,7 @@ namespace GameLauncher_Console
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
 			" * Amazon * Battle.net * Big Fish * Epic * GOG * Indiegala * itch * Legacy",
-			" * Oculus * Origin * Paradox * Steam * Ubisoft * custom",
+			" * Oculus * Origin * Paradox * Riot * Steam * Ubisoft * custom",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
@@ -103,6 +103,7 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformOrigin());
 			platforms.AddSupportedPlatform(new PlatformParadox());
 			platforms.AddSupportedPlatform(new PlatformPlarium());
+			platforms.AddSupportedPlatform(new PlatformRiot());
 			platforms.AddSupportedPlatform(new PlatformRockstar());
 			platforms.AddSupportedPlatform(new PlatformSteam());
 			platforms.AddSupportedPlatform(new PlatformUplay());
@@ -913,8 +914,7 @@ namespace GameLauncher_Console
 								case GamePlatform.Plarium:
 									PlatformPlarium.Launch();
 									break;
-								case GamePlatform.Twitch:           // TODO?
-									//PlatformTwitch.Launch();
+								case GamePlatform.Twitch:           // deprecated
 									break;
 								case GamePlatform.Wargaming:
 									PlatformWargaming.Launch();
@@ -931,6 +931,9 @@ namespace GameLauncher_Console
 									break;
 								case GamePlatform.Legacy:
 									PlatformLegacy.Launch();
+									break;
+								case GamePlatform.Riot:				// TODO
+									PlatformRiot.Launch();
 									break;
 								default:
 									break;

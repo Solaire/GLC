@@ -59,7 +59,7 @@ namespace GameLauncher_Console
 			Origin = 3,
 			[Description("Epic")]
 			Epic = 4,
-			[Description("Bethesda.net")]
+			[Description("Bethesda.net")]		// deprecated
 			Bethesda = 5,
 			[Description("Battle.net")]
 			Battlenet = 6,
@@ -77,7 +77,7 @@ namespace GameLauncher_Console
 			Paradox = 12,
 			[Description("Plarium Play")]
 			Plarium = 13,
-			[Description("Twitch")]
+			[Description("Twitch")]				// deprecated
 			Twitch = 14,
 			[Description("Wargaming.net")]
 			Wargaming = 15,
@@ -88,17 +88,10 @@ namespace GameLauncher_Console
 			[Description("Oculus")]
 			Oculus = 18,
 			[Description("Legacy")]
-			Legacy = 19
+			Legacy = 19,
+			[Description("Riot Client")]
+			Riot = 20
 		}
-		*/
-
-		// POTENTIAL FUTURE PLATFORMS:
-
-		// Twitch [deprecated, now Amazon Games]
-		/*
-		public const string TWITCH_NAME				= "Twitch";
-		public const string TWITCH_NAME_LONG		= "Twitch";
-		private const string TWITCH_UNREG			= "{DEE70742-F4E9-44CA-B2B9-EE95DCF37295}"; // HKCU64 Uninstall
 		*/
 
 		#region Query definitions
