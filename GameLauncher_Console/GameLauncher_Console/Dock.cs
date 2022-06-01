@@ -68,7 +68,7 @@ namespace GameLauncher_Console
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
 			" * Amazon * Battle.net * Big Fish * Epic * GOG * Indiegala * itch * Legacy",
-			" * Oculus * Origin * Paradox * Riot * Steam * Ubisoft * custom",
+			" * Oculus * Origin * Paradox * Plarium * Riot * Steam * Ubisoft * Wargaming",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",

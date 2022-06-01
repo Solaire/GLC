@@ -12,8 +12,11 @@ This is a simple console program that will scan the system for video games, then
 - Oculus;
 - Origin [soon to be EA Desktop];
 - Paradox Launcher;
+- Plarium Play;
+- Riot Client;
 - Steam;
-- Ubisoft Connect [formerly Uplay].
+- Ubisoft Connect [formerly Uplay];
+- Wargaming.net Game Center.
 
 You can also use it to launch custom programs (see [below](#Using) for instructions).
 
