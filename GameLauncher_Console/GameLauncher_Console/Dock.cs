@@ -51,7 +51,7 @@ namespace GameLauncher_Console
 		public static int m_nSelectedGame = -1;
 		public static int m_nCurrentSelection = 0;
 
-		public static readonly string currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+		public static readonly string currentPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 		public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
 		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" };
 		public static bool noInteractive = false;
@@ -176,7 +176,7 @@ namespace GameLauncher_Console
 					{
 						if (OperatingSystem.IsWindows())
 						{
-							if (PathEnvironmentUpdate.Add(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), false))
+							if (PathEnvironmentUpdate.Add(Path.GetDirectoryName(AppContext.BaseDirectory), false))
 							{
 								CLogger.LogInfo("Added program location to PATH.");
 								Console.WriteLine("Added {0}.exe location to your PATH environment variable.", FILENAME);

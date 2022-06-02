@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using static GameLauncher_Console.CGameData;
 //using static GameLauncher_Console.CRegScanner;
 
@@ -32,7 +33,8 @@ namespace GameLauncher_Console
 
 		public void GetGames(ref CTempGameSet tempGameSet)
         {
-			FindCustomLinkFiles(ref tempGameSet);
+			if (OperatingSystem.IsWindows())
+				FindCustomLinkFiles(ref tempGameSet);
 			FindCustomBinaries(ref tempGameSet);
 		}
 
@@ -40,6 +42,7 @@ namespace GameLauncher_Console
 		/// Search the "CustomGames" folder for file shortcuts (.lnk) to import.
 		/// </summary>
 		/// http://www.saunalahti.fi/janij/blog/2006-12.html#d6d9c7ee-82f9-4781-8594-152efecddae2
+		[SupportedOSPlatform("windows")]
 		private static void FindCustomLinkFiles(ref CTempGameSet tempGameSet)
 		{
 			List<string> fileList = Directory.EnumerateFiles(Path.Combine(CDock.currentPath, CUSTOM_GAME_FOLDER), "*", SearchOption.TopDirectoryOnly).Where(s => s.EndsWith(".lnk")).ToList();
