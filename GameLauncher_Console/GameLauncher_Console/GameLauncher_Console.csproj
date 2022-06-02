@@ -6,7 +6,9 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <!--<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>-->
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishTrimmed>false</PublishTrimmed>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+    <PublishReadyToRun>false</PublishReadyToRun>
     <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
     <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
