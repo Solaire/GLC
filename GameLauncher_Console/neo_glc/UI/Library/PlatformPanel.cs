@@ -71,25 +71,29 @@ namespace glc.UI.Library
 
         public void SetSearchResults(string searchTerm)
         {
+            PlatformTagNode newSearchNode = new PlatformTagNode((int)SpecialPlatformID.cSearch, searchTerm);
             if(!m_gotSearchNode)
             {
                 IEnumerable<IPlatformTreeNode> existing = new List<IPlatformTreeNode>(m_containerView.Objects);
                 m_containerView.ClearObjects();
 
-                m_searchNode.Tags.Add(new PlatformTagNode(0, searchTerm));
+                m_searchNode.Tags.Add(newSearchNode);
                 m_containerView.AddObject(m_searchNode);
                 m_containerView.AddObjects(existing);
 
                 m_gotSearchNode = true;
-                return;
+            }
+            else if(m_searchNode.Tags.FindIndex(tag => tag.Name == searchTerm) == -1)
+            {
+                m_searchNode.Tags.Add(newSearchNode);
+                m_containerView.RefreshObject(m_searchNode);
             }
 
-            if(m_searchNode.Tags.FindIndex(tag => tag.Name == searchTerm) == -1)
+            if(!m_searchNode.IsExpanded)
             {
-                m_searchNode.Tags.Add(new PlatformTagNode(0, searchTerm));
-                m_containerView.RefreshObject(m_searchNode);
-                return;
+                m_containerView.Expand(m_searchNode);
             }
+            m_containerView.GoTo(newSearchNode);
         }
     }
 

@@ -272,11 +272,19 @@ namespace core.Game
         public class CQryGameFuzzySearch : CSqlQry
         {
             public CQryGameFuzzySearch()
-                : base("Game", "(& = ?) AND (& LIKE '%?%')", "")
+                : base("Game", "(& LIKE '%?%')", "")
             {
-                m_sqlRow[FIELD_GAME_ID]      = new CSqlFieldInteger(FIELD_GAME_ID       , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_PLATFORM_FK]  = new CSqlFieldInteger(FIELD_PLATFORM_FK   , CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
-                m_sqlRow[FIELD_TITLE]        = new CSqlFieldString(FIELD_TITLE          , CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
+                m_sqlRow[FIELD_TITLE]       = new CSqlFieldString(FIELD_TITLE           , CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
+                m_sqlRow[FIELD_GAME_ID]     = new CSqlFieldInteger(FIELD_GAME_ID        , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_PLATFORM_FK] = new CSqlFieldInteger(FIELD_PLATFORM_FK    , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IDENTIFIER]  = new CSqlFieldString(FIELD_IDENTIFIER      , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ALIAS]       = new CSqlFieldString(FIELD_ALIAS           , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_LAUNCH]      = new CSqlFieldString(FIELD_LAUNCH          , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IS_FAVOURITE]= new CSqlFieldBoolean(FIELD_IS_FAVOURITE   , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IS_HIDDEN]   = new CSqlFieldBoolean(FIELD_IS_HIDDEN      , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_FREQUENCY]   = new CSqlFieldDouble(FIELD_FREQUENCY       , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ICON]        = new CSqlFieldString(FIELD_ICON            , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_TAG]         = new CSqlFieldString(FIELD_TAG             , CSqlField.QryFlag.cSelRead);
             }
             public int GameID
             {
@@ -288,10 +296,50 @@ namespace core.Game
                 get { return m_sqlRow[FIELD_PLATFORM_FK].Integer; }
                 set { m_sqlRow[FIELD_PLATFORM_FK].Integer = value; }
             }
+            public string Identifier
+            {
+                get { return m_sqlRow[FIELD_IDENTIFIER].String; }
+                set { m_sqlRow[FIELD_IDENTIFIER].String = value; }
+            }
             public string Title
             {
                 get { return m_sqlRow[FIELD_TITLE].String; }
                 set { m_sqlRow[FIELD_TITLE].String = value; }
+            }
+            public string Alias
+            {
+                get { return m_sqlRow[FIELD_ALIAS].String; }
+                set { m_sqlRow[FIELD_ALIAS].String = value; }
+            }
+            public string Launch
+            {
+                get { return m_sqlRow[FIELD_LAUNCH].String; }
+                set { m_sqlRow[FIELD_LAUNCH].String = value; }
+            }
+            public bool IsFavourite
+            {
+                get { return m_sqlRow[FIELD_IS_FAVOURITE].Bool; }
+                set { m_sqlRow[FIELD_IS_FAVOURITE].Bool = value; }
+            }
+            public bool IsHidden
+            {
+                get { return m_sqlRow[FIELD_IS_HIDDEN].Bool; }
+                set { m_sqlRow[FIELD_IS_HIDDEN].Bool = value; }
+            }
+            public double Frequency
+            {
+                get { return m_sqlRow[FIELD_FREQUENCY].Double; }
+                set { m_sqlRow[FIELD_FREQUENCY].Double = value; }
+            }
+            public string Icon // TODO: maybe different type (image, bytearray?)
+            {
+                get { return m_sqlRow[FIELD_ICON].String; }
+                set { m_sqlRow[FIELD_ICON].String = value; }
+            }
+            public string Tag
+            {
+                get { return m_sqlRow[FIELD_TAG].String; }
+                set { m_sqlRow[FIELD_TAG].String = value; }
             }
         }
 
@@ -380,6 +428,23 @@ namespace core.Game
                 {
                     databaseGames.Add(new GameObject(m_qryReadGame));
                 } while(m_qryReadGame.Fetch());
+            }
+
+            return databaseGames;
+        }
+
+
+        public static HashSet<GameObject> GameSearch(string searchTerm)
+        {
+            HashSet<GameObject> databaseGames = new HashSet<GameObject>();
+            m_qryGameFuzzySearch.MakeFieldsNull();
+            m_qryGameFuzzySearch.Title = searchTerm;
+            if(m_qryGameFuzzySearch.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            {
+                do
+                {
+                    databaseGames.Add(new GameObject(m_qryGameFuzzySearch));
+                } while(m_qryGameFuzzySearch.Fetch());
             }
 
             return databaseGames;
