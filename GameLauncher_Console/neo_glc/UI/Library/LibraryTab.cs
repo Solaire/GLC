@@ -76,15 +76,15 @@ namespace glc.UI.Library
 			else if(val is PlatformTagNode)
             {
 				PlatformTagNode node = (PlatformTagNode)val;
-				if(node.ID < 0)
-                {
-					// TODO: handle special
+				if(node.ID == (int)SpecialPlatformID.cSearch) // Handle search
+				{
+					m_gamePanel.ContentList = CGameSQL.GameSearch(node.Name).ToList();
                 }
-				else if(node.Name.ToLower() == "favourites") // TODO: change
+				else if(node.ID == (int)SpecialPlatformID.cFavourites) // Handle favourite games
                 {
 					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, true).ToList();
 				}
-				else
+				else if(node.ID > 0) // Handle platform nodes
                 {
 					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, node.Name).ToList();
 				}

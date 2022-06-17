@@ -161,6 +161,22 @@
             this.Tag        = qry.Tag;
         }
 
+        // TODO: Remove later
+        public GameObject(CGameSQL.CQryGameFuzzySearch qry)
+        {
+            this.ID         = qry.GameID;
+            this.PlatformFK = qry.PlatformFK;
+            this.Identifier = qry.Identifier;
+            this.Title      = qry.Title;
+            this.Alias      = qry.Alias;
+            this.Launch     = qry.Launch;
+            this.Frequency  = qry.Frequency;
+            this.IsFavourite= qry.IsFavourite;
+            this.IsHidden   = qry.IsHidden;
+            this.Icon       = qry.Icon;
+            this.Tag        = qry.Tag;
+        }
+
         /// <summary>
         /// Set the game's favourite flag and update database row
         /// </summary>

@@ -544,6 +544,11 @@ namespace core
             //while(-1 < vMask && vMask < whereCondition.Length)
             while(true)
             {
+                // TODO:
+                // At the moment, if we have a masked parameter (& = ?),
+                // the first columns will be used.
+                // Proper implementation should find them and use them in order,
+                // regardless where they are in the array
                 fMask = whereCondition.IndexOf(M_FIELD_MASK, fMask, false);
                 if(fMask == -1)
                 {
