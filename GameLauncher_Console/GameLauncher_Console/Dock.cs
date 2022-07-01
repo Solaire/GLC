@@ -51,7 +51,7 @@ namespace GameLauncher_Console
 		public static int m_nSelectedGame = -1;
 		public static int m_nCurrentSelection = 0;
 
-		public static readonly string currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+		public static readonly string currentPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 		public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
 		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" };
 		public static bool noInteractive = false;
@@ -67,8 +67,8 @@ namespace GameLauncher_Console
 		//  0|-------|---------|---------|---------|---------|---------|---------|---------|80
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
-			" * Amazon * Battle.net * Bethesda * Big Fish * Epic * GOG * Indiegala * itch",
-			" * Oculus * Origin * Paradox * Steam * Ubisoft * custom",
+			" * Amazon * Battle.net * Big Fish * Epic * GOG * Indiegala * itch * Legacy",
+			" * Oculus * Origin * Paradox * Plarium * Riot * Steam * Ubisoft * Wargaming",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
@@ -91,17 +91,19 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformAmazon());
 			platforms.AddSupportedPlatform(new PlatformArc());
 			platforms.AddSupportedPlatform(new PlatformBattlenet());
-			platforms.AddSupportedPlatform(new PlatformBethesda());
+			//platforms.AddSupportedPlatform(new PlatformBethesda());	// deprecated May 2022
 			platforms.AddSupportedPlatform(new PlatformBigFish());
-			//platforms.AddSupportedPlatform(new PlatformCustom());  // See CPlatform.ScanGames()
+			//platforms.AddSupportedPlatform(new PlatformCustom());		// See CPlatform.ScanGames()
 			platforms.AddSupportedPlatform(new PlatformEpic());
 			platforms.AddSupportedPlatform(new PlatformGOG());
 			platforms.AddSupportedPlatform(new PlatformIGClient());
 			platforms.AddSupportedPlatform(new PlatformItch());
+			platforms.AddSupportedPlatform(new PlatformLegacy());
 			platforms.AddSupportedPlatform(new PlatformOculus());
 			platforms.AddSupportedPlatform(new PlatformOrigin());
 			platforms.AddSupportedPlatform(new PlatformParadox());
 			platforms.AddSupportedPlatform(new PlatformPlarium());
+			platforms.AddSupportedPlatform(new PlatformRiot());
 			platforms.AddSupportedPlatform(new PlatformRockstar());
 			platforms.AddSupportedPlatform(new PlatformSteam());
 			platforms.AddSupportedPlatform(new PlatformUplay());
@@ -174,7 +176,7 @@ namespace GameLauncher_Console
 					{
 						if (OperatingSystem.IsWindows())
 						{
-							if (PathEnvironmentUpdate.Add(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), false))
+							if (PathEnvironmentUpdate.Add(Path.GetDirectoryName(AppContext.BaseDirectory), false))
 							{
 								CLogger.LogInfo("Added program location to PATH.");
 								Console.WriteLine("Added {0}.exe location to your PATH environment variable.", FILENAME);
@@ -882,7 +884,11 @@ namespace GameLauncher_Console
 									PlatformEpic.Launch();
 									break;
 								case GamePlatform.Bethesda:
-									PlatformBethesda.Launch();
+									//PlatformBethesda.Launch();
+									//SetFgColour(cols.errorCC, cols.errorLtCC);
+									CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+									Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+									//Console.ResetColor();
 									break;
 								case GamePlatform.Battlenet:
 									PlatformBattlenet.Launch();
@@ -908,8 +914,7 @@ namespace GameLauncher_Console
 								case GamePlatform.Plarium:
 									PlatformPlarium.Launch();
 									break;
-								case GamePlatform.Twitch:           // TODO?
-									//PlatformTwitch.Launch();
+								case GamePlatform.Twitch:           // deprecated
 									break;
 								case GamePlatform.Wargaming:
 									PlatformWargaming.Launch();
@@ -923,6 +928,12 @@ namespace GameLauncher_Console
 									break;
 								case GamePlatform.Oculus:
 									PlatformOculus.Launch();
+									break;
+								case GamePlatform.Legacy:
+									PlatformLegacy.Launch();
+									break;
+								case GamePlatform.Riot:				// TODO
+									PlatformRiot.Launch();
 									break;
 								default:
 									break;
@@ -981,7 +992,7 @@ namespace GameLauncher_Console
 						Console.WriteLine("Frequency : {0}", selectedGame.Frequency);
 						Console.WriteLine("   Rating : {0}", selectedGame.Rating);
 						Console.WriteLine();
-						Console.WriteLine("DEBUG mode - game will not be launched; press Enter to exit...");
+						Console.Write("DEBUG mode - game will not be launched; press Enter to exit...");
 						if (noInteractive)
 							cfgv.imageSize = 0;
 						else
@@ -999,7 +1010,14 @@ namespace GameLauncher_Console
 							{
 								CConsoleImage.ShowImageBorder(sizeImage, locImage, IMG_BORDER_X_CUSHION, IMG_BORDER_Y_CUSHION);
 								CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, sizeImage, locImage, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
-								Console.SetCursorPosition(0, 8);
+								int ww = Console.WindowWidth;
+								int y = 10;
+								if (ww > 62)
+								{
+									ww = 62;
+									y++;
+								}
+								Console.SetCursorPosition(ww, y);
 							}
 							else
 								CConsoleImage.ShowImage(m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, sizeImage, locImage, CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
@@ -1180,6 +1198,31 @@ namespace GameLauncher_Console
 							return true;
 						}
 						return false;
+					case GamePlatform.Epic:
+						if ((bool)CConfig.GetConfigBool(CConfig.CFG_USELEG) && 
+							!string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_PATHLEG)))
+						{
+							string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
+							if (OperatingSystem.IsWindows())
+							{
+								CLogger.LogInfo($"Launch: cmd.exe /c '\"" + pathLeg + "\" -y install " + game.ID + " '");
+								Process.Start("cmd.exe", "/c '\"" + pathLeg + "\" -y install " + game.ID + " '");
+							}
+							else
+							{
+								CLogger.LogInfo($"Launch: " + pathLeg + " -y install " + game.ID);
+								Process.Start(pathLeg, "-y install " + game.ID);
+							}
+							return true;
+						}
+						else
+						{
+							//SetFgColour(cols.errorCC, cols.errorLtCC);
+							CLogger.LogWarn("Install not supported for this platform.");
+							Console.WriteLine("Install not supported for this platform.");
+							//Console.ResetColor();
+						}
+						return false;
 					case GamePlatform.Uplay:
 						// Some games don't provide a valid ID; provide an error in that case
 						if (game.ID.StartsWith(PlatformUplay.UPLAY_PREFIX))
@@ -1267,10 +1310,30 @@ namespace GameLauncher_Console
 			}
 			if (string.IsNullOrEmpty(game.Uninstaller))
 			{
-				//SetFgColour(cols.errorCC, cols.errorLtCC);
-				CLogger.LogWarn("Uninstaller not found.");
-				Console.WriteLine("An uninstaller wasn't found.");
-				//Console.ResetColor();
+				if (game.Platform == GamePlatform.Epic && 
+					(bool)CConfig.GetConfigBool(CConfig.CFG_USELEG) && 
+					!string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_PATHLEG)))
+				{
+					string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
+					if (OperatingSystem.IsWindows())
+					{
+						CLogger.LogInfo("Launch: cmd.exe /c '\"" + pathLeg + "\" -y uninstall " + game.ID + " '");
+						Process.Start("cmd.exe", "/c '\"" + pathLeg + "\" -y uninstall " + game.ID + " '");
+					}
+					else
+					{
+						CLogger.LogInfo("Launch: " + pathLeg + " -y uninstall " + game.ID);
+						Process.Start(pathLeg, "-y uninstall " + game.ID);
+					}
+					return true;
+				}
+				else
+				{
+					//SetFgColour(cols.errorCC, cols.errorLtCC);
+					CLogger.LogWarn("Uninstaller not found.");
+					Console.WriteLine("An uninstaller wasn't found.");
+					//Console.ResetColor();
+				}
 				return false;
 			}
 			Console.ResetColor();
@@ -1279,6 +1342,7 @@ namespace GameLauncher_Console
 			Console.WriteLine($"Uninstalling game: {game.Title}");
 			try
 			{
+				CLogger.LogInfo("Launch: " + game.Uninstaller);
 				if (OperatingSystem.IsWindows())
 					StartShellExecute(game.Uninstaller);
 				else
@@ -1307,6 +1371,46 @@ namespace GameLauncher_Console
 			{
 				switch (game.Platform)
 				{
+					case GamePlatform.Bethesda:
+						//PlatformBethesda.Launch();
+						//SetFgColour(cols.errorCC, cols.errorLtCC);
+						CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+						Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+						//Console.ResetColor();
+						return false;
+					case GamePlatform.Epic:
+						bool useLeg = (bool)CConfig.GetConfigBool(CConfig.CFG_USELEG);
+						bool syncLeg = (bool)CConfig.GetConfigBool(CConfig.CFG_SYNCLEG);
+						string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
+
+						if (useLeg && !string.IsNullOrEmpty(pathLeg))
+						{
+							if (OperatingSystem.IsWindows())
+							{
+								string cmdLine = "\"" + pathLeg + "\" -y launch " + game.ID;
+								CLogger.LogInfo($"Launch: cmd.exe /c '" + cmdLine + " '");
+								if (syncLeg)
+									cmdLine = "\"" + pathLeg + "\" -y sync-saves " + game.ID + " & " + cmdLine + " & \"" + pathLeg + "\" -y sync-saves " + game.ID;
+								Process.Start("cmd.exe", "/c '" + cmdLine + " '");
+							}
+							else
+                            {
+								CLogger.LogInfo($"Launch: " + pathLeg + " -y launch " + game.ID);
+								if (syncLeg)
+									Process.Start(pathLeg, "-y sync-saves " + game.ID);
+								Process.Start(pathLeg, "-y launch " + game.ID);
+								if (syncLeg)
+									Process.Start(pathLeg, "-y sync-saves " + game.ID);
+							}
+						}
+						else
+                        {
+							if (OperatingSystem.IsWindows())
+								StartShellExecute(game.Launch);
+							else
+								Process.Start(game.Launch);
+						}
+						break;
 					case GamePlatform.GOG:
 						PlatformGOG.StartGame(game);
 						break;
@@ -1924,6 +2028,13 @@ namespace GameLauncher_Console
 				}
 			}
 		}
+
+		[SupportedOSPlatform("windows")]
+		public static Guid GetGuid()
+		{
+            using RegistryKey key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", RegistryKeyPermissionCheck.ReadSubTree); // HKLM64
+            return Guid.Parse((string)key.GetValue("MachineGuid"));
+        }
 
 		[SupportedOSPlatform("windows")]
 		public static void StartShellExecute(string file)

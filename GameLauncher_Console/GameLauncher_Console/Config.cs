@@ -159,10 +159,13 @@ namespace GameLauncher_Console
 		public const string CFG_IMGBGLEG	= "flag_image_use_legacy_background_colours";
 		public const string CFG_IMGSCAN		= "flag_image_do_not_do_deep_scan_for_icons";
 		public const string CFG_IMGDOWN		= "flag_image_do_not_download_missing";
+		public const string CFG_SYNCLEG		= "flag_sync_legendary_saves";
+		public const string CFG_USELEG		= "flag_use_legendary_for_epic";
 #if DEBUG
 		public const string CFG_UWPLIST		= "list_show_uwp_titles";
 #endif
 		// images only work in conhost (cmd or PowerShell and some 3rd party shells), but not in others, e.g., Windows Terminal, TCC, etc.
+		public const string CFG_ALIASLEN	= "num_alias_max_length";
 		public const string CFG_ICONSIZE	= "num_list_icons_max_size_in_characters";		// only in list mode, icons for all games on left; set to 0 to disable
 		public const string CFG_ICONRES		= "num_list_icons_resolution";					// up to 256, but setting higher than 48 causes icons with 32x32 max size to have a border and become smaller by comparison
 		public const string CFG_IMGSIZE		= "num_selected_image_max_size_in_characters";	// the icon for the selected game on right; set to 0 to disable
@@ -261,6 +264,7 @@ namespace GameLauncher_Console
 		public const string CFG_KEYRATEDN2	= "key_rating_down_2";
 		public const string CFG_KEYDLIMG1	= "key_download_image_1";						// TODO
 		public const string CFG_KEYDLIMG2	= "key_download_image_2";
+		public const string CFG_PATHLEG		= "path_legendary_exe";
 		public const string CFG_TXTMAINT	= "text_main_menu_title";
 		public const string CFG_TXTCFGT		= "text_settings_title";
 		public const string CFG_TXTFILET	= "text_browse_title";

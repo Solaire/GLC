@@ -325,6 +325,30 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool flag_sync_legendary_saves {
+            get {
+                return ((bool)(this["flag_sync_legendary_saves"]));
+            }
+            set {
+                this["flag_sync_legendary_saves"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_use_legendary_for_epic {
+            get {
+                return ((bool)(this["flag_use_legendary_for_epic"]));
+            }
+            set {
+                this["flag_use_legendary_for_epic"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Angry Birds 2|Angry Birds Friends|Bloons TD Battles|Bloons Monkey City|Candy Crus" +
             "h Saga|Candy Crush Soda Saga|Candy Crush Jelly Saga|Crossy Road|Minecraft|Phase " +
             "10 2|Roblox")]
@@ -334,6 +358,18 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["list_show_uwp_titles"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        public ushort num_alias_max_length {
+            get {
+                return ((ushort)(this["num_alias_max_length"]));
+            }
+            set {
+                this["num_alias_max_length"] = value;
             }
         }
         
@@ -1510,6 +1546,18 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["key_download_image_2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("legendary.exe")]
+        public string path_legendary_exe {
+            get {
+                return ((string)(this["path_legendary_exe"]));
+            }
+            set {
+                this["path_legendary_exe"] = value;
             }
         }
         

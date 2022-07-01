@@ -37,7 +37,7 @@ namespace GameLauncher_Console
 #endif
 			Application.EnableVisualStyles();
 
-			string currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+			string currentPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 			string imgFolder = Path.Combine(currentPath, IMAGE_FOLDER_NAME);
 			string gameFolder = Path.Combine(currentPath, GAME_FOLDER_NAME);
 

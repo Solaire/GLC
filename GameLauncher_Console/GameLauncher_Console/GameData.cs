@@ -37,7 +37,7 @@ namespace GameLauncher_Console
 			Origin = 6,
 			[Description("Epic")]
 			Epic = 7,
-			[Description("Bethesda.net")]
+			[Description("Bethesda.net")]	// deprecated
 			Bethesda = 8,
 			[Description("Battle.net")]
 			Battlenet = 9,
@@ -59,7 +59,7 @@ namespace GameLauncher_Console
 			Paradox = 17,
 			[Description("Plarium Play")]
 			Plarium = 18,
-			[Description("Twitch")]			// TODO
+			[Description("Twitch")]			// deprecated
 			Twitch = 19,
 			[Description("Wargaming.net")]
 			Wargaming = 20,
@@ -72,7 +72,11 @@ namespace GameLauncher_Console
 			[Description("Microsoft Store")] // TODO
 			Microsoft = 24,
 			[Description("Oculus")]
-			Oculus = 25
+			Oculus = 25,
+			[Description("Legacy")]
+			Legacy = 26,
+			[Description("Riot Client")]
+			Riot = 27
 		}
 
 		public enum Match
@@ -1317,6 +1321,8 @@ namespace GameLauncher_Console
 		public static string GetAlias(string title)
 		{
 			string alias = title.ToLower();
+			
+			// remove leading "for", "of", or "to"
 			/*
 			foreach (string prep in new List<string> { "for", "of", "to" })
 			{
@@ -1324,12 +1330,19 @@ namespace GameLauncher_Console
 					alias = alias.Substring(prep.Length + 1);
 			}
 			*/
+
+			// remove leading "the" or "a/an"
 			foreach (string art in articles)
 			{
 				if (alias.StartsWith(art + " "))
 					alias = alias[(art.Length + 1)..];
 			}
 			alias = new string(alias.Where(c => !char.IsWhiteSpace(c) && !char.IsPunctuation(c) && !char.IsSymbol(c)).ToArray());
+			ushort maxLength = (ushort)CConfig.GetConfigNum(CConfig.CFG_ALIASLEN);
+
+			// truncate if necessary
+			if (alias.Length > maxLength)
+				return alias.Substring(0, maxLength);
 			return alias;
 		}
 

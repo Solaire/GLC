@@ -3,17 +3,20 @@
 This is a simple console program that will scan the system for video games, then allow the user to quickly launch any of these games from a single location, without having to store the icons on the desktop or to remember which client (Steam or Epic, etc.) to launch. The program currently supports the following platforms:
 - Amazon Games;
 - Battle&period;net;
-- Bethesda&period;net Launcher;
 - Big Fish Games;
 - Epic Games Launcher;
 - GOG Galaxy;
 - Indiegala Client;
 - itch;
+- Legacy Games;
 - Oculus;
-- Origin (soon to be EA Desktop);
+- Origin [soon to be EA Desktop];
 - Paradox Launcher;
+- Plarium Play;
+- Riot Client;
 - Steam;
-- Ubisoft Connect (formerly Uplay).
+- Ubisoft Connect [formerly Uplay];
+- Wargaming.net Game Center.
 
 You can also use it to launch custom programs (see [below](#Using) for instructions).
 
@@ -40,9 +43,9 @@ An interactive console allows the user to navigate via menus using the arrows an
 
 You can edit glc.ini (or glc-cfg.json in v1.1) to change the default configuration options, including custom keys, colours, text, input, layout, sorting, images, etc.
 
-To manually add programs, place file shortcuts or .exe executables in the ".\customGames" folder found in the same directory as the application, and use the rescan feature to load them into the program. It is recommended to use shortcuts instead of executables, as .exe files often require external assets and therefore may not work properly.
+To manually add programs, place file shortcuts or .exe executables in the ".\CustomGames" folder found in the same directory as the application, and use the rescan feature to load them into the program. It is recommended to use shortcuts instead of executables, as .exe files often require external assets and therefore may not work properly.
 
-To customise an image, place files with the same titles in the ".\customImages" folder (supports ICO, BMP, PNG, GIF, JPEG, TIFF, and EPRT formats).
+To customise an image, place files with the same titles in the ".\CustomImages" folder (supports ICO, BMP, PNG, GIF, JPEG, TIFF, and EPRT formats).
 
 ## [GLC Wiki](../../wiki)
 ***See the [wiki](../../wiki) for [Known Issues](../../wiki/Known-Issues), [Changelog](../../wiki/Changelog), and more information.***

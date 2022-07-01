@@ -836,7 +836,7 @@ namespace GameLauncher_Console
 						return (int)DockSelection.cSel_Alias; // Set alias for insert mode or command line parameter
 				}
 				else if (key == keys.scanCK1 || key == keys.scanCK2)
-					return (int)DockSelection.cSel_Rescan; // Rescan the registry and the 'customGames' folder for new games
+					return (int)DockSelection.cSel_Rescan; // Rescan the registry and the 'CustomGames' folder for new games
 
 			} while (key != keys.selectCK1 && key != keys.selectCK2);
 			

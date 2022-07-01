@@ -267,7 +267,7 @@ namespace GameLauncher_Console
 				linePercent = 4;
 			}
 			
-			for (int y = point.Y - yCushion; y < point.Y + size.Height + 1; ++y)
+			for (int y = point.Y - yCushion; y < point.Y + size.Height; ++y)
 			{
 				if (y < 0) y = 0;
 				Console.SetCursorPosition(point.X - xCushion - 1, y);
@@ -531,6 +531,10 @@ namespace GameLauncher_Console
                         icon = new Icon(Properties.Resources._24, res, res);
                     else if (platform.StartsWith(GetPlatformString(25)))
                         icon = new Icon(Properties.Resources._25, res, res);
+                    else if (platform.StartsWith(GetPlatformString(26)))
+                        icon = new Icon(Properties.Resources._26, res, res);
+                    else if (platform.StartsWith(GetPlatformString(27)))
+                        icon = new Icon(Properties.Resources._27, res, res);
                     else if (platform.Equals(CConfig.GetConfigString(CConfig.CFG_TXTCFGT))) // Settings
                         icon = new Icon(Properties.Resources.settings, res, res);
                     else

@@ -10,7 +10,7 @@ using static GameLauncher_Console.CRegScanner;
 
 namespace GameLauncher_Console
 {
-	// Bethesda.net Launcher
+	// Bethesda.net Launcher [DEPRECATED MAY 2022]
 	// [installed games only]
 	public class PlatformBethesda : IPlatform
     {

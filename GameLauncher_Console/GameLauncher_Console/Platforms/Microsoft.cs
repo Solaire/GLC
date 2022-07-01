@@ -285,6 +285,9 @@ namespace GameLauncher_Console
 			/*
 			PowerShell ps = PowerShell.Create();
 			ps.AddCommand("Find-Package");
+
+			//or maybe: ps.AddCommand("Get-StartApps | where{$_.AppID -like '*!*'}")
+
 			foreach (PSObject result in ps.Invoke())
 			{
 				CLogger.LogDebug(result);
