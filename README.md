@@ -33,7 +33,9 @@ An interactive console allows the user to navigate via menus using the arrows an
 - Flag favourites;
 - Create a Desktop shortcut, or export a group of shortcuts to a given location;
 - Uninstall a game;
-  - Uninstall not currently available for some platforms (e.g., Epic, Indiagala, itch).
+  - Uninstall not currently available for some platforms (e.g., Indiagala, itch).
+- Install owned games;
+  - Non-installed games only supported for some platforms (for Steam, user profile must be set to public)
 - Change between grid/list mode;
 - Change between light/dark mode.
   - Colours can be further customised; see below.
@@ -47,15 +49,19 @@ To manually add programs, place file shortcuts or .exe executables in the ".\Cus
 
 To customise an image, place files with the same titles in the ".\CustomImages" folder (supports ICO, BMP, PNG, GIF, JPEG, TIFF, and EPRT formats).
 
+Legendary is recommended for Epic Games (doesn't require launcher to start; and not-installed games are shown).  [Download legendary.exe](/derrod/legendary/releases/latest) and place it in the same folder (or set the path in glc.ini).  Run "legendary auth" and login to Epic.
+
 ## [GLC Wiki](../../wiki)
 ***See the [wiki](../../wiki) for [Known Issues](../../wiki/Known-Issues), [Changelog](../../wiki/Changelog), and more information.***
 
 ## Building from source
-Clone the repo and build. The program uses following nuGet packages:
-- System.Text.Json for JSON parsing;
-- System.Data.SQLite for database parsing (Amazon and itch);
-- HtmlAgilityPack for HTML parsing (Steam not-installed games);
-- Costura.Fody for merging the binary file with dlls.
+After cloning the repo, either run "dotnet publish --configuration Release" or use Visual Studio (right-click the GameLauncher_Console project and choose Publish).
+
+The program uses following NuGet packages:
+- HtmlAgilityPack for HTML parsing (Steam non-installed games);
+- protobuf-net for database parsing (Battle.net);
+- System.Data.SQLite for database parsing (v2 game database, Amazon, GOG, itch, Oculus);
+- System.Text.Json for JSON parsing (v1 game database, many platforms).
 
 ## Contributing
 You can support the project in the following ways:

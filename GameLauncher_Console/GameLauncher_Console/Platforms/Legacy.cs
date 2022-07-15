@@ -23,6 +23,7 @@ namespace GameLauncher_Console
 		private const string LEG_REG		= @"SOFTWARE\Legacy Games"; // HKCU64
 		//private const string LEG_UNREG	= "da414c81-a9fd-5732-bd5e-8acced116298da414c81-a9fd-5732-bd5e-8acced116298"; // HKLM64 Uninstall
 		private const string LEG_JSON		= @"legacy-games-launcher\app-state.json"; // AppData\Roaming
+		private const string LEG_LAUNCHER	= "Legacy Games Launcher";
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -51,15 +52,25 @@ namespace GameLauncher_Console
             }
 		}
 
-        public static void InstallGame(CGame game) => throw new NotImplementedException();
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
+		{
+			//CDock.DeleteCustomImage(game.Title);
+			Launch();
+			return -1;
+		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList = new();
+			string strPlatform = GetPlatformString(ENUM);
 
-            // Get installed games
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(LEG_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM64
+			// Get installed games
+			using (RegistryKey key = Registry.CurrentUser.OpenSubKey(LEG_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKCU64
 			{
 				keyList = FindGameFolders(key, "");
 
@@ -72,7 +83,6 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = GetRegStrVal(data, "InstallerUUID");
@@ -88,9 +98,9 @@ namespace GameLauncher_Console
 						{
                             using RegistryKey key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree), // HKLM32
                                               key3 = Registry.LocalMachine.OpenSubKey(NODE64_REG, RegistryKeyPermissionCheck.ReadSubTree); // HKLM64
-                            List<RegistryKey> unList = FindGameKeys(key2, GAME_DISPLAY_NAME, strTitle, new string[] { "Legacy Games Launcher" });
+                            List<RegistryKey> unList = FindGameKeys(key2, GAME_DISPLAY_NAME, strTitle, new string[] { LEG_LAUNCHER });
                             if (unList.Count <= 0)
-                                unList = FindGameKeys(key3, GAME_DISPLAY_NAME, strTitle, new string[] { "Legacy Games Launcher" });
+                                unList = FindGameKeys(key3, GAME_DISPLAY_NAME, strTitle, new string[] { LEG_LAUNCHER });
                             foreach (RegistryKey unKey in unList)
                             {
                                 strUninstall = GetRegStrVal(unKey, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
@@ -139,10 +149,9 @@ namespace GameLauncher_Console
 						try
 						{
 							using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
-							foreach (JsonElement element in document.RootElement.EnumerateArray())
-							{
-
-								element.TryGetProperty("settings", out JsonElement settings);
+							//foreach (JsonElement element in document.RootElement.EnumerateArray())
+							//{
+								document.RootElement.TryGetProperty("settings", out JsonElement settings);
 								if (!settings.Equals(null))
 								{
 									settings.TryGetProperty("gameLibraryPath", out JsonElement paths);
@@ -155,7 +164,7 @@ namespace GameLauncher_Console
 										}
 									}
 								}
-							}
+							//}
 						}
 						catch (Exception e)
 						{
@@ -176,9 +185,10 @@ namespace GameLauncher_Console
 							foreach (string dir in dirs)
 							{
 								string strID = Path.GetFileName(dir);
+								if (strID == LEG_LAUNCHER)
+									continue;
 								string strLaunch = "";
 								string strAlias = "";
-								string strPlatform = GetPlatformString(ENUM);
 
 								CLogger.LogDebug($"- {strID}");
 								strLaunch = CGameFinder.FindGameBinaryFile(dir, strID);

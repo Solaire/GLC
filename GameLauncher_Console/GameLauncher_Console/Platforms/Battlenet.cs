@@ -46,11 +46,21 @@ namespace GameLauncher_Console
                 Process.Start(PROTOCOL);
         }
 
-        public static void InstallGame(CGame game) => throw new NotImplementedException();
+        // return value
+        // -1 = not implemented
+        // 0 = failure
+        // 1 = success
+        public static int InstallGame(CGame game)
+        {
+            //CDock.DeleteCustomImage(game.Title);
+            Launch();
+            return -1;
+        }
 
         [SupportedOSPlatform("windows")]
         public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
         {
+            string strPlatform = GetPlatformString(ENUM);
             string cfgFile = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), BATTLE_NET_CFG);
             string dbFile = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), BATTLE_NET_DB);
             string dataPath = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), BATTLE_NET_DATA);
@@ -93,7 +103,7 @@ namespace GameLauncher_Console
 
                         try
                         {
-                            using var file = File.OpenRead(dbFile);
+                            using FileStream file = File.OpenRead(dbFile);
                             BnetDatabase db = Serializer.Deserialize<BnetDatabase>(file);
                             foreach (BnetProductInstall pi in db.productInstalls)
                             {
@@ -163,7 +173,6 @@ namespace GameLauncher_Console
                                                     break;
                                                 string strUninstall = $"\"{uninstallExe}\" --lang={lang} --uid={code} --displayname=\"{strTitle}\"";
                                                 string strAlias = "";
-                                                string strPlatform = GetPlatformString(ENUM);
                                                 long lLastRun = 0;
                                                 if (!string.IsNullOrEmpty(strConfigData))
                                                 {
@@ -231,7 +240,6 @@ namespace GameLauncher_Console
 					//string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);

@@ -27,7 +27,11 @@ namespace GameLauncher_Console
 
         public static void Launch() => throw new NotImplementedException();
 
-		public static void InstallGame(CGame game) => throw new NotImplementedException();
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game) => throw new NotImplementedException();
 
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false) => throw new NotImplementedException();
 

@@ -1,0 +1,422 @@
+﻿using HtmlAgilityPack;
+using Logger;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+//using Microsoft.Web.WebView2;
+using Microsoft.Win32;
+using PuppeteerSharp;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.Versioning;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+//using System.Windows.Forms;
+using static System.Environment;
+using static GameLauncher_Console.CGameData;
+using static GameLauncher_Console.CRegScanner;
+
+namespace GameLauncher_Console
+{
+	// Origin [soon to be EA Desktop]
+	// [installed games only]
+	public class PlatformOrigin : IPlatform
+	{
+		public const GamePlatform ENUM = GamePlatform.Origin;
+		public const string PROTOCOL = "origin://"; //"eadm://" was added by EA Desktop, but "origin://" and "origin2://" still work with it (for now)
+		private const string ORIGIN_CONTENT = @"Origin\LocalContent"; // ProgramData
+		private const string ORIGIN_PATH = "dipinstallpath=";
+		private const string ORIGIN_CACHE_DATA = @"EADesktop\cache\QtWebEngine\Default\Cache\data_1"; // LocalAppData
+		/*
+		private const string ORIGIN_GAMES		= "Origin Games";
+		private const string EA_GAMES			= "EA Games";
+		private const string ORIGIN_UNREG		= "Origin"; // HKLM32 Uninstall
+		private const string ORIGIN_REG			= @"SOFTWARE\WOW6432Node\Origin"; // HKLM32
+		*/
+
+		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+
+		GamePlatform IPlatform.Enum => ENUM;
+
+		string IPlatform.Name => _name;
+
+		string IPlatform.Description => GetPlatformString(ENUM);
+
+		public static void Launch()
+		{
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(PROTOCOL);
+			else
+				Process.Start(PROTOCOL);
+		}
+
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
+		{
+			CDock.DeleteCustomImage(game.Title);
+			Launch();
+			return -1;
+		}
+
+		[SupportedOSPlatform("windows")]
+		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
+		{
+			List<RegistryKey> keyList = new();
+			List<string> dirs = new();
+			string strPlatform = GetPlatformString(ENUM);
+			string path = "";
+			try
+			{
+				path = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), ORIGIN_CONTENT);
+				if (Directory.Exists(path))
+				{
+					dirs.AddRange(Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly));
+				}
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e, string.Format("{0} directory read error: {1}", _name.ToUpper(), path));
+			}
+
+			CLogger.LogInfo("{0} {1} games found", dirs.Count, _name.ToUpper());
+			foreach (string dir in dirs)
+			{
+				string[] files = Array.Empty<string>();
+				string install = "";
+
+				string strID = Path.GetFileName(dir);
+				string strTitle = strID;
+				string strLaunch = "";
+				//string strIconPath = "";
+				string strUninstall = "";
+				string strAlias = "";
+
+				try
+				{
+					files = Directory.GetFiles(dir, "*.mfst", SearchOption.TopDirectoryOnly);
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e);
+				}
+
+				foreach (string file in files)
+				{
+					try
+					{
+						string strDocumentData = File.ReadAllText(file);
+						string[] subs = strDocumentData.Split('&');
+						foreach (string sub in subs)
+						{
+							if (sub.StartsWith(ORIGIN_PATH))
+								install = sub[15..];
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
+					}
+				}
+
+				if (!string.IsNullOrEmpty(install))
+				{
+					install = Uri.UnescapeDataString(install);
+
+					using (RegistryKey key = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+					{
+						if (key != null)
+						{
+							keyList = FindGameKeys(key, install, GAME_INSTALL_LOCATION, new string[] { "Origin" });
+							foreach (var data in keyList)
+							{
+								strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
+								strLaunch = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+								strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
+							}
+						}
+					}
+
+					CLogger.LogDebug($"- {strTitle}");
+					if (string.IsNullOrEmpty(strLaunch))
+						strLaunch = CGameFinder.FindGameBinaryFile(install, strTitle);
+					strAlias = GetAlias(Path.GetFileNameWithoutExtension(install));
+					if (strAlias.Length > strTitle.Length)
+						strAlias = GetAlias(strTitle);
+					if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
+						strAlias = "";
+
+					if (!(string.IsNullOrEmpty(strLaunch)))
+						gameDataList.Add(
+							new ImportGameData(strID, strTitle, strLaunch, strLaunch, strUninstall, strAlias, true, strPlatform));
+				}
+			}
+			CLogger.LogDebug("----------------------");
+
+			// Scrape game list from public user profile
+			try
+			{
+				string userName = CConfig.GetConfigString(CConfig.CFG_ORIGINID);
+				if (string.IsNullOrEmpty(userName))
+				{
+					// TODO: if username hasn't yet been added to .ini, get it from binary file ORIGIN_CACHE_DATA in LocalAppData
+					// contains json: {"data":{"players":"items":[{"uniqueName":"[userName]"}]}}
+				}
+
+				userName = "Nutzzzo"; // ***** HARDCODED TEMPORARILY *****
+
+				if (!string.IsNullOrEmpty(userName))
+				{
+					// Download game list from public user profile
+
+					// TODO: search for this username
+
+					string tmpfile1 = $"tmp_{_name}_1.csv";
+					string tmpfile2 = $"tmp_{_name}_2.csv";
+					string url1 = string.Format("https://www.origin.com/search?searchString={0}&category=people", userName);
+                    /*
+#if DEBUG
+					// Don't re-download if file exists
+					if (!File.Exists(tmpfile1))
+					{
+						using WebClient client = new();
+						client.DownloadFile(url1, tmpfile1);
+					}
+					HtmlDocument doc1 = new()
+					{
+						OptionUseIdAttribute = true
+					};
+					doc1.Load(tmpfile1);
+#else
+				    HtmlWeb web1 = new()
+				    {
+					    UseCookies = true
+				    };
+				    HtmlDocument doc1 = web1.Load(url1);
+				    doc1.OptionUseIdAttribute = true;
+#endif
+					*/
+                    // TODO: Get URL from first user in list
+
+                    Index(url1, tmpfile1);
+
+					//HtmlNode userList = doc1.DocumentNode.SelectSingleNode("//l-origin-gameslist-item");
+
+					string userId = "BobyAWXzmLlf6NasXubNEw"; // ***** HARDCODED TEMPORARILY *****
+
+					string url2 = string.Format("https://www.origin.com/usa/en-us/profile/user/{0}/games", userId);
+
+					/*
+#if DEBUG
+					// Don't re-download if file exists
+					if (!File.Exists(tmpfile2))
+					{
+						using WebClient client = new();
+						client.DownloadFile(url2, tmpfile2);
+					}
+					HtmlDocument doc2 = new()
+					{
+						OptionUseIdAttribute = true
+					};
+					doc2.Load(tmpfile2);
+#else
+				    HtmlWeb web2 = new()
+				    {
+					    UseCookies = true
+				    };
+				    HtmlDocument doc2 = web2.Load(url1);
+				    doc2.OptionUseIdAttribute = true;
+#endif
+					*/
+					// TODO: Get list of games by sending a click to "View All" and parse the list
+
+					Index(url2, tmpfile2);
+
+					/*
+					HtmlNodeCollection gameList = doc2.DocumentNode.SelectNodes("//l-origin-gameslist-list");
+					if (gameList != null)
+					{
+						CLogger.LogDebug("{0} not-installed games (user #{1}):", _name.ToUpper(), userName);
+
+						var options = new JsonDocumentOptions
+						{
+							AllowTrailingCommas = true
+						};
+
+						/*
+						using JsonDocument document = JsonDocument.Parse(@gameList, options);
+						foreach (JsonElement game in document.RootElement.EnumerateArray())
+						{
+							string name = GetStringProperty(game, "titlestr");
+							string id = GetStringProperty(game, "offerid");
+							if (!string.IsNullOrEmpty(name))
+							{
+								// Check if game is already installed
+								bool found = false;
+								if (!found)
+								{
+									string strID = id;
+									string strTitle = name;
+
+									// Add not-installed games
+									CLogger.LogDebug($"- *{strTitle}");
+									gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
+
+									// Use logo to download not-installed icons
+									if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
+									{
+										string iconUrl = GetStringProperty(game, "image");
+										CDock.DownloadCustomImage(strTitle, iconUrl);
+									}
+								}
+							}
+						}
+						*/
+					/*
+					}
+					else
+					{
+						CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
+										"To change this, go to <https://myaccount.ea.com/cp-ui/privacy/index>.",
+							_name.ToUpper());
+					}
+				    */
+				}
+				/*
+				#if DEBUG
+								File.Delete(tmpfile);
+				#endif
+				*/
+			}
+			catch (Exception e)
+			{
+				CLogger.LogError(e);
+			}
+			CLogger.LogDebug("---------------------");
+		}
+
+		public void SignIn()
+		{
+			/*
+						string url = "https://accounts.ea.com/connect/auth?response_type=code&client_id=ORIGIN_SPA_ID&display=originXWeb%2Flogin&locale=en_US&release_type=prod&redirect_uri=https%3A%2F%2Fwww.origin.com%2Fviews%2Flogin.html";
+
+			#if DEBUG
+						// Don't re-download if file exists
+						CookieContainer cookies = new CookieContainer();
+						HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+						request.Method = "GET";
+						request.CookieContainer = cookies;
+						HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+						var stream = response.GetResponseStream();
+			*/
+			/*
+			string tmpfile = $"tmp_{_name}.html";
+			if (!File.Exists(tmpfile))
+			{
+				using (WebClient client = new());
+				client.DownloadFile(url, tmpfile);
+			}
+			*/
+			/*
+						using (StreamReader reader = new(stream));
+						{
+							string html = reader.ReadToEnd();
+							HtmlDocument doc = new HtmlDocument
+							{
+								OptionUseIdAttribute = true
+							};
+							doc.Load(html);
+						}
+			#else
+
+						HtmlWeb web = new()
+						{
+							UseCookies = true
+						};
+						HtmlDocument doc = web.Load(url);
+						doc.OptionUseIdAttribute = true;
+
+			#endif
+						*/
+
+			/*
+			HtmlNode node = doc.DocumentNode.SelectSingleNode("//div[@class='rr-game-image']");
+			foreach (HtmlNode child in node.ChildNodes)
+			{
+				foreach (HtmlAttribute attr in child.Attributes)
+				{
+					if (attr.Name.Equals("src", CDock.IGNORE_CASE))
+					{
+						return attr.Value;
+					}
+				}
+			}
+			*/
+		}
+
+		public async Task<IActionResult> Index(string url, string file)
+		{
+			string chromePath = "";
+			List<string> linkList = new();
+
+			if (OperatingSystem.IsWindows())
+			{
+				if (File.Exists(@"C:\Program Files\Google\Chrome\Application\chrome.exe"))
+					chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe";
+				else if (File.Exists(@"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"))
+					chromePath = @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe";
+			}
+			else if (File.Exists("/usr/bin/google-chrome"))
+				chromePath = "/usr/bin/google-chrome";
+
+			LaunchOptions options = new()
+			{
+				Product = Product.Chrome,
+				Headless = true,
+				ExecutablePath = chromePath
+			};
+
+			Browser browser = await Puppeteer.LaunchAsync(options, null);
+			Page page = await browser.NewPageAsync();
+			await page.GoToAsync(url);
+
+			File.WriteAllText(file, await page.GetContentAsync());
+			/*
+			string linkQuery = @"Array.from(document.querySelectorAll('li([class^=""l-origin-gameslist-item""]) a')).map(a => a.href);";
+			string[] links = await page.EvaluateExpressionAsync<string[]>(linkQuery);
+
+			foreach (string linkUrl in links)
+			{
+				Console.Write('#');
+				linkList.Add(linkUrl);
+			}
+
+			StringBuilder sb = new();
+			foreach (var link in linkList)
+			{
+				sb.AppendLine(link);
+			}
+
+			File.WriteAllText(file, sb.ToString());
+			*/
+
+			//return View();
+			return null;
+		}
+
+		/*
+		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+		public IActionResult Error()
+		{
+			return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+		}
+		*/
+	}
+}

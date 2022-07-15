@@ -932,7 +932,7 @@ namespace GameLauncher_Console
 								case GamePlatform.Legacy:
 									PlatformLegacy.Launch();
 									break;
-								case GamePlatform.Riot:				// TODO
+								case GamePlatform.Riot:
 									PlatformRiot.Launch();
 									break;
 								default:
@@ -1186,52 +1186,18 @@ namespace GameLauncher_Console
 				{
 					case GamePlatform.Steam:
 						if (InputInstall(game.Title, cols))
-						{
-							PlatformSteam.InstallGame(game);
-							return true;
-						}
+							return (PlatformSteam.InstallGame(game) != 0);
 						return false;
 					case GamePlatform.GOG:
-						if (InputInstall(game.Title, cols))
-						{
-							PlatformGOG.InstallGame(game);
-							return true;
-						}
-						return false;
-					case GamePlatform.Epic:
-						if ((bool)CConfig.GetConfigBool(CConfig.CFG_USELEG) && 
-							!string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_PATHLEG)))
-						{
-							string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
-							if (OperatingSystem.IsWindows())
-							{
-								CLogger.LogInfo($"Launch: cmd.exe /c '\"" + pathLeg + "\" -y install " + game.ID + " '");
-								Process.Start("cmd.exe", "/c '\"" + pathLeg + "\" -y install " + game.ID + " '");
-							}
-							else
-							{
-								CLogger.LogInfo($"Launch: " + pathLeg + " -y install " + game.ID);
-								Process.Start(pathLeg, "-y install " + game.ID);
-							}
-							return true;
-						}
-						else
-						{
-							//SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("Install not supported for this platform.");
-							Console.WriteLine("Install not supported for this platform.");
-							//Console.ResetColor();
-						}
-						return false;
+						//if (InputInstall(game.Title, cols))
+							return (PlatformGOG.InstallGame(game) != 0);
+						//return false;
 					case GamePlatform.Uplay:
 						// Some games don't provide a valid ID; provide an error in that case
 						if (game.ID.StartsWith(PlatformUplay.UPLAY_PREFIX))
 						{
 							if (InputInstall(game.Title, cols))
-							{
-								PlatformUplay.InstallGame(game);
-								return true;
-							}
+								return (PlatformUplay.InstallGame(game) != 0);
 						}
 						else
 						{
@@ -1241,40 +1207,84 @@ namespace GameLauncher_Console
 							//Console.ResetColor();
 						}
 						return false;
-					case GamePlatform.Amazon:
+					case GamePlatform.Origin:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformOrigin.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.Epic:
 						if (InputInstall(game.Title, cols))
-						{
-							PlatformAmazon.InstallGame(game);
-							return true;
-						}
+							return (PlatformEpic.InstallGame(game) != 0);
 						return false;
+					case GamePlatform.Bethesda:
+						/*
+						if (InputInstall(game.Title, cols))
+							return (PlatformBethesda.InstallGame(game) != 0);
+						*/
+						//SetFgColour(cols.errorCC, cols.errorLtCC);
+						CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+						Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+						//Console.ResetColor();
+						return false;
+					case GamePlatform.Battlenet:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformBattlenet.InstallGame(game) != 0);	// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.Rockstar:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformRockstar.InstallGame(game) != 0);	// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.Amazon:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformAmazon.InstallGame(game) != 0);
+						//return false;
 					case GamePlatform.BigFish:
 						//if (InputInstall(game.Title, cols))
-						//{
-							PlatformBigFish.InstallGame(game);
-							return true;
-						//}
+							return (PlatformBigFish.InstallGame(game) != 0);	// TODO: Open client directly to game page
+						//return false;
+					case GamePlatform.Arc:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformArc.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
 						//return false;
 					case GamePlatform.Itch:
-						if (InputInstall(game.Title, cols))
-						{
-							PlatformItch.InstallGame(game);
-							return true;
-						}
-						return false;
-					case GamePlatform.IGClient:
 						//if (InputInstall(game.Title, cols))
-						//{
-							PlatformIGClient.InstallGame(game);
-							return true;
-						//}
+							return (PlatformItch.InstallGame(game) != 0);
 						//return false;
 					case GamePlatform.Paradox:
 						//if (InputInstall(game.Title, cols))
-						//{
-							PlatformParadox.Launch();
-							return true;
-						//}
+							return (PlatformParadox.InstallGame(game) != 0);	// TODO: Open client directly to game page
+						//return false;
+					case GamePlatform.Plarium:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformPlarium.InstallGame(game) != 0);	// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.Twitch:
+						return false; // deprecated
+					case GamePlatform.Wargaming:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformWargaming.InstallGame(game) != 0);	// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.IGClient:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformIGClient.InstallGame(game) != 0);	// TODO: Open client directly to game page
+						//return false;
+					case GamePlatform.Microsoft:
+						if (OperatingSystem.IsWindows())
+						{
+							//if (InputInstall(game.Title, cols))
+								return (PlatformMicrosoft.InstallGame(game) != 0);  // TODO
+						}
+						return false;
+					case GamePlatform.Oculus:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformOculus.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.Legacy:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformLegacy.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.Riot:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformRiot.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
 						//return false;
 					default:
 						//SetFgColour(cols.errorCC, cols.errorLtCC);
@@ -1310,22 +1320,10 @@ namespace GameLauncher_Console
 			}
 			if (string.IsNullOrEmpty(game.Uninstaller))
 			{
-				if (game.Platform == GamePlatform.Epic && 
-					(bool)CConfig.GetConfigBool(CConfig.CFG_USELEG) && 
-					!string.IsNullOrEmpty(CConfig.GetConfigString(CConfig.CFG_PATHLEG)))
+				if (game.Platform == GamePlatform.Epic)
 				{
-					string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
-					if (OperatingSystem.IsWindows())
-					{
-						CLogger.LogInfo("Launch: cmd.exe /c '\"" + pathLeg + "\" -y uninstall " + game.ID + " '");
-						Process.Start("cmd.exe", "/c '\"" + pathLeg + "\" -y uninstall " + game.ID + " '");
-					}
-					else
-					{
-						CLogger.LogInfo("Launch: " + pathLeg + " -y uninstall " + game.ID);
-						Process.Start(pathLeg, "-y uninstall " + game.ID);
-					}
-					return true;
+					if (PlatformEpic.UninstallGame(game) != 0)
+						return true;
 				}
 				else
 				{
@@ -1379,37 +1377,7 @@ namespace GameLauncher_Console
 						//Console.ResetColor();
 						return false;
 					case GamePlatform.Epic:
-						bool useLeg = (bool)CConfig.GetConfigBool(CConfig.CFG_USELEG);
-						bool syncLeg = (bool)CConfig.GetConfigBool(CConfig.CFG_SYNCLEG);
-						string pathLeg = CConfig.GetConfigString(CConfig.CFG_PATHLEG);
-
-						if (useLeg && !string.IsNullOrEmpty(pathLeg))
-						{
-							if (OperatingSystem.IsWindows())
-							{
-								string cmdLine = "\"" + pathLeg + "\" -y launch " + game.ID;
-								CLogger.LogInfo($"Launch: cmd.exe /c '" + cmdLine + " '");
-								if (syncLeg)
-									cmdLine = "\"" + pathLeg + "\" -y sync-saves " + game.ID + " & " + cmdLine + " & \"" + pathLeg + "\" -y sync-saves " + game.ID;
-								Process.Start("cmd.exe", "/c '" + cmdLine + " '");
-							}
-							else
-                            {
-								CLogger.LogInfo($"Launch: " + pathLeg + " -y launch " + game.ID);
-								if (syncLeg)
-									Process.Start(pathLeg, "-y sync-saves " + game.ID);
-								Process.Start(pathLeg, "-y launch " + game.ID);
-								if (syncLeg)
-									Process.Start(pathLeg, "-y sync-saves " + game.ID);
-							}
-						}
-						else
-                        {
-							if (OperatingSystem.IsWindows())
-								StartShellExecute(game.Launch);
-							else
-								Process.Start(game.Launch);
-						}
+						PlatformEpic.StartGame(game);
 						break;
 					case GamePlatform.GOG:
 						PlatformGOG.StartGame(game);
@@ -1998,7 +1966,7 @@ namespace GameLauncher_Console
 				{
 					try
 					{
-                        using var client = new WebClient();
+                        using WebClient client = new();
                         client.DownloadFile(url, file);
                         return true;
                     }
@@ -2037,16 +2005,17 @@ namespace GameLauncher_Console
         }
 
 		[SupportedOSPlatform("windows")]
-		public static void StartShellExecute(string file)
+		public static Process StartShellExecute(string file)
 		{
 			Process cmdProcess = new();
 			cmdProcess.StartInfo.FileName = file;
 			cmdProcess.StartInfo.UseShellExecute = true;
 			cmdProcess.Start();
+			return cmdProcess;
 		}
 
 		[SupportedOSPlatform("windows")]
-		public static void StartAndRedirect(string file, string args = "", string dir = "")
+		public static Process StartAndRedirect(string file, string args = "", string dir = "")
 		{
 			Process cmdProcess = new();
 			cmdProcess.StartInfo.FileName = file;
@@ -2055,7 +2024,9 @@ namespace GameLauncher_Console
 			cmdProcess.StartInfo.UseShellExecute = false;
 			cmdProcess.StartInfo.RedirectStandardOutput = true;
 			cmdProcess.StartInfo.RedirectStandardError = true;
+			//cmdProcess.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 			cmdProcess.Start();
+			return cmdProcess;
 		}
 
 		/*

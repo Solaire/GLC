@@ -1,5 +1,6 @@
 ﻿using Logger;
 using Microsoft.Win32;
+using Microsoft.Web.WebView2.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -14,24 +15,25 @@ using static System.Environment;
 
 namespace GameLauncher_Console
 {
-	// Amazon Games
-	// [owned and installed games]
-	public class PlatformAmazon : IPlatform
-	{
-		public const GamePlatform ENUM			= GamePlatform.Amazon;
-		public const string PROTOCOL			= "amazon-games://";
-		public const string START_GAME			= PROTOCOL + "play/";
-		public const string UNINST_GAME			= @"__InstallData__\Amazon Game Remover.exe";
-        public const string UNINST_GAME_ARGS	= "-m Game -p";
-        private const string AMAZON_DB			= @"Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite"; // AppData\Local
-		private const string AMAZON_OWN_DB		= @"Amazon Games\Data\Games\Sql\GameProductInfo.sqlite"; // AppData\Local
-		//private const string AMAZON_UNREG		= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
+    // Amazon Games
+    // [owned and installed games]
+    public class PlatformAmazon : IPlatform
+    {
+        public const GamePlatform ENUM = GamePlatform.Amazon;
+        public const string PROTOCOL = "amazon-games://";
+        public const string START_GAME = PROTOCOL + "play/";
+        public const string UNINST_GAME = @"__InstallData__\Amazon Game Remover.exe";
+        public const string UNINST_GAME_ARGS = "-m Game -p";
+        private const string AMAZON_DB = @"Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite"; // AppData\Local
+        private const string AMAZON_OWN_DB = @"Amazon Games\Data\Games\Sql\GameProductInfo.sqlite"; // AppData\Local
+                                                                                                    //private const string AMAZON_UNREG		= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
+        private const string LOGIN_URL = @"https://www.amazon.com/ap/signin?openid.ns=http://specs.openid.net/auth/2.0&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.oa2.scope=device_auth_access&openid.ns.oa2=http://www.amazon.com/ap/ext/oauth/2&openid.oa2.response_type=token&openid.oa2.client_id=device:6330386435633439383366623032393938313066303133343139383335313266234132554D56484F58375550345637&language=en_US&marketPlaceId=ATVPDKIKX0DER&openid.return_to=https://www.amazon.com&openid.pape.max_auth_age=0&openid.assoc_handle=amzn_sonic_games_launcher&pageId=amzn_sonic_games_launcher";
 
-		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
+        private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
-		GamePlatform IPlatform.Enum => ENUM;
+        GamePlatform IPlatform.Enum => ENUM;
 
-		string IPlatform.Name => _name;
+        string IPlatform.Name => _name;
 
         string IPlatform.Description => GetPlatformString(ENUM);
 
@@ -43,36 +45,36 @@ namespace GameLauncher_Console
                 Process.Start(PROTOCOL);
         }
 
-        // return value
-        // -1 = not implemented
-        // 0 = failure
-        // 1 = success
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
         public static int InstallGame(CGame game)
-		{
-			CDock.DeleteCustomImage(game.Title);
+        {
+            CDock.DeleteCustomImage(game.Title);
             if (OperatingSystem.IsWindows())
                 CDock.StartShellExecute(START_GAME + game.ID);
             else
                 Process.Start(START_GAME + game.ID);
             return 1;
-		}
+        }
 
-		[SupportedOSPlatform("windows")]
-		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
+        [SupportedOSPlatform("windows")]
+        public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
         {
-			List<string> azIds = new();
+            List<string> azIds = new();
             string strPlatform = GetPlatformString(ENUM);
 
             // Get installed games
             string db = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), AMAZON_DB);
-			if (!File.Exists(db))
-			{
-				CLogger.LogInfo("{0} installed game database not found.", _name.ToUpper());
-				//return;
-			}
+            if (!File.Exists(db))
+            {
+                CLogger.LogInfo("{0} installed game database not found.", _name.ToUpper());
+                //return;
+            }
 
-			try
-			{
+            try
+            {
                 using SQLiteConnection con = new($"Data Source={db}");
                 con.Open();
 
@@ -141,22 +143,22 @@ namespace GameLauncher_Console
                 }
                 con.Close();
             }
-			catch (Exception e)
-			{
-				CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
-			}
+            catch (Exception e)
+            {
+                CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
+            }
 
-			// Get not-installed games
-			if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
-			{
-				db = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), AMAZON_OWN_DB);
-				if (!File.Exists(db))
-					CLogger.LogInfo("{0} not-installed game database not found.", _name.ToUpper());
-				else
-				{
-					CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
-					try
-					{
+            // Get not-installed games
+            if (!(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
+            {
+                db = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), AMAZON_OWN_DB);
+                if (!File.Exists(db))
+                    CLogger.LogInfo("{0} not-installed game database not found.", _name.ToUpper());
+                else
+                {
+                    CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
+                    try
+                    {
                         using SQLiteConnection con = new($"Data Source={db}");
                         con.Open();
 
@@ -187,14 +189,76 @@ namespace GameLauncher_Console
                         }
                         con.Close();
                     }
-					catch (Exception e)
-					{
-						CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
-					}
-				}
-			}
-			CLogger.LogDebug("-------------------");
-		}
+                    catch (Exception e)
+                    {
+                        CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
+                    }
+                }
+            }
+            CLogger.LogDebug("-------------------");
+        }
+
+        /*
+        void Login()
+        {
+            var callbackUrl = string.Empty;
+            using (WebView2 webView = new())
+            //CreateView(490, 660))
+            {
+                webView.SourceChanged += (s, e) =>
+                {
+                    var url = webView.Source.ToString();
+                    if (url.Contains("openid.oa2.access_token"))
+                    {
+                        callbackUrl = url;
+                        webView.Close;
+                    }
+                };
+
+                if (File.Exists(tokensPath))
+                {
+                    File.Delete(tokensPath);
+                }
+
+                webView.DeleteDomainCookies(".amazon.com");
+                webView.Navigate(loginUrl);
+                webView.OpenDialog();
+            }
+
+            if (!callbackUrl.IsNullOrEmpty())
+            {
+                var rediUri = new Uri(callbackUrl);
+                var fragments = HttpUtility.ParseQueryString(rediUri.Query);
+                var token = fragments["openid.oa2.access_token"];
+                await Authenticate(token);
+            }
+        }
+
+        void IsLoggedIn()
+        {
+
+        }
+
+        void Auth(string token)
+        {
+
+        }
+
+        void TokenLoad()
+        {
+
+        }
+
+        void TokenRefresh()
+        {
+
+        }
+
+        void GetEntitlements()
+        {
+
+        }
+        */
 
         /*
 		/// <summary>
@@ -207,5 +271,5 @@ namespace GameLauncher_Console
 			return key[(key.LastIndexOf(" -p ") + 4)..];
 		}
         */
-	}
+    }
 }

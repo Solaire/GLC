@@ -60,7 +60,19 @@ namespace GameLauncher_Console
 
 		[SupportedOSPlatform("windows")]
 		public static void Launch() => Process.Start($"explorer.exe shell:AppsFolder\\{MSSTORE_APP}"); // Microsoft Store
-		//public static void Launch() => CDock.StartShellExecute(PROTOCOL); // Xbox app
+																									   //public static void Launch() => CDock.StartShellExecute(PROTOCOL); // Xbox app
+
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		[SupportedOSPlatform("windows")]
+		public static int InstallGame(CGame game)
+		{
+			//CDock.DeleteCustomImage(game.Title);
+			Launch();
+			return -1;
+		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
@@ -297,7 +309,6 @@ namespace GameLauncher_Console
 				string strIconPath = "";
 				string strUninstall = "";
 				string strAlias = "";
-				string strPlatform = GetPlatformString(ENUM);
 				try
 				{
 					strID = ""; //package.Id.Name;
@@ -335,13 +346,13 @@ namespace GameLauncher_Console
 			*/
 			/*
 #if DEBUG
-			string tmpfile = $"tmp_{NAME}.html";
+			string tmpfile = $"tmp_{_name}.html";
 
 			try
 			{
 				if (!File.Exists(tmpfile))
 				{
-					using (var client = new WebClient());
+					using (WebClient client = new());
 					client.DownloadFile(url, tmpfile);
 				}
 				HtmlDocument doc = new HtmlDocument
@@ -355,12 +366,12 @@ namespace GameLauncher_Console
 				HtmlDocument doc = web.Load(url);
 				doc.OptionUseIdAttribute = true;
 			*/
-//#endif
-				// div#gamesList.All
-				// <ul class="recentProgressList"><li style><xbox-title-item><div class="recentProgressInfoWrapper"><a class="recentProgressLinkWrapper" ...
-				// data-m="{\"cN\":\"Microsoft Minesweeper\",\"bhvr\":281,\"tags\":{\"titleName\":\"Microsoft Minesweeper\",\"titleType\":\"XboxOne\"}}"
+			//#endif
+			// div#gamesList.All
+			// <ul class="recentProgressList"><li style><xbox-title-item><div class="recentProgressInfoWrapper"><a class="recentProgressLinkWrapper" ...
+			// data-m="{\"cN\":\"Microsoft Minesweeper\",\"bhvr\":281,\"tags\":{\"titleName\":\"Microsoft Minesweeper\",\"titleType\":\"XboxOne\"}}"
 
-				//HtmlNode gameList = doc.DocumentNode.SelectNodes("recentProgressList");
+			//HtmlNode gameList = doc.DocumentNode.SelectNodes("recentProgressList");
 
 			/*
 			}

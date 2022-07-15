@@ -44,12 +44,22 @@ namespace GameLauncher_Console
 				Process.Start(PROTOCOL);
 		}
 
-		public static void InstallGame(CGame game) => throw new NotImplementedException();
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
+		{
+			//CDock.DeleteCustomImage(game.Title);
+			Launch();
+			return -1;
+		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList = new();
+			string strPlatform = GetPlatformString(ENUM);
 			//string arcFolder = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), "Arc"); // AppData\Roaming
 			/*
 			string launcherPath = "";
@@ -99,7 +109,6 @@ namespace GameLauncher_Console
 					string strLaunch = "";
 					string strAlias = "";
 					bool bInstalled = true;
-					string strPlatform = GetPlatformString(ENUM);
 
 					try
 					{

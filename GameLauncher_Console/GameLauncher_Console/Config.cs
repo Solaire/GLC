@@ -160,6 +160,8 @@ namespace GameLauncher_Console
 		public const string CFG_IMGSCAN		= "flag_image_do_not_do_deep_scan_for_icons";
 		public const string CFG_IMGDOWN		= "flag_image_do_not_download_missing";
 		public const string CFG_SYNCLEG		= "flag_sync_legendary_saves";
+		public const string CFG_USEEGL		= "flag_use_epic_launcher";
+		public const string CFG_USEGAL		= "flag_use_gog_galaxy_launcher";
 		public const string CFG_USELEG		= "flag_use_legendary_for_epic";
 #if DEBUG
 		public const string CFG_UWPLIST		= "list_show_uwp_titles";
@@ -174,6 +176,7 @@ namespace GameLauncher_Console
 		public const string CFG_COLSIZE		= "num_grid_text_min_column_characters";
 		public const string CFG_STEAMID		= "num_steam_id";
 		public const string CFG_OCULUSID	= "text_oculus_username";
+		public const string CFG_ORIGINID	= "text_origin_username";
 		public const string CFG_COLBG1		= "colour_background";
 		public const string CFG_COLBG2		= "colour_background_lightmode";
 		public const string CFG_COLTITLE1	= "colour_title";

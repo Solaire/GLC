@@ -16,7 +16,7 @@ namespace GameLauncher_Console
 	{
 		public const GamePlatform ENUM		= GamePlatform.Uplay;
 		public const string PROTOCOL		= "uplay://";
-		public const string START_GAME		= PROTOCOL + "launch";
+		public const string START_GAME		= PROTOCOL + "launch/";
 		public const string UPLAY_PREFIX	= "Uplay Install ";
 		private const string UPLAY_UNREG	= "Uplay"; // HKLM32 Uninstall
 		//private const string UPLAY_REG	= @"SOFTWARE\WOW6432Node\Ubisoft\Launcher"; // HKLM32
@@ -37,12 +37,27 @@ namespace GameLauncher_Console
 				Process.Start(PROTOCOL);
 		}
 
-		public static void InstallGame(CGame game)
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
 		{
-			if (OperatingSystem.IsWindows())
-				CDock.StartShellExecute(START_GAME + "/" + GetGameID(game.ID));
-			else
-				Process.Start(START_GAME + "/" + GetGameID(game.ID));
+			/*
+			// Some games don't provide a valid ID
+			if (game.ID.StartsWith(PlatformUplay.UPLAY_PREFIX))
+			{
+			*/
+				//CDock.DeleteCustomImage(game.Title);
+				if (OperatingSystem.IsWindows())
+					CDock.StartShellExecute(START_GAME + GetGameID(game.ID));
+				else
+					Process.Start(START_GAME + GetGameID(game.ID));
+				return 1;
+			/*
+			}
+			else return 0;
+			*/
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -52,6 +67,7 @@ namespace GameLauncher_Console
 			List<string> uplayIds = new();
 			List<string> uplayIcons = new();
 			string launcherPath = "";
+			string strPlatform = GetPlatformString(ENUM);
 
 			using (RegistryKey launcherKey = Registry.LocalMachine.OpenSubKey(Path.Combine(NODE32_REG, UPLAY_UNREG), RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
@@ -78,14 +94,13 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);
 						uplayIds.Add(strID);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
 						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = START_GAME + "/" + GetGameID(strID);
+						strLaunch = START_GAME + GetGameID(strID);
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						uplayIcons.Add(strIconPath);
 						if (string.IsNullOrEmpty(strIconPath) && expensiveIcons)
@@ -122,7 +137,6 @@ namespace GameLauncher_Console
 						string strID = "";
 						string strTitle = "";
 						string strIconPath = "";
-						string strPlatform = GetPlatformString(ENUM);
 
 						CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
 						uplayCfg.AddRange(File.ReadAllLines(uplayCfgFile));

@@ -337,6 +337,30 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool flag_use_epic_launcher {
+            get {
+                return ((bool)(this["flag_use_epic_launcher"]));
+            }
+            set {
+                this["flag_use_epic_launcher"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool flag_use_gog_galaxy_launcher {
+            get {
+                return ((bool)(this["flag_use_gog_galaxy_launcher"]));
+            }
+            set {
+                this["flag_use_gog_galaxy_launcher"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool flag_use_legendary_for_epic {
             get {
@@ -466,6 +490,18 @@ namespace GameLauncher_Console.Properties {
             }
             set {
                 this["text_oculus_username"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string text_origin_username {
+            get {
+                return ((string)(this["text_origin_username"]));
+            }
+            set {
+                this["text_origin_username"] = value;
             }
         }
         

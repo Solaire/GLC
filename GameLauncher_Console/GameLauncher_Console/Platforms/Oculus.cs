@@ -48,9 +48,22 @@ namespace GameLauncher_Console
                 Process.Start(PROTOCOL);
         }
 
+        // return value
+        // -1 = not implemented
+        // 0 = failure
+        // 1 = success
+        public static int InstallGame(CGame game)
+        {
+            //CDock.DeleteCustomImage(game.Title);
+            Launch();
+            return -1;
+        }
+
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
+            string strPlatform = GetPlatformString(ENUM);
+
             // Stop service (otherwise database is locked)
             ServiceController sc = new("OVRService");
             //bool restartSvc = false;
@@ -136,12 +149,12 @@ namespace GameLauncher_Console
 				string userName = CConfig.GetConfigString(CConfig.CFG_OCULUSID);
 				//ulong userId = 0;
 
-				using var con = new SQLiteConnection($"Data Source={db}");
+				using SQLiteConnection con = new($"Data Source={db}");
                 con.Open();
 
                 // Get the user ID to check entitlements for expired trials
                 /*
-				using (var cmdU = new SQLiteCommand("SELECT hashkey, value FROM Objects WHERE typename = 'User'", con))
+				using (SQLiteCommand cmdU = new("SELECT hashkey, value FROM Objects WHERE typename = 'User'", con))
 				{
 					using SQLiteDataReader rdrU = cmdU.ExecuteReader();
 					while (rdrU.Read())
@@ -168,7 +181,7 @@ namespace GameLauncher_Console
 				}
                 */
 
-                using var cmd = new SQLiteCommand("SELECT hashkey, value FROM Objects WHERE typename = 'Application'", con);
+                using SQLiteCommand cmd = new("SELECT hashkey, value FROM Objects WHERE typename = 'Application'", con);
                 using SQLiteDataReader rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                 {
@@ -176,7 +189,6 @@ namespace GameLauncher_Console
                     string strTitle = "";
                     string strLaunch = "";
                     string strAlias = "";
-                    string strPlatform = GetPlatformString(ENUM);
 
                     string url = "";
                     /*
@@ -205,7 +217,7 @@ namespace GameLauncher_Console
                     if (!string.IsNullOrEmpty(name) && string.IsNullOrEmpty(strTitle))
                         strTitle = ti.ToTitleCase(name.Replace('-', ' '));
 
-                    using (var cmd2 = new SQLiteCommand($"SELECT value FROM Objects WHERE hashkey = '{assets}'", con))
+                    using (SQLiteCommand cmd2 = new($"SELECT value FROM Objects WHERE hashkey = '{assets}'", con))
                     {
                         using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
                         while (rdr2.Read())
@@ -219,7 +231,7 @@ namespace GameLauncher_Console
 
                     // The exe's can be gotten from the .json files, which we have to get anyway to figure out the install path
                     /*
-                    using (var cmd3 = new SQLiteCommand($"SELECT value FROM Objects WHERE hashkey = '{bin}'", con))
+                    using (SQLiteCommand cmd3 = new($"SELECT value FROM Objects WHERE hashkey = '{bin}'", con))
                     {
                         using SQLiteDataReader rdr3 = cmd3.ExecuteReader();
                         while (rdr3.Read())
@@ -237,7 +249,7 @@ namespace GameLauncher_Console
                     if (userId > 0)
                     {
                         // TODO: If this is an expired trial, count it as not-installed
-                        using var cmd5 = new SQLiteCommand($"SELECT value FROM Objects WHERE hashkey = '{userId}:{id}'", con);
+                        using SQLiteCommand cmd5 = new($"SELECT value FROM Objects WHERE hashkey = '{userId}:{id}'", con);
                         using SQLiteDataReader rdr5 = cmd5.ExecuteReader();
                         while (rdr5.Read())
                         {
@@ -302,7 +314,7 @@ namespace GameLauncher_Console
                                 if (!File.Exists(zipfile))
                                 {
 #endif
-                                    using var client = new WebClient();
+                                    using WebClient client = new();
                                     client.DownloadFile(url, zipfile);
 #if DEBUG
                                 }
