@@ -49,7 +49,7 @@ To manually add programs, place file shortcuts or .exe executables in the ".\Cus
 
 To customise an image, place files with the same titles in the ".\CustomImages" folder (supports ICO, BMP, PNG, GIF, JPEG, TIFF, and EPRT formats).
 
-Legendary is recommended for Epic Games (doesn't require launcher to start; and not-installed games are shown).  [Download legendary.exe](/derrod/legendary/releases/latest) and place it in the same folder (or set the path in glc.ini).  Run "legendary auth" and login to Epic.
+Legendary is recommended for Epic Games (doesn't require launcher to start; and not-installed games are shown).  [Download legendary.exe](/derrod/legendary/releases/latest) and place it in the same folder (or set the path in glc.ini).  Run "legendary auth" and login to Epic before scanning for games.
 
 ## [GLC Wiki](../../wiki)
 ***See the [wiki](../../wiki) for [Known Issues](../../wiki/Known-Issues), [Changelog](../../wiki/Changelog), and more information.***
