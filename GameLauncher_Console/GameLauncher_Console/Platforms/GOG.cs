@@ -22,7 +22,7 @@ namespace GameLauncher_Console
 		public const GamePlatform ENUM			= GamePlatform.GOG;
 		public const string PROTOCOL			= "goggalaxy://";
         public const string LAUNCH				= "GalaxyClient.exe";
-        public const string INSTALL_GAME		= PROTOCOL + "openGameView";
+        public const string INSTALL_GAME		= PROTOCOL + "openGameView/";
         public const string START_GAME 			= LAUNCH;
         public const string START_GAME_ARGS		= "/command=runGame /gameId=";
         public const string START_GAME_ARGS2	= "/path=";
@@ -42,68 +42,80 @@ namespace GameLauncher_Console
         public static void Launch()
         {
             if (OperatingSystem.IsWindows())
+            {
+                /*
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
+                {
+                    string launcherPath = Path.Combine(GetRegStrVal(key, "client"), LAUNCH);
+                    if (File.Exists(launcherPath))
+                        Process.Start(launcherPath);
+                    else
+                    {
+                        //SetFgColour(cols.errorCC, cols.errorLtCC);
+                        CLogger.LogWarn("Cannot start {0} launcher.", _name.ToUpper());
+                        Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
+                        //Console.ResetColor();
+                    }
+                }
+                */
                 CDock.StartShellExecute(PROTOCOL);
+            }
             else
                 Process.Start(PROTOCOL);
         }
 
-        /*
-		public static void Launch()
-        {
-            if (OperatingSystem.IsWindows())
-            {    
-			    using (RegistryKey key = Registry.LocalMachine.OpenSubKey(GOG_REG_CLIENT, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
-			    {
-				    string launcherPath = Path.Combine(GetRegStrVal(key, "client"), LAUNCH);
-				    if (File.Exists(launcherPath))
-					    Process.Start(launcherPath);
-				    else
-				    {
-					    //SetFgColour(cols.errorCC, cols.errorLtCC);
-					    CLogger.LogWarn("Cannot start {0} launcher.", _name.ToUpper());
-					    Console.WriteLine("ERROR: Launcher couldn't start. Is it installed properly?");
-					    //Console.ResetColor();
-				    }
-			    }
-            }
-		}
-		*/
-
-        public static void InstallGame(CGame game)
+        // return value
+        // -1 = not implemented
+        // 0 = failure
+        // 1 = success
+        public static int InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
             if (OperatingSystem.IsWindows())
-                CDock.StartShellExecute(INSTALL_GAME + "/" + GetGameID(game.ID));
+                CDock.StartShellExecute(INSTALL_GAME + GetGameID(game.ID));
             else
-                Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
+                Process.Start(INSTALL_GAME + GetGameID(game.ID));
+            return 1;
 		}
 
         public static void StartGame(CGame game)
         {
-            //CLogger.LogInfo("Setting up a {0} game...", GOG.NAME_LONG);
-            ProcessStartInfo gogProcess = new();
-            string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
-            string gogArguments = game.Launch.Contains(".") ? game.Launch[(game.Launch.IndexOf('.') + 4)..] : string.Empty;
-            CLogger.LogInfo($"gogClientPath: {gogClientPath}");
-            CLogger.LogInfo($"gogArguments: {gogArguments}");
-            gogProcess.FileName = gogClientPath;
-            gogProcess.Arguments = gogArguments;
-            Process.Start(gogProcess);
-            if (OperatingSystem.IsWindows())
+            if ((bool)CConfig.GetConfigBool(CConfig.CFG_USEGAL))
             {
-                Thread.Sleep(4000);
-                Process[] procs = Process.GetProcessesByName("GalaxyClient");
-                foreach (Process proc in procs)
+                //CLogger.LogInfo("Setting up a {0} game...", GOG.NAME_LONG);
+                ProcessStartInfo gogProcess = new();
+                string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
+                string gogArguments = game.Launch.Contains(".") ? game.Launch[(game.Launch.IndexOf('.') + 4)..] : string.Empty;
+                CLogger.LogInfo($"gogClientPath: {gogClientPath}");
+                CLogger.LogInfo($"gogArguments: {gogArguments}");
+                gogProcess.FileName = gogClientPath;
+                gogProcess.Arguments = gogArguments;
+                Process.Start(gogProcess);
+                if (OperatingSystem.IsWindows())
                 {
-                    CDock.WindowMessage.ShowWindowAsync(procs[0].MainWindowHandle, CDock.WindowMessage.SW_FORCEMINIMIZE);
+                    Thread.Sleep(4000);
+                    Process[] procs = Process.GetProcessesByName("GalaxyClient");
+                    foreach (Process proc in procs)
+                    {
+                        CDock.WindowMessage.ShowWindowAsync(procs[0].MainWindowHandle, CDock.WindowMessage.SW_FORCEMINIMIZE);
+                    }
                 }
             }
-		}
+            else
+            {
+                if (OperatingSystem.IsWindows())
+                    CDock.StartShellExecute(game.Icon);
+                else
+                    Process.Start(game.Icon);
+            }
+        }
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			/*
+            string strPlatform = GetPlatformString(ENUM);
+
+            /*
 			productId from ProductAuthorizations
 			productId, installationPath from InstalledBaseProducts
 			productId, images, title from LimitedDetails
@@ -112,8 +124,8 @@ namespace GameLauncher_Console
 			playTaskId, executablePath, commandLineArgs from PlayTaskLaunchParameters
 			*/
 
-			// Get installed games
-			string db = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), GOG_DB);
+            // Get installed games
+            string db = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), GOG_DB);
 			if (!File.Exists(db))
 			{
 				CLogger.LogInfo("{0} database not found.", _name.ToUpper());
@@ -129,19 +141,19 @@ namespace GameLauncher_Console
 
 			try
 			{
-                using var con = new SQLiteConnection($"Data Source={db}");
+                using SQLiteConnection con = new($"Data Source={db}");
                 con.Open();
 
                 // Get both installed and not-installed games
 
-                using (var cmd = new SQLiteCommand("SELECT productId FROM Builds", con))
+                using (SQLiteCommand cmd = new("SELECT productId FROM Builds", con))
                 using (SQLiteDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
                     {
                         int id = rdr.GetInt32(0);
 
-                        using var cmd2 = new SQLiteCommand($"SELECT images, title FROM LimitedDetails WHERE productId = {id};", con);
+                        using SQLiteCommand cmd2 = new($"SELECT images, title FROM LimitedDetails WHERE productId = {id};", con);
                         using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
                         while (rdr2.Read())
                         {
@@ -154,7 +166,6 @@ namespace GameLauncher_Console
                             string strAlias = "";
                             string strLaunch = "";
                             string strIconPath = "";
-                            string strPlatform = GetPlatformString(ENUM);
                             bool hidden = false;
                             List<string> tagList = new();
                             DateTime lastRun = DateTime.MinValue;
@@ -164,18 +175,18 @@ namespace GameLauncher_Console
                             if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
                                 strAlias = "";
 
-                            using (var cmd3 = new SQLiteCommand($"SELECT installationPath FROM InstalledBaseProducts WHERE productId = {id};", con))
+                            using (SQLiteCommand cmd3 = new($"SELECT installationPath FROM InstalledBaseProducts WHERE productId = {id};", con))
                             using (SQLiteDataReader rdr3 = cmd3.ExecuteReader())
                             {
                                 while (rdr3.Read())
                                 {
-                                    using var cmd4 = new SQLiteCommand($"SELECT id FROM PlayTasks WHERE gameReleaseKey = '{strID}';", con);
+                                    using SQLiteCommand cmd4 = new($"SELECT id FROM PlayTasks WHERE gameReleaseKey = '{strID}';", con);
                                     using SQLiteDataReader rdr4 = cmd4.ExecuteReader();
                                     while (rdr4.Read())
                                     {
                                         int task = rdr4.GetInt32(0);
 
-                                        using var cmd5 = new SQLiteCommand($"SELECT executablePath, commandLineArgs FROM PlayTaskLaunchParameters WHERE playTaskId = {task};", con);
+                                        using SQLiteCommand cmd5 = new($"SELECT executablePath, commandLineArgs FROM PlayTaskLaunchParameters WHERE playTaskId = {task};", con);
                                         using SQLiteDataReader rdr5 = cmd5.ExecuteReader();
                                         while (rdr5.Read())
                                         {
@@ -201,7 +212,7 @@ namespace GameLauncher_Console
                                             CLogger.LogDebug($"- {strTitle}");
 
                                             // grab hidden status
-                                            using (var cmd6 = new SQLiteCommand($"SELECT isHidden FROM UserReleaseProperties WHERE releaseKey = '{strID}';", con))
+                                            using (SQLiteCommand cmd6 = new($"SELECT isHidden FROM UserReleaseProperties WHERE releaseKey = '{strID}';", con))
                                             using (SQLiteDataReader rdr6 = cmd6.ExecuteReader())
                                             {
                                                 while (rdr6.Read())
@@ -213,7 +224,7 @@ namespace GameLauncher_Console
                                             }
                                             
                                             // grab user tags
-                                            using (var cmd7 = new SQLiteCommand($"SELECT tag FROM UserReleaseTags WHERE releaseKey = '{strID}';", con))
+                                            using (SQLiteCommand cmd7 = new($"SELECT tag FROM UserReleaseTags WHERE releaseKey = '{strID}';", con))
                                             using (SQLiteDataReader rdr7 = cmd7.ExecuteReader())
                                             {
                                                 while (rdr7.Read())
@@ -224,7 +235,7 @@ namespace GameLauncher_Console
                                             }
                                             
                                             // grab last run date
-                                            using (var cmd8 = new SQLiteCommand($"SELECT lastPlayedDate FROM LastPlayedDates WHERE gameReleaseKey = '{strID}';", con))
+                                            using (SQLiteCommand cmd8 = new($"SELECT lastPlayedDate FROM LastPlayedDates WHERE gameReleaseKey = '{strID}';", con))
                                             using (SQLiteDataReader rdr8 = cmd8.ExecuteReader())
                                             {
                                                 while (rdr8.Read())
@@ -239,7 +250,7 @@ namespace GameLauncher_Console
                                             }
 
                                             // grab user rating
-                                            using (var cmd9 = new SQLiteCommand($"SELECT value FROM GamePieces WHERE releaseKey = '{strID}';", con))
+                                            using (SQLiteCommand cmd9 = new($"SELECT value FROM GamePieces WHERE releaseKey = '{strID}';", con))
                                             using (SQLiteDataReader rdr9 = cmd9.ExecuteReader())
                                             {
                                                 while (rdr9.Read())

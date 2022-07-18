@@ -209,8 +209,8 @@ namespace GameLauncher_Console
 
 			try
 			{
-                using var stream = new MemoryStream();
-                using (var writer = new Utf8JsonWriter(stream, options))
+                using MemoryStream stream = new();
+                using (Utf8JsonWriter writer = new(stream, options))
                 {
                     writer.WriteStartObject();
                     writer.WriteString(JSON_VERSION, CDock.version);
@@ -252,8 +252,8 @@ namespace GameLauncher_Console
 
 			try
 			{
-                using var stream = new MemoryStream();
-                using (var writer = new Utf8JsonWriter(stream, options))
+                using MemoryStream stream = new();
+                using (Utf8JsonWriter writer = new(stream, options))
                 {
                     writer.WriteStartObject();
                     writer.WriteString(JSON_VERSION, CDock.version);
@@ -322,8 +322,8 @@ namespace GameLauncher_Console
 
 			try
 			{
-                using var stream = new MemoryStream();
-                using (var writer = new Utf8JsonWriter(stream, options))
+                using MemoryStream stream = new();
+                using (Utf8JsonWriter writer = new(stream, options))
                 {
                     writer.WriteStartObject();
                     writer.WriteString(JSON_VERSION, CDock.version);
@@ -1011,6 +1011,8 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_IMGBGLEG, force);
 			SetDefaultVal(CConfig.CFG_IMGSCAN, force);
 			SetDefaultVal(CConfig.CFG_SYNCLEG, force);
+			SetDefaultVal(CConfig.CFG_USEEGL, force);
+			SetDefaultVal(CConfig.CFG_USEGAL, force);
 			SetDefaultVal(CConfig.CFG_USELEG, force);
 		}
 
@@ -1155,6 +1157,7 @@ namespace GameLauncher_Console
 		{
 			SetDefaultVal(CConfig.CFG_PATHLEG, force);
 			SetDefaultVal(CConfig.CFG_OCULUSID, force);
+			SetDefaultVal(CConfig.CFG_ORIGINID, force);
 			SetDefaultVal(CConfig.CFG_TXTMAINT, force);
 			SetDefaultVal(CConfig.CFG_TXTCFGT, force);
 			SetDefaultVal(CConfig.CFG_TXTFILET, force);

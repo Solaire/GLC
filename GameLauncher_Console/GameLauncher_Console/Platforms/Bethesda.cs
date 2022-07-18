@@ -16,7 +16,7 @@ namespace GameLauncher_Console
     {
 		public const GamePlatform ENUM				= GamePlatform.Bethesda;
 		public const string PROTOCOL				= "bethesdanet://";
-		public const string START_GAME				= PROTOCOL + "run";
+		public const string START_GAME				= PROTOCOL + "run/";
 		//private const string BETHESDA_NET			= "bethesda.net";
 		private const string BETHESDA_PATH			= "Path";
 		private const string BETHESDA_CREATION_KIT	= "Creation Kit";
@@ -41,13 +41,23 @@ namespace GameLauncher_Console
 				Process.Start(PROTOCOL);
 		}
 
-		public static void InstallGame(CGame game) => throw new NotImplementedException();
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
+		{
+			//CDock.DeleteCustomImage(game.Title);
+			Launch();
+			return -1;
+		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList;
-			
+			string strPlatform = GetPlatformString(ENUM);
+
 			/*
 			string launcherPath = "";
 
@@ -77,13 +87,12 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						strID = Path.GetFileName(data.Name);
 						strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
 						CLogger.LogDebug($"- {strTitle}");
-						strLaunch = START_GAME + "/" + GetRegStrVal(data, BETHESDA_PRODUCT_ID);
+						strLaunch = START_GAME + GetRegStrVal(data, BETHESDA_PRODUCT_ID);
 						strIconPath = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
 						if (string.IsNullOrEmpty(strIconPath))
 							strIconPath = Path.Combine(loc.Trim(new char[] { ' ', '"' }), string.Concat(strTitle.Split(Path.GetInvalidFileNameChars())) + ".exe");

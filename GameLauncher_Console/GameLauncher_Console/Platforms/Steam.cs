@@ -24,9 +24,9 @@ namespace GameLauncher_Console
 		public const GamePlatform ENUM			= GamePlatform.Steam;
 		public const string PROTOCOL			= "steam://";
 		public const string LAUNCH				= PROTOCOL + "open/games";
-		public const string INSTALL_GAME		= PROTOCOL + "install";
-		public const string START_GAME			= PROTOCOL + "rungameid";
-		public const string UNINST_GAME			= PROTOCOL + "uninstall";
+		public const string INSTALL_GAME		= PROTOCOL + "install/";
+		public const string START_GAME			= PROTOCOL + "rungameid/";
+		public const string UNINST_GAME			= PROTOCOL + "uninstall/";
 		private const int STEAM_MAX_LIBS		= 64;
 		private const string STEAM_GAME_PREFIX	= "Steam App ";
 		private const string STEAM_PATH			= "steamapps";
@@ -53,21 +53,26 @@ namespace GameLauncher_Console
 				Process.Start(LAUNCH);
 		}
 
-		public static void InstallGame(CGame game)
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
 			if (OperatingSystem.IsWindows())
-				CDock.StartShellExecute(INSTALL_GAME + "/" + GetGameID(game.ID));
+				CDock.StartShellExecute(INSTALL_GAME + GetGameID(game.ID));
 			else
-				Process.Start(INSTALL_GAME + "/" + GetGameID(game.ID));
+				Process.Start(INSTALL_GAME + GetGameID(game.ID));
+			return 1;
 		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-
 			string strInstallPath = "";
 			string strClientPath = "";
+			string strPlatform = GetPlatformString(ENUM);
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(STEAM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
@@ -162,11 +167,10 @@ namespace GameLauncher_Console
 						string strID = Path.GetFileName(file);
 						string strTitle = app.SubItems["name"];
 						CLogger.LogDebug($"- {strTitle}");
-						string strLaunch = START_GAME + "/" + id;
+						string strLaunch = START_GAME + id;
 						string strIconPath = "";
 						string strUninstall = "";
 						string strAlias = "";
-						string strPlatform = GetPlatformString(ENUM);
 
 						strAlias = GetAlias(strTitle);
 						if (!string.IsNullOrEmpty(strLaunch))
@@ -203,7 +207,7 @@ namespace GameLauncher_Console
 							}
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
-							strUninstall = UNINST_GAME + "/" + id;
+							strUninstall = UNINST_GAME + id;
 							gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						}
 					}
@@ -296,22 +300,22 @@ namespace GameLauncher_Console
 					try
 					{
 						string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", userId);
-						/*
+/*
 #if DEBUG
 						// Don't re-download if file exists
-						string tmpfile = $"tmp_{NAME}.html";
+						string tmpfile = $"tmp_{_name}.html";
 						if (!File.Exists(tmpfile))
 						{
-							using (var client = new WebClient());
+							using WebClient client = new();
 							client.DownloadFile(url, tmpfile);
 						}
-						HtmlDocument doc = new HtmlDocument
+						HtmlDocument doc = new()
 						{
 							OptionUseIdAttribute = true
 						};
 						doc.Load(tmpfile);
 #else
-						*/
+*/
                         HtmlWeb web = new()
                         {
                             UseCookies = true
@@ -348,7 +352,6 @@ namespace GameLauncher_Console
                                     if (!found)
                                     {
                                         string strTitle = GetStringProperty(game, "name");
-                                        string strPlatform = GetPlatformString(ENUM);
 
                                         // Add not-installed games
                                         CLogger.LogDebug($"- *{strTitle}");
@@ -439,23 +442,33 @@ namespace GameLauncher_Console
 					break;
 				int FirstItemEnd = RegionToReadIn.IndexOf('"', FirstItemStart + 1);
 				CurrentPos = FirstItemEnd + 1;
-				string FirstItem = RegionToReadIn.Substring(FirstItemStart + 1, FirstItemEnd - FirstItemStart - 1);
+				string FirstItem = "";
+				if (FirstItemEnd - FirstItemStart - 1 >= 0)
+					FirstItem = RegionToReadIn.Substring(FirstItemStart + 1, FirstItemEnd - FirstItemStart - 1);
 
 				int SecondItemStartQuote = RegionToReadIn.IndexOf('"', CurrentPos);
 				int SecondItemStartBraceleft = RegionToReadIn.IndexOf('{', CurrentPos);
 				if (SecondItemStartBraceleft == -1 || SecondItemStartQuote < SecondItemStartBraceleft)
 				{
 					int SecondItemEndQuote = RegionToReadIn.IndexOf('"', SecondItemStartQuote + 1);
-					string SecondItem = RegionToReadIn.Substring(SecondItemStartQuote + 1, SecondItemEndQuote - SecondItemStartQuote - 1);
+					string SecondItem = "";
+					if (SecondItemEndQuote - SecondItemStartQuote - 1 >= 0)
+						SecondItem = RegionToReadIn.Substring(SecondItemStartQuote + 1, SecondItemEndQuote - SecondItemStartQuote - 1);
 					CurrentPos = SecondItemEndQuote + 1;
-					ACF.SubItems.Add(FirstItem, SecondItem);
+					if (!ACF.SubItems.ContainsKey(FirstItem))
+						ACF.SubItems.Add(FirstItem, SecondItem);
+					else
+						break;
 				}
 				else
 				{
 					int SecondItemEndBraceright = RegionToReadIn.NextEndOf('{', '}', SecondItemStartBraceleft + 1);
-					ACF_Struct ACFS = ACFFileToStruct(RegionToReadIn.Substring(SecondItemStartBraceleft + 1, SecondItemEndBraceright - SecondItemStartBraceleft - 1));
+					ACF_Struct ACFS = null;
+					if (SecondItemEndBraceright - SecondItemStartBraceleft - 1 >= 0)
+						ACFS = ACFFileToStruct(RegionToReadIn.Substring(SecondItemStartBraceleft + 1, SecondItemEndBraceright - SecondItemStartBraceleft - 1));
 					CurrentPos = SecondItemEndBraceright + 1;
-					ACF.SubACF.Add(FirstItem, ACFS);
+					if (!ACF.SubACF.ContainsKey(FirstItem))
+						ACF.SubACF.Add(FirstItem, ACFS);
 				}
 			}
 

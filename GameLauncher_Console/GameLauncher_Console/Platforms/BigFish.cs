@@ -52,10 +52,15 @@ namespace GameLauncher_Console
             }
 		}
 
-		public static void InstallGame(CGame game)
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
 			Launch();
+			return -1;
 		}
 
 		public string GetIconUrl(CGame game)
@@ -75,7 +80,7 @@ namespace GameLauncher_Console
 				string tmpfile = $"tmp_{_name}_{num}.html";
 				if (!File.Exists(tmpfile))
 				{
-					using (var client = new WebClient());
+					using (WebClient client = new());
 					client.DownloadFile(url, tmpfile);
 				}
                 HtmlDocument doc = new HtmlDocument
@@ -111,6 +116,7 @@ namespace GameLauncher_Console
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList;
+			string strPlatform = GetPlatformString(ENUM);
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(BIGFISH_GAMES, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
@@ -135,7 +141,6 @@ namespace GameLauncher_Console
 					string strIconPath = "";
 					string strUninstall = "";
 					string strAlias = "";
-					string strPlatform = GetPlatformString(ENUM);
 					try
 					{
 						//found = true;

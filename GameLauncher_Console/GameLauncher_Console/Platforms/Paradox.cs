@@ -51,12 +51,24 @@ namespace GameLauncher_Console
             }
 		}
 
+        // return value
+        // -1 = not implemented
+        // 0 = failure
+        // 1 = success
+        public static int InstallGame(CGame game)
+        {
+            //CDock.DeleteCustomImage(game.Title);
+            Launch();
+            return -1;
+        }
+
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<string> dirs = new();
+            string strPlatform = GetPlatformString(ENUM);
 
-			// Get installed games
-			if (OperatingSystem.IsWindows())
+            // Get installed games
+            if (OperatingSystem.IsWindows())
 			{
                 using RegistryKey key = Registry.LocalMachine.OpenSubKey(PARADOX_REG, RegistryKeyPermissionCheck.ReadSubTree); // HKLM32
                 if (key == null)
@@ -79,7 +91,6 @@ namespace GameLauncher_Console
                                 string strTitle = "";
                                 string strLaunch = "";
                                 string strAlias = "";
-                                string strPlatform = GetPlatformString(ENUM);
 
                                 strTitle = ti.ToTitleCase(strID.Replace('_', ' '));
                                 CLogger.LogDebug($"- {strTitle}");
@@ -152,7 +163,6 @@ namespace GameLauncher_Console
                                                 string strID = id.ToString();
                                                 string strTitle = title.ToString();
                                                 CLogger.LogDebug($"- *{strTitle}");
-                                                string strPlatform = GetPlatformString(ENUM);
                                                 gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
                                             }
                                         }

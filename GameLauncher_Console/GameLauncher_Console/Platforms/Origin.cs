@@ -40,17 +40,29 @@ namespace GameLauncher_Console
 
         public static void Launch()
 		{
-            if (OperatingSystem.IsWindows())
-                CDock.StartShellExecute(PROTOCOL);
-            else
-                Process.Start(PROTOCOL);
-        }
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(PROTOCOL);
+			else
+				Process.Start(PROTOCOL);
+		}
+
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
+		{
+			CDock.DeleteCustomImage(game.Title);
+			Launch();
+			return -1;
+		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList = new();
 			List<string> dirs = new();
+			string strPlatform = GetPlatformString(ENUM);
 			string path = "";
 			try
 			{
@@ -77,7 +89,6 @@ namespace GameLauncher_Console
 				//string strIconPath = "";
 				string strUninstall = "";
 				string strAlias = "";
-				string strPlatform = GetPlatformString(ENUM);
 
 				try
 				{
@@ -159,12 +170,12 @@ namespace GameLauncher_Console
 			string tmpfile = $"tmp_{_name}.html";
 			if (!File.Exists(tmpfile))
 			{
-				using (var client = new WebClient());
+				using (WebClient client = new());
 				client.DownloadFile(url, tmpfile);
 			}
 			*/
 /*
-			using (var reader = new StreamReader(stream));
+			using (StreamReader reader = new(stream));
 			{
 				string html = reader.ReadToEnd();
 				HtmlDocument doc = new HtmlDocument

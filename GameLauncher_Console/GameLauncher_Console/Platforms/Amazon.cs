@@ -20,9 +20,9 @@ namespace GameLauncher_Console
 	{
 		public const GamePlatform ENUM			= GamePlatform.Amazon;
 		public const string PROTOCOL			= "amazon-games://";
-		public const string START_GAME			= PROTOCOL + "play";
+		public const string START_GAME			= PROTOCOL + "play/";
 		public const string UNINST_GAME			= @"__InstallData__\Amazon Game Remover.exe";
-        public const string UNINST_ARGS			= "-m Game -p";
+        public const string UNINST_GAME_ARGS	= "-m Game -p";
         private const string AMAZON_DB			= @"Amazon Games\Data\Games\Sql\GameInstallInfo.sqlite"; // AppData\Local
 		private const string AMAZON_OWN_DB		= @"Amazon Games\Data\Games\Sql\GameProductInfo.sqlite"; // AppData\Local
 		//private const string AMAZON_UNREG		= @"{4DD10B06-78A4-4E6F-AA39-25E9C38FA568}"; // HKCU64 Uninstall
@@ -43,22 +43,28 @@ namespace GameLauncher_Console
                 Process.Start(PROTOCOL);
         }
 
-		public static void InstallGame(CGame game)
+        // return value
+        // -1 = not implemented
+        // 0 = failure
+        // 1 = success
+        public static int InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
             if (OperatingSystem.IsWindows())
-                CDock.StartShellExecute(START_GAME + "/" + game.ID);
+                CDock.StartShellExecute(START_GAME + game.ID);
             else
-                Process.Start(START_GAME + "/" + game.ID);
+                Process.Start(START_GAME + game.ID);
+            return 1;
 		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
         {
 			List<string> azIds = new();
+            string strPlatform = GetPlatformString(ENUM);
 
-			// Get installed games
-			string db = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), AMAZON_DB);
+            // Get installed games
+            string db = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), AMAZON_DB);
 			if (!File.Exists(db))
 			{
 				CLogger.LogInfo("{0} installed game database not found.", _name.ToUpper());
@@ -67,10 +73,10 @@ namespace GameLauncher_Console
 
 			try
 			{
-                using var con = new SQLiteConnection($"Data Source={db}");
+                using SQLiteConnection con = new($"Data Source={db}");
                 con.Open();
 
-                using var cmd = new SQLiteCommand("SELECT Id, InstallDirectory, ProductTitle FROM DbSet;", con);
+                using SQLiteCommand cmd = new("SELECT Id, InstallDirectory, ProductTitle FROM DbSet;", con);
                 using SQLiteDataReader rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                 {
@@ -79,7 +85,7 @@ namespace GameLauncher_Console
                     azIds.Add(strID);
                     string strTitle = rdr.GetString(2);
                     CLogger.LogDebug($"- {strTitle}");
-                    string strLaunch = START_GAME + "/" + strID;
+                    string strLaunch = START_GAME + strID;
                     string strIconPath = "";
                     string strUninstall = "";
 
@@ -122,10 +128,9 @@ namespace GameLauncher_Console
                     }
                     if (string.IsNullOrEmpty(strUninstall))
                     {
-                        strUninstall = Path.Combine(Directory.GetParent(dir).FullName, UNINST_GAME) + " " + UNINST_ARGS + " " + strID;
+                        strUninstall = Path.Combine(Directory.GetParent(dir).FullName, UNINST_GAME) + " " + UNINST_GAME_ARGS + " " + strID;
                     }
                     string strAlias = GetAlias(strTitle);
-                    string strPlatform = GetPlatformString(ENUM);
 
                     if (!string.IsNullOrEmpty(strLaunch))
                     {
@@ -152,10 +157,10 @@ namespace GameLauncher_Console
 					CLogger.LogDebug("{0} not-installed games:", _name.ToUpper());
 					try
 					{
-                        using var con = new SQLiteConnection($"Data Source={db}");
+                        using SQLiteConnection con = new($"Data Source={db}");
                         con.Open();
 
-                        using var cmd = new SQLiteCommand("SELECT Id, ProductIconUrl, ProductIdStr, ProductTitle FROM DbSet;", con);
+                        using SQLiteCommand cmd = new("SELECT Id, ProductIconUrl, ProductIdStr, ProductTitle FROM DbSet;", con);
                         using SQLiteDataReader rdr = cmd.ExecuteReader();
                         while (rdr.Read())
                         {
@@ -170,7 +175,6 @@ namespace GameLauncher_Console
                             {
                                 string strTitle = rdr.GetString(3);
                                 CLogger.LogDebug($"- *{strTitle}");
-                                string strPlatform = GetPlatformString(ENUM);
                                 gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 
                                 // Use ProductIconUrl to download not-installed icons

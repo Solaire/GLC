@@ -42,11 +42,21 @@ namespace GameLauncher_Console
 				Process.Start(PROTOCOL);
 		}
 
-		public static void InstallGame(CGame game) => throw new NotImplementedException();
+		// return value
+		// -1 = not implemented
+		// 0 = failure
+		// 1 = success
+		public static int InstallGame(CGame game)
+		{
+			//CDock.DeleteCustomImage(game.Title);
+			Launch();
+			return -1;
+		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
+			string strPlatform = GetPlatformString(ENUM);
 			string dataPath = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), RIOT_FOLDER);
 
 			try
@@ -81,7 +91,6 @@ namespace GameLauncher_Console
 							string strIconPath = "";
 							string strUninstall = "";
 							string strAlias = "";
-							string strPlatform = GetPlatformString(ENUM);
 
 							foreach (var settingsFile in Directory.EnumerateFiles(dir, "*.yaml"))
 							{

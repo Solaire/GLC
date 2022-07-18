@@ -18,7 +18,7 @@ namespace GameLauncher_Console
 		string Name { get; }
         string Description { get; }
 		//void Launch();
-		//void InstallGame(CGame game);
+		//int InstallGame(CGame game);
 		//void StartGame(CGame game);
 		/*
 		void Login();

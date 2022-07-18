@@ -51,18 +51,24 @@ namespace GameLauncher_Console
             }
 		}
 
-		public static void InstallGame(CGame game)
+        // return value
+        // -1 = not implemented
+        // 0 = failure
+        // 1 = success
+        public static int InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
 			Launch();
+            return -1;
 		}
 
         public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<string> igcIds = new();
+            string strPlatform = GetPlatformString(ENUM);
 
-			// Get installed games
-			string file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), IG_JSON);
+            // Get installed games
+            string file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), IG_JSON);
 			if (!File.Exists(file))
 			{
 				CLogger.LogInfo("{0} installed games not found in AppData", _name.ToUpper());
@@ -85,7 +91,6 @@ namespace GameLauncher_Console
                             string strTitle = "";
                             string strLaunch = "";
                             string strAlias = "";
-                            string strPlatform = GetPlatformString(ENUM);
 
                             element.TryGetProperty("target", out JsonElement target);
                             if (!target.Equals(null))
@@ -183,7 +188,6 @@ namespace GameLauncher_Console
                                         {
                                             string strTitle = GetStringProperty(prod, "prod_name");
                                             CLogger.LogDebug($"- *{strTitle}");
-                                            string strPlatform = GetPlatformString(ENUM);
                                             gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 
                                             // Use prod_dev_image to download not-installed icons

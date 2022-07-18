@@ -20,7 +20,7 @@ namespace GameLauncher_Console
 		public const GamePlatform ENUM			= GamePlatform.Itch;
 		public const string PROTOCOL			= "itch://";
 		public const string LAUNCH				= PROTOCOL + "library";
-		public const string INSTALL_GAME		= PROTOCOL + "games";
+		public const string INSTALL_GAME		= PROTOCOL + "games/";
 		private const string ITCH_DB			= @"itch\db\butler.db"; // AppData\Roaming
 		/*
 		private const string ITCH_GAME_FOLDER	= "apps";
@@ -57,7 +57,11 @@ namespace GameLauncher_Console
             }
 		}
 
-		public static void InstallGame(CGame game)
+        // return value
+        // -1 = not implemented
+        // 0 = failure
+        // 1 = success
+        public static int InstallGame(CGame game)
 		{
 			CDock.DeleteCustomImage(game.Title);
 			if (OperatingSystem.IsWindows())
@@ -75,19 +79,23 @@ namespace GameLauncher_Console
                         else
                             command = subs[0];
                     }
-                    CDock.StartAndRedirect(command, args.Replace("%1", INSTALL_GAME + "/" + GetGameID(game.ID)));
+                    CDock.StartAndRedirect(command, args.Replace("%1", INSTALL_GAME + GetGameID(game.ID)));
                 }
 				catch (Exception e)
 				{
 					CLogger.LogError(e);
+                    return 0;
 				}
 			}
+            return 1;
 		}
 
         public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
-			// Get installed games
-			string db = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), ITCH_DB);
+            string strPlatform = GetPlatformString(ENUM);
+
+            // Get installed games
+            string db = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), ITCH_DB);
 			if (!File.Exists(db))
 			{
 				CLogger.LogInfo("{0} database not found.", _name.ToUpper());
@@ -96,12 +104,12 @@ namespace GameLauncher_Console
 
 			try
 			{
-                using var con = new SQLiteConnection($"Data Source={db}");
+                using SQLiteConnection con = new($"Data Source={db}");
                 con.Open();
 
                 // Get both installed and not-installed games
 
-                using (var cmd = new SQLiteCommand("SELECT id, title, classification, cover_url, still_cover_url FROM games;", con))
+                using (SQLiteCommand cmd = new("SELECT id, title, classification, cover_url, still_cover_url FROM games;", con))
                 using (SQLiteDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
@@ -113,7 +121,6 @@ namespace GameLauncher_Console
                             string strTitle = rdr.GetString(1);
                             string strAlias = "";
                             string strLaunch = "";
-                            string strPlatform = GetPlatformString(ENUM);
                             DateTime lastRun = DateTime.MinValue;
 
                             string iconUrl = rdr.GetString(4);
@@ -122,7 +129,7 @@ namespace GameLauncher_Console
 
                             // SELECT path FROM install_locations;
                             // SELECT install_folder FROM downloads;
-                            using (var cmd2 = new SQLiteCommand($"SELECT installed_at, last_touched_at, verdict, install_folder_name FROM caves WHERE game_id = {id};", con))
+                            using (SQLiteCommand cmd2 = new($"SELECT installed_at, last_touched_at, verdict, install_folder_name FROM caves WHERE game_id = {id};", con))
                             using (SQLiteDataReader rdr2 = cmd2.ExecuteReader())
                             {
                                 while (rdr2.Read())

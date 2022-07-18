@@ -80,6 +80,12 @@
     <Setting Name="flag_sync_legendary_saves" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="flag_use_epic_launcher" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="flag_use_gog_galaxy_launcher" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
     <Setting Name="flag_use_legendary_for_epic" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
@@ -113,7 +119,10 @@
     <Setting Name="text_oculus_username" Type="System.String" Scope="User">
       <Value Profile="(Default)"></Value>
     </Setting>
-    <Setting Name="colour_background" Type="System.String" Scope="User">
+    <Setting Name="text_origin_username" Type="System.String" Scope="User">
+      <Value Profile="(Default)"></Value>
+    </Setting>
+	<Setting Name="colour_background" Type="System.String" Scope="User">
       <Value Profile="(Default)">Black</Value>
     </Setting>
     <Setting Name="colour_background_lightmode" Type="System.String" Scope="User">
