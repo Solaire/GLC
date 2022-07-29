@@ -12,13 +12,16 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Runtime.ConstrainedExecution;
+//using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Security;
-using System.Security.Permissions;
-using System.Text;
+//using System.Security;
+//using System.Security.Permissions;
+//using System.Text;
 using System.Threading;
+//using System.Windows;
+//using System.Windows.Forms;
+//using System.Windows.Interop;
 using static GameLauncher_Console.CGameData;
 
 namespace GameLauncher_Console
@@ -150,7 +153,7 @@ namespace GameLauncher_Console
 					else if (gameSearch[0].Equals('s') || gameSearch[0].Equals('S'))
 					{
 						CLogger.LogInfo("Scanning for games...");
-						Console.Write("Scanning for games");  // ScanGames() will add dots for each platform
+						Console.Write("Scanning for games");  // ScanGames() will append a dot for each platform
 						platforms.ScanGames((bool)CConfig.GetConfigBool(CConfig.CFG_USECUST), !(bool)CConfig.GetConfigBool(CConfig.CFG_IMGSCAN), false);
 						return;
 					}
@@ -289,6 +292,19 @@ namespace GameLauncher_Console
 				DisplayUsage(cols, parent, matches);
 				return;
 			}
+
+			// TODO: Redraw after window is moved to another monitor (and adjust DPI scaling, though at the moment it is checked every time an image is drawn)
+			/*
+			int monCount = 0;
+			RefreshActualScreens();
+			bool callback(IntPtr hDesktop, IntPtr hdc, ref Rect _, int d) => ++monCount > 0;
+			if (WindowUtilities.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, callback, 0))
+			{
+				CLogger.LogDebug("{0} monitors", monCount);
+			}
+			else
+				CLogger.LogWarn("ERROR: Could not enumerate monitors.");
+			*/
 
 			if (cfgv.imageSize > 0)
 				CConsoleImage.GetImageProperties(cfgv.imageSize, (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGPOS), out sizeImage, out locImage);
@@ -2028,6 +2044,53 @@ namespace GameLauncher_Console
 			cmdProcess.Start();
 			return cmdProcess;
 		}
+
+		/*
+		public class MonitorInfo
+		{
+			public bool IsPrimary = false;
+			public Rectangle Bounds = new Rectangle();
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct Rect
+		{
+			public int left;
+			public int top;
+			public int right;
+			public int bottom;
+		}
+
+		public static List<MonitorInfo> ActualScreens = new List<MonitorInfo>();
+
+		public delegate bool MonitorEnumProc(IntPtr hDesktop, IntPtr hdc, ref Rect pRect, int dwData);
+
+		public static void RefreshActualScreens()
+		{
+			ActualScreens.Clear();
+			MonitorEnumProc callback = (IntPtr hDesktop, IntPtr hdc, ref Rect prect, int d) =>
+			{
+				ActualScreens.Add(new MonitorInfo()
+				{
+					Bounds = new Rectangle()
+					{
+						X = prect.left,
+						Y = prect.top,
+						Width = prect.right - prect.left,
+						Height = prect.bottom - prect.top,
+					},
+					IsPrimary = (prect.left == 0) && (prect.top == 0),
+				});
+
+				return true;
+			};
+
+			WindowUtilities.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, callback, 0);
+		}
+
+		[DllImport("User32.dll")]
+		public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lpRect, MonitorEnumProc callback, int dwData);
+		*/
 
 		/*
 		// https://www.sadrobot.co.nz/blog/2011/06/21/when-system-diagnostics-process-creates-a-process-it-inherits-inheritable-handles-from-the-parent-process/

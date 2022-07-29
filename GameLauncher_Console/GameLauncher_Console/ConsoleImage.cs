@@ -116,6 +116,9 @@ namespace GameLauncher_Console
 			bool bMaximumWindow,
 			[In, Out] CONSOLE_FONT_INFO_EX lpConsoleCurrentFont);
 
+		[DllImport("User32.dll")]
+		public static extern uint GetDpiForWindow([In] IntPtr hwindow);
+
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		public class CONSOLE_FONT_INFO_EX
 		{
@@ -162,7 +165,7 @@ namespace GameLauncher_Console
 		private const int INVALID_HANDLE_VALUE = -1;
 		private const int OPEN_EXISTING = 3;
 
-		private static Size GetConsoleFontSize()
+		public static Size GetConsoleFontSize()
 		{
 			// getting the console out buffer handle
 			IntPtr outHandle = CreateFile("CONOUT$", GENERIC_READ | GENERIC_WRITE,
@@ -182,6 +185,7 @@ namespace GameLauncher_Console
 			{
 				throw new InvalidOperationException("Unable to get font information.");
 			}
+			//CLogger.LogDebug("Console Font Size: {0}x{1}", cfi.dwFontSize.X, cfi.dwFontSize.Y);
 			return new Size(cfi.dwFontSize.X, cfi.dwFontSize.Y);
 		}
 
@@ -231,7 +235,7 @@ namespace GameLauncher_Console
 				imgHeight = imgWidth / 2 + 1;
 
 			size = new Size(imgWidth, imgHeight);
-			location = new Point(Console.WindowWidth - imgWidth, Decimal.ToInt32(Math.Floor((Console.WindowHeight - imgHeight) * ((decimal)imgPercent / 100))));
+			location = new Point(Console.WindowWidth - imgWidth, decimal.ToInt32(Math.Floor((Console.WindowHeight - imgHeight) * ((decimal)imgPercent / 100))));
 		}
 
 		public static void GetIconSize(int iconWidth, out Size sizeIcon)
@@ -340,6 +344,7 @@ namespace GameLauncher_Console
 		private static void ShowGameImage(int selection, Size size, Point point, string imgPath, ConsoleColor? bg)
 		{
 			Size fontSize = GetConsoleFontSize();
+			decimal scalingFactor = GetDpiForWindow(GetConsoleWindow()) / 96m;
 
 			if (size.Width > 0) //&& !(IsRunning))
 			{
@@ -351,10 +356,10 @@ namespace GameLauncher_Console
 					bool customImage = false;
 					bool embeddedIcon = false;
 					bool defaultIcon = true;
-					int x = point.X * fontSize.Width;
-					int y = point.Y * fontSize.Height;
-					int w = size.Width * fontSize.Width;
-					int h = size.Height * fontSize.Height;
+					int x = (int)(point.X * fontSize.Width * scalingFactor);
+					int y = (int)(point.Y * fontSize.Height * scalingFactor);
+					int w = (int)(size.Width * fontSize.Width * scalingFactor);
+					int h = (int)(size.Height * fontSize.Height * scalingFactor);
 
 					foreach (string ext in CDock.supportedImages)
 					{
@@ -407,7 +412,7 @@ namespace GameLauncher_Console
                             SHCreateItemFromParsingName(imgPath, IntPtr.Zero, uuid, out IShellItem ppsi);
                             ((IShellItemImageFactory)ppsi).GetImage(new Size(res, res), SIIGBF.SIIGBF_ICONONLY, out hBitmap);
 
-                            using (image = Bitmap.FromHbitmap(hBitmap))
+                            using (image = Image.FromHbitmap(hBitmap))
                             {
                                 // translating the character positions to pixels
                                 if (selection == CDock.m_nCurrentSelection)
@@ -459,14 +464,15 @@ namespace GameLauncher_Console
 		private static void ShowPlatformImage(int selection, Size size, Point point, string platform, ConsoleColor? bg)
 		{
 			Size fontSize = GetConsoleFontSize();
+			decimal scalingFactor = GetDpiForWindow(GetConsoleWindow()) / 96m;
 
 			if (size.Width > 0)
 			{
 				Icon icon;
-				int x = point.X * fontSize.Width;
-				int y = point.Y * fontSize.Height;
-				int w = size.Width * fontSize.Width;
-				int h = size.Height * fontSize.Height;
+				int x = (int)(point.X * fontSize.Width * scalingFactor);
+				int y = (int)(point.Y * fontSize.Height * scalingFactor);
+				int w = (int)(size.Width * fontSize.Width * scalingFactor);
+				int h = (int)(size.Height * fontSize.Height * scalingFactor);
 
 				int res = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) < 256 ? (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) : 256;
 				if (w > h && w < res)
@@ -562,13 +568,14 @@ namespace GameLauncher_Console
                 using Graphics g = Graphics.FromHwnd(GetConsoleWindow());
                 SolidBrush brush;
                 Size fontSize = GetConsoleFontSize();
+				decimal scalingFactor = GetDpiForWindow(GetConsoleWindow()) / 96m;
 
-                // translating the character positions to pixels
-                Rectangle imageRect = new(
-                    point.X * fontSize.Width,
-                    point.Y * fontSize.Height,
-                    size.Width * fontSize.Width,
-                    size.Height * fontSize.Height);
+				// translating the character positions to pixels
+				Rectangle imageRect = new(
+					(int)(point.X * fontSize.Width * scalingFactor),
+					(int)(point.Y * fontSize.Height * scalingFactor),
+					(int)(size.Width * fontSize.Width * scalingFactor),
+					(int)(size.Height * fontSize.Height * scalingFactor));
                 if ((bool)CConfig.GetConfigBool(CConfig.CFG_IMGBGLEG))
                     brush = new SolidBrush(ToGrColourLegacy((ConsoleColor)bg));
                 else
@@ -624,7 +631,7 @@ namespace GameLauncher_Console
 
                     // Scaling
                     float scaling = 1;
-                    if (!(ignoreRatio))
+                    if (!ignoreRatio)
                     {
                         float scalingY = (float)source.Height / h;
                         float scalingX = (float)source.Width / w;
