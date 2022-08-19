@@ -3,8 +3,8 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
-using System.Runtime.Versioning;
 using System.Text.Json;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
@@ -63,7 +63,7 @@ namespace GameLauncher_Console
         // 1 = success
         public static int InstallGame(CGame game)
 		{
-			CDock.DeleteCustomImage(game.Title);
+			CDock.DeleteCustomImage(game.Title, false);
 			if (OperatingSystem.IsWindows())
 			{
 				try
@@ -90,6 +90,15 @@ namespace GameLauncher_Console
             return 1;
 		}
 
+        public static void StartGame(CGame game)
+        {
+            CLogger.LogInfo($"Launch: {game.Launch}");
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(game.Launch);
+            else
+                Process.Start(game.Launch);
+        }
+
         public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
             string strPlatform = GetPlatformString(ENUM);
@@ -109,23 +118,25 @@ namespace GameLauncher_Console
 
                 // Get both installed and not-installed games
 
-                using (SQLiteCommand cmd = new("SELECT id, title, classification, cover_url, still_cover_url FROM games;", con))
+                using (SQLiteCommand cmd = new("SELECT id, title, short_text, classification, cover_url, still_cover_url FROM games;", con))
                 using (SQLiteDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
                     {
-                        if (!rdr.GetString(2).Equals("assets"))  // i.e., just "game" or "tool"
+                        if (!rdr.GetString(3).Equals("assets"))  // no "assets", just "game" or "tool"
                         {
                             int id = rdr.GetInt32(0);
                             string strID = $"itch_{id}";
                             string strTitle = rdr.GetString(1);
+                            //TODO: metadata description
+                            //string strDescription = rdr.GetString(2)
                             string strAlias = "";
                             string strLaunch = "";
                             DateTime lastRun = DateTime.MinValue;
 
-                            string iconUrl = rdr.GetString(4);
+                            string iconUrl = rdr.GetString(5);
                             if (string.IsNullOrEmpty(iconUrl))
-                                iconUrl = rdr.GetString(3);
+                                iconUrl = rdr.GetString(4);
 
                             // SELECT path FROM install_locations;
                             // SELECT install_folder FROM downloads;
@@ -135,12 +146,9 @@ namespace GameLauncher_Console
                                 while (rdr2.Read())
                                 {
                                     if (!rdr2.IsDBNull(1))
-                                    {
                                         lastRun = rdr2.GetDateTime(1);
-                                        //CLogger.LogDebug("    last_touched_at: " + rdr2.GetString(1) + " -> " + lastRun.ToShortDateString());
-                                    }
-                                    //else if (!rdr2.IsDBNull(0))
-                                    //    lastRun = rdr2.GetDateTime(0);
+                                    else if (!rdr2.IsDBNull(0))
+                                        lastRun = rdr2.GetDateTime(0);
                                     string verdict = rdr2.GetString(2);
                                     //strAlias = rdr2.GetString(3);
                                     strAlias = GetAlias(strTitle);
@@ -193,6 +201,58 @@ namespace GameLauncher_Console
 			CLogger.LogDebug("-------------------");
 		}
 
+        public static string GetIconUrl(CGame game)
+        {
+            bool success = false;
+            string iconUrl = "";
+            string db = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), ITCH_DB);
+            if (!File.Exists(db))
+            {
+                CLogger.LogInfo("{0} database not found.", _name.ToUpper());
+                return "";
+            }
+
+            try
+            {
+                using SQLiteConnection con = new($"Data Source={db}");
+                con.Open();
+
+                using (SQLiteCommand cmd = new(string.Format("SELECT cover_url, still_cover_url FROM games WHERE id = '{0}';", GetGameID(game.ID)), con))
+                using (SQLiteDataReader rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        iconUrl = rdr.GetString(1);
+                        if (!string.IsNullOrEmpty(iconUrl))
+                        {
+                            success = true;
+                            break;
+                        }
+                        else
+                        {
+                            iconUrl = rdr.GetString(0);
+                            if (!string.IsNullOrEmpty(iconUrl))
+                            {
+                                success = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                con.Close();
+            }
+            catch (Exception e)
+            {
+                CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
+            }
+
+            if (success)
+                return iconUrl;
+
+            CLogger.LogInfo("Icon for {0} game \"{1}\" not found in database.", _name.ToUpper(), game.Title);
+            return "";
+        }
+
 		/// <summary>
 		/// Scan the key name and extract the Itch game id
 		/// </summary>
@@ -200,7 +260,9 @@ namespace GameLauncher_Console
 		/// <returns>itch game ID as string</returns>
 		public static string GetGameID(string key)
 		{
-			return key[5..];
+            if (key.StartsWith("itch_"))
+			    return key[5..];
+            return key;
 		}
 
         /*

@@ -26,6 +26,18 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool flag_debug_logging {
+            get {
+                return ((bool)(this["flag_debug_logging"]));
+            }
+            set {
+                this["flag_debug_logging"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool flag_prevent_exit {
             get {
                 return ((bool)(this["flag_prevent_exit"]));
@@ -496,12 +508,24 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string text_origin_username {
+        public string text_origin_email {
             get {
-                return ((string)(this["text_origin_username"]));
+                return ((string)(this["text_origin_email"]));
             }
             set {
-                this["text_origin_username"] = value;
+                this["text_origin_email"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string base64_origin_password {
+            get {
+                return ((string)(this["base64_origin_password"]));
+            }
+            set {
+                this["base64_origin_password"] = value;
             }
         }
         
@@ -1575,7 +1599,7 @@ namespace GameLauncher_Console.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("NoName")]
+        [global::System.Configuration.DefaultSettingValueAttribute("D")]
         public string key_download_image_2 {
             get {
                 return ((string)(this["key_download_image_2"]));

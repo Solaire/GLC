@@ -11,8 +11,8 @@ using System.Linq;
 using System.Net;
 using System.Runtime.Versioning;
 using System.ServiceProcess;
+using System.Text;
 using System.Text.Json;
-using System.Threading;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
 using static GameLauncher_Console.CRegScanner;
@@ -54,12 +54,21 @@ namespace GameLauncher_Console
         // 1 = success
         public static int InstallGame(CGame game)
         {
-            //CDock.DeleteCustomImage(game.Title);
+            //CDock.DeleteCustomImage(game.Title, false);
             Launch();
             return -1;
         }
 
-		[SupportedOSPlatform("windows")]
+        public static void StartGame(CGame game)
+        {
+            CLogger.LogInfo($"Launch: {game.Launch}");
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(game.Launch);
+            else
+                Process.Start(game.Launch);
+        }
+
+        [SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
             string strPlatform = GetPlatformString(ENUM);
@@ -161,7 +170,7 @@ namespace GameLauncher_Console
 					{
 						byte[] valU = new byte[rdrU.GetBytes(1, 0, null, 0, int.MaxValue) - 1];
 						rdrU.GetBytes(1, 0, valU, 0, valU.Length);
-						string strValU = System.Text.Encoding.Default.GetString(valU);
+						string strValU = Encoding.Default.GetString(valU);
 
 						string alias = ParseBlob(strValU, "alias", "app_entitlements");
 						if (string.IsNullOrEmpty(userName))
@@ -187,6 +196,8 @@ namespace GameLauncher_Console
                 {
                     string strID = "";
                     string strTitle = "";
+                    //string strDescription = "";
+                    //List<string> genres = new();
                     string strLaunch = "";
                     string strAlias = "";
 
@@ -208,7 +219,7 @@ namespace GameLauncher_Console
 
                     byte[] val = new byte[rdr.GetBytes(1, 0, null, 0, int.MaxValue) - 1];
                     rdr.GetBytes(1, 0, val, 0, val.Length);
-                    string strVal = System.Text.Encoding.Default.GetString(val);
+                    string strVal = Encoding.Default.GetString(val);
 
                     _ = ulong.TryParse(ParseBlob(strVal, "ApplicationAssetBundle", "can_access_feature_keys", -1, 0), out ulong assets);
                     //ulong.TryParse(ParseBlob(strVal, "PCBinary", "livestreaming_status", -1, 0), out ulong bin);
@@ -217,6 +228,17 @@ namespace GameLauncher_Console
                     if (!string.IsNullOrEmpty(name) && string.IsNullOrEmpty(strTitle))
                         strTitle = ti.ToTitleCase(name.Replace('-', ' '));
 
+                    //TODO: metadata
+                    /*
+                    strDescription = ParseBlob(strVal, "display_short_description", "genres");
+                    string strGenres = ParseBlob(strVal, "genres", "grouping", 1);
+                    string[] genreArray = strGenres.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string genre in genreArray)
+                    {
+                        genres.Add(genre[0..^1]);
+                    }
+                    */
+
                     using (SQLiteCommand cmd2 = new($"SELECT value FROM Objects WHERE hashkey = '{assets}'", con))
                     {
                         using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
@@ -224,7 +246,7 @@ namespace GameLauncher_Console
                         {
                             byte[] val2 = new byte[rdr2.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
                             rdr2.GetBytes(0, 0, val2, 0, val2.Length);
-                            string strVal2 = System.Text.Encoding.Default.GetString(val2);
+                            string strVal2 = Encoding.Default.GetString(val2);
                             url = ParseBlob(strVal2, "uri", "version_code", strStart1: "size");
                         }
                     }
@@ -238,7 +260,7 @@ namespace GameLauncher_Console
                         {
                             byte[] val3 = new byte[rdr3.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
                             rdr3.GetBytes(0, 0, val3, 0, val3.Length);
-                            string strVal3 = System.Text.Encoding.Default.GetString(val3);
+                            string strVal3 = Encoding.Default.GetString(val3);
                             exePath = ParseBlob(strVal3, "launch_file", "launch_file_2d");
                             exePath2d = ParseBlob(strVal3, "launch_file_2d", "launch_parameters");
                             exeParams = ParseBlob(strVal3, "launch_parameters", "launch_parameters_2d");
@@ -255,7 +277,7 @@ namespace GameLauncher_Console
                         {
                             byte[] val5 = new byte[rdr5.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
                             rdr5.GetBytes(0, 0, val5, 0, val5.Length);
-                            string strVal5 = System.Text.Encoding.Default.GetString(val5);
+                            string strVal5 = Encoding.Default.GetString(val5);
                             state = ParseBlob(strVal5, "active_state", "expiration_time");
                             if (state.Equals("PERMANENT"))
                                 isInstalled = true;
@@ -288,10 +310,12 @@ namespace GameLauncher_Console
                         CLogger.LogDebug($"- *{strTitle}");
                         gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
 
+                        /*
                         if (expensiveIcons && !string.IsNullOrEmpty(url))
                         {
                             // Download missing icons
-
+                            // Downloading zip doesn't work anymore; now gives 403 error
+                            
                             string imgfile = Path.Combine(CDock.currentPath, CDock.IMAGE_FOLDER_NAME,
                                 string.Concat(strTitle.Split(Path.GetInvalidFileNameChars())));
                             bool iconFound = false;
@@ -319,27 +343,31 @@ namespace GameLauncher_Console
 #if DEBUG
                                 }
 #endif
-                                using ZipArchive archive = ZipFile.OpenRead(zipfile);
-                                foreach (ZipArchiveEntry entry in archive.Entries)
+                                if (File.Exists(zipfile))
                                 {
-                                    foreach (string ext in CDock.supportedImages)
+                                    using ZipArchive archive = ZipFile.OpenRead(zipfile);
+                                    foreach (ZipArchiveEntry entry in archive.Entries)
                                     {
-                                        if (entry.Name.Equals("cover_square_image." + ext, CDock.IGNORE_CASE))
+                                        foreach (string ext in CDock.supportedImages)
                                         {
-                                            entry.ExtractToFile(imgfile + "." + ext);
-                                            break;
+                                            if (entry.Name.Equals("cover_square_image." + ext, CDock.IGNORE_CASE))
+                                            {
+                                                entry.ExtractToFile(imgfile + "." + ext, true);
+                                                break;
+                                            }
                                         }
                                     }
+#if !DEBUG
+                                    File.Delete(zipfile);
+#endif
                                 }
-//#if !DEBUG
-                                File.Delete(zipfile);
-//#endif
                             }
                             catch (Exception e)
                             {
                                 CLogger.LogError(e, string.Format("Malformed {0} zip file!", _name.ToUpper()));
                             }
                         }
+                        */
                     }
                 }
                 con.Close();
@@ -354,6 +382,142 @@ namespace GameLauncher_Console
             CLogger.LogDebug("--------------------");
 		}
 
+        // gives 403 error
+        public static string GetIconUrl(CGame game)
+        {
+            bool success = false;
+            string db = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), OCULUS_DB);
+            string id = GetGameID(game.ID);
+            string iconUrl = "";
+
+            using SQLiteConnection con = new($"Data Source={db}");
+            con.Open();
+            using SQLiteCommand cmd = new($"SELECT value FROM Objects WHERE hashkey = '{id}'", con); // AND typename = 'Application'", con);
+            using SQLiteDataReader rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                byte[] val = new byte[rdr.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
+                rdr.GetBytes(0, 0, val, 0, val.Length);
+                string strVal = Encoding.Default.GetString(val);
+                string iconWideUrl = ParseBlob(strVal, "uri", "cover_square_image", 0, 1, "cover_landscape_image");
+                iconUrl = ParseBlob(strVal, "uri", "display_long_description", 0, 1, "cover_square_image");
+
+                if (!string.IsNullOrEmpty(iconUrl))
+                {
+                    success = true;
+                    break;
+                }
+                else
+                {
+                    iconUrl = ParseBlob(strVal, "uri", "id", 0, 1, "icon_image");
+                    if (!string.IsNullOrEmpty(iconUrl))
+                    {
+                        success = true;
+                        break;
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(iconWideUrl))
+                        {
+                            iconUrl = iconWideUrl;
+                            success = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            con.Close();
+
+            if (success)
+                return iconUrl;
+
+            CLogger.LogInfo("Icon for {0} game \"{1}\" not found in database.", _name.ToUpper(), game.Title);
+            return "";
+        }
+
+        // Downloading zip doesn't work anymore; now gives 403 error
+        /*
+        public static bool DownloadCustomImage(CGame game)
+        {
+            bool success = false;
+            string db = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), OCULUS_DB);
+            string id = GetGameID(game.ID);
+            string imgfile = Path.Combine(CDock.currentPath, CDock.IMAGE_FOLDER_NAME,
+                string.Concat(game.Title.Split(Path.GetInvalidFileNameChars())));
+            string zipfile = string.Format("tmp_{0}_{1}.zip", _name, id);
+
+            using SQLiteConnection con = new($"Data Source={db}");
+            con.Open();
+            using SQLiteCommand cmd = new($"SELECT value FROM Objects WHERE hashkey = '{id}'", con); // AND typename = 'Application'", con);
+            using SQLiteDataReader rdr = cmd.ExecuteReader();
+            while (rdr.Read())
+            {
+                string url = "";
+
+                byte[] val = new byte[rdr.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
+                rdr.GetBytes(0, 0, val, 0, val.Length);
+                string strVal = Encoding.Default.GetString(val);
+
+                _ = ulong.TryParse(ParseBlob(strVal, "ApplicationAssetBundle", "can_access_feature_keys", -1, 0), out ulong assets);
+                using (SQLiteCommand cmd2 = new($"SELECT value FROM Objects WHERE hashkey = '{assets}'", con))
+                {
+                    using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
+                    while (rdr2.Read())
+                    {
+                        byte[] val2 = new byte[rdr2.GetBytes(0, 0, null, 0, int.MaxValue) - 1];
+                        rdr2.GetBytes(0, 0, val2, 0, val2.Length);
+                        string strVal2 = Encoding.Default.GetString(val2);
+                        url = ParseBlob(strVal2, "uri", "version_code", strStart1: "size");
+                    }
+                }
+                try
+                {
+                    using WebClient client = new();
+                    client.DownloadFile(url, zipfile);
+                    if (File.Exists(zipfile))
+                    {
+                        using ZipArchive archive = ZipFile.OpenRead(zipfile);
+                        foreach (ZipArchiveEntry entry in archive.Entries)
+                        {
+                            foreach (string ext in CDock.supportedImages)
+                            {
+                                if (entry.Name.Equals("cover_square_image." + ext, CDock.IGNORE_CASE))
+                                {
+                                    entry.ExtractToFile(imgfile + "." + ext, true);
+                                    success = true;
+                                    break;
+                                }
+                            }
+                        }
+                        File.Delete(zipfile);
+                    }
+
+                    if (success)
+                        break;
+                }
+                catch (Exception e)
+                {
+                    CLogger.LogError(e, string.Format("Malformed {0} zip file!", _name.ToUpper()));
+                }
+            }
+            con.Close();
+
+            return success;
+        }
+        */
+
+        /// <summary>
+        /// Scan the key name and extract the Oculus game id
+        /// </summary>
+        /// <param name="key">The game string</param>
+        /// <returns>Oculus game ID as string</returns>
+        public static string GetGameID(string key)
+        {
+            if (key.StartsWith("oculus_"))
+                return key[7..];
+            return key;
+        }
+
         static string ParseBlob(string strVal, string strStart, string strEnd, int startAdjust = 0, int stopAdjust = 0, string strStart1 = "")
 		{
 			if (!string.IsNullOrEmpty(strStart1))
@@ -364,7 +528,7 @@ namespace GameLauncher_Console
 			}
 			int start = strVal.IndexOf(strStart);
 			int stop = strVal.IndexOf(strEnd);
-			if (start > 0 && stop > 0)
+			if (start > 0 && stop > start)
 			{
 				start += strStart.Length + 10 + startAdjust;
 				stop -= 5 + stopAdjust;

@@ -60,7 +60,7 @@ namespace GameLauncher_Console
 
 		[SupportedOSPlatform("windows")]
 		public static void Launch() => Process.Start($"explorer.exe shell:AppsFolder\\{MSSTORE_APP}"); // Microsoft Store
-																									   //public static void Launch() => CDock.StartShellExecute(PROTOCOL); // Xbox app
+		//public static void Launch() => CDock.StartShellExecute(PROTOCOL); // Xbox app
 
 		// return value
 		// -1 = not implemented
@@ -69,9 +69,18 @@ namespace GameLauncher_Console
 		[SupportedOSPlatform("windows")]
 		public static int InstallGame(CGame game)
 		{
-			//CDock.DeleteCustomImage(game.Title);
+			//CDock.DeleteCustomImage(game.Title, false);
 			Launch();
 			return -1;
+		}
+
+		public static void StartGame(CGame game)
+		{
+			CLogger.LogInfo($"Launch: {game.Launch}");
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(game.Launch);
+			else
+				Process.Start(game.Launch);
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -422,6 +431,10 @@ namespace GameLauncher_Console
 
 			CLogger.LogDebug("----------------------");
 		}
+
+		public static string GetIconUrl(CGame _) => throw new NotImplementedException();
+
+		public static string GetGameID(string key) => key;
 
 		/*
 		private static void DisplayPackageInfo(Windows.ApplicationModel.Package package)

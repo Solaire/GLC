@@ -134,6 +134,7 @@ namespace GameLauncher_Console
 			public ConsoleColor errorLtCC;
 		}
 
+		public const string CFG_DEBUG		= "flag_debug_logging";
 		public const string CFG_NOQUIT		= "flag_prevent_exit";
 		public const string CFG_USEFILE		= "flag_do_not_save_interface_changes";
 		public const string CFG_USESCAN		= "flag_always_scan_for_new_games";
@@ -176,7 +177,8 @@ namespace GameLauncher_Console
 		public const string CFG_COLSIZE		= "num_grid_text_min_column_characters";
 		public const string CFG_STEAMID		= "num_steam_id";
 		public const string CFG_OCULUSID	= "text_oculus_username";
-		public const string CFG_ORIGINID	= "text_origin_username";
+		public const string CFG_ORIGINID	= "text_origin_email";
+		public const string CFG_ORIGINPW	= "base64_origin_password";
 		public const string CFG_COLBG1		= "colour_background";
 		public const string CFG_COLBG2		= "colour_background_lightmode";
 		public const string CFG_COLTITLE1	= "colour_title";
@@ -265,7 +267,7 @@ namespace GameLauncher_Console
 		public const string CFG_KEYRATEUP2	= "key_rating_up_2";
 		public const string CFG_KEYRATEDN1	= "key_rating_down_1";
 		public const string CFG_KEYRATEDN2	= "key_rating_down_2";
-		public const string CFG_KEYDLIMG1	= "key_download_image_1";						// TODO
+		public const string CFG_KEYDLIMG1	= "key_download_image_1";
 		public const string CFG_KEYDLIMG2	= "key_download_image_2";
 		public const string CFG_PATHLEG		= "path_legendary_exe";
 		public const string CFG_TXTMAINT	= "text_main_menu_title";
@@ -417,6 +419,10 @@ namespace GameLauncher_Console
 		{
 			return SetConfigValue(property, nVal.ToString(), ref config);
 		}
+		public static bool SetConfigValue(string property, byte[] byteVal)
+        {
+			return SetConfigValue(property, byteVal.ToString(), ref config);
+        }
 
 		/// <summary>
 		/// Convert user-inputted entries for colour names to appropriate ConsoleColor name

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.Versioning;
 using System.Text.Json;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
@@ -57,10 +56,19 @@ namespace GameLauncher_Console
         // 1 = success
         public static int InstallGame(CGame game)
 		{
-			CDock.DeleteCustomImage(game.Title);
+			CDock.DeleteCustomImage(game.Title, false);
 			Launch();
             return -1;
 		}
+
+        public static void StartGame(CGame game)
+        {
+            CLogger.LogInfo($"Launch: {game.Launch}");
+            if (OperatingSystem.IsWindows())
+                CDock.StartShellExecute(game.Launch);
+            else
+                Process.Start(game.Launch);
+        }
 
         public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
@@ -92,19 +100,24 @@ namespace GameLauncher_Console
                             string strLaunch = "";
                             string strAlias = "";
 
-                            element.TryGetProperty("target", out JsonElement target);
-                            if (!target.Equals(null))
+                            if (element.TryGetProperty("target", out JsonElement target))
                             {
-                                target.TryGetProperty("item_data", out JsonElement item);
-                                if (!item.Equals(null))
+                                if (target.TryGetProperty("item_data", out JsonElement item))
                                 {
                                     strID = GetStringProperty(item, "id_key_name");
                                     igcIds.Add(strID);
                                     strTitle = GetStringProperty(item, "name");
                                 }
+                                if (target.TryGetProperty("game_data", out JsonElement game) && 
+                                    game.TryGetProperty("categories", out JsonElement genres))
+                                {
+                                    foreach (JsonElement genre in genres.EnumerateArray())
+                                    {
+
+                                    }
+                                }
                             }
-                            element.TryGetProperty("path", out JsonElement paths);
-                            if (!paths.Equals(null))
+                            if (element.TryGetProperty("path", out JsonElement paths))
                             {
                                 foreach (JsonElement path in paths.EnumerateArray())
                                     strLaunch = CGameFinder.FindGameBinaryFile(path.ToString(), strTitle);
@@ -152,20 +165,15 @@ namespace GameLauncher_Console
                             bool exists = false;
                             bool found = false;
                             JsonElement coll = new();
-                            document.RootElement.TryGetProperty("gala_data", out JsonElement gData);
-                            if (!gData.Equals(null))
+                            if (document.RootElement.TryGetProperty("gala_data", out JsonElement gData))
                             {
-                                gData.TryGetProperty("data", out JsonElement data);
-                                if (!data.Equals(null))
+                                if (gData.TryGetProperty("data", out JsonElement data))
                                 {
-                                    data.TryGetProperty("showcase_content", out JsonElement sContent);
-                                    if (!sContent.Equals(null))
+                                    if (data.TryGetProperty("showcase_content", out JsonElement sContent))
                                     {
-                                        sContent.TryGetProperty("content", out JsonElement content);
-                                        if (!content.Equals(null))
+                                        if (sContent.TryGetProperty("content", out JsonElement content))
                                         {
-                                            content.TryGetProperty("user_collection", out coll);
-                                            if (!coll.Equals(null))
+                                            if (content.TryGetProperty("user_collection", out coll))
                                                 exists = true;
                                         }
                                     }
@@ -194,6 +202,10 @@ namespace GameLauncher_Console
                                             if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
                                             {
                                                 string devName = GetStringProperty(prod, "prod_dev_namespace");
+                                                /*
+                                                string cover = GetStringProperty(prod, "prod_dev_cover");
+                                                string iconWideUrl = $"https://www.indiegalacdn.com/imgs/devs/{devName}/products/{strID}/prodcover/{cover}";
+                                                */
                                                 string image = GetStringProperty(prod, "prod_dev_image");
                                                 if (!string.IsNullOrEmpty(devName) && !string.IsNullOrEmpty(image))
                                                 {
@@ -215,5 +227,76 @@ namespace GameLauncher_Console
 			}
 			CLogger.LogDebug("--------------------");
 		}
-	}
+
+        public static string GetIconUrl(CGame game)
+        {
+            string file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), IG_OWN_JSON);
+            if (!File.Exists(file))
+            {
+                CLogger.LogInfo("{0} file not found in AppData", _name.ToUpper());
+                return "";
+            }
+
+            string strDocumentData = File.ReadAllText(file);
+
+            if (string.IsNullOrEmpty(strDocumentData))
+            {
+                CLogger.LogWarn(string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
+                return "";
+            }
+
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
+                bool exists = false;
+                JsonElement coll = new();
+                document.RootElement.TryGetProperty("gala_data", out JsonElement gData);
+                if (!gData.Equals(null))
+                {
+                    gData.TryGetProperty("data", out JsonElement data);
+                    if (!data.Equals(null))
+                    {
+                        data.TryGetProperty("showcase_content", out JsonElement sContent);
+                        if (!sContent.Equals(null))
+                        {
+                            sContent.TryGetProperty("content", out JsonElement content);
+                            if (!content.Equals(null))
+                            {
+                                content.TryGetProperty("user_collection", out coll);
+                                if (!coll.Equals(null))
+                                    exists = true;
+                            }
+                        }
+                    }
+                }
+
+                if (exists)
+                {
+                    foreach (JsonElement prod in coll.EnumerateArray())
+                    {
+                        if (game.ID.Equals(GetStringProperty(prod, "prod_id_key_name")))
+                        {
+                            string devName = GetStringProperty(prod, "prod_dev_namespace");
+                            /*
+                            string cover = GetStringProperty(prod, "prod_dev_cover");
+                            string iconWideUrl = $"https://www.indiegalacdn.com/imgs/devs/{devName}/products/{strID}/prodcover/{cover}";
+                            */
+                            string image = GetStringProperty(prod, "prod_dev_image");
+                            if (!string.IsNullOrEmpty(devName) && !string.IsNullOrEmpty(image))
+                                return $"https://www.indiegalacdn.com/imgs/devs/{devName}/products/{game.ID}/prodmain/{image}";
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                CLogger.LogError(e, string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
+            }
+
+            CLogger.LogInfo("Icon for {0} game \"{1}\" not found in file.", _name.ToUpper(), game.Title);
+            return "";
+        }
+
+        public static string GetGameID(string key) => key;
+    }
 }

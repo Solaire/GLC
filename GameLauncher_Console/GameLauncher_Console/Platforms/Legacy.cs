@@ -3,8 +3,8 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.Versioning;
 using System.Text.Json;
 using static GameLauncher_Console.CGameData;
@@ -58,15 +58,25 @@ namespace GameLauncher_Console
 		// 1 = success
 		public static int InstallGame(CGame game)
 		{
-			//CDock.DeleteCustomImage(game.Title);
+			//CDock.DeleteCustomImage(game.Title, false);
 			Launch();
 			return -1;
+		}
+
+		public static void StartGame(CGame game)
+		{
+			CLogger.LogInfo($"Launch: {game.Launch}");
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(game.Launch);
+			else
+				Process.Start(game.Launch);
 		}
 
 		[SupportedOSPlatform("windows")]
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false)
 		{
 			List<RegistryKey> keyList = new();
+			List<string> instDirs = new();
 			string strPlatform = GetPlatformString(ENUM);
 
 			// Get installed games
@@ -79,6 +89,7 @@ namespace GameLauncher_Console
 				{
 					string strID = "";
 					string strTitle = "";
+					//string strDescription = "";
 					string strLaunch = "";
 					string strIconPath = "";
 					string strUninstall = "";
@@ -92,8 +103,10 @@ namespace GameLauncher_Console
 						if (string.IsNullOrEmpty(strTitle))
 							strTitle = data.Name;
 						CLogger.LogDebug($"- {strTitle}");
+						string exePath = GetRegStrVal(data, "InstDir").Trim(new char[] { ' ', '"' });
+						instDirs.Add(exePath);
 						string exeFile = GetRegStrVal(data, "GameExe");
-						strLaunch = Path.Combine(GetRegStrVal(data, "InstDir").Trim(new char[] { ' ', '"' }), exeFile);
+						strLaunch = Path.Combine(exePath, exeFile);
 						if (expensiveIcons)
 						{
                             using RegistryKey key2 = Registry.LocalMachine.OpenSubKey(NODE32_REG, RegistryKeyPermissionCheck.ReadSubTree), // HKLM32
@@ -123,19 +136,62 @@ namespace GameLauncher_Console
 					if (!(string.IsNullOrEmpty(strLaunch)))
 						gameDataList.Add(
 							new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
+
+					/*
+					// Use website to download missing icons
+					if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
+					{
+						string file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), LEG_JSON);
+						try
+						{
+							string strDocumentData = File.ReadAllText(file);
+
+							if (string.IsNullOrEmpty(strDocumentData))
+								CLogger.LogWarn(string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
+							else
+							{
+								using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
+								if (document.RootElement.TryGetProperty("siteData", out JsonElement siteData) && siteData.TryGetProperty("catalog", out JsonElement catalog))
+								{
+									foreach (JsonElement item in catalog.EnumerateArray())
+									{
+										if (item.TryGetProperty("games", out JsonElement games))
+										{
+											foreach (JsonElement gameItem in games.EnumerateArray())
+											{
+												if (strID.Equals(GetStringProperty(gameItem, "installer_uuid")))
+												{
+													// TODO: metadata description
+													//strDescription = GetStringProperty(gameItem, "game_description");
+													string iconUrl = GetStringProperty(gameItem, "game_coverart");
+													if (!string.IsNullOrEmpty(iconUrl))
+														CDock.DownloadCustomImage(strTitle, iconUrl);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						catch (Exception e)
+						{
+							CLogger.LogError(e, string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
+						}
+					}
+					*/
 				}
 			}
 
-			if (expensiveIcons && keyList.Count <= 0)
+			if (expensiveIcons)
 			{
-				// if no games found in registry, check manually
+				// check installation paths manually
 
 				List<string> libPaths = new();
 
 				string file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), LEG_JSON);
 				if (!File.Exists(file))
 				{
-					CLogger.LogInfo("{0} installed games not found in AppData", _name.ToUpper());
+					CLogger.LogInfo("{0} file not found in AppData", _name.ToUpper());
 					return;
 				}
 				else
@@ -149,22 +205,17 @@ namespace GameLauncher_Console
 						try
 						{
 							using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
-							//foreach (JsonElement element in document.RootElement.EnumerateArray())
-							//{
-								document.RootElement.TryGetProperty("settings", out JsonElement settings);
-								if (!settings.Equals(null))
+							if (document.RootElement.TryGetProperty("settings", out JsonElement settings))
+							{
+								if (settings.TryGetProperty("gameLibraryPath", out JsonElement paths))
 								{
-									settings.TryGetProperty("gameLibraryPath", out JsonElement paths);
-									if (!paths.Equals(null))
+									foreach (JsonElement path in paths.EnumerateArray())
 									{
-										foreach (JsonElement path in paths.EnumerateArray())
-										{
-											if (!path.Equals(null))
-												libPaths.Add(path.ToString());
-										}
+										if (!path.Equals(null))
+											libPaths.Add(path.ToString());
 									}
 								}
-							//}
+							}
 						}
 						catch (Exception e)
 						{
@@ -184,22 +235,23 @@ namespace GameLauncher_Console
 							dirs.AddRange(Directory.GetDirectories(path, "*.*", SearchOption.TopDirectoryOnly));
 							foreach (string dir in dirs)
 							{
-								string strID = Path.GetFileName(dir);
-								if (strID == LEG_LAUNCHER)
+								string strTitle = Path.GetFileName(dir);
+								if (strTitle == LEG_LAUNCHER || instDirs.Contains(dir, StringComparer.CurrentCultureIgnoreCase))
 									continue;
+								string strID = "legacy_" + strTitle;
 								string strLaunch = "";
 								string strAlias = "";
 
-								CLogger.LogDebug($"- {strID}");
-								strLaunch = CGameFinder.FindGameBinaryFile(dir, strID);
+								CLogger.LogDebug($"- {strTitle}");
+								strLaunch = CGameFinder.FindGameBinaryFile(dir, strTitle);
 								strAlias = GetAlias(Path.GetFileNameWithoutExtension(strLaunch));
-								if (strAlias.Length > strID.Length)
-									strAlias = GetAlias(strID);
-								if (strAlias.Equals(strID, CDock.IGNORE_CASE))
+								if (strAlias.Length > strTitle.Length)
+									strAlias = GetAlias(strTitle);
+								if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 									strAlias = "";
 								if (!(string.IsNullOrEmpty(strLaunch)))
 									gameDataList.Add(
-										new ImportGameData(strID, strID, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+										new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
 							}
 
 						}
@@ -212,5 +264,58 @@ namespace GameLauncher_Console
 			}
 			CLogger.LogDebug("--------------------");
 		}
+
+		public static string GetIconUrl(CGame game)
+        {
+			string iconUrl = "";
+
+			if (!game.ID.StartsWith("legacy_")) // Currently doesn't work without InstallerUUID from registry
+			{
+				string file = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), LEG_JSON);
+				if (!File.Exists(file))
+					CLogger.LogInfo("{0} installed games not found in AppData", _name.ToUpper());
+				else
+				{
+					try
+					{
+						string strDocumentData = File.ReadAllText(file);
+
+						if (string.IsNullOrEmpty(strDocumentData))
+							CLogger.LogWarn(string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
+						else
+						{
+							using JsonDocument document = JsonDocument.Parse(@strDocumentData, jsonTrailingCommas);
+							if (document.RootElement.TryGetProperty("siteData", out JsonElement siteData) && siteData.TryGetProperty("catalog", out JsonElement catalog))
+							{
+								foreach (JsonElement item in catalog.EnumerateArray())
+								{
+									if (item.TryGetProperty("games", out JsonElement games))
+									{
+										foreach (JsonElement gameItem in games.EnumerateArray())
+										{
+											if (GetGameID(game.ID).Equals(GetStringProperty(gameItem, "installer_uuid")))
+											{
+												iconUrl = GetStringProperty(gameItem, "game_coverart");
+												if (!string.IsNullOrEmpty(iconUrl))
+													return iconUrl;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						CLogger.LogError(e, string.Format("Malformed {0} file: {1}", _name.ToUpper(), file));
+					}
+				}
+			}
+
+			CLogger.LogInfo("Icon for {0} game \"{1}\" not found in registry + catalog.", _name.ToUpper(), game.Title);
+			return "";
+        }
+
+		public static string GetGameID(string key) => key;
 	}
 }

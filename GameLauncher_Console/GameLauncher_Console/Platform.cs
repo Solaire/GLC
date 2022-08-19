@@ -2,12 +2,10 @@
 using SqlDB;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data.SQLite;
 using System.Linq;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-//using static GameLauncher_Console.CRegScanner;
 using static SqlDB.CSqlField;
 
 namespace GameLauncher_Console
@@ -30,7 +28,8 @@ namespace GameLauncher_Console
 		*/
 
 		void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons);
-		//string GetGameID(CGame game);
+		//string GetIconUrl(CGame game);
+		//string GetGameID(string id);
 	}
 
 	/// <summary>

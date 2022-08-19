@@ -25,7 +25,7 @@ namespace IniParser
 		private static extern int GetPrivateProfileString(string section, string key, string _default, StringBuilder output, int size, string filePath);
 
 		[DllImport("kernel32", CharSet = CharSet.Unicode)]
-		private static extern int GetPrivateProfileSection(string section, byte[] returnBuffe, int size, string fileName);
+		private static extern int GetPrivateProfileSection(string section, byte[] returnBuffer, int size, string fileName);
 
 		/// <summary>
 		/// Constructor: Open .ini file. If file doesn't exist, create new and set default settings. Update installed platforms
@@ -49,8 +49,8 @@ namespace IniParser
 		/// <returns>Value as a string</returns>
 		public string Read(string key, string section = null)
 		{
-			var output = new StringBuilder(255);
-			GetPrivateProfileString(section ?? m_EXE, key, "", output, 255, m_filePath);
+			var output = new StringBuilder(2048);
+			GetPrivateProfileString(section ?? m_EXE, key, "", output, 2048, m_filePath);
 			return output.ToString();
 		}
 
@@ -62,9 +62,9 @@ namespace IniParser
 		/// <returns>Value as an int</returns>
 		public int ReadAsNumber(string key, string section = null)
 		{
-			var output = new StringBuilder(255);
-			GetPrivateProfileString(section ?? m_EXE, key, "", output, 255, m_filePath);
-			return Int32.Parse(output.ToString());
+			var output = new StringBuilder(2048);
+			GetPrivateProfileString(section ?? m_EXE, key, "", output, 2048, m_filePath);
+			return int.Parse(output.ToString());
 		}
 
 		/// <summary>
@@ -72,14 +72,14 @@ namespace IniParser
 		/// </summary>
 		/// <param name="key">Target key</param>
 		/// <param name="section">Section to look in. If null, it will look in default section [GLC]</param>
-		/// <returns>Values an an array of strings</returns>
+		/// <returns>Values an an array of ints</returns>
 		public int[] ReadAsArray(string key, string section = null)
 		{
-			var output = new StringBuilder(255);
-			GetPrivateProfileString(section ?? m_EXE, key, "", output, 255, m_filePath);
+			var output = new StringBuilder(2048);
+			GetPrivateProfileString(section ?? m_EXE, key, "", output, 2048, m_filePath);
 
 			string[] strings = output.ToString().Split('x');
-			return new int[] { Int32.Parse(strings[0]), Int32.Parse(strings[1]) };
+			return new int[] { int.Parse(strings[0]), int.Parse(strings[1]) };
 		}
 
 		/// <summary>
@@ -141,8 +141,8 @@ namespace IniParser
 		/// <returns>List of values in the section</returns>
 		public List<string> ReadSection(string section = null)
 		{
-			byte[] buffer = new byte[2048];
-			GetPrivateProfileSection(section ?? m_EXE, buffer, 2048, m_filePath);
+			byte[] buffer = new byte[32767];
+			GetPrivateProfileSection(section ?? m_EXE, buffer, 32767, m_filePath);
 			string[] temp = Encoding.Unicode.GetString(buffer).Trim('\0').Split('\0');
 
 			List<string> output = new();
