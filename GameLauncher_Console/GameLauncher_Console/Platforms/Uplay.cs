@@ -43,21 +43,27 @@ namespace GameLauncher_Console
 		// 1 = success
 		public static int InstallGame(CGame game)
 		{
-			/*
 			// Some games don't provide a valid ID
-			if (game.ID.StartsWith(PlatformUplay.UPLAY_PREFIX))
+			if (game.ID.StartsWith(UPLAY_PREFIX))
 			{
-			*/
-				//CDock.DeleteCustomImage(game.Title);
+				//CDock.DeleteCustomImage(game.Title, false);
 				if (OperatingSystem.IsWindows())
 					CDock.StartShellExecute(START_GAME + GetGameID(game.ID));
 				else
 					Process.Start(START_GAME + GetGameID(game.ID));
 				return 1;
-			/*
 			}
-			else return 0;
-			*/
+			else
+				return 0;
+		}
+
+		public static void StartGame(CGame game)
+		{
+			CLogger.LogInfo($"Launch: {game.Launch}");
+			if (OperatingSystem.IsWindows())
+				CDock.StartShellExecute(game.Launch);
+			else
+				Process.Start(game.Launch);
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -218,6 +224,8 @@ namespace GameLauncher_Console
 			}
 			CLogger.LogDebug("-----------------------");
 		}
+
+		public static string GetIconUrl(CGame _) => throw new NotImplementedException();
 
 		/// <summary>
 		/// Scan the key name and extract the Uplay game id

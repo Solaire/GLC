@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
-//using System.Net;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using static GameLauncher_Console.CGameData;
@@ -48,9 +48,9 @@ namespace GameLauncher_Console
 		public static void Launch()
 		{
 			if (OperatingSystem.IsWindows())
-				CDock.StartShellExecute(LAUNCH);
+				_ = CDock.StartShellExecute(LAUNCH);
 			else
-				Process.Start(LAUNCH);
+				_ = Process.Start(LAUNCH);
 		}
 
 		// return value
@@ -59,12 +59,21 @@ namespace GameLauncher_Console
 		// 1 = success
 		public static int InstallGame(CGame game)
 		{
-			CDock.DeleteCustomImage(game.Title);
+			CDock.DeleteCustomImage(game.Title, false);
 			if (OperatingSystem.IsWindows())
-				CDock.StartShellExecute(INSTALL_GAME + GetGameID(game.ID));
+				_ = CDock.StartShellExecute(INSTALL_GAME + GetGameID(game.ID));
 			else
-				Process.Start(INSTALL_GAME + GetGameID(game.ID));
+				_ = Process.Start(INSTALL_GAME + GetGameID(game.ID));
 			return 1;
+		}
+
+		public static void StartGame(CGame game)
+		{
+			CLogger.LogInfo($"Launch: {game.Launch}");
+			if (OperatingSystem.IsWindows())
+				_ = CDock.StartShellExecute(game.Launch);
+			else
+				_ = Process.Start(game.Launch);
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -300,7 +309,7 @@ namespace GameLauncher_Console
 					try
 					{
 						string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", userId);
-/*
+						/*
 #if DEBUG
 						// Don't re-download if file exists
 						string tmpfile = $"tmp_{_name}.html";
@@ -315,7 +324,7 @@ namespace GameLauncher_Console
 						};
 						doc.Load(tmpfile);
 #else
-*/
+						*/
                         HtmlWeb web = new()
                         {
                             UseCookies = true
@@ -324,7 +333,13 @@ namespace GameLauncher_Console
 						doc.OptionUseIdAttribute = true;
 //#endif
 						HtmlNode gameList = doc.DocumentNode.SelectSingleNode("//script[@language='javascript']");
-						if (gameList != null)
+						if (gameList == null)
+                        {
+							CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
+											"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
+								_name.ToUpper());
+						}
+						else
 						{
 							CLogger.LogDebug("{0} not-installed games (user #{1}):", _name.ToUpper(), userId);
 
@@ -334,8 +349,11 @@ namespace GameLauncher_Console
 							};
 							string rgGames = gameList.InnerText.Remove(0, gameList.InnerText.IndexOf('['));
 							rgGames = rgGames.Remove(rgGames.IndexOf(';'));
+#if DEBUG
+							File.WriteAllText($"tmp_{_name}.json", rgGames);
+#endif
 
-                            using JsonDocument document = JsonDocument.Parse(@rgGames, options);
+							using JsonDocument document = JsonDocument.Parse(@rgGames, options);
                             foreach (JsonElement game in document.RootElement.EnumerateArray())
                             {
                                 ulong id = GetULongProperty(game, "appid");
@@ -367,25 +385,128 @@ namespace GameLauncher_Console
                                 }
                             }
                         }
-						else
-						{
-							CLogger.LogInfo("Can't get not-installed {0} games. Profile may not be public.\n" +
-											"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
-								_name.ToUpper());
-						}
-						/*
-#if DEBUG
-							File.Delete(tmpfile);
-#endif
-						*/
 					}
 					catch (Exception e)
 					{
 						CLogger.LogError(e);
 					}
+
 					CLogger.LogDebug("---------------------");
 				}
 			}
+		}
+
+		/*
+//using Steam.Models.SteamCommunity;
+//using SteamWebAPI2.Interfaces;
+//using SteamWebAPI2.Utilities;
+//using System.Net.Http;
+//using System.Threading.Tasks;
+
+					try
+                    {
+                        Task<OwnedGamesResultModel> t = GetOwnedGames(0);
+						t.Wait();
+						foreach (OwnedGameModel game in t.Result.OwnedGames)
+						{
+							uint strID = game.AppId;
+							string iconUrl = game.ImgIconUrl;
+							CLogger.LogDebug($"- *{game.Name} <{iconUrl}>");
+						}
+					}
+					catch (Exception e)
+                    {
+						CLogger.LogError(e);
+                    }
+        */
+
+		// Using SteamWebAPI2
+		/*
+		static async Task<OwnedGamesResultModel> GetOwnedGames(ulong userId)
+		{
+			string apiKey = CConfig.GetConfigString(CConfig.CFG_STEAMAPI);
+			if (string.IsNullOrEmpty(apiKey))
+				CLogger.LogInfo("Can't get {0} not-installed games. API key must be added to glc.ini.\n" +
+								"To get your key, go to <https://steamcommunity.com/dev/apikey>.",
+					_name.ToUpper());
+			
+			if (userId <= 0)
+				userId = (ulong)CConfig.GetConfigULong(CConfig.CFG_STEAMID);
+			SteamWebInterfaceFactory apiFactory = new(apiKey);
+
+			SteamUser userInterface = apiFactory.CreateSteamWebInterface<SteamUser>(new HttpClient());
+			var userResponse = await userInterface.GetPlayerSummaryAsync(userId);
+			//DateTimeOffset? userLastModified = userResponse.LastModified;
+			PlayerSummaryModel userData = userResponse.Data;
+			ProfileVisibility visibility = userData.ProfileVisibility;
+			CLogger.LogDebug("{0} Profile {1}, URL: <{2}>", _name, visibility, userData.ProfileUrl);
+
+			if (visibility != ProfileVisibility.Public)
+				CLogger.LogInfo("Can't get {0} not-installed games. Profile is not public.\n" +
+								"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
+					_name.ToUpper());
+			else
+			{
+				PlayerService playerInterface = apiFactory.CreateSteamWebInterface<PlayerService>();
+				ISteamWebResponse<OwnedGamesResultModel> ownedGames = await playerInterface.GetOwnedGamesAsync(userId, true, true);
+				return ownedGames.Data;
+			}
+			return null;
+		}
+*/
+
+		public static string GetIconUrl(CGame game)
+        {
+			ulong userId = (ulong)CConfig.GetConfigULong(CConfig.CFG_STEAMID);
+			if (userId > 0)
+			{
+				// Download game list from public user profile
+				try
+				{
+					string url = string.Format("https://steamcommunity.com/profiles/{0}/games/?tab=all", userId);
+					HtmlWeb web = new()
+					{
+						UseCookies = true
+					};
+					HtmlDocument doc = web.Load(url);
+					doc.OptionUseIdAttribute = true;
+					HtmlNode gameList = doc.DocumentNode.SelectSingleNode("//script[@language='javascript']");
+					if (gameList == null)
+                    {
+						CLogger.LogInfo("Can't get {0} game list. Profile may not be public.\n" +
+										"To change this, go to <https://steamcommunity.com/my/edit/settings>.",
+							_name.ToUpper());
+					}
+					else
+					{
+						var options = new JsonDocumentOptions
+						{
+							AllowTrailingCommas = true
+						};
+						string rgGames = gameList.InnerText.Remove(0, gameList.InnerText.IndexOf('['));
+						rgGames = rgGames.Remove(rgGames.IndexOf(';'));
+
+						using JsonDocument document = JsonDocument.Parse(@rgGames, options);
+						foreach (JsonElement rggame in document.RootElement.EnumerateArray())
+						{
+							ulong id = GetULongProperty(rggame, "appid");
+							if (id > 0 && id.ToString().Equals(GetGameID(game.ID)))
+							{
+								string iconUrl = GetStringProperty(rggame, "logo");
+								if (!string.IsNullOrEmpty(iconUrl))
+									return iconUrl;
+							}
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e);
+				}
+			}
+
+			CLogger.LogInfo("Icon for {0} game \"{1}\" not found on profile page.", _name.ToUpper(), game.Title);
+			return "";
 		}
 
 		/// <summary>
@@ -395,7 +516,9 @@ namespace GameLauncher_Console
 		/// <returns>Steam game ID as string</returns>
 		public static string GetGameID(string key)
 		{
-			return Path.GetFileNameWithoutExtension(key[(key.LastIndexOf("_") + 1)..]);
+			if (key.StartsWith("appmanifest_"))
+				return Path.GetFileNameWithoutExtension(key[11..]);
+			return key;
 		}
 	}
 

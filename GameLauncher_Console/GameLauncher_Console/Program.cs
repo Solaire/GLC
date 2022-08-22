@@ -28,7 +28,6 @@ namespace GameLauncher_Console
     {
 		private const string IMAGE_FOLDER_NAME = "CustomImages";
 		private const string GAME_FOLDER_NAME = "CustomGames";
-		private static readonly IntPtr dpiAwarenessContextHandle = GetThreadDpiAwarenessContext();
 
 		[STAThread] // Requirement for Shell32.Shell [and Microsoft.Web.WebView2] COM objects
 		public static void Main(string[] args)
@@ -37,7 +36,7 @@ namespace GameLauncher_Console
 			// Log unhandled exceptions
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CLogger.ExceptionHandleEvent);
 #endif
-			SetProcessDpiAwarenessContext(GetAwarenessFromDpiAwarenessContext(dpiAwarenessContextHandle) + 
+			SetProcessDpiAwarenessContext(GetAwarenessFromDpiAwarenessContext(GetThreadDpiAwarenessContext()) + 
 				(int)DpiAwarenessContext.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 			Application.EnableVisualStyles();
 			//Application.SetCompatibleTextRenderingDefault(false);

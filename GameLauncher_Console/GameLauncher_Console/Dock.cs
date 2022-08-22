@@ -112,8 +112,7 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformUplay());
 			platforms.AddSupportedPlatform(new PlatformWargaming());
 #if DEBUG
-			// an experiment for now
-			platforms.AddSupportedPlatform(new PlatformMicrosoft());
+			platforms.AddSupportedPlatform(new PlatformMicrosoft());	// an experiment for now
 #endif
 			bool import, parseError = false;
 			import = CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols);
@@ -866,7 +865,79 @@ namespace GameLauncher_Console
 							continue;
 
 						case CConsoleHelper.DockSelection.cSel_downloadImage: // Download image
-							//CDock.DownloadCustomImage(selectedGame.Title, selectedGame.Platform.GetIconUrl()); // TODO
+							CLogger.LogDebug("Download image for {0}", CGameData.GetDescription((GamePlatform)m_nSelectedPlatform));
+							switch ((GamePlatform)m_nSelectedPlatform)
+							{
+								case GamePlatform.Steam:
+									DownloadCustomImage(selectedGame.Title, PlatformSteam.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.GOG:
+									DownloadCustomImage(selectedGame.Title, PlatformGOG.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Uplay:
+									//DownloadCustomImage(selectedGame.Title, PlatformUplay.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Origin:
+									DownloadCustomImage(selectedGame.Title, PlatformOrigin.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Epic:
+									DownloadCustomImage(selectedGame.Title, PlatformEpic.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Bethesda:
+									//DownloadCustomImage(selectedGame.Title, PlatformBethesda.GetIconUrl(selectedGame), true);
+									//SetFgColour(cols.errorCC, cols.errorLtCC);
+									CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+									Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+									//Console.ResetColor();
+									break;
+								case GamePlatform.Battlenet:
+									//DownloadCustomImage(selectedGame.Title, PlatformBattlenet.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Rockstar:
+									//DownloadCustomImage(selectedGame.Title, PlatformRockstar.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Amazon:
+									DownloadCustomImage(selectedGame.Title, PlatformAmazon.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.BigFish:
+									DownloadCustomImage(selectedGame.Title, PlatformBigFish.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Arc:
+									//DownloadCustomImage(selectedGame.Title, PlatformArc.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Itch:
+									DownloadCustomImage(selectedGame.Title, PlatformItch.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Paradox:
+									//DownloadCustomImage(selectedGame.Title, PlatformParadox.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Plarium:
+									//DownloadCustomImage(selectedGame.Title, PlatformPlarium.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Twitch:           // deprecated, never implemented
+									break;
+								case GamePlatform.Wargaming:
+									//DownloadCustomImage(selectedGame.Title, PlatformWargaming.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.IGClient:
+									DownloadCustomImage(selectedGame.Title, PlatformIGClient.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Microsoft:        // TODO?
+									//DownloadCustomImage(selectedGame.Title, PlatformMicrosoft.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Oculus:
+									//PlatformOculus.DownloadCustomImage(selectedGame); // Download and extract from zip file
+									DownloadCustomImage(selectedGame.Title, PlatformOculus.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Legacy:
+									//DownloadCustomImage(selectedGame.Title, PlatformLegacy.GetIconUrl(selectedGame), true);
+									break;
+								case GamePlatform.Riot:
+									//DownloadCustomImage(selectedGame.Title, PlatformRiot.GetIconUrl(selectedGame), true);
+									break;
+								default:
+									break;
+							}
 							continue;
 
 						default:
@@ -930,7 +1001,7 @@ namespace GameLauncher_Console
 								case GamePlatform.Plarium:
 									PlatformPlarium.Launch();
 									break;
-								case GamePlatform.Twitch:           // deprecated
+								case GamePlatform.Twitch:           // deprecated, never implemented
 									break;
 								case GamePlatform.Wargaming:
 									PlatformWargaming.Launch();
@@ -1209,18 +1280,18 @@ namespace GameLauncher_Console
 							return (PlatformGOG.InstallGame(game) != 0);
 						//return false;
 					case GamePlatform.Uplay:
-						// Some games don't provide a valid ID; provide an error in that case
-						if (game.ID.StartsWith(PlatformUplay.UPLAY_PREFIX))
+						if (InputInstall(game.Title, cols))
 						{
-							if (InputInstall(game.Title, cols))
-								return (PlatformUplay.InstallGame(game) != 0);
-						}
-						else
-						{
-							//SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("Cannot get {0} ID for this title.", Enum.GetName(typeof(GamePlatform), GamePlatform.Uplay).ToUpper());
-							Console.WriteLine("ERROR: Couldn't get ID for this title.");
-							//Console.ResetColor();
+							if (PlatformUplay.InstallGame(game) != 0)
+								return true;
+							else
+							{
+								// Some games don't provide a valid ID; provide an error in that case
+								//SetFgColour(cols.errorCC, cols.errorLtCC);
+								CLogger.LogWarn("Cannot get {0} ID for this title.", Enum.GetName(typeof(GamePlatform), GamePlatform.Uplay).ToUpper());
+								Console.WriteLine("ERROR: Couldn't get ID for this title.");
+								//Console.ResetColor();
+							}
 						}
 						return false;
 					case GamePlatform.Origin:
@@ -1358,9 +1429,9 @@ namespace GameLauncher_Console
 			{
 				CLogger.LogInfo("Launch: " + game.Uninstaller);
 				if (OperatingSystem.IsWindows())
-					StartShellExecute(game.Uninstaller);
+					_ = StartShellExecute(game.Uninstaller);
 				else
-					Process.Start(game.Uninstaller);
+					_ = Process.Start(game.Uninstaller);
 				return true;
 			}
 			catch (Exception e)
@@ -1385,25 +1456,78 @@ namespace GameLauncher_Console
 			{
 				switch (game.Platform)
 				{
-					case GamePlatform.Bethesda:
-						//PlatformBethesda.Launch();
-						//SetFgColour(cols.errorCC, cols.errorLtCC);
-						CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
-						Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
-						//Console.ResetColor();
-						return false;
-					case GamePlatform.Epic:
-						PlatformEpic.StartGame(game);
+					case GamePlatform.Steam:
+						PlatformSteam.StartGame(game);
 						break;
 					case GamePlatform.GOG:
 						PlatformGOG.StartGame(game);
 						break;
+					case GamePlatform.Uplay:
+						PlatformUplay.StartGame(game);
+						break;
+					case GamePlatform.Origin:
+						PlatformOrigin.StartGame(game);
+						break;
+					case GamePlatform.Epic:
+						PlatformEpic.StartGame(game);
+						break;
+					case GamePlatform.Bethesda:
+						//PlatformBethesda.StartGame(game);
+						//SetFgColour(cols.errorCC, cols.errorLtCC);
+						CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+						Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+						//Console.ResetColor();
+						break;
+					case GamePlatform.Battlenet:
+						PlatformBattlenet.StartGame(game);
+						break;
+					case GamePlatform.Rockstar:
+						PlatformRockstar.StartGame(game);
+						break;
+					case GamePlatform.Amazon:
+						PlatformAmazon.StartGame(game);
+						break;
+					case GamePlatform.BigFish:
+						PlatformBigFish.StartGame(game);
+						break;
+					case GamePlatform.Arc:
+						PlatformArc.StartGame(game);
+						break;
+					case GamePlatform.Itch:
+						PlatformItch.StartGame(game);
+						break;
+					case GamePlatform.Paradox:
+						PlatformParadox.StartGame(game);
+						break;
+					case GamePlatform.Plarium:
+						PlatformPlarium.StartGame(game);
+						break;
+					case GamePlatform.Twitch:           // deprecated, never implemented
+						break;
+					case GamePlatform.Wargaming:
+						PlatformWargaming.StartGame(game);
+						break;
+					case GamePlatform.IGClient:
+						PlatformIGClient.StartGame(game);
+						break;
+					case GamePlatform.Microsoft:        // TODO?
+						PlatformMicrosoft.StartGame(game);
+						break;
+					case GamePlatform.Oculus:
+						PlatformOculus.StartGame(game);
+						break;
+					case GamePlatform.Legacy:
+						PlatformLegacy.StartGame(game);
+						break;
+					case GamePlatform.Riot:
+						PlatformRiot.StartGame(game);
+						break;
 					default:
 						CLogger.LogInfo($"Launch: {game.Launch}");
 						if (OperatingSystem.IsWindows())
-							StartShellExecute(game.Launch);
+							_ = StartShellExecute(game.Launch);
 						else
-							Process.Start(game.Launch);
+							_ = Process.Start(game.Launch);
 						break;
 				}
 				return true;
@@ -1626,11 +1750,11 @@ namespace GameLauncher_Console
 					"    Lower Rating: " +
 					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYRATEDN1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYRATEDN2)), "[", "]", " | ", "N/A", 8));
+				*/
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
 					"  Download Image: " +
 					CConsoleHelper.OutputKeys(CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDLIMG1)),
 					CConfig.ShortenKeyName(CConfig.GetConfigString(CConfig.CFG_KEYDLIMG2)), "[", "]", " | ", "N/A", 8));
-				*/
 				if (!(bool)CConfig.GetConfigBool(CConfig.CFG_NOQUIT))
 					WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC,
 						"            Quit: " +
@@ -1758,29 +1882,55 @@ namespace GameLauncher_Console
 		}
 
 		/// <summary>
-		/// Draw background on input line
+		/// Draw background on input line and get user input
 		/// </summary>
 		public static string InputPrompt(string prompt, CConfig.Colours cols)
 		{
 			SetFgColour(cols.inputCC, cols.inputLtCC);
-			try
-			{
-				int y = Console.WindowTop + Console.WindowHeight - INPUT_BOTTOM_CUSHION;
-				Console.SetCursorPosition(0, y);
-				SetBgColour(cols.inputbgCC, cols.inputbgLtCC);
-				for (int i = 0; i < Console.WindowWidth; ++i)
-				{
-					Console.Write(" ");
-				}
-				Console.SetCursorPosition(0, y);
-			}
-			catch (Exception e)
-			{
-				CLogger.LogError(e);
-			}
+			ClearInputLine(cols);
 			Console.Write(prompt);
 			Console.CursorVisible = true;
+
 			return Console.ReadLine();
+		}
+
+		/// <summary>
+		/// Draw background on input line and get masked user input
+		/// </summary>
+		public static string InputPassword(string prompt, CConfig.Colours cols)
+		{
+			SetFgColour(cols.inputCC, cols.inputLtCC);
+			ClearInputLine(cols);
+			Console.Write(prompt);
+			Console.CursorVisible = true;
+
+			// Adapted from https://stackoverflow.com/a/3404464/6754996
+			string pwd = "";
+			while (true)
+			{
+				ConsoleKeyInfo inp = Console.ReadKey(true);
+				if (inp.Key == ConsoleKey.Enter)
+					break;
+				else if (inp.Key == ConsoleKey.Escape)
+                {
+					pwd = "";
+					break;
+                }
+				else if (inp.Key == ConsoleKey.Backspace)
+				{
+					if (pwd.Length > 0)
+					{
+						pwd = pwd.Remove(pwd.Length - 1);
+						Console.Write("\b \b");
+					}
+				}
+				else if (inp.KeyChar != '\u0000') // KeyChar == '\u0000' if the key pressed does not correspond to a printable character, e.g. F1, Pause-Break, etc
+				{
+					pwd += inp.KeyChar;
+					Console.Write("*");
+				}
+			}
+			return pwd;
 		}
 
 		/// <summary>
@@ -1971,40 +2121,103 @@ namespace GameLauncher_Console
 				Thread.Sleep(4000);
 		}
 
-		public static bool DownloadCustomImage(string title, string url)
+		public static bool DownloadCustomImage(string title, string url, bool overwrite = false)
         {
 			if (!string.IsNullOrEmpty(url))
 			{
-				string file = Path.Combine(currentPath, IMAGE_FOLDER_NAME,
-					string.Concat(title.Split(Path.GetInvalidFileNameChars())) +
-					Path.GetExtension(url));
-				if (!File.Exists(file))
+				string ext = Path.GetExtension(url);
+				if (string.IsNullOrEmpty(ext))
+					ext = ".jpg";
+				string iconFile = Path.Combine(currentPath, IMAGE_FOLDER_NAME,
+					string.Concat(title.Split(Path.GetInvalidFileNameChars())) + ext);
+
+				if (overwrite)
+					BackupCustomImage(title, false);
+
+				if (!File.Exists(iconFile))
 				{
+					CLogger.LogDebug("Download image <{0}>", url);
 					try
 					{
-                        using WebClient client = new();
-                        client.DownloadFile(url, file);
-                        return true;
-                    }
+						using WebClient client = new();
+						client.DownloadFile(url, iconFile);
+					}
 					catch (WebException we)
 					{
 						CLogger.LogWarn(we.Message);
 					}
+
+					if (File.Exists(iconFile))
+					{
+						if (overwrite)
+							DeleteCustomImage(title, true);
+						return true;
+					}
+					else if (overwrite)
+						BackupCustomImage(title, true);
 				}
 			}
 			return false;
 		}
-		public static void DeleteCustomImage(string title)
+
+		public static void DeleteCustomImage(string title, bool justBackups = false)
         {
 			foreach (string ext in supportedImages)
 			{
+				string iconFile = Path.Combine(currentPath, IMAGE_FOLDER_NAME,
+					string.Concat(title.Split(Path.GetInvalidFileNameChars())) +
+					"." + ext);
 				try
 				{
-					string iconFile = Path.Combine(currentPath, IMAGE_FOLDER_NAME,
-						string.Concat(title.Split(Path.GetInvalidFileNameChars())) +
-						"." + ext);
-					if (File.Exists(iconFile))
+					if (justBackups)
+					{
+						string iconFileBak = iconFile + ".backup";
+						if (File.Exists(iconFileBak))
+						{
+							CLogger.LogDebug("Deleting \"{0}\"", iconFileBak);
+							File.Delete(iconFileBak);
+						}
+					}
+					else if (File.Exists(iconFile))
+					{
+						CLogger.LogDebug("Deleting \"{0}\"", iconFile);
 						File.Delete(iconFile);
+					}
+				}
+				catch (Exception e)
+				{
+					CLogger.LogError(e);
+				}
+			}
+		}
+
+		public static void BackupCustomImage(string title, bool restore = false)
+		{
+			foreach (string ext in supportedImages)
+			{
+				string iconFile = Path.Combine(currentPath, IMAGE_FOLDER_NAME,
+					string.Concat(title.Split(Path.GetInvalidFileNameChars())) +
+					"." + ext);
+				try
+				{
+					string iconFileBak = iconFile + ".backup";
+					if (restore)
+					{
+						if (File.Exists(iconFileBak))
+						{
+							CLogger.LogDebug("Restoring \"{0}\"", iconFile);
+							File.Move(iconFileBak, iconFile, true);
+						}
+						break;
+					}
+					else
+					{
+						if (File.Exists(iconFile))
+						{
+							CLogger.LogDebug("Backing up \"{0}\"", iconFile);
+							File.Move(iconFile, iconFileBak, true);
+						}
+					}
 				}
 				catch (Exception e)
 				{

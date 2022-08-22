@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using GameLauncher_Console;
 
 namespace Logger
 {
@@ -88,9 +89,10 @@ namespace Logger
 		/// <param name="list">Optional list of parameters for string formatting</param>
 		public static void LogDebug(string strMessage, params object[] list)
 		{
-#if DEBUG
-			LogInfo(strMessage, list);
+#if !DEBUG
+			if ((bool)CConfig.GetConfigBool(CConfig.CFG_DEBUG))
 #endif
+				LogInfo(strMessage, list);
 		}
 
 		/// <summary>

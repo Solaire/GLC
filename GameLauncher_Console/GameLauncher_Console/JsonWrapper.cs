@@ -985,6 +985,7 @@ namespace GameLauncher_Console
 		/// </summary>
 		private static void SetBoolDefaults(bool force)
         {
+			SetDefaultVal(CConfig.CFG_DEBUG, force);
 			SetDefaultVal(CConfig.CFG_NOQUIT, force);
 			SetDefaultVal(CConfig.CFG_USEFILE, force);
 			SetDefaultVal(CConfig.CFG_USESCAN, force);
@@ -1158,6 +1159,7 @@ namespace GameLauncher_Console
 			SetDefaultVal(CConfig.CFG_PATHLEG, force);
 			SetDefaultVal(CConfig.CFG_OCULUSID, force);
 			SetDefaultVal(CConfig.CFG_ORIGINID, force);
+			SetDefaultVal(CConfig.CFG_ORIGINPW, force);
 			SetDefaultVal(CConfig.CFG_TXTMAINT, force);
 			SetDefaultVal(CConfig.CFG_TXTCFGT, force);
 			SetDefaultVal(CConfig.CFG_TXTFILET, force);

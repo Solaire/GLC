@@ -1,9 +1,7 @@
 ﻿using Logger;
-using Microsoft.Win32;
 using ProtoBuf;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -29,6 +27,7 @@ namespace GameLauncher_Console
         private const string BATTLE_NET_CFG		= @"Battle.net\Battle.net.config"; // AppData\Roaming
         private const string BATTLE_NET_DB		= @"Battle.net\Agent\product.db"; // ProgramData
         private const string BATTLE_NET_DATA	= @"Battle.net\Agent\data\cache"; // ProgramData
+        private const string BATTLE_NET_LANGDEF = "enUS";
 
         private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -41,9 +40,9 @@ namespace GameLauncher_Console
         public static void Launch()
         {
             if (OperatingSystem.IsWindows())
-                CDock.StartShellExecute(PROTOCOL);
+                _ = CDock.StartShellExecute(PROTOCOL);
             else
-                Process.Start(PROTOCOL);
+                _ = Process.Start(PROTOCOL);
         }
 
         // return value
@@ -52,9 +51,18 @@ namespace GameLauncher_Console
         // 1 = success
         public static int InstallGame(CGame game)
         {
-            //CDock.DeleteCustomImage(game.Title);
+            //CDock.DeleteCustomImage(game.Title, false);
             Launch();
             return -1;
+        }
+
+        public static void StartGame(CGame game)
+        {
+            CLogger.LogInfo($"Launch: {game.Launch}");
+            if (OperatingSystem.IsWindows())
+                _ = CDock.StartShellExecute(game.Launch);
+            else
+                _ = Process.Start(game.Launch);
         }
 
         [SupportedOSPlatform("windows")]
@@ -79,7 +87,6 @@ namespace GameLauncher_Console
             try
             {
                 dataFiles = Directory.GetFiles(dataPath, "*.", SearchOption.AllDirectories).ToList();
-                //CLogger.LogInfo("{0} {1} games found", dataFiles.Count > 3 ? dataFiles.Count - 3 : 0, _name.ToUpper());
             }
             catch (Exception e)
             {
@@ -98,7 +105,7 @@ namespace GameLauncher_Console
                         allLocales.TryGetProperty("config", out JsonElement allConfig))
                     {
                         string code = GetStringProperty(allConfig, "product");
-                        if (code.Equals("agent") || code.Equals("Bna")) // hide Agent and Battle.net
+                        if (code.Equals("agent", CDock.IGNORE_CASE) || code.Equals("bna", CDock.IGNORE_CASE)) // hide Agent and Battle.net
                             continue;
 
                         try
@@ -114,7 +121,7 @@ namespace GameLauncher_Console
                                     {
                                         string lang = pi.Settings.selectedTextLanguage;
                                         if (string.IsNullOrEmpty(lang))
-                                            lang = "enUS"; //"enGB";
+                                            lang = BATTLE_NET_LANGDEF;
                                         /*
                                         string timestamp = "";
                                         foreach (BnetProductConfig pc in db.productConfigs)
@@ -140,11 +147,12 @@ namespace GameLauncher_Console
                                                 if (locale.GetString().Equals("lang", CDock.IGNORE_CASE))
                                                     found = true;
                                             }
-                                            if (!found) lang = "enus"; //"engb";
+                                            if (!found) lang = BATTLE_NET_LANGDEF;
                                         }
 
                                         string strID = $"battlenet_{code}";
                                         string strTitle = code;
+                                        //string strDescription = "";
 
                                         if (document.RootElement.TryGetProperty(lang.ToLower(), out JsonElement selectedLocale) &&
                                             selectedLocale.TryGetProperty("config", out JsonElement localeConfig) &&
@@ -152,9 +160,23 @@ namespace GameLauncher_Console
                                         {
                                             foreach (JsonElement item in install.EnumerateArray())
                                             {
-                                                if (item.TryGetProperty("add_remove_programs_key", out JsonElement uninstall) &&
-                                                    uninstall.TryGetProperty("display_name", out JsonElement name))
-                                                    strTitle = name.GetString();
+                                                foreach (JsonProperty itemProp in item.EnumerateObject())
+                                                {
+                                                    if (itemProp.Name.Equals("add_remove_programs_key") &&
+                                                        itemProp.Value.TryGetProperty("display_name", out JsonElement name))
+                                                    {
+                                                        strTitle = name.GetString();
+                                                    }
+                                                    break;
+                                                    /*
+                                                    // TODO: metadata description
+                                                    if (itemProp.Name.Equals("program_associations") &&
+                                                        itemProp.Value.TryGetProperty("application_description", out JsonElement descr))
+                                                    {
+                                                        strDescription = descr.GetString();
+                                                    }
+                                                    */
+                                                }
                                             }
                                         }
                                         CLogger.LogDebug($"- {strTitle}");
@@ -264,6 +286,20 @@ namespace GameLauncher_Console
 			}
             */
             CLogger.LogDebug("--------------------------");
+        }
+
+        public static string GetIconUrl(CGame _) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Scan the key name and extract the Battlenet game id
+        /// </summary>
+        /// <param name="key">The game string</param>
+        /// <returns>Battlenet game ID as string</returns>
+        public static string GetGameID(string key)
+        {
+            if (key.StartsWith("battlenet_"))
+                return key[10..];
+            return key;
         }
     }
 

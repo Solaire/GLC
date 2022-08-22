@@ -24,7 +24,8 @@ namespace GameLauncher_Console
 		private const string ARC_PATH			= "INSTALL_PATH";
 		private const string ARC_EXEPATH		= "CLIENT_PATH";
 		private const string ARC_INST			= "installed";
-		//[strLaunch] CLIENT_PATH in e.g., HKLM\SOFTWARE\WOW6432Node\Perfect World Entertainment\Core\1400en
+		private const string ARC_LANGDEF		= "en";
+		//[strLaunch] CLIENT_PATH in e.g., HKLM\SOFTWARE\WOW6432Node\Perfect World Entertainment\14000en
 		//[strId?] APP_ABBR
 		//[installed] installed
 
@@ -39,9 +40,9 @@ namespace GameLauncher_Console
 		public static void Launch()
 		{
 			if (OperatingSystem.IsWindows())
-				CDock.StartShellExecute(PROTOCOL);
+				_ = CDock.StartShellExecute(PROTOCOL);
 			else
-				Process.Start(PROTOCOL);
+				_ = Process.Start(PROTOCOL);
 		}
 
 		// return value
@@ -50,9 +51,18 @@ namespace GameLauncher_Console
 		// 1 = success
 		public static int InstallGame(CGame game)
 		{
-			//CDock.DeleteCustomImage(game.Title);
+			//CDock.DeleteCustomImage(game.Title, false);
 			Launch();
 			return -1;
+		}
+
+		public static void StartGame(CGame game)
+		{
+			CLogger.LogInfo($"Launch: {game.Launch}");
+			if (OperatingSystem.IsWindows())
+				_ = CDock.StartShellExecute(game.Launch);
+			else
+				_ = Process.Start(game.Launch);
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -81,7 +91,7 @@ namespace GameLauncher_Console
 				{
 					try
 					{
-						if (subKey.IndexOf("en") > -1)
+						if (subKey.IndexOf(ARC_LANGDEF) > -1)
 							keyList.Add(key.OpenSubKey(subKey, RegistryKeyPermissionCheck.ReadSubTree));
 					}
 					catch (Exception e)
@@ -96,12 +106,12 @@ namespace GameLauncher_Console
 					if (string.IsNullOrEmpty(id))
 					{
 						id = Path.GetFileName(data.Name);
-						int idIndex = id.IndexOf("en");
+						int idIndex = id.IndexOf(ARC_LANGDEF);
 						if (idIndex > -1)
 							id = id.Substring(0, idIndex);
 					}
 					string name = Path.GetFileName(GetRegStrVal(data, ARC_PATH).Trim(new char[] { '"', '\\', '/' }));
-					int nameIndex = name.IndexOf("_en");
+					int nameIndex = name.IndexOf("_" + ARC_LANGDEF);
 					if (nameIndex > -1)
 						name = name.Substring(0, nameIndex);
 					string strID = "";
@@ -138,6 +148,20 @@ namespace GameLauncher_Console
 				}
 			}
 			CLogger.LogDebug("------------------------");
+		}
+
+		public static string GetIconUrl(CGame _) => throw new NotImplementedException();
+
+		/// <summary>
+		/// Scan the key name and extract the Arc game id
+		/// </summary>
+		/// <param name="key">The game string</param>
+		/// <returns>Arc game ID as string</returns>
+		public static string GetGameID(string key)
+		{
+			if (key.StartsWith("arc_"))
+				return key[4..];
+			return key;
 		}
 	}
 }

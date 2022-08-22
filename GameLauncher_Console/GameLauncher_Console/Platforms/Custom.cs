@@ -1,6 +1,7 @@
 ﻿using Logger;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -31,7 +32,16 @@ namespace GameLauncher_Console
 		// -1 = not implemented
 		// 0 = failure
 		// 1 = success
-		public static int InstallGame(CGame game) => throw new NotImplementedException();
+		public static int InstallGame(CGame _) => throw new NotImplementedException();
+
+		public static void StartGame(CGame game)
+		{
+			CLogger.LogInfo($"Launch: {game.Launch}");
+			if (OperatingSystem.IsWindows())
+				_ = CDock.StartShellExecute(game.Launch);
+			else
+				_ = Process.Start(game.Launch);
+		}
 
 		public void GetGames(List<ImportGameData> gameDataList, bool expensiveIcons = false) => throw new NotImplementedException();
 
@@ -41,6 +51,10 @@ namespace GameLauncher_Console
 				FindCustomLinkFiles(ref tempGameSet);
 			FindCustomBinaries(ref tempGameSet);
 		}
+
+		public static string GetIconUrl(CGame _) => throw new NotImplementedException();
+
+		public static string GetGameID(string key) => key;
 
 		/// <summary>
 		/// Search the "CustomGames" folder for file shortcuts (.lnk) to import.

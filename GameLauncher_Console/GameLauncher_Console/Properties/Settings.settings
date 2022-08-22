@@ -2,6 +2,9 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GameLauncher_Console.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
+    <Setting Name="flag_debug_logging" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
     <Setting Name="flag_prevent_exit" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
@@ -119,10 +122,13 @@
     <Setting Name="text_oculus_username" Type="System.String" Scope="User">
       <Value Profile="(Default)"></Value>
     </Setting>
-    <Setting Name="text_origin_username" Type="System.String" Scope="User">
+    <Setting Name="text_origin_email" Type="System.String" Scope="User">
       <Value Profile="(Default)"></Value>
     </Setting>
-	<Setting Name="colour_background" Type="System.String" Scope="User">
+    <Setting Name="base64_origin_password" Type="System.String" Scope="User">
+        <Value Profile="(Default)"></Value>
+    </Setting>
+    <Setting Name="colour_background" Type="System.String" Scope="User">
       <Value Profile="(Default)">Black</Value>
     </Setting>
     <Setting Name="colour_background_lightmode" Type="System.String" Scope="User">
@@ -390,7 +396,7 @@
       <Value Profile="(Default)">NoName</Value>
     </Setting>
     <Setting Name="key_download_image_2" Type="System.String" Scope="User">
-      <Value Profile="(Default)">NoName</Value>
+      <Value Profile="(Default)">D</Value>
     </Setting>
     <Setting Name="path_legendary_exe" Type="System.String" Scope="User">
       <Value Profile="(Default)">legendary.exe</Value>

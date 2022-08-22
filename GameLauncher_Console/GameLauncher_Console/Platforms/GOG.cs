@@ -58,10 +58,10 @@ namespace GameLauncher_Console
                     }
                 }
                 */
-                CDock.StartShellExecute(PROTOCOL);
+                _ = CDock.StartShellExecute(PROTOCOL);
             }
             else
-                Process.Start(PROTOCOL);
+                _ = Process.Start(PROTOCOL);
         }
 
         // return value
@@ -70,11 +70,11 @@ namespace GameLauncher_Console
         // 1 = success
         public static int InstallGame(CGame game)
 		{
-			CDock.DeleteCustomImage(game.Title);
+			CDock.DeleteCustomImage(game.Title, false);
             if (OperatingSystem.IsWindows())
-                CDock.StartShellExecute(INSTALL_GAME + GetGameID(game.ID));
+                _ = CDock.StartShellExecute(INSTALL_GAME + GetGameID(game.ID));
             else
-                Process.Start(INSTALL_GAME + GetGameID(game.ID));
+                _ = Process.Start(INSTALL_GAME + GetGameID(game.ID));
             return 1;
 		}
 
@@ -86,8 +86,7 @@ namespace GameLauncher_Console
                 ProcessStartInfo gogProcess = new();
                 string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
                 string gogArguments = game.Launch.Contains(".") ? game.Launch[(game.Launch.IndexOf('.') + 4)..] : string.Empty;
-                CLogger.LogInfo($"gogClientPath: {gogClientPath}");
-                CLogger.LogInfo($"gogArguments: {gogArguments}");
+                CLogger.LogInfo($"Launch: \"{gogClientPath}\" {gogArguments}");
                 gogProcess.FileName = gogClientPath;
                 gogProcess.Arguments = gogArguments;
                 Process.Start(gogProcess);
@@ -103,10 +102,11 @@ namespace GameLauncher_Console
             }
             else
             {
+                CLogger.LogInfo($"Launch: {game.Icon}");
                 if (OperatingSystem.IsWindows())
-                    CDock.StartShellExecute(game.Icon);
+                    _ = CDock.StartShellExecute(game.Icon);
                 else
-                    Process.Start(game.Icon);
+                    _ = Process.Start(game.Icon);
             }
         }
 
@@ -122,6 +122,7 @@ namespace GameLauncher_Console
 			//images = icon from json
 			id, gameReleaseKey from PlayTasks
 			playTaskId, executablePath, commandLineArgs from PlayTaskLaunchParameters
+            limitedDetailsId, releaseDate from Details
 			*/
 
             // Get installed games
@@ -153,16 +154,17 @@ namespace GameLauncher_Console
                     {
                         int id = rdr.GetInt32(0);
 
-                        using SQLiteCommand cmd2 = new($"SELECT images, title FROM LimitedDetails WHERE productId = {id};", con);
+                        using SQLiteCommand cmd2 = new($"SELECT links, images, title FROM LimitedDetails WHERE productId = {id};", con);
                         using SQLiteDataReader rdr2 = cmd2.ExecuteReader();
                         while (rdr2.Read())
                         {
-                            string images = rdr2.GetString(0);
+                            string linksJson = rdr2.GetString(0);
+                            string imagesJson = rdr2.GetString(1);
 
                             // To be safe, we might want to confirm "gog_{id}" is correct here with
                             // "SELECT releaseKey FROM ProductsToReleaseKeys WHERE gogId = {id};"
                             string strID = $"gog_{id}";
-                            string strTitle = rdr2.GetString(1);
+                            string strTitle = rdr2.GetString(2);
                             string strAlias = "";
                             string strLaunch = "";
                             string strIconPath = "";
@@ -170,6 +172,7 @@ namespace GameLauncher_Console
                             List<string> tagList = new();
                             DateTime lastRun = DateTime.MinValue;
                             ushort userRating = 0;
+                            DateTime releaseDate = DateTime.MinValue;
 
                             strAlias = GetAlias(strTitle);
                             if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
@@ -266,6 +269,25 @@ namespace GameLauncher_Console
                                                     }
                                                 }
                                             }
+
+                                            // TODO: metadata release date
+                                            // Details table only applies to installed GOG games
+                                            /*
+                                            using (SQLiteCommand cmd10 = new($"SELECT releaseDate FROM Details WHERE limitedDetailsId = '{id}';", con))
+                                            using (SQLiteDataReader rdr10 = cmd10.ExecuteReader())
+                                            {
+                                                while (rdr10.Read())
+                                                {
+                                                    if (!rdr10.IsDBNull(0))
+                                                    {
+                                                        releaseDate = rdr10.GetDateTime(0);
+                                                        //CLogger.LogDebug("    releaseDate: " + rdr10.GetString(0) + " -> " + releaseDate.ToShortDateString());
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            */
+
                                             gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform, bHidden:hidden, tags:tagList, dateLastRun:lastRun, rating:userRating));
                                         }
                                     }
@@ -281,12 +303,42 @@ namespace GameLauncher_Console
                                 // Use icon from images (json) to download not-installed icons
                                 if (!(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
                                 {
+                                    bool success = false;
                                     string iconUrl = "";
-                                    using (JsonDocument document = JsonDocument.Parse(@images, jsonTrailingCommas))
+                                    string iconWideUrl = "";
+
+                                    using (JsonDocument document = JsonDocument.Parse(@linksJson, jsonTrailingCommas))
                                     {
-                                        iconUrl = GetStringProperty(document.RootElement, "logo2x"); // "icon" is 1:1 ratio, but in a circular frame
+                                        if (document.RootElement.TryGetProperty("logo", out JsonElement logo))
+                                            iconWideUrl = GetStringProperty(logo, "href");
+                                        if (document.RootElement.TryGetProperty("boxArtImage", out JsonElement boxart))
+                                        {
+                                            iconUrl = GetStringProperty(boxart, "href");
+                                            if (!string.IsNullOrEmpty(iconUrl) && !iconUrl.Equals("null"))
+                                                success = true;
+                                        }
+                                        if (document.RootElement.TryGetProperty("iconSquare", out JsonElement icon))
+                                        {
+                                            iconUrl = GetStringProperty(icon, "href");
+                                            if (!string.IsNullOrEmpty(iconUrl) && !iconUrl.Equals("null"))
+                                                success = true;
+                                        }
                                     }
-                                    CDock.DownloadCustomImage(strTitle, iconUrl);
+                                    if (!success)
+                                    {
+                                        using JsonDocument document = JsonDocument.Parse(@imagesJson, jsonTrailingCommas);
+                                        iconUrl = GetStringProperty(document.RootElement, "logo2x");
+                                        if (!string.IsNullOrEmpty(iconUrl))
+                                            success = true;
+                                        else if(!string.IsNullOrEmpty(iconWideUrl))
+                                        {
+                                            iconUrl = iconWideUrl;
+                                            success = true;
+                                        }
+                                    }
+
+                                    if (success)
+                                        CDock.DownloadCustomImage(strTitle, iconUrl);
                                 }
                             }
                         }
@@ -301,14 +353,95 @@ namespace GameLauncher_Console
 			CLogger.LogDebug("-------------------");
 		}
 
-		/// <summary>
-		/// Scan the key name and extract the Steam game id
-		/// </summary>
-		/// <param name="key">The game string</param>
-		/// <returns>Steam game ID as string</returns>
-		public static string GetGameID(string key)
+        public static string GetIconUrl(CGame game)
+        {
+            bool success = false;
+            string iconUrl = "";
+            string iconWideUrl = "";
+            string db = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), GOG_DB);
+            if (!File.Exists(db))
+            {
+                CLogger.LogInfo("{0} database not found.", _name.ToUpper());
+                return "";
+            }
+
+            try
+            {
+                using SQLiteConnection con = new($"Data Source={db}");
+                con.Open();
+
+                using SQLiteCommand cmd = new(string.Format("SELECT links, images FROM LimitedDetails WHERE productId = '{0}';", GetGameID(game.ID)), con);
+                using SQLiteDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    string linksJson = rdr.GetString(0);
+                    string imagesJson = rdr.GetString(1);
+
+                    using (JsonDocument document = JsonDocument.Parse(@linksJson, jsonTrailingCommas))
+                    {
+                        if (document.RootElement.TryGetProperty("logo", out JsonElement logo))
+                            iconWideUrl = GetStringProperty(logo, "href");
+                        if (document.RootElement.TryGetProperty("iconSquare", out JsonElement icon))
+                        {
+                            iconUrl = GetStringProperty(icon, "href");
+                            if (!string.IsNullOrEmpty(iconUrl) && !iconUrl.Equals("null"))
+                            {
+                                success = true;
+                                break;
+                            }
+                        }
+                        if (document.RootElement.TryGetProperty("boxArtImage", out JsonElement boxart))
+                        {
+                            iconUrl = GetStringProperty(boxart, "href");
+                            if (!string.IsNullOrEmpty(iconUrl) && !iconUrl.Equals("null"))
+                            {
+                                success = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!success)
+                    {
+                        using JsonDocument document = JsonDocument.Parse(@imagesJson, jsonTrailingCommas);
+                        iconUrl = GetStringProperty(document.RootElement, "logo2x");
+                        if (!string.IsNullOrEmpty(iconUrl))
+                        {
+                            success = true;
+                            break;
+                        }
+                        else if (!string.IsNullOrEmpty(iconWideUrl))
+                        {
+                            iconUrl = iconWideUrl;
+                            success = true;
+                        }
+                    }
+                }
+                con.Close();
+
+            }
+            catch (Exception e)
+            {
+                CLogger.LogError(e, string.Format("Malformed {0} database output!", _name.ToUpper()));
+            }
+
+            if (success)
+                return iconUrl;
+
+            CLogger.LogInfo("Icon for {0} game \"{1}\" not found in database.", _name.ToUpper(), game.Title);
+            return "";
+        }
+
+        /// <summary>
+        /// Scan the key name and extract the Steam game id
+        /// </summary>
+        /// <param name="key">The game string</param>
+        /// <returns>Steam game ID as string</returns>
+        public static string GetGameID(string key)
 		{
-			return key[4..];
+            if (key.StartsWith("gog_"))
+			    return key[4..];
+            return key;
 		}
 	}
 }

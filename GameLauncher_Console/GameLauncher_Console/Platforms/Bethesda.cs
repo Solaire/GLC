@@ -35,10 +35,16 @@ namespace GameLauncher_Console
 
 		public static void Launch()
 		{
+			//SetFgColour(cols.errorCC, cols.errorLtCC);
+			CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+			Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+			//Console.ResetColor();
+			/*
 			if (OperatingSystem.IsWindows())
-				CDock.StartShellExecute(PROTOCOL);
+				_ = CDock.StartShellExecute(PROTOCOL);
 			else
-				Process.Start(PROTOCOL);
+				_ = Process.Start(PROTOCOL);
+			*/
 		}
 
 		// return value
@@ -47,9 +53,24 @@ namespace GameLauncher_Console
 		// 1 = success
 		public static int InstallGame(CGame game)
 		{
-			//CDock.DeleteCustomImage(game.Title);
+			//CDock.DeleteCustomImage(game.Title, false);
 			Launch();
 			return -1;
+		}
+
+		public static void StartGame(CGame game)
+		{
+			//SetFgColour(cols.errorCC, cols.errorLtCC);
+			CLogger.LogWarn("Bethesda Launcher was deprecated May 2022");
+			Console.WriteLine("ERROR: Bethesda Launcher was deprecated in May 2022!");
+			//Console.ResetColor();
+			/*
+			CLogger.LogInfo($"Launch: {game.Launch}");
+			if (OperatingSystem.IsWindows())
+				_ = CDock.StartShellExecute(game.Launch);
+			else
+				_ = Process.Start(game.Launch);
+			*/
 		}
 
 		[SupportedOSPlatform("windows")]
@@ -114,5 +135,9 @@ namespace GameLauncher_Console
 			}
 			CLogger.LogDebug("------------------------");
 		}
+
+		public static string GetIconUrl(CGame _) => throw new NotImplementedException();
+
+		public static string GetGameID(string key) => key;
 	}
 }
