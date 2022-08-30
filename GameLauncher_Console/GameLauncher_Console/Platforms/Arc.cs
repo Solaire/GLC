@@ -87,6 +87,10 @@ namespace GameLauncher_Console
 
 			using (RegistryKey key = Registry.LocalMachine.OpenSubKey(Path.Combine(ARC_REG, ARC_GAMES), RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 			{
+				if(key == null)
+                {
+					return;
+                }
 				foreach (string subKey in key.GetSubKeyNames()) // Add subkeys to search list
 				{
 					try
