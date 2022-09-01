@@ -121,7 +121,7 @@ namespace core
         private bool InitialisePlatforms()
         {
             var pluginLoader = new PluginLoader<CPlatformFactory<CPlatform>>();
-            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\GameLauncher_Console\neo_glc\bin\Debug\net5.0\platforms");
+            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\GameLauncher_Console\neo_glc\bin\Debug\netcoreapp3.1\platforms"); // TODO: path
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 
             foreach(var plugin in plugins)
@@ -164,6 +164,13 @@ namespace core
             List<T> plugins = new List<T>();
             foreach(var filePath in Directory.EnumerateFiles(pluginFolder, "*.dll", SearchOption.AllDirectories))
             {
+                // TEMP
+                if(filePath.Contains("BasePlatform.dll"))
+                {
+                    Assembly.LoadFrom(filePath);
+                    continue;
+                }
+
                 T plugin = Load(filePath);
                 if(plugin != null)
                 {
