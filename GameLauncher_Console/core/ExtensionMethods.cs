@@ -9,7 +9,7 @@ using Logger;
 /// <summary>
 /// class for extension and helper methods
 /// </summary>
-public static class CExtensions
+public static class CExtensionMethods
 {
     /// <summary>
     /// Return a new HashSet of type T from the IEnumerable

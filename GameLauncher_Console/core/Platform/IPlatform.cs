@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using core.Game;
 
@@ -179,10 +180,16 @@ namespace core.Platform
         #region Abstract functions
 
         /// <summary>
-        /// Search for platform games
+        /// Scan for installed games
         /// </summary>
-        /// <returns>HashSet of GameObjects</returns>
-        public abstract HashSet<GameObject> GameScanner();
+        /// <returns>HashSet containing installed game objects</returns>
+        public abstract HashSet<GameObject> GetInstalledGames();
+
+        /// <summary>
+        /// Scan for non-installed games
+        /// </summary>
+        /// <returns>HashSet containing non-installed game objects</returns>
+        public abstract HashSet<GameObject> GetNonInstalledGames();
 
         /// <summary>
         /// Launch or activate specified game

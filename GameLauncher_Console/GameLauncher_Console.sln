@@ -17,6 +17,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "neo_glc", "neo_glc\neo_glc.
 		{5468F85D-FDB9-457D-85AA-760702EC915B} = {5468F85D-FDB9-457D-85AA-760702EC915B}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasePlatform", "BasePlatform\BasePlatform.csproj", "{76090CA0-2AA5-4849-A1B0-026566AC244F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReferencePlatform", "ReferencePlatform\ReferencePlatform.csproj", "{F6C18C10-2A31-4425-9255-6E01723A6E13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{E8ACA0D7-D60A-46AE-8F2C-D5F30D555BD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8ACA0D7-D60A-46AE-8F2C-D5F30D555BD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8ACA0D7-D60A-46AE-8F2C-D5F30D555BD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76090CA0-2AA5-4849-A1B0-026566AC244F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76090CA0-2AA5-4849-A1B0-026566AC244F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76090CA0-2AA5-4849-A1B0-026566AC244F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76090CA0-2AA5-4849-A1B0-026566AC244F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6C18C10-2A31-4425-9255-6E01723A6E13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6C18C10-2A31-4425-9255-6E01723A6E13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6C18C10-2A31-4425-9255-6E01723A6E13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6C18C10-2A31-4425-9255-6E01723A6E13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

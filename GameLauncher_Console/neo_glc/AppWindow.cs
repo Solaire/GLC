@@ -53,18 +53,25 @@ namespace glc
             };
             m_statusBar.Items = new StatusItem[]
             {
-                new StatusItem(Key.Q | Key.CtrlMask, "~CTRL-Q~ Quit", () =>
+                new StatusItem(Key.Q | Key.CtrlMask, "~C^Q~ Quit", () =>
                 {
                     Application.RequestStop();
                 }),
-                new StatusItem(Key.Q | Key.CtrlMask, "~CTRL-P~ Run command", () =>
+                /*
+                new StatusItem(Key.Q | Key.CtrlMask, "~C^R~ Run command", () =>
                 {
 
                 }),
-                new StatusItem(Key.S | Key.CtrlMask, "~CTRL-S~ Scan games", () => {
+                */
+                new StatusItem(Key.F | Key.CtrlMask, "~C^F~ Search", () =>
+                {
 
                 }),
-                new StatusItem (Key.CharMask, Application.Driver.GetType ().Name, null),
+                new StatusItem(Key.S | Key.CtrlMask, "~C^S~ Scan games", () =>
+                {
+
+                }),
+                new StatusItem (Key.Null, Application.Driver.GetType().Name, null)
             };
 
             // Add UI to our toplevel
