@@ -177,11 +177,16 @@
             this.Tag        = qry.Tag;
         }
 
+        public void ToggleFavourite()
+        {
+            SetFavourite(!IsFavourite);
+        }
+
         /// <summary>
         /// Set the game's favourite flag and update database row
         /// </summary>
         /// <param name="isFavourite">The new favourite flag</param>
-        public void SetFavourite(bool isFavourite)
+        private void SetFavourite(bool isFavourite)
         {
             if(this.IsFavourite != isFavourite)
             {
@@ -211,6 +216,17 @@
         public void UpdateFrequency(bool isDecimate)
         {
             this.Frequency = (isDecimate) ? this.Frequency * 0.90 : this.Frequency + 1;
+        }
+
+        public void UpdateRating(int rating)
+        {
+            // this.Rating = rating;
+            //CGameSQL.UpdateRating(this.ID, rating);
+        }
+
+        public void Update()
+        {
+
         }
     }
 }
