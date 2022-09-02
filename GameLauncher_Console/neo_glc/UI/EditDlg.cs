@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using core;
+using core.Game;
 using NStack;
 using Terminal.Gui;
 
@@ -441,6 +442,205 @@ namespace glc.UI
 		public bool IsSelectionDirty()
 		{
 			return m_selectionPanel.IsSelectionDirty();
+		}
+	}
+
+	/// <summary>
+	/// Implementation of the CEditDlg for editing game rating
+	/// </summary>
+	public class CEditRatingDlg : CEditDlg<int>
+	{
+		protected TextField m_textEdit;
+
+		/// <summary>
+		/// Constructor.
+		/// Create the text edit box
+		/// </summary>
+		/// <param name="title">The dialog title</param>
+		/// <param name="initialText">Initial text value</param>
+		public CEditRatingDlg(string title, int initialRating)
+			: base(title, initialRating)
+		{
+			m_textEdit = new TextField()
+			{
+				X = Pos.Center(),
+				Y = 3,
+				Width = 5,
+				Text = new string('*', initialRating),
+				CanFocus = false,
+			};
+			Add(m_textEdit);
+		}
+
+		/// <summary>
+		/// Function override.
+		/// If ok button was pressed, modify the node value with the new value
+		/// </summary>
+		/// <param name="node">Refernece to a system attribute node</param>
+		/// <returns>True if ok button was pressed</returns>
+		public override bool Run(ref int currentRating)
+		{
+			if(Run() && m_textEdit.Text.Length != m_editValue)
+			{
+				currentRating = m_textEdit.Text.Length;
+				return true;
+			}
+			return false;
+		}
+
+
+		/// <summary>
+		/// Fundtion override.
+		/// Handle left, right and enter buttons
+		/// </summary>
+		/// <param name="kb">The key event</param>
+		/// <returns>Result of base.ProcessKey()</returns>
+		public override bool ProcessKey(KeyEvent kb)
+		{
+			if(kb.Key == Key.CursorLeft)
+			{
+				if(m_textEdit.Text.Length > 1)
+                {
+					m_textEdit.Text = new string('*', m_textEdit.Text.Length - 1);
+				}
+				return true;
+			}
+			else if(kb.Key == Key.CursorRight)
+			{
+				if(m_textEdit.Text.Length < 5)
+                {
+					m_textEdit.Text = new string('*', m_textEdit.Text.Length + 1);
+                }
+				return true;
+			}
+			return base.ProcessKey(kb);
+		}
+	}
+
+	// TODO: Fixup and simplify (can be made into a shared class or use one)
+	public class CEditGameInfoDlg : CEditDlg<GameObject>
+	{
+		protected CBinaryRadio m_radio;
+		private TextField m_textEditAlias;
+		private TextField m_textEditRating;
+		protected CDialogSelectionPanel m_selectionPanel;
+
+		public CEditGameInfoDlg(GameObject game, List<IDataNode> availableTags)
+			: base(game.Title, game, 40, 25)
+		{
+			// Remove to fix the tab order. Re-add at the bottom
+			Label nameLabel = new Label()
+			{
+				X = 1,
+				Y = 2,
+				Width = Dim.Fill(),
+				Text = $"Title: {game.Title}",
+			};
+			Add(nameLabel);
+
+			Label ratingLabel = new Label()
+			{
+				X = 1,
+				Y = 4,
+				Width = Dim.Fill(),
+				Text = $"Rating:",
+			};
+			Add(nameLabel);
+
+			m_textEditAlias = new TextField()
+			{
+				X = 1,
+				Y = 3,
+				Width = Dim.Fill(),
+				Text = game.Alias,
+				CursorPosition = game.Alias.Length,
+				Enabled = true,
+				CanFocus = true,
+			};
+			Add(m_textEditAlias);
+
+			m_textEditRating = new TextField()
+			{
+				X = 1,
+				Y = 4,
+				Width = Dim.Fill(),
+				Text = new string('*', 3), // TODO: Add game rating
+				CursorPosition = game.Alias.Length,
+				Enabled = true,
+				CanFocus = true,
+				ReadOnly = true,
+			};
+			m_textEditRating.KeyDown += M_textEditAlias_KeyDown;
+			Add(m_textEditRating);
+
+			Label isActiveLabel = new Label()
+			{
+				X = 3,
+				Y = 5,
+				Width = Dim.Fill(),
+				Text = "Favourite: ",
+			};
+			Add(isActiveLabel);
+
+			m_radio = new CBinaryRadio(isActiveLabel.Text.Length + 5, 5, game.IsFavourite);
+			Add(m_radio);
+
+			m_selectionPanel = new CDialogSelectionPanel("Tags", 0, 7, availableTags, true);
+			m_selectionPanel.FrameView.Y = 10; // Update the platform selection box
+			Add(m_selectionPanel.FrameView);
+
+
+		}
+
+        private void M_textEditAlias_KeyDown(KeyEventEventArgs kb)
+        {
+			if(kb.KeyEvent.Key == Key.CursorLeft && m_textEditRating.Text.Length > 1)
+			{
+				m_textEditRating.Text = new string('*', m_textEditRating.Text.Length - 1);
+			}
+			else if(kb.KeyEvent.Key == Key.CursorRight && m_textEditRating.Text.Length < 5)
+			{
+				m_textEditRating.Text = new string('*', m_textEditRating.Text.Length + 1);
+			}
+		}
+
+        /// <summary>
+        /// Function override.
+        /// If ok button was pressed, modify the node value with the new value
+        /// </summary>
+        /// <param name="node">Refernece to a system attribute node</param>
+        /// <returns>True if ok button was pressed</returns>
+        public override bool Run(ref GameObject currentValue)
+		{
+			if(!Run())
+			{
+				return false;
+			}
+			bool isDirty = false;
+
+			if(m_radio.BoolSelection != m_editValue.IsFavourite)
+			{
+				//currentValue.IsFavourite = m_radio.BoolSelection;
+				isDirty = true;
+			}
+
+			if(m_textEditAlias.Text != m_editValue.Alias)
+            {
+				//currentValue.Alias = m_textEditAlias.Text;
+				isDirty = true;
+			}
+
+			/*
+			if(m_textEditRating.Text.Length != m_editValue.Rating)
+			{
+				//currentValue.Rating = m_textEditRating.Text.Length;
+				isDirty = true;
+			}
+			*/
+
+			// TODO: Tag support
+
+			return isDirty;
 		}
 	}
 }

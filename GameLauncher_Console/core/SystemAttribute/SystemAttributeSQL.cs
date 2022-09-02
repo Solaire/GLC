@@ -13,6 +13,8 @@ namespace core.SystemAttribute
         public const string A_HIDE_EMPTY_PLATFORMS  = "HIDE_EMPTY_PLATFORMS";
         public const string A_HIDE_EMPTY_GROUPS     = "HIDE_EMPTY_GROUPS";
         public const string A_CLOSE_AFTER_LAUNCHING = "CLOSE_AFTER_LAUNCHING";
+        public const string A_SHOW_SEARCH_IN_DIALOG = "SHOW_SEARCH_IN_DIALOG";
+        public const string A_SHOW_GAME_INFO_PANEL  = "SHOW_GAME_INFO_PANEL";
 
         // Query parameter names
         private const string FIELD_ATTRIBUTE_NAME  = "AttributeName";

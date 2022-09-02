@@ -6,6 +6,10 @@ using core.Game;
 
 using Terminal.Gui;
 using Terminal.Gui.Trees;
+using System;
+using core.Tag;
+using core;
+using core.SystemAttribute;
 
 namespace glc.UI.Library
 {
@@ -14,8 +18,9 @@ namespace glc.UI.Library
 		private static View m_container;
 
 		private static CPlatformTreePanel   m_platformPanel;
-		private static CGamePanel		m_gamePanel;
-		private static CGameInfoPanel	m_infoPanel;
+		private static CGamePanel			m_gamePanel;
+		private static CGameInfoPanel		m_infoPanel;
+		private static CKeyBindingPanel		m_keyBiningPanel;
 
 		public CLibraryTab(List<CBasicPlatform> platforms)
 			: base()
@@ -23,11 +28,39 @@ namespace glc.UI.Library
 			Text = "Library";
 
 			// Construct the panels
-			m_platformPanel = new CPlatformTreePanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Fill(), true);
-
 			List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].PrimaryKey).ToList() : new List<GameObject>();
-			m_gamePanel	= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
-			m_infoPanel = new CGameInfoPanel("", Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill());
+			List<StatusItem> keyBindings = new List<StatusItem>
+			{
+				new StatusItem(Key.F, "~F~ Favourite", () =>
+				{
+					SelectedGameToggleFavourite();
+				}),
+				new StatusItem(Key.E, "~E~ Edit", () =>
+				{
+					SelectedGameEdit();
+				}),
+				new StatusItem(Key.R, "~R~ Set rating", () =>
+				{
+					SelectedGameSetRating();
+				}),
+				new StatusItem(Key.Enter, "~Entry~ Start game", () =>
+				{
+					GameListView_OpenSelectedItem(new ListViewItemEventArgs(m_gamePanel.ContainerView.SelectedItem, m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem]));
+				}),
+			};
+
+			m_platformPanel		= new CPlatformTreePanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Percent(60), true);
+			m_gamePanel			= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
+			m_keyBiningPanel	= new CKeyBindingPanel(keyBindings, "Key bindings", 0, Pos.Percent(60), Dim.Percent(25), Dim.Fill());
+
+			if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
+            {
+				m_infoPanel = new CGameInfoPanel("Game information", Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill());
+			}
+			else
+            {
+				m_gamePanel.FrameView.Height = Dim.Fill();
+			}
 
 			// Hook up the triggers
 			// Event triggers for the list view
@@ -48,7 +81,12 @@ namespace glc.UI.Library
 			};
 			m_container.Add(m_platformPanel.FrameView);
 			m_container.Add(m_gamePanel.FrameView);
-			m_container.Add(m_infoPanel.FrameView);
+			m_container.Add(m_keyBiningPanel.FrameView);
+
+			if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
+			{
+				m_container.Add(m_infoPanel.FrameView);
+			}
 
 			View = m_container;
 
@@ -159,6 +197,11 @@ namespace glc.UI.Library
 
 		private static void GameListView_SelectedChanged(ListViewItemEventArgs e)
         {
+			if(!CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
+			{
+				return;
+            }
+
 			if(m_gamePanel.ContentList.Count == 0)
 			{
 				m_infoPanel.FrameView.RemoveAll();
@@ -183,6 +226,12 @@ namespace glc.UI.Library
             {
 				GameSearch();
             }
+
+			// Sanity check
+			else if((a.KeyEvent.Key & Key.CtrlMask) != Key.CtrlMask)
+            {
+				m_keyBiningPanel.PerformKeyAction(a);
+			}
 		}
 
 		private static void GameSearch()
@@ -192,7 +241,89 @@ namespace glc.UI.Library
 			if(searchDlg.Run(ref searchTerm))
             {
 				m_platformPanel.SetSearchResults(searchTerm);
+				if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_SEARCH_IN_DIALOG))
+                {
+					// TODO: after better game list frame
+					//CGameListDlg gameListDlg = new CGameListDlg(searchTerm);
+					//gameListDlg.Run();
+				}
             }
         }
+
+		private static void SelectedGameToggleFavourite()
+        {
+			if(m_gamePanel.ContentList.Count == 0)
+			{
+				return;
+			}
+			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			game.ToggleFavourite();
+
+			if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
+            {
+				m_infoPanel.SwitchGameInfo(game); // TODO: Doesn't fully update
+            }
+		}
+
+		// Create a large dialog
+		private static void SelectedGameEdit()
+        {
+			if(m_gamePanel.ContentList.Count == 0)
+			{
+				return;
+			}
+
+			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			List<TagObject> tempTagList = CTagSQL.GetTagsforPlatform(game.PlatformFK);
+			List<IDataNode> currentTags = new List<IDataNode>(tempTagList.Cast<IDataNode>());
+
+			CEditGameInfoDlg editGameInfoDlg = new CEditGameInfoDlg(game, currentTags);
+			if(editGameInfoDlg.Run(ref game))
+			{
+				game.Update();
+			}
+			/*
+			if(m_gamePanel.ContentList.Count == 0)
+			{
+				return;
+			}
+
+			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			int rating = 0;
+			CEditGameInfoDlg editGameInfoDlg = new CEditGameInfoDlg(game);
+			if(editGameInfoDlg.Run(ref game))
+			{
+				game.Update();
+			}
+			*/
+		}
+
+		// TODO: Save to database
+		// TODO: Neaten up
+		private static void SelectedGameSetRating()
+        {
+			if(m_gamePanel.ContentList.Count == 0)
+			{
+				return;
+			}
+
+			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			int rating = 0;
+			CEditRatingDlg ratingDlg = new CEditRatingDlg($"{game.Title} - rating", rating);
+			if(ratingDlg.Run(ref rating))
+			{
+				game.UpdateRating(rating);
+			}
+		}
 	}
 }
+
+// TODO:
+// - Game edit dialog
+// * Game info + list refresh
+// * Game list to include favourite + rating information
+// * Game list for root platforms (grouped by tag)
+// * Game sorting + dialog
+// - Setting to disable game info panel
+// - Setting to display search results in a new dialog
+// * Predefined tags (favourites, if there are any)

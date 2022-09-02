@@ -65,7 +65,7 @@ namespace glc.UI
 			length = GetMaxLengthItem();
 		}
 
-		public void Render(ListView container, ConsoleDriver driver, bool selected, int item, int col, int line, int width, int start = 0)
+		public virtual void Render(ListView container, ConsoleDriver driver, bool selected, int item, int col, int line, int width, int start = 0)
 		{
 			container.Move(col, line);
 			// Equivalent to an interpolated string like $"{Scenarios[item].Name, -widtestname}"; if such a thing were possible
