@@ -61,6 +61,13 @@ namespace GameLauncher_Console
 			// Allow for unicode characters, such as trademark symbol
 			Console.OutputEncoding = System.Text.Encoding.UTF8;  // 'The handle is invalid.'
 
+            if (OperatingSystem.IsWindows() && Environment.OSVersion.Version < Version.Parse("10.0.17763.0"))
+            {
+                CLogger.LogInfo("Windows 10 1809 or greater required.");
+				Console.WriteLine("Windows 10 1809 or greater required.");
+				Environment.Exit(-1);
+            }
+
 			CDock gameDock = new();
 			gameDock.MainLoop(args);
 		}

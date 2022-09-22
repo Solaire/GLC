@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using static GameLauncher_Console.CGameData;
 
@@ -315,7 +316,8 @@ namespace GameLauncher_Console
 			Console.SetCursorPosition(0, 0);
 		}
 
-		public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, ConsoleColor? bg)
+        [SupportedOSPlatform("windows")]
+        public static void ShowImage(int selection, string title, string imgPath, bool bPlatform, Size size, Point location, ConsoleColor? bg)
         {
 			if (bPlatform)
 				title = title.Substring(0, title.LastIndexOf(':'));
@@ -341,7 +343,8 @@ namespace GameLauncher_Console
 				ShowGameImage(selection, size, location, imgPath, bg);
 		}
 
-		private static void ShowGameImage(int selection, Size size, Point point, string imgPath, ConsoleColor? bg)
+        [SupportedOSPlatform("windows")]
+        private static void ShowGameImage(int selection, Size size, Point point, string imgPath, ConsoleColor? bg)
 		{
 			Size fontSize = GetConsoleFontSize();
 			decimal scalingFactor = GetDpiForWindow(GetConsoleWindow()) / 96m;
@@ -461,7 +464,8 @@ namespace GameLauncher_Console
 			//IsRunning = false;
 		}
 
-		private static void ShowPlatformImage(int selection, Size size, Point point, string platform, ConsoleColor? bg)
+        [SupportedOSPlatform("windows")]
+        private static void ShowPlatformImage(int selection, Size size, Point point, string platform, ConsoleColor? bg)
 		{
 			Size fontSize = GetConsoleFontSize();
 			decimal scalingFactor = GetDpiForWindow(GetConsoleWindow()) / 96m;
@@ -561,7 +565,8 @@ namespace GameLauncher_Console
             }
 		}
 
-		public static void ClearImage(Size size, Point point, ConsoleColor? bg)
+        [SupportedOSPlatform("windows")]
+        public static void ClearImage(Size size, Point point, ConsoleColor? bg)
 		{
 			if (bg != null && size.Width > 0)
 			{
@@ -584,17 +589,18 @@ namespace GameLauncher_Console
             }
 		}
 
-		/// <summary>
-		/// Draw an image, optionally enforcing its aspect ratio (slight cropping may occur).
-		/// </summary>
-		/// <param name="source">image</param>
-		/// <param name="x">x-position</param>
-		/// <param name="y">y-position</param>
-		/// <param name="w">width</param>
-		/// <param name="h">height</param>
-		/// <param name="ignoreRatio">ignore aspect ratio</param>
-		/// <returns></returns>
-		public static void DrawImage(Image source, int x, int y, int w, int h, bool ignoreRatio)
+        /// <summary>
+        /// Draw an image, optionally enforcing its aspect ratio (slight cropping may occur).
+        /// </summary>
+        /// <param name="source">image</param>
+        /// <param name="x">x-position</param>
+        /// <param name="y">y-position</param>
+        /// <param name="w">width</param>
+        /// <param name="h">height</param>
+        /// <param name="ignoreRatio">ignore aspect ratio</param>
+        /// <returns></returns>
+        [SupportedOSPlatform("windows")]
+        public static void DrawImage(Image source, int x, int y, int w, int h, bool ignoreRatio)
 		{
 			//Image result = null;
 

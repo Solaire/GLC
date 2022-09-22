@@ -447,7 +447,7 @@ namespace GameLauncher_Console
 				string strTitle = "";
 				string strDescription = "";
 				string iconUrl = "";
-				string mdmId = "";
+				//string mdmId = "";
 				string lastRun = "";
 
 				foreach (XmlNode game in gameList)

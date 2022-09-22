@@ -655,19 +655,22 @@ namespace GameLauncher_Console
 						cfgv.iconSize > 0 ? CDock.ICON_LEFT_CUSHION + cfgv.iconSize + CDock.ICON_RIGHT_CUSHION: 0,
 						nStartY, itemsPerPage, cfgv, cols, options);
 
-				if (cfgv.imageSize > 0 && IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
+				if (OperatingSystem.IsWindows() && cfgv.imageSize > 0 && IsSelectionValid(CDock.m_nCurrentSelection, options.Length))
 				{
 					ConsoleColor imageColour = (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGRES) > 48 ? ConsoleColor.Black : (m_LightMode == LightMode.cColour_Light ? cols.bgLtCC : cols.bgCC);
 					var t = Task.Run(() =>
 					{
-						if (CDock.m_nSelectedPlatform > -1)
+						if (OperatingSystem.IsWindows())
 						{
-							CGame selectedGame = GetPlatformGame((GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
-							if (selectedGame != null)
-								CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.sizeImage, CDock.locImage, imageColour);
+							if (CDock.m_nSelectedPlatform > -1)
+							{
+								CGame selectedGame = GetPlatformGame((GamePlatform)CDock.m_nSelectedPlatform, CDock.m_nCurrentSelection);
+								if (selectedGame != null)
+									CConsoleImage.ShowImage(CDock.m_nCurrentSelection, selectedGame.Title, selectedGame.Icon, false, CDock.sizeImage, CDock.locImage, imageColour);
+							}
+							else
+								CConsoleImage.ShowImage(CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection], options[CDock.m_nCurrentSelection], true, CDock.sizeImage, CDock.locImage, imageColour);
 						}
-						else
-							CConsoleImage.ShowImage(CDock.m_nCurrentSelection, options[CDock.m_nCurrentSelection], options[CDock.m_nCurrentSelection], true, CDock.sizeImage, CDock.locImage, imageColour);
 					});
 				}
 
@@ -1069,7 +1072,8 @@ namespace GameLauncher_Console
 			}
 		}
 
-		public void DrawIcon(int nY, int nItem, string strItem, ConsoleColor? iconColour)
+        [SupportedOSPlatform("windows")]
+        public void DrawIcon(int nY, int nItem, string strItem, ConsoleColor? iconColour)
         {
 			var t = Task.Run(() =>
 			{
@@ -1183,7 +1187,7 @@ namespace GameLauncher_Console
 				Console.WriteLine(itemList[i]);
 				CDock.SetBgColour(cols.bgCC, cols.bgLtCC);
 				CDock.SetFgColour(cols.entryCC, cols.entryLtCC);
-				if (showIcons)
+				if (OperatingSystem.IsWindows() && showIcons)
 					DrawIcon(Console.CursorTop - 2, i, itemList[i], null);
 			}
 		}
@@ -1373,7 +1377,7 @@ namespace GameLauncher_Console
 					Console.Write(strPreviousOption);
 
 					// Redraw all icons below current selection
-					if (cfgv.iconSize > 0)
+					if (OperatingSystem.IsWindows() && cfgv.iconSize > 0)
 					{
 						// for now, don't show small icons if paging is disabled and items exceed window size
 						if (!((bool)CConfig.GetConfigBool(CConfig.CFG_NOPAGE) && options.Length > nItemsPerPage))
