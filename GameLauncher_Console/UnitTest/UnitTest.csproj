@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0-windows7.0</TargetFramework>
+    <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <OutputType>Exe</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -18,5 +18,7 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /s /e /y "$(SolutionDir)GameLauncher_Console\Database\*.*" "$(ProjectDir)$(OutDir)."</PostBuildEvent>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
   </PropertyGroup>
 </Project>

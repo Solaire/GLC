@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 //using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
@@ -19,6 +20,7 @@ using System.Runtime.Versioning;
 //using System.Security.Permissions;
 //using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 //using System.Windows;
 //using System.Windows.Forms;
 //using System.Windows.Interop;
@@ -1955,10 +1957,11 @@ namespace GameLauncher_Console
 			}
 		}
 
-		/// <summary>
-		/// Clear image with appropriate light or dark mode
-		/// </summary>
-		public static void ClearColour(ConsoleColor bgDark, ConsoleColor bgLight)
+        /// <summary>
+        /// Clear image with appropriate light or dark mode
+        /// </summary>
+        [SupportedOSPlatform("windows")]
+        public static void ClearColour(ConsoleColor bgDark, ConsoleColor bgLight)
 		{
 			if (CConsoleHelper.m_LightMode == CConsoleHelper.LightMode.cColour_Light && bgLight > (ConsoleColor)(-1))
 				CConsoleImage.ClearImage(sizeImage, locImage, bgLight);
@@ -2137,15 +2140,22 @@ namespace GameLauncher_Console
 				if (!File.Exists(iconFile))
 				{
 					CLogger.LogDebug("Download image <{0}>", url);
-					try
+					var task = Task.Run(async () =>
 					{
-						using WebClient client = new();
-						client.DownloadFile(url, iconFile);
-					}
-					catch (WebException we)
-					{
-						CLogger.LogWarn(we.Message);
-					}
+						try
+						{
+							//using WebClient client = new();
+							//client.DownloadFile(url, iconFile);
+							using HttpClient client = new();
+							using HttpResponseMessage response = await client.GetAsync(url);
+							using FileStream fs = new(iconFile, FileMode.CreateNew);
+							await response.Content.CopyToAsync(fs);
+						}
+						catch (WebException we)
+						{
+							CLogger.LogWarn(we.Message);
+						}
+					});
 
 					if (File.Exists(iconFile))
 					{

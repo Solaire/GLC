@@ -28,8 +28,10 @@ namespace GameLauncher_Console
     {
 		private const string IMAGE_FOLDER_NAME = "CustomImages";
 		private const string GAME_FOLDER_NAME = "CustomGames";
+		private const string MIN_WINDOWS_VER = "10.0.17763.0";
+		private const string MIN_WINDOWS_NAME = "Windows 10 1809";
 
-		[STAThread] // Requirement for Shell32.Shell [and Microsoft.Web.WebView2] COM objects
+        [STAThread] // Requirement for Shell32.Shell [and Microsoft.Web.WebView2] COM objects
 		public static void Main(string[] args)
         {
 #if DEBUG
@@ -60,6 +62,13 @@ namespace GameLauncher_Console
 				
 			// Allow for unicode characters, such as trademark symbol
 			Console.OutputEncoding = System.Text.Encoding.UTF8;  // 'The handle is invalid.'
+
+            if (OperatingSystem.IsWindows() && Environment.OSVersion.Version < Version.Parse(MIN_WINDOWS_VER))
+            {
+                CLogger.LogInfo(MIN_WINDOWS_NAME + " or greater required.");
+				Console.WriteLine(MIN_WINDOWS_NAME + " or greater required.");
+				Environment.Exit(-1);
+            }
 
 			CDock gameDock = new();
 			gameDock.MainLoop(args);
