@@ -155,8 +155,8 @@ namespace GameLauncher_Console
 			{
 				CultureInfo ci = new("en-GB");
 				TextInfo ti = ci.TextInfo;
-				string userName = CConfig.GetConfigString(CConfig.CFG_OCULUSID);
-				//ulong userId = 0;
+                //ulong userId = 0;
+                GetUserName(out string userName);
 
 				using SQLiteConnection con = new($"Data Source={db}");
                 con.Open();
@@ -173,7 +173,7 @@ namespace GameLauncher_Console
 						string strValU = Encoding.Default.GetString(valU);
 
 						string alias = ParseBlob(strValU, "alias", "app_entitlements");
-						if (string.IsNullOrEmpty(userName))
+						if (string.IsNullOrEmpty(userName) || userName.Equals("skipped"))
 						{
 							if (ulong.TryParse(rdrU.GetString(0), out userId))
 							{
@@ -505,6 +505,36 @@ namespace GameLauncher_Console
             return success;
         }
         */
+
+        private static bool GetUserName(out string userName)
+        {
+            userName = CConfig.GetConfigString(CConfig.CFG_OCULUSID);
+            try
+            {
+                // Don't request input for username yet (currently just an experiment for expired trials)
+                /*
+                if (string.IsNullOrEmpty(userName))
+                {
+                    userName = CDock.InputPrompt(_name + " username >>> ", new());
+                    CDock.ClearInputLine(new());
+                }
+                */
+
+                if (string.IsNullOrEmpty(userName))
+                    //CConfig.SetConfigValue(CConfig.CFG_OCULUSID, "skipped");
+                else
+                {
+                    CConfig.SetConfigValue(CConfig.CFG_OCULUSID, userName);
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                CLogger.LogError(e);
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Scan the key name and extract the Oculus game id

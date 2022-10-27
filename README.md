@@ -4,13 +4,13 @@ This is a simple Windows console program that will scan the system for video gam
 - Amazon Games;
 - Battle&period;net;
 - Big Fish Games;
+- EA [formerly Origin];
 - Epic Games Launcher;
 - GOG Galaxy;
 - Indiegala Client;
 - itch;
 - Legacy Games;
 - Oculus;
-- Origin [soon to be EA Desktop];
 - Paradox Launcher;
 - Plarium Play;
 - Riot Client;

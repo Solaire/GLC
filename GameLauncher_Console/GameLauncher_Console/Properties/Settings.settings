@@ -122,10 +122,10 @@
     <Setting Name="text_oculus_username" Type="System.String" Scope="User">
       <Value Profile="(Default)"></Value>
     </Setting>
-    <Setting Name="text_origin_email" Type="System.String" Scope="User">
+    <Setting Name="text_ea_email" Type="System.String" Scope="User">
       <Value Profile="(Default)"></Value>
     </Setting>
-    <Setting Name="base64_origin_password" Type="System.String" Scope="User">
+    <Setting Name="base64_ea_password" Type="System.String" Scope="User">
         <Value Profile="(Default)"></Value>
     </Setting>
     <Setting Name="colour_background" Type="System.String" Scope="User">

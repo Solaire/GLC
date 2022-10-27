@@ -12,9 +12,9 @@ namespace GameLauncher_Console
 {
 	// Ubisoft Connect (formerly Uplay)
 	// [owned and installed games]
-	public class PlatformUplay : IPlatform
+	public class PlatformUbisoft : IPlatform
 	{
-		public const GamePlatform ENUM		= GamePlatform.Uplay;
+		public const GamePlatform ENUM		= GamePlatform.Ubisoft;
 		public const string PROTOCOL		= "uplay://";
 		public const string START_GAME		= PROTOCOL + "launch/";
 		public const string UPLAY_PREFIX	= "Uplay Install ";
