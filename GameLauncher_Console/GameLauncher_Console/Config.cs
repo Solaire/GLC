@@ -177,8 +177,8 @@ namespace GameLauncher_Console
 		public const string CFG_COLSIZE		= "num_grid_text_min_column_characters";
 		public const string CFG_STEAMID		= "num_steam_id";
 		public const string CFG_OCULUSID	= "text_oculus_username";
-		public const string CFG_ORIGINID	= "text_origin_email";
-		public const string CFG_ORIGINPW	= "base64_origin_password";
+		public const string CFG_ORIGINID	= "text_ea_email";
+		public const string CFG_ORIGINPW	= "base64_ea_password";
 		public const string CFG_COLBG1		= "colour_background";
 		public const string CFG_COLBG2		= "colour_background_lightmode";
 		public const string CFG_COLTITLE1	= "colour_title";

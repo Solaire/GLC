@@ -72,8 +72,8 @@ namespace GameLauncher_Console
 		//  0|-------|---------|---------|---------|---------|---------|---------|---------|80
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
-			" * Amazon * Battle.net * Big Fish * Epic * GOG * Indiegala * itch * Legacy",
-			" * Oculus * Origin * Paradox * Plarium * Riot * Steam * Ubisoft * Wargaming",
+			" * Amazon * Battle.net * Big Fish * EA * Epic * GOG * Indiegala * itch",
+			" * Legacy * Oculus * Paradox * Plarium * Riot * Steam * Ubisoft * Wargaming",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
@@ -99,19 +99,19 @@ namespace GameLauncher_Console
 			//platforms.AddSupportedPlatform(new PlatformBethesda());	// deprecated May 2022
 			platforms.AddSupportedPlatform(new PlatformBigFish());
 			//platforms.AddSupportedPlatform(new PlatformCustom());		// See CPlatform.ScanGames()
+			platforms.AddSupportedPlatform(new PlatformEA());
 			platforms.AddSupportedPlatform(new PlatformEpic());
 			platforms.AddSupportedPlatform(new PlatformGOG());
 			platforms.AddSupportedPlatform(new PlatformIGClient());
 			platforms.AddSupportedPlatform(new PlatformItch());
 			platforms.AddSupportedPlatform(new PlatformLegacy());
 			platforms.AddSupportedPlatform(new PlatformOculus());
-			platforms.AddSupportedPlatform(new PlatformOrigin());
 			platforms.AddSupportedPlatform(new PlatformParadox());
 			platforms.AddSupportedPlatform(new PlatformPlarium());
 			platforms.AddSupportedPlatform(new PlatformRiot());
 			platforms.AddSupportedPlatform(new PlatformRockstar());
 			platforms.AddSupportedPlatform(new PlatformSteam());
-			platforms.AddSupportedPlatform(new PlatformUplay());
+			platforms.AddSupportedPlatform(new PlatformUbisoft());
 			platforms.AddSupportedPlatform(new PlatformWargaming());
 #if DEBUG
 			platforms.AddSupportedPlatform(new PlatformMicrosoft());	// an experiment for now
@@ -876,11 +876,11 @@ namespace GameLauncher_Console
 								case GamePlatform.GOG:
 									DownloadCustomImage(selectedGame.Title, PlatformGOG.GetIconUrl(selectedGame), true);
 									break;
-								case GamePlatform.Uplay:
-									//DownloadCustomImage(selectedGame.Title, PlatformUplay.GetIconUrl(selectedGame), true);
+								case GamePlatform.Ubisoft:
+									//DownloadCustomImage(selectedGame.Title, PlatformUbisoft.GetIconUrl(selectedGame), true);
 									break;
-								case GamePlatform.Origin:
-									DownloadCustomImage(selectedGame.Title, PlatformOrigin.GetIconUrl(selectedGame), true);
+								case GamePlatform.EA:
+									DownloadCustomImage(selectedGame.Title, PlatformEA.GetIconUrl(selectedGame), true);
 									break;
 								case GamePlatform.Epic:
 									DownloadCustomImage(selectedGame.Title, PlatformEpic.GetIconUrl(selectedGame), true);
@@ -963,11 +963,11 @@ namespace GameLauncher_Console
 								case GamePlatform.GOG:
 									PlatformGOG.Launch();
 									break;
-								case GamePlatform.Uplay:
-									PlatformUplay.Launch();
+								case GamePlatform.Ubisoft:
+									PlatformUbisoft.Launch();
 									break;
-								case GamePlatform.Origin:
-									PlatformOrigin.Launch();
+								case GamePlatform.EA:
+									PlatformEA.Launch();
 									break;
 								case GamePlatform.Epic:
 									PlatformEpic.Launch();
@@ -1281,25 +1281,25 @@ namespace GameLauncher_Console
 						//if (InputInstall(game.Title, cols))
 							return (PlatformGOG.InstallGame(game) != 0);
 						//return false;
-					case GamePlatform.Uplay:
+					case GamePlatform.Ubisoft:
 						if (InputInstall(game.Title, cols))
 						{
-							if (PlatformUplay.InstallGame(game) != 0)
+							if (PlatformUbisoft.InstallGame(game) != 0)
 								return true;
 							else
 							{
 								// Some games don't provide a valid ID; provide an error in that case
 								//SetFgColour(cols.errorCC, cols.errorLtCC);
-								CLogger.LogWarn("Cannot get {0} ID for this title.", Enum.GetName(typeof(GamePlatform), GamePlatform.Uplay).ToUpper());
+								CLogger.LogWarn("Cannot get {0} ID for this title.", Enum.GetName(typeof(GamePlatform), GamePlatform.Ubisoft).ToUpper());
 								Console.WriteLine("ERROR: Couldn't get ID for this title.");
 								//Console.ResetColor();
 							}
 						}
 						return false;
-					case GamePlatform.Origin:
-						//if (InputInstall(game.Title, cols))
-							return (PlatformOrigin.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
-						//return false;
+					case GamePlatform.EA:
+						if (InputInstall(game.Title, cols))
+							return (PlatformEA.InstallGame(game) != 0);
+						return false;
 					case GamePlatform.Epic:
 						if (InputInstall(game.Title, cols))
 							return (PlatformEpic.InstallGame(game) != 0);
@@ -1464,11 +1464,11 @@ namespace GameLauncher_Console
 					case GamePlatform.GOG:
 						PlatformGOG.StartGame(game);
 						break;
-					case GamePlatform.Uplay:
-						PlatformUplay.StartGame(game);
+					case GamePlatform.Ubisoft:
+						PlatformUbisoft.StartGame(game);
 						break;
-					case GamePlatform.Origin:
-						PlatformOrigin.StartGame(game);
+					case GamePlatform.EA:
+						PlatformEA.StartGame(game);
 						break;
 					case GamePlatform.Epic:
 						PlatformEpic.StartGame(game);

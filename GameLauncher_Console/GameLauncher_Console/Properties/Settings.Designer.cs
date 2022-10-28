@@ -12,7 +12,7 @@ namespace GameLauncher_Console.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.3.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -508,24 +508,24 @@ namespace GameLauncher_Console.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string text_origin_email {
+        public string text_ea_email {
             get {
-                return ((string)(this["text_origin_email"]));
+                return ((string)(this["text_ea_email"]));
             }
             set {
-                this["text_origin_email"] = value;
+                this["text_ea_email"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string base64_origin_password {
+        public string base64_ea_password {
             get {
-                return ((string)(this["base64_origin_password"]));
+                return ((string)(this["base64_ea_password"]));
             }
             set {
-                this["base64_origin_password"] = value;
+                this["base64_ea_password"] = value;
             }
         }
         

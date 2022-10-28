@@ -21,12 +21,12 @@ using static System.Environment;
 
 namespace GameLauncher_Console
 {
-	// Origin [soon to be EA Desktop]
-	// [installed games only]
-	public class PlatformOrigin : IPlatform
+    // EA (formerly Origin)
+    // [installed games + owned games if login is provided]
+    public class PlatformEA : IPlatform
 	{
-		public const GamePlatform ENUM = GamePlatform.Origin;
-		public const string PROTOCOL			= "origin2://"; //"eadm://" was added by EA Desktop, but "origin://" and "origin2://" still work with it (for now)
+		public const GamePlatform ENUM = GamePlatform.EA;
+		public const string PROTOCOL			= "origin2://"; //"eadm://" and "ealink://" added after move to EA branding, but "origin://" or "origin2://" still seem to be the correct ones
 		public const string LAUNCH				= PROTOCOL + "library/open";
 		//public const string INSTALL_GAME		= PROTOCOL + "";
 		public const string START_GAME			= PROTOCOL + "game/launch?offerIds=";
@@ -36,7 +36,8 @@ namespace GameLauncher_Console
 		private const string ORIGIN_GAMES		= "Origin Games";
 		private const string EA_GAMES			= "EA Games";
 		private const string ORIGIN_UNREG		= "Origin"; // HKLM32 Uninstall
-		private const string ORIGIN_REG			= @"SOFTWARE\WOW6432Node\Origin"; // HKLM32
+		private const string EA_UNREG			= "{9d365a2c-801c-4d99-a902-f17f2dc03510}"; // HKLM32 Uninstall
+		private const string EA_REG				= @"SOFTWARE\WOW6432Node\Electronic Arts\EA Desktop"; // HKLM32
 		*/
 		private const string ORIGIN_CTRYDEF		= "US";
 		private const string ORIGIN_LANGDEF		= "en_US";
@@ -156,7 +157,7 @@ namespace GameLauncher_Console
 					{
 						if (key != null)
 						{
-							keyList = FindGameKeys(key, install, GAME_INSTALL_LOCATION, new string[] { "Origin" });
+							keyList = FindGameKeys(key, install, GAME_INSTALL_LOCATION, new string[] { "EA Desktop" });
 							foreach (var data in keyList)
 							{
 								strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
@@ -288,7 +289,7 @@ namespace GameLauncher_Console
 
 				if (string.IsNullOrEmpty(email))
 				{
-					email = CDock.InputPrompt("Origin e-mail >>> ", new());
+					email = CDock.InputPrompt(_name + " e-mail >>> ", new());
 					CDock.ClearInputLine(new());
 				}
 
@@ -302,7 +303,7 @@ namespace GameLauncher_Console
 
 					if (string.IsNullOrEmpty(encrypted))
 					{
-						string strPwd = CDock.InputPassword("Origin password >>> ", new());
+						string strPwd = CDock.InputPassword(_name + " password >>> ", new());
 						if (!string.IsNullOrEmpty(strPwd))
 						{
 							Span<byte> byteSpan = new();

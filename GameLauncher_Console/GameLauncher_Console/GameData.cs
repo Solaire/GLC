@@ -32,9 +32,9 @@ namespace GameLauncher_Console
 			[Description("GOG Galaxy")]
 			GOG = 4,
 			[Description("Ubisoft Connect")]
-			Uplay = 5,
-			[Description("Origin")]			// [soon to be "EA Desktop"]
-			Origin = 6,
+			Ubisoft = 5,
+			[Description("EA")]
+			EA = 6,
 			[Description("Epic")]
 			Epic = 7,
 			[Description("Bethesda.net")]	// deprecated
