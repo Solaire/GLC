@@ -521,7 +521,7 @@ namespace GameLauncher_Console
                 */
 
                 if (string.IsNullOrEmpty(userName))
-                    //CConfig.SetConfigValue(CConfig.CFG_OCULUSID, "skipped");
+                    CConfig.SetConfigValue(CConfig.CFG_OCULUSID, "skipped");
                 else
                 {
                     CConfig.SetConfigValue(CConfig.CFG_OCULUSID, userName);
