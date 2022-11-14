@@ -520,13 +520,15 @@ namespace GameLauncher_Console
                 }
                 */
 
+                /*
                 if (string.IsNullOrEmpty(userName))
                     CConfig.SetConfigValue(CConfig.CFG_OCULUSID, "skipped");
                 else
                 {
+                */
                     CConfig.SetConfigValue(CConfig.CFG_OCULUSID, userName);
                     return true;
-                }
+                //}
             }
             catch (Exception e)
             {
