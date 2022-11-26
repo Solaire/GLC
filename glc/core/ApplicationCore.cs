@@ -121,7 +121,7 @@ namespace core
         private bool InitialisePlatforms()
         {
             var pluginLoader = new PluginLoader<CPlatformFactory<CPlatform>>();
-            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\GameLauncher_Console\neo_glc\bin\Debug\netcoreapp3.1\platforms"); // TODO: path
+            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc\bin\Debug\netcoreapp3.1\platforms"); // TODO: path
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 
             foreach(var plugin in plugins)

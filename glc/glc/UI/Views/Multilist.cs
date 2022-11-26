@@ -6,27 +6,65 @@ using Terminal.Gui;
 namespace glc.UI.Views
 {
 	/// <summary>
-	/// Describes the data source used for <see cref="CCMultilistView"/> class.
+	/// Extension of <see cref="List<GameObject>"/> providing some additional properties
 	/// </summary>
-	public interface IIMultilistDataSource
+	public class CGameList : List<GameObject>
     {
-		/// <summary>
-		/// Sublist headers used to help with list rendering and selection lookup.
-		/// </summary>
-        List<string> SublistHeaders { get; }
+		public CGameList(string listName, List<GameObject> games)
+			: base(games)
+        {
+			ListName = listName;
+			IsVisible = true; // TODO: Only show when have items
+        }
+
+		public CGameList(KeyValuePair<string, List<GameObject>> kv)
+			: base(kv.Value)
+        {
+			ListName = kv.Key;
+			IsVisible = true; // TODO: Only show when have items
+		}
 
 		/// <summary>
-		/// The data source.
+		/// Sublist name
 		/// </summary>
-        Dictionary<string, List<GameObject>> Source { get; }
+		public string ListName
+        {
+			get;
+			private set;
+        }
+
+		/// <summary>
+		/// Flag controling list's visibility in the UI
+		/// </summary>
+		public bool IsVisible
+        {
+			get;
+			set;
+        }
+    }
+
+	/// <summary>
+	/// Describes the data source interface used to populate <see cref="CMultilistView"/>.
+	/// </summary>
+	public interface IMultilistDataSource
+    {
+		/// <summary>
+		/// List of sublist keys, preserving insert order
+		/// </summary>
+		List<string> SublistKeys { get; }
+
+		/// <summary>
+		/// Sublists keyed on the sublist name
+		/// </summary>
+        Dictionary<string, CGameList> Sublists { get; }
 
 		/// <summary>
 		/// Total count of all source items.
 		/// </summary>
-        int TotalItemCount { get; }
+        int TotalCount { get; }
 
 		/// <summary>
-		/// Length of the largest string.
+		/// Length of the largest item string.
 		/// </summary>
 		int Length { get; }
 
@@ -41,7 +79,7 @@ namespace glc.UI.Views
 		/// <param name="line">the line number</param>
 		/// <param name="width">The width of the render</param>
 		/// <param name="start">The starting x position</param>
-		void Render(CCMultilistView container, ConsoleDriver driver, bool selected, int item, int col, int line, int width, int start = 0);
+		void Render(CMultilistView container, ConsoleDriver driver, bool selected, string sublist, int itemIndex, int col, int line, int width, int start = 0);
 
 		/// <summary>
 		/// Check whether the specified sublist exists
@@ -58,19 +96,12 @@ namespace glc.UI.Views
         int SublistCount(string sublist);
 
 		/// <summary>
-		/// Return the count for the selected sublist
-		/// </summary>
-		/// <param name="sublist">The sublist index</param>
-		/// <returns>Number of items in the sublist; if the sublist does not exist, should return -1</returns>
-		int SublistCount(int sublistIndex);
-
-		/// <summary>
 		/// Retrieve the item from the data source
 		/// </summary>
 		/// <param name="sublistIndex">The sublist index</param>
 		/// <param name="itemIndex">The item index</param>
 		/// <returns>Data source item; if the sublist doesn't exist, or the item index is out of bounds, should return null</returns>
-		GameObject ? GetItem(int sublistIndex, int itemIndex);
+		GameObject ? GetItem(string sublistName, int itemIndex);
 	}
 
 	/// <summary>
@@ -83,20 +114,20 @@ namespace glc.UI.Views
 	/// to render groups of items as well as rendering single lists in the `singleList`
 	/// mode. This seems to be more efficient than loading new lists.
 	/// </summary>
-	public class CCMultilistView : View
+	public class CMultilistView : View
     {
         int top, left;
-		bool singleListMode;
 
-		int selectedSublist;
-		int selectedItem;
+		bool	singleListMode;
+		int		selectedSublist;
+		int		selectedItem;
 
-		IIMultilistDataSource source;
+		IMultilistDataSource source;
 
 		/// <summary>
 		/// The data source.
 		/// </summary>
-        public IIMultilistDataSource Source
+        public IMultilistDataSource Source
         {
             get => source;
             set
@@ -123,7 +154,7 @@ namespace glc.UI.Views
 				if(source == null)
 					return;
 
-				if(value < 0 || (source.TotalItemCount > 0 && value >= source.TotalItemCount))
+				if(value < 0 || (source.TotalCount > 0 && value >= source.TotalCount))
 					throw new ArgumentException("value");
 				top = value;
 				SetNeedsDisplay();
@@ -160,7 +191,7 @@ namespace glc.UI.Views
 		/// <param name="source"><see cref="IListDataSource"/> object that provides a mechanism to render the data.
 		/// The number of elements on the collection should not change, if you must change, set
 		/// the "Source" property to reset the internal settings of the ListView.</param>
-		public CCMultilistView(IIMultilistDataSource source) : base()
+		public CMultilistView(IMultilistDataSource source) : base()
 		{
 			this.source = source;
 			Initialize();
@@ -169,7 +200,7 @@ namespace glc.UI.Views
 		/// <summary>
 		/// Initializes a new instance of <see cref="ListView"/>. Set the <see cref="Source"/> property to display something.
 		/// </summary>
-		public CCMultilistView() : base()
+		public CMultilistView() : base()
 		{
 			Initialize();
 		}
@@ -179,7 +210,7 @@ namespace glc.UI.Views
 		/// </summary>
 		/// <param name="rect">Frame for the listview.</param>
 		/// <param name="source">IListDataSource object that provides a mechanism to render the data. The number of elements on the collection should not change, if you must change, set the "Source" property to reset the internal settings of the ListView.</param>
-		public CCMultilistView(Rect rect, IIMultilistDataSource source) : base(rect)
+		public CMultilistView(Rect rect, IMultilistDataSource source) : base(rect)
 		{
 			this.source = source;
 			Initialize();
@@ -203,7 +234,7 @@ namespace glc.UI.Views
 		/// <returns>The global selection index.</returns>
 		int CalculateGlobalSelection()
         {
-			if(selectedSublist >= source.SublistHeaders.Count)
+			if(selectedSublist >= source.SublistKeys.Count)
             {
 				return 0;
             }
@@ -211,7 +242,7 @@ namespace glc.UI.Views
 			int globalSelection = 0;
 			for(int i = 0; i < selectedSublist; ++i)
             {
-				globalSelection += source.SublistCount(i);
+				globalSelection += source.SublistCount(source.SublistKeys[i]);
             }
 			globalSelection += selectedItem + selectedSublist + 1; // Accont for the sublist headers.
 			return globalSelection;
@@ -224,11 +255,11 @@ namespace glc.UI.Views
 		/// <returns>The sublist heading index; if selectionIndex is out of bounds, return -1</returns>
 		int CalculateSublistIndex(int selectionIndex)
         {
-			for(int i = 0; i < Source.SublistHeaders.Count; ++i)
+			for(int i = 0; i < Source.SublistKeys.Count; ++i)
 			{
-				if(selectionIndex >= Source.Source[Source.SublistHeaders[i]].Count)
+				if(selectionIndex >= Source.Sublists[Source.SublistKeys[i]].Count)
 				{
-					selectionIndex -= Source.Source[Source.SublistHeaders[i]].Count;
+					selectionIndex -= Source.Sublists[Source.SublistKeys[i]].Count;
 				}
 				else
 				{
@@ -243,7 +274,7 @@ namespace glc.UI.Views
 			int globalIndex = 0;
 			for(int i = 0; i < sublistIndex; ++i)
             {
-				globalIndex += source.SublistCount(i);
+				globalIndex += source.SublistCount(source.SublistKeys[i]);
             }
 			globalIndex += itemIndex;
 			return globalIndex;
@@ -262,12 +293,12 @@ namespace glc.UI.Views
 			int row = 0;
 			int start = left;
 
-			// TODO: code duplication
+			// TODO: code duplication and bugs
 			if(singleListMode)
             {
 				int sublistInner = selectedSublist;
 				bool drawHeadingInner = true;
-				int singleListCount = source.SublistCount(sublistInner);
+				int singleListCount = source.SublistCount(source.SublistKeys[sublistInner]);
 
 				for(; row < f.Height && item < singleListCount; row++)
 				{
@@ -282,7 +313,7 @@ namespace glc.UI.Views
 					}
 
 					Move(0, row);
-					if(source == null || item >= source.TotalItemCount)
+					if(source == null || item >= source.TotalCount)
 					{
 						for(int c = 0; c < f.Width; c++)
 						{
@@ -292,12 +323,12 @@ namespace glc.UI.Views
 					}
 					else if(drawHeadingInner)
 					{
-						Driver.AddStr(Source.SublistHeaders[sublistInner] + " ".PadRight(f.Width, '─'));
+						Driver.AddStr(Source.SublistKeys[sublistInner] + " ".PadRight(f.Width, '─'));
 						drawHeadingInner = false;
 					}
 					else
 					{
-						Source.Render(this, Driver, isSelected, ToGlobalIndex(sublistInner, item), col, row, f.Width - col, start);
+						Source.Render(this, Driver, isSelected, Source.SublistKeys[sublistInner], item, col, row, f.Width - col, start);
 						item++;
 					}
 				}
@@ -322,7 +353,7 @@ namespace glc.UI.Views
 				}
 
 				Move(0, row);
-				if(source == null || item >= source.TotalItemCount)
+				if(source == null || item >= source.TotalCount)
 				{
 					for(int c = 0; c < f.Width; c++)
                     {
@@ -332,19 +363,19 @@ namespace glc.UI.Views
 				}
 				else if(drawHeading)
 				{
-					Driver.AddStr(Source.SublistHeaders[sublist] + " ".PadRight(f.Width, '─'));
+					Driver.AddStr(Source.SublistKeys[sublist] + " ".PadRight(f.Width, '─'));
 					drawHeading = false;
 				}
 				else
 				{
-					Source.Render(this, Driver, isSelected, item, col, row, f.Width - col, start);
+					Source.Render(this, Driver, isSelected, Source.SublistKeys[sublist], item, col, row, f.Width - col, start);
 					item++;
 					int newSublist = CalculateSublistIndex(item);
 					drawHeading = (newSublist != sublist);
 					sublist = newSublist;
-					if(drawHeading && singleListMode)
+					if(drawHeading)
                     {
-						break;
+						continue;
                     }
 				}
 			}
@@ -440,13 +471,13 @@ namespace glc.UI.Views
 		/// <returns>True</returns>
 		public virtual bool NextSublist()
 		{
-			if(selectedSublist >= source.SublistHeaders.Count - 1) // Can't move
+			if(selectedSublist >= source.SublistKeys.Count - 1) // Can't move
 			{
 				return true;
 			}
 			else if(singleListMode)
             {
-				selectedItem = source.Source[source.SublistHeaders[selectedSublist]].Count - 1;
+				selectedItem = source.Sublists[source.SublistKeys[selectedSublist]].Count - 1;
             }
 
 			selectedSublist++;
@@ -464,17 +495,17 @@ namespace glc.UI.Views
 		/// <returns></returns>
 		public virtual bool MoveDown()
 		{
-			if(source.TotalItemCount == 0)
+			if(source.TotalCount == 0)
 			{
 				// Do we set lastSelectedItem to -1 here?
 				return true; //Nothing for us to move to
 			}
 
-			if(selectedItem + 1 < source.SublistCount(selectedSublist)) // Next item on the current sublist
+			if(selectedItem + 1 < source.SublistCount(Source.SublistKeys[selectedSublist])) // Next item on the current sublist
             {
 				selectedItem++;
             }
-			else if(!singleListMode && selectedSublist + 1 < source.SublistHeaders.Count) // Move to the first element on the next sublist
+			else if(!singleListMode && selectedSublist + 1 < source.SublistKeys.Count) // Move to the first element on the next sublist
             {
 				selectedSublist++;
 				selectedItem = 0;
@@ -502,7 +533,7 @@ namespace glc.UI.Views
 		/// <returns></returns>
 		public virtual bool MoveUp()
 		{
-			if(source.TotalItemCount == 0)
+			if(source.TotalCount == 0)
 			{
 				// Do we set lastSelectedItem to -1 here?
 				return true; //Nothing for us to move to
@@ -515,7 +546,7 @@ namespace glc.UI.Views
 			else if(!singleListMode && selectedSublist - 1 >= 0) // Move to the last element of the previous sublist
             {
 				selectedSublist--;
-				selectedItem = source.SublistCount(selectedSublist) - 1;
+				selectedItem = source.SublistCount(Source.SublistKeys[selectedSublist]) - 1;
 			}
 			else // Can't do anything
             {
@@ -546,14 +577,14 @@ namespace glc.UI.Views
 		public virtual bool MoveEnd()
 		{
 			int globalSelection = CalculateGlobalSelection();
-			if(source.TotalItemCount == 0 || globalSelection != source.TotalItemCount - 1)
+			if(source.TotalCount == 0 || globalSelection != source.TotalCount - 1)
             {
 				return true;
             }
 
-			globalSelection = source.TotalItemCount - 1;
-			selectedSublist = source.SublistHeaders.Count - 1;
-			selectedItem = source.SublistCount(selectedSublist);
+			globalSelection = source.TotalCount - 1;
+			selectedSublist = source.SublistKeys.Count - 1;
+			selectedItem = source.SublistCount(Source.SublistKeys[selectedSublist]);
 
 			if(top + globalSelection > Frame.Height - 1)
             {
@@ -593,7 +624,7 @@ namespace glc.UI.Views
 		/// <param name="lines">Number of lines to scroll down.</param>
 		public virtual void ScrollDown(int lines)
 		{
-			top = Math.Max(Math.Min(top + lines, source.TotalItemCount - 1), 0);
+			top = Math.Max(Math.Min(top + lines, source.TotalCount - 1), 0);
 			SetNeedsDisplay();
 		}
 
@@ -642,12 +673,12 @@ namespace glc.UI.Views
 				return true;
             }
 
-			if(source.TotalItemCount == 0)
+			if(source.TotalCount == 0)
             {
 				return true;
             }
 
-			GameObject value = (GameObject)source.GetItem(selectedSublist, selectedItem);
+			GameObject value = (GameObject)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
 			SelectedItemChanged?.Invoke(new MultilistViewItemEventArgs(globalSelection, value));
 			if(HasFocus)
             {
@@ -662,7 +693,7 @@ namespace glc.UI.Views
 		/// <returns></returns>
 		public virtual bool OnOpenSelectedItem()
 		{
-			if(source.TotalItemCount == 0)
+			if(source.TotalCount == 0)
 			{
 				return true;
 			}
@@ -672,7 +703,7 @@ namespace glc.UI.Views
 				return true;
             }
 
-			GameObject value = (GameObject)source.GetItem(selectedSublist, selectedItem);
+			GameObject value = (GameObject)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
 
 			OpenSelectedItem?.Invoke(new MultilistViewItemEventArgs(CalculateGlobalSelection(), value));
 
@@ -767,7 +798,7 @@ namespace glc.UI.Views
 				return true;
 			}
 
-			if(me.Y + top >= source.TotalItemCount)
+			if(me.Y + top >= source.TotalCount)
 			{
 				return true;
 			}
@@ -787,9 +818,9 @@ namespace glc.UI.Views
 		public void SingleListMode(string sublistName)
         {
 			int index = -1;
-			for(int i = 0; i < Source.SublistHeaders.Count; ++i)
+			for(int i = 0; i < Source.SublistKeys.Count; ++i)
             {
-                if(Source.SublistHeaders[i] == sublistName)
+                if(Source.SublistKeys[i] == sublistName)
                 {
 					index = i;
 					break;
