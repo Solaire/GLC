@@ -394,6 +394,28 @@ namespace core.Game
             return databaseGames;
         }
 
+        public static Dictionary<string, List<GameObject>> LoadPlatformGamesAsDict(int platformFK)
+        {
+            Dictionary<string, List<GameObject>> databaseGames = new Dictionary<string, List<GameObject>>();
+
+            m_qryReadGame.MakeFieldsNull();
+            m_qryReadGame.SelectExtraCondition = "";
+            m_qryReadGame.PlatformFK = platformFK;
+            if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            {
+                do
+                {
+                    if(!databaseGames.ContainsKey(m_qryReadGame.Tag))
+                    {
+                        databaseGames[m_qryReadGame.Tag] = new List<GameObject>();
+                    }
+                    databaseGames[m_qryReadGame.Tag].Add(new GameObject(m_qryReadGame));
+                } while(m_qryReadGame.Fetch());
+            }
+
+            return databaseGames;
+        }
+
         public static HashSet<GameObject> LoadPlatformGames(int platformFK, bool favourites)
         {
             HashSet<GameObject> databaseGames = new HashSet<GameObject>();

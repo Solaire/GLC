@@ -451,6 +451,7 @@ namespace glc.UI
 	public class CEditRatingDlg : CEditDlg<int>
 	{
 		protected TextField m_textEdit;
+		private const char m_ratingSymbol = '*';
 
 		/// <summary>
 		/// Constructor.
@@ -466,7 +467,7 @@ namespace glc.UI
 				X = Pos.Center(),
 				Y = 3,
 				Width = 5,
-				Text = new string('*', initialRating),
+				Text = new string(m_ratingSymbol, initialRating),
 				CanFocus = false,
 			};
 			Add(m_textEdit);
@@ -501,7 +502,7 @@ namespace glc.UI
 			{
 				if(m_textEdit.Text.Length > 1)
                 {
-					m_textEdit.Text = new string('*', m_textEdit.Text.Length - 1);
+					m_textEdit.Text = new string(m_ratingSymbol, m_textEdit.Text.Length - 1);
 				}
 				return true;
 			}
@@ -509,7 +510,7 @@ namespace glc.UI
 			{
 				if(m_textEdit.Text.Length < 5)
                 {
-					m_textEdit.Text = new string('*', m_textEdit.Text.Length + 1);
+					m_textEdit.Text = new string(m_ratingSymbol, m_textEdit.Text.Length + 1);
                 }
 				return true;
 			}

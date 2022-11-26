@@ -10,6 +10,8 @@ using System;
 using core.Tag;
 using core;
 using core.SystemAttribute;
+using static Terminal.Gui.TableView;
+using glc.UI.Views;
 
 namespace glc.UI.Library
 {
@@ -28,7 +30,8 @@ namespace glc.UI.Library
 			Text = "Library";
 
 			// Construct the panels
-			List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].PrimaryKey).ToList() : new List<GameObject>();
+			//List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].PrimaryKey).ToList() : new List<GameObject>();
+			Dictionary<string, List<GameObject>> gameDictionary = (platforms.Count > 0) ? CGameSQL.LoadPlatformGamesAsDict(platforms[0].PrimaryKey) : new Dictionary<string, List<GameObject>>();
 			List<StatusItem> keyBindings = new List<StatusItem>
 			{
 				new StatusItem(Key.F, "~F~ Favourite", () =>
@@ -45,12 +48,13 @@ namespace glc.UI.Library
 				}),
 				new StatusItem(Key.Enter, "~Entry~ Start game", () =>
 				{
-					GameListView_OpenSelectedItem(new ListViewItemEventArgs(m_gamePanel.ContainerView.SelectedItem, m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem]));
+					//GameListView_OpenSelectedItem(new ListViewItemEventArgs(m_gamePanel.ContainerView.SelectedItem, m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem]));
+					//GameListView_OpenSelectedItem(new CellActivatedEventArgs(m_gamePanel.ContainerView.Table, m_gamePanel.ContainerView.SelectedRow, m_gamePanel.ContainerView.SelectedColumn));
 				}),
 			};
 
 			m_platformPanel		= new CPlatformTreePanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Percent(60), true);
-			m_gamePanel			= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
+			m_gamePanel			= new CGamePanel(gameDictionary, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
 			m_keyBiningPanel	= new CKeyBindingPanel(keyBindings, "Key bindings", 0, Pos.Percent(60), Dim.Percent(25), Dim.Fill());
 
 			if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
@@ -69,6 +73,9 @@ namespace glc.UI.Library
 
 			m_gamePanel.ContainerView.OpenSelectedItem += GameListView_OpenSelectedItem;
 			m_gamePanel.ContainerView.SelectedItemChanged += GameListView_SelectedChanged;
+
+			//m_gamePanel.ContainerView.CellActivated += GameListView_OpenSelectedItem;
+			//m_gamePanel.ContainerView.SelectedCellChanged += GameListView_SelectedChanged;
 
 			// Container to store all frames
 			m_container = new View()
@@ -105,11 +112,43 @@ namespace glc.UI.Library
 				return;
             }
 
+			if(val is PlatformRootNode) // Switch to new multilist
+            {
+				PlatformRootNode node = (PlatformRootNode)val;
+				m_gamePanel.NewMultilistSource(CGameSQL.LoadPlatformGamesAsDict(node.ID));
+			}
+			else if(val is PlatformTagNode)
+            {
+				// TODO: Handle the following cases:
+				//		Game search
+				//		Favourites
+
+				PlatformTagNode node = (PlatformTagNode)val;
+				if(node.ID == (int)SpecialPlatformID.cSearch) // Handle search
+				{
+					m_gamePanel.ContentList = CGameSQL.GameSearch(node.Name).ToList();
+				}
+				else if(node.ID == (int)SpecialPlatformID.cFavourites) // Handle favourite games
+				{
+					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.PlatformID, true).ToList();
+				}
+				if(node.ID > 0)
+                {
+					m_gamePanel.SingleListMode(node.Name);
+                }
+            }
+
+			/*
 			if(val is PlatformRootNode)
             {
 				PlatformRootNode node = (PlatformRootNode)val;
-				m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID).ToList();
-				m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
+				m_gamePanel.m_contentDictionary = CGameSQL.LoadPlatformGamesAsDict(node.ID);
+				m_gamePanel.singleListMode = false;
+
+				//m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID).ToList();
+				//m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
+
+				//m_gamePanel.UpdateTable();
 			}
 			else if(val is PlatformTagNode)
             {
@@ -120,18 +159,22 @@ namespace glc.UI.Library
                 }
 				else if(node.ID == (int)SpecialPlatformID.cFavourites) // Handle favourite games
                 {
-					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, true).ToList();
+					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.PlatformID, true).ToList();
 				}
 				else if(node.ID > 0) // Handle platform nodes
                 {
-					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.ID, node.Name).ToList();
+					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.PlatformID, node.Name).ToList();
 				}
-				m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
+
+				m_gamePanel.singleSublist = val.Name;
+				//m_gamePanel.ContainerView.Source = new CGameDataSource(m_gamePanel.ContentList);
+				//m_gamePanel.UpdateTable();
 			}
 			else
             {
 				return;
             }
+			*/
 		}
 
 		private static void PlatformListView_ObjectActivated(ObjectActivatedEventArgs<IPlatformTreeNode> obj)
@@ -158,13 +201,20 @@ namespace glc.UI.Library
 		/// Handle game selection event
 		/// </summary>
 		/// <param name="e">The event argument</param>
-		private static void GameListView_OpenSelectedItem(ListViewItemEventArgs e)
+		private static void GameListView_OpenSelectedItem(MultilistViewItemEventArgs e)
+		//private static void GameListView_OpenSelectedItem(ListViewItemEventArgs e)
+		//private static void GameListView_OpenSelectedItem(CellActivatedEventArgs e)
 		{
+			GameObject game = (GameObject)e.Value;
+			System.Diagnostics.Debug.WriteLine($"Selected game: {game.Title}");
+			return;
+
 			if(m_gamePanel.ContentList.Count == 0)
             {
 				return;
             }
-			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 
 			int width = 30;
 			int height = 10;
@@ -195,7 +245,9 @@ namespace glc.UI.Library
 			Application.Run(dialog);
 		}
 
-		private static void GameListView_SelectedChanged(ListViewItemEventArgs e)
+		private static void GameListView_SelectedChanged(MultilistViewItemEventArgs e)
+		//private static void GameListView_SelectedChanged(ListViewItemEventArgs e)
+		//private static void GameListView_SelectedChanged(SelectedCellChangedEventArgs e)
         {
 			if(!CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
 			{
@@ -207,7 +259,9 @@ namespace glc.UI.Library
 				m_infoPanel.FrameView.RemoveAll();
 				return;
 			}
-			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			GameObject game = new GameObject();
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 			m_infoPanel.SwitchGameInfo(game);
 		}
 
@@ -256,7 +310,9 @@ namespace glc.UI.Library
 			{
 				return;
 			}
-			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			GameObject game = new GameObject();
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 			game.ToggleFavourite();
 
 			if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
@@ -273,7 +329,9 @@ namespace glc.UI.Library
 				return;
 			}
 
-			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			GameObject game = new GameObject();
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 			List<TagObject> tempTagList = CTagSQL.GetTagsforPlatform(game.PlatformFK);
 			List<IDataNode> currentTags = new List<IDataNode>(tempTagList.Cast<IDataNode>());
 
@@ -307,7 +365,9 @@ namespace glc.UI.Library
 				return;
 			}
 
-			GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			GameObject game = new GameObject();
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 			int rating = 0;
 			CEditRatingDlg ratingDlg = new CEditRatingDlg($"{game.Title} - rating", rating);
 			if(ratingDlg.Run(ref rating))
