@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasePlatform", "BasePlatfor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "glc", "glc\glc.csproj", "{0CAED6BA-A24B-4A8F-813D-B5F47FA85593}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlatformExtension", "PlatformExtension\PlatformExtension.csproj", "{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{0CAED6BA-A24B-4A8F-813D-B5F47FA85593}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CAED6BA-A24B-4A8F-813D-B5F47FA85593}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CAED6BA-A24B-4A8F-813D-B5F47FA85593}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

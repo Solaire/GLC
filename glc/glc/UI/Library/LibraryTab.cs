@@ -54,7 +54,13 @@ namespace glc.UI.Library
 			};
 
 			m_platformPanel		= new CPlatformTreePanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Percent(60), true);
-			m_gamePanel			= new CGamePanel(gameDictionary, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
+
+			Dictionary<string, CGameList> gameList = new Dictionary<string, CGameList>();
+			foreach(KeyValuePair<string, List<GameObject>> kv in gameDictionary)
+			{
+				gameList[kv.Key] = new CGameList(kv);
+			}
+			m_gamePanel			= new CGamePanel(gameList, "Games", Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60), true);
 			m_keyBiningPanel	= new CKeyBindingPanel(keyBindings, "Key bindings", 0, Pos.Percent(60), Dim.Percent(25), Dim.Fill());
 
 			if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
@@ -115,7 +121,14 @@ namespace glc.UI.Library
 			if(val is PlatformRootNode) // Switch to new multilist
             {
 				PlatformRootNode node = (PlatformRootNode)val;
-				m_gamePanel.NewMultilistSource(CGameSQL.LoadPlatformGamesAsDict(node.ID));
+				Dictionary<string, List<GameObject>> gameDict = CGameSQL.LoadPlatformGamesAsDict(node.ID);
+				Dictionary<string, CGameList> gameList = new Dictionary<string, CGameList>();
+				foreach(KeyValuePair<string, List<GameObject>> kv in gameDict)
+                {
+					gameList[kv.Key] = new CGameList(kv);
+                }
+
+				m_gamePanel.NewMultilistSource(gameList);
 			}
 			else if(val is PlatformTagNode)
             {

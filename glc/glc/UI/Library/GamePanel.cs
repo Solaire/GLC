@@ -80,13 +80,13 @@ using Terminal.Gui;
 
 namespace glc.UI.Library
 {
-    public class CGamePanel : CFramePanel<GameObject, CCMultilistView>
+    public class CGamePanel : CFramePanel<GameObject, CMultilistView>
     {
-        public Dictionary<string, List<GameObject>> m_contentDictionary;
+        public Dictionary<string, CGameList> m_contentDictionary;
         public string singleSublist;
 
         //public CGamePanel(List<GameObject> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
-        public CGamePanel(Dictionary<string, List<GameObject>> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
+        public CGamePanel(Dictionary<string, CGameList> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
             : base(name, x, y, width, height, canFocus)
         {
             //m_contentList = games;
@@ -96,7 +96,7 @@ namespace glc.UI.Library
 
         public override void CreateContainerView()
         {
-            m_containerView = new CCMultilistView(new CGameDataMultilistSource(m_contentDictionary))
+            m_containerView = new CMultilistView(new CGameDataMultilistSource(m_contentDictionary))
             {
                 X = 0,
                 Y = 0,
@@ -108,7 +108,7 @@ namespace glc.UI.Library
             m_frameView.Add(m_containerView);
         }
 
-        public void NewMultilistSource(Dictionary<string, List<GameObject>> multilist)
+        public void NewMultilistSource(Dictionary<string, CGameList> multilist)
         {
             m_containerView.Source = new CGameDataMultilistSource(multilist);
         }
@@ -138,18 +138,18 @@ namespace glc.UI.Library
         }
     }
 
-    internal class CGameDataMultilistSource : IIMultilistDataSource
+    internal class CGameDataMultilistSource : IMultilistDataSource
     {
-        public List<string> SublistHeaders { get; }
-        public Dictionary<string, List<GameObject>> Source { get; }
+        public List<string> SublistKeys { get; }
+        public Dictionary<string, CGameList> Sublists { get; }
         public List<int> HeadingIndexes { get; }
 
-        public int TotalItemCount
+        public int TotalCount
         {
             get
             {
                 int c = 0;
-                foreach(KeyValuePair<string, List<GameObject>> kv in Source)
+                foreach(KeyValuePair<string, CGameList> kv in Sublists)
                 {
                     c += kv.Value.Count;
                 }
@@ -160,7 +160,7 @@ namespace glc.UI.Library
 
         public bool SublistExists(string sublist)
         {
-            return Source.ContainsKey(sublist);
+            return Sublists.ContainsKey(sublist);
         }
 
         public int SublistCount(string sublist)
@@ -169,49 +169,49 @@ namespace glc.UI.Library
             {
                 return 0;
             }
-            return Source[sublist].Count;
+            return Sublists[sublist].Count;
         }
 
         public int SublistCount(int sublistIndex)
         {
-            if(sublistIndex < 0 || sublistIndex >= Source.Count)
+            if(sublistIndex < 0 || sublistIndex >= Sublists.Count)
             {
                 return 0;
             }
-            return Source[SublistHeaders[sublistIndex]].Count;
+            return Sublists[SublistKeys[sublistIndex]].Count;
         }
 
-        public GameObject ? GetItem(int sublistIndex, int itemIndex)
+        public GameObject ? GetItem(string sublist, int itemIndex)
         {
-            if(sublistIndex < 0 || sublistIndex >= Source.Count)
+            if(!Sublists.ContainsKey(sublist))
             {
                 return null;
             }
-            if(itemIndex < 0 || itemIndex >= Source[SublistHeaders[sublistIndex]].Count)
+            if(itemIndex < 0 || itemIndex >= SublistCount(sublist))
             {
                 return null;
             }
-            return Source[SublistHeaders[sublistIndex]][itemIndex];
+            return Sublists[sublist][itemIndex];
         }
 
-        public CGameDataMultilistSource(Dictionary<string, List<GameObject>> dataSource)
+        public CGameDataMultilistSource(Dictionary<string, CGameList> dataSource)
         {
-            Source = dataSource;
-            SublistHeaders = new List<string>(Source.Keys);
+            Sublists = dataSource;
+            SublistKeys = new List<string>(Sublists.Keys);
 
             HeadingIndexes = new List<int>() { 0 };
-            for(int i = 0, j = 0; i < SublistHeaders.Count - 1; i++)
+            for(int i = 0, j = 0; i < SublistKeys.Count - 1; i++)
             {
-                j += Source[SublistHeaders[i]].Count;
+                j += Sublists[SublistKeys[i]].Count;
                 HeadingIndexes.Add(j + 1);
             }
         }
 
-        public virtual void Render(CCMultilistView container, ConsoleDriver driver, bool selected, int item, int col, int line, int width, int start = 0)
+        public virtual void Render(CMultilistView container, ConsoleDriver driver, bool selected, string sublist, int itemIndex, int col, int line, int width, int start = 0)
         {
             container.Move(col, line);
             // Equivalent to an interpolated string like $"{Scenarios[item].Name, -widtestname}"; if such a thing were possible
-            var s = ConstructString(item);
+            var s = ConstructString(sublist, itemIndex);
             RenderUstr(driver, $"{s}", col, line, width, start);
             //System.Diagnostics.Debug.WriteLine(s);
         }
@@ -219,12 +219,12 @@ namespace glc.UI.Library
         int GetMaxLengthItem()
         {
             int maxLength = 0;
-            foreach(KeyValuePair<string, List<GameObject>> kv in Source)
+            foreach(KeyValuePair<string, CGameList> kv in Sublists)
             {
                 for(int i = 0; i < kv.Value.Count; ++i)
                 {
-                    var s = ConstructString(i);
-                    var sc = $"{s}  {GetString(i)}";
+                    var s = ConstructString(kv.Key, i);
+                    var sc = $"{s}  {ConstructString(kv.Key, i)}";
                     var l = sc.Length;
                     if(l > maxLength)
                     {
@@ -271,22 +271,26 @@ namespace glc.UI.Library
             }
         }
 
-        protected string ConstructString(int globalIndex)
+        protected string ConstructString(string sublist, int itemIndex)
         {
-            //return String.Format(String.Format("{{0,{0}}}", 0), GetString(globalIndex));
-            return String.Format(String.Format("  {{0,{0}}}", 0), GetString(globalIndex));
+            if(!Sublists.ContainsKey(sublist) || itemIndex < 0 || itemIndex >= Sublists[sublist].Count)
+            {
+                return "";
+            }
+            return String.Format(String.Format("  {{0,{0}}}", 0), Sublists[sublist][itemIndex].Title);
         }
 
+        /*
         protected string GetString(int globalIndex)
         {
             int sublistIndex = 0;
             int itemIntex = 0;
 
-            for(int i = 0; i < SublistHeaders.Count; ++i)
+            for(int i = 0; i < SublistKeys.Count; ++i)
             {
-                if(globalIndex >= Source[SublistHeaders[i]].Count)
+                if(globalIndex >= Sublists[SublistKeys[i]].Count)
                 {
-                    globalIndex -= Source[SublistHeaders[i]].Count;
+                    globalIndex -= Sublists[SublistKeys[i]].Count;
                 }
                 else
                 {
@@ -296,8 +300,9 @@ namespace glc.UI.Library
                 }
             }
 
-            return Source[SublistHeaders[sublistIndex]][itemIntex].Title;
+            return Sublists[SublistKeys[sublistIndex]][itemIntex].Title;
         }
+        */
     }
 }
 
