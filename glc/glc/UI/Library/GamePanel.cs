@@ -211,7 +211,7 @@ namespace glc.UI.Library
         {
             container.Move(col, line);
             // Equivalent to an interpolated string like $"{Scenarios[item].Name, -widtestname}"; if such a thing were possible
-            var s = GetString(itemIndex);
+            var s = ConstructString(sublist, itemIndex);
             RenderUstr(driver, $"{s}", col, line, width, start);
             //System.Diagnostics.Debug.WriteLine(s);
         }
@@ -223,7 +223,7 @@ namespace glc.UI.Library
             {
                 for(int i = 0; i < kv.Value.Count; ++i)
                 {
-                    var s = GetString(i);
+                    var s = ConstructString(kv.Key, i);
                     var sc = $"{s}  {ConstructString(kv.Key, i)}";
                     var l = sc.Length;
                     if(l > maxLength)
@@ -280,6 +280,7 @@ namespace glc.UI.Library
             return String.Format(String.Format("  {{0,{0}}}", 0), Sublists[sublist][itemIndex].Title);
         }
 
+        /*
         protected string GetString(int globalIndex)
         {
             int sublistIndex = 0;
@@ -301,6 +302,7 @@ namespace glc.UI.Library
 
             return Sublists[SublistKeys[sublistIndex]][itemIntex].Title;
         }
+        */
     }
 }
 

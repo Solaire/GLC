@@ -13,10 +13,10 @@ namespace glc.UI.Views
 		/// <summary>
 		/// Add item to the list
 		/// </summary>
-		/// <param name="newItem">The item to be added</param>
-		public void Append(T newItem)
+		/// <param name="item">The item to be added</param>
+		public void Append(T item)
 		{
-			m_items.Add(newItem);
+			m_items.Add(item);
 		}
 
 		///<inheritdoc/>
@@ -143,9 +143,12 @@ namespace glc.UI.Views
 	/// </summary>
 	public class CMultilistView : View
     {
-        int		top, left;
-		int		selectedSublist, selectedItem;
+		// Sublist and item indexes for...
+        int		topSublist, topItem;			// ...topmost item in the UI
+		int		selectedSublist, selectedItem;  // ...current selection
+		int     lastSelectedItem;				// ...last selection (optimisation)
 		bool	singleListMode;
+
 
 		IMultilistDataSource source;
 
@@ -157,53 +160,16 @@ namespace glc.UI.Views
             get => source;
             set
             {
-                top = 0;
-				left = 0;
-				singleListMode = false;
+                topSublist = 0;
+                topItem = 0;
 				selectedSublist = 0;
 				selectedItem = 0;
+				lastSelectedItem = -1;
+				singleListMode = false;
                 source = value;
                 SetNeedsDisplay();
             }
         }
-
-		/// <summary>
-		/// Gets or sets the item that is displayed at the top of the <see cref="ListView"/>.
-		/// </summary>
-		/// <value>The top item.</value>
-		public int TopItem
-		{
-			get => top;
-			set
-			{
-				if(source == null)
-					return;
-
-				if(value < 0 || (source.TotalCount > 0 && value >= source.TotalCount))
-					throw new ArgumentException("value");
-				top = value;
-				SetNeedsDisplay();
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the left column where the item start to be displayed at on the <see cref="ListView"/>.
-		/// </summary>
-		/// <value>The left position.</value>
-		public int LeftItem
-		{
-			get => left;
-			set
-			{
-				if(source == null)
-					return;
-
-				if(value < 0 || (Maxlength > 0 && value >= Maxlength))
-					throw new ArgumentException("value");
-				left = value;
-				SetNeedsDisplay();
-			}
-		}
 
 		/// <summary>
 		/// Gets the widest item.
@@ -259,91 +225,91 @@ namespace glc.UI.Views
 		/// <returns>The global selection index.</returns>
 		int CalculateGlobalSelection()
         {
-			if(selectedSublist >= source.SublistKeys.Count)
-            {
+			return CalculateGlobalSelection(selectedSublist, selectedItem);
+		}
+
+		int CalculateGlobalSelection(int sublistIndex, int itemIndex)
+        {
+			if(sublistIndex >= source.SublistKeys.Count)
+			{
 				return 0;
-            }
+			}
 
 			int globalSelection = 0;
-			for(int i = 0; i < selectedSublist; ++i)
-            {
+			for(int i = 0; i < sublistIndex; ++i)
+			{
 				globalSelection += source.SublistCount(source.SublistKeys[i]);
-            }
-			globalSelection += selectedItem + selectedSublist + 1; // Accont for the sublist headers.
+			}
+			globalSelection += itemIndex + sublistIndex + 1; // Account for headings
 			return globalSelection;
 		}
 
-		int ToLocalIndex(int sublistIndex, int globalIndex)
+		// TODO: Simplify and test with 3-5 sublists
+		void NormaliseTopItems()
         {
-			int localIndex = globalIndex;
-			//localIndex -= (selectedSublist + 1);
+			int globalSelection = CalculateGlobalSelection();
+			int globalTop		= CalculateGlobalSelection(topSublist, topItem);
+			System.Diagnostics.Debug.WriteLine($"Global selection {globalSelection}, top: {globalTop}");
 
-			for(int i = 0; i < sublistIndex; ++i)
+			// Handle moving up
+			if(globalSelection < globalTop)
             {
-				localIndex -= source.SublistCount(source.SublistKeys[i]);
-            }
+				globalTop -= (globalTop - globalSelection);
+				globalTop -= (1 + topSublist);
 
-			return Math.Max(0, localIndex);
-        }
-
-		/// <summary>
-		/// Calculate and return the sublist heading for the current selection.
-		/// </summary>
-		/// <param name="selectionIndex">index of currently selected item</param>
-		/// <returns>The sublist heading index; if selectionIndex is out of bounds, return -1</returns>
-		int CalculateSublistIndex(int selectionIndex)
-        {
-			for(int i = 0; i < Source.SublistKeys.Count; ++i)
-			{
-				if(selectionIndex >= Source.Sublists[Source.SublistKeys[i]].Count)
+				for(int i = 0; i < source.SublistKeys.Count && globalTop > 0; ++i)
 				{
-					selectionIndex -= Source.Sublists[Source.SublistKeys[i]].Count;
+					if(globalTop >= Source.SublistCount(source.SublistKeys[i]))
+                    {
+						globalTop -= Source.SublistCount(source.SublistKeys[i]);
+						continue;
+					}
+					topSublist = i;
+					break;
 				}
-				else
-				{
-					return i;
+				topItem = globalTop;
+				return;
+			}
+
+			// Handle moving down
+			if(globalSelection + 1 >= globalTop + Frame.Height)
+            {
+				topItem += ((globalSelection + 1) - (globalTop + Frame.Height) + 1);
+				while(topItem >= source.SublistCount(source.SublistKeys[topSublist]))
+                {
+					if(topSublist + 1 >= source.SublistKeys.Count)
+                    {
+						topItem = source.SublistCount(source.SublistKeys[topSublist]) - Frame.Height;
+						return;
+					}
+
+					int delta = source.SublistCount(source.SublistKeys[topSublist]) - topItem;
+					topSublist++;
+					topItem = delta;
 				}
 			}
-			return -1;
-		}
-
-		int ToGlobalIndex(int sublistIndex, int itemIndex)
-        {
-			int globalIndex = 0;
-			for(int i = 0; i < sublistIndex; ++i)
-            {
-				globalIndex += source.SublistCount(source.SublistKeys[i]);
-            }
-			globalIndex += itemIndex;
-			return globalIndex;
 		}
 
 		///<inheritdoc/>
 		public override void Redraw(Rect bounds)
 		{
-			// Rendering logic:
-			// If in single-list mode then simply draw the sublist starting at the 'top'
-			// To draw multiple
-
-			// TODO: refactor
+			// TODO: Refactor
 
 			var current = ColorScheme.Focus;
 			Driver.SetAttribute(current);
 			Move(0, 0);
 			var f = Frame;
-			var item = top;
 			bool focused = HasFocus;
 			int col = 0;
 			int row = 0;
-			int start = left;
 
-			bool drawHeading = true; // Always start with sublist heading
-			int sublist = (singleListMode) ? selectedSublist : CalculateSublistIndex(item);
-			int globalSelection = CalculateGlobalSelection();
+			int sublist = topSublist;
+			int item	= topItem;
+			bool drawHeading = true;
 
-			for(; row < f.Height; row++)
-			{
-				bool isSelected = (!drawHeading && (item + selectedSublist + 1 == globalSelection));
+			for(; row < f.Height && sublist < Source.SublistKeys.Count; row++)
+            {
+				bool isSelected = (!drawHeading && (sublist == selectedSublist && item == selectedItem));
 				var newcolor = focused ? (isSelected ? ColorScheme.Focus : GetNormalColor ())
 							   : (isSelected ? ColorScheme.HotNormal : GetNormalColor ());
 
@@ -360,29 +326,30 @@ namespace glc.UI.Views
 					{
 						Driver.AddRune(' ');
 					}
-					drawHeading = false;
 				}
 				else if(drawHeading)
 				{
 					Driver.AddStr(Source.SublistKeys[sublist] + " ".PadRight(f.Width, '─'));
-					drawHeading = false;
 				}
 				else
 				{
-					Source.Render(this, Driver, isSelected, Source.SublistKeys[sublist], item, col, row, f.Width - col, start);
+					Source.Render(this, Driver, isSelected, Source.SublistKeys[sublist], item, col, row, f.Width - col);
 					item++;
-					int newSublist = CalculateSublistIndex(item);
-					drawHeading = (newSublist != sublist);
-					if(drawHeading && singleListMode)
-					{
-						break;
-					}
-					else if(drawHeading)
+
+					bool nextSublist = (item >= source.SublistCount(source.SublistKeys[sublist]));
+					if(singleListMode && nextSublist)
                     {
-						sublist = newSublist;
+						break;
+                    }
+					else if(nextSublist)
+                    {
+						drawHeading = true;
+						sublist++;
+						item = 0;
 						continue;
                     }
 				}
+				drawHeading = false;
 			}
 		}
 
@@ -412,13 +379,13 @@ namespace glc.UI.Views
 				case Key.N | Key.CtrlMask:
 					return MoveDown();
 
-				case Key.CursorLeft:
-				case Key.PageUp:
-					return PreviousSublist();
-
 				case Key.CursorRight:
 				case Key.PageDown:
 					return NextSublist();
+
+				case Key.CursorLeft:
+				case Key.PageUp:
+					return PreviousSublist();
 
 				/*
 				case Key.Space:
@@ -431,15 +398,40 @@ namespace glc.UI.Views
 				case Key.Enter:
 					return OnOpenSelectedItem();
 
-				case Key.End:
-					return MoveEnd();
-
 				case Key.Home:
 					return MoveHome();
+
+				case Key.End:
+					return MoveEnd();
 
 				default:
 					return false;
 			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Move to the first element of the next sublist
+		/// </summary>
+		/// <returns>True</returns>
+		public virtual bool NextSublist()
+		{
+			if(selectedSublist >= source.SublistKeys.Count - 1) // Can't move
+			{
+				return true;
+			}
+			else if(singleListMode)
+			{
+				selectedItem = source.Sublists[source.SublistKeys[selectedSublist]].Count - 1;
+			}
+
+			selectedSublist++;
+			selectedItem = 0;
+
+			NormaliseTopItems();
+			OnSelectedChanged();
+			SetNeedsDisplay();
 
 			return true;
 		}
@@ -464,71 +456,10 @@ namespace glc.UI.Views
 				return true;
             }
 
+			NormaliseTopItems();
 			OnSelectedChanged();
 			SetNeedsDisplay();
 
-			return true;
-		}
-
-		/// <summary>
-		/// Move to the first element of the next sublist
-		/// </summary>
-		/// <returns>True</returns>
-		public virtual bool NextSublist()
-		{
-			if(selectedSublist >= source.SublistKeys.Count - 1) // Can't move
-			{
-				return true;
-			}
-			else if(singleListMode)
-            {
-				selectedItem = source.Sublists[source.SublistKeys[selectedSublist]].Count - 1;
-            }
-
-			selectedSublist++;
-			selectedItem = 0;
-
-			OnSelectedChanged();
-			SetNeedsDisplay();
-
-			return true;
-		}
-
-		/// <summary>
-		/// Moves the selected item index to the next row.
-		/// </summary>
-		/// <returns></returns>
-		public virtual bool MoveDown()
-		{
-			if(source.TotalCount == 0)
-			{
-				// Do we set lastSelectedItem to -1 here?
-				return true; //Nothing for us to move to
-			}
-
-			if(selectedItem + 1 < source.SublistCount(Source.SublistKeys[selectedSublist])) // Next item on the current sublist
-            {
-				selectedItem++;
-            }
-			else if(!singleListMode && selectedSublist + 1 < source.SublistKeys.Count) // Move to the first element on the next sublist
-            {
-				selectedSublist++;
-				selectedItem = 0;
-            }
-			else // Can't do anything
-            {
-				return true;
-            }
-
-			int globalSelection = CalculateGlobalSelection();
-			System.Diagnostics.Debug.WriteLine($"Global selection index: {globalSelection}");
-			if(globalSelection >= top + Frame.Height)
-            {
-				top = Math.Max(globalSelection - Frame.Height + 1, 0);
-            }
-
-			OnSelectedChanged();
-			SetNeedsDisplay();
 			return true;
 		}
 
@@ -538,6 +469,8 @@ namespace glc.UI.Views
 		/// <returns></returns>
 		public virtual bool MoveUp()
 		{
+			// TODO: Refactor
+
 			if(source.TotalCount == 0)
 			{
 				// Do we set lastSelectedItem to -1 here?
@@ -545,30 +478,69 @@ namespace glc.UI.Views
 			}
 
 			if(selectedItem - 1 >= 0) // Move to the previous item on the current sublist
-            {
+			{
 				selectedItem--;
-            }
+			}
 			else if(!singleListMode && selectedSublist - 1 >= 0) // Move to the last element of the previous sublist
-            {
+			{
 				selectedSublist--;
 				selectedItem = source.SublistCount(Source.SublistKeys[selectedSublist]) - 1;
 			}
 			else // Can't do anything
-            {
+			{
 				return true;
-            }
-
-			int globalSelection = CalculateGlobalSelection();
-			System.Diagnostics.Debug.WriteLine($"Global selection index: {globalSelection}");
-			if(globalSelection <= top)
-			{
-				top = globalSelection - 1;
-			}
-			else if(globalSelection >= top + Frame.Height) // In case the terminal window is resized
-			{
-				top = Math.Max(globalSelection - Frame.Height + 1, 0);
 			}
 
+			NormaliseTopItems();
+			OnSelectedChanged();
+			SetNeedsDisplay();
+			return true;
+		}
+
+		/// <summary>
+		/// Moves the selected item index to the next row.
+		/// </summary>
+		/// <returns></returns>
+		public virtual bool MoveDown()
+		{
+			// TODO: Refactor
+
+			if(source.TotalCount == 0)
+			{
+				// Do we set lastSelectedItem to -1 here?
+				return true; //Nothing for us to move to
+			}
+
+			if(selectedItem + 1 < source.SublistCount(Source.SublistKeys[selectedSublist])) // Next item on the current sublist
+			{
+				selectedItem++;
+			}
+			else if(!singleListMode && selectedSublist + 1 < source.SublistKeys.Count) // Move to the first element on the next sublist
+			{
+				selectedSublist++;
+				selectedItem = 0;
+			}
+			else // Can't do anything
+			{
+				return true;
+			}
+
+			NormaliseTopItems();
+			OnSelectedChanged();
+			SetNeedsDisplay();
+			return true;
+		}
+
+		/// <summary>
+		/// Moves the selected item index to the first row.
+		/// </summary>
+		/// <returns></returns>
+		public virtual bool MoveHome()
+		{
+			selectedSublist = 0;
+			selectedItem = 0;
+
+			NormaliseTopItems();
 			OnSelectedChanged();
 			SetNeedsDisplay();
 
@@ -581,45 +553,13 @@ namespace glc.UI.Views
 		/// <returns></returns>
 		public virtual bool MoveEnd()
 		{
-			int globalSelection = CalculateGlobalSelection();
-			if(source.TotalCount == 0 || globalSelection != source.TotalCount - 1)
-            {
-				return true;
-            }
-
-			globalSelection = source.TotalCount - 1;
 			selectedSublist = source.SublistKeys.Count - 1;
-			selectedItem = source.SublistCount(Source.SublistKeys[selectedSublist]);
+			selectedItem = source.SublistCount(Source.SublistKeys[selectedSublist]) - 1;
 
-			if(top + globalSelection > Frame.Height - 1)
-            {
-				top = globalSelection;
-            }
-
+			NormaliseTopItems();
 			OnSelectedChanged();
 			SetNeedsDisplay();
-			return true;
-		}
 
-		/// <summary>
-		/// Moves the selected item index to the first row.
-		/// </summary>
-		/// <returns></returns>
-		public virtual bool MoveHome()
-		{
-			int globalSelection = 0;
-			if(globalSelection == 0)
-            {
-				return true;
-            }
-
-			globalSelection = 0;
-			top = globalSelection;
-			selectedSublist = 0;
-			selectedItem = 0;
-
-			OnSelectedChanged();
-			SetNeedsDisplay();
 			return true;
 		}
 
@@ -629,7 +569,7 @@ namespace glc.UI.Views
 		/// <param name="lines">Number of lines to scroll down.</param>
 		public virtual void ScrollDown(int lines)
 		{
-			top = Math.Max(Math.Min(top + lines, source.TotalCount - 1), 0);
+			//top = Math.Max(Math.Min(top + lines, source.TotalCount - 1), 0);
 			SetNeedsDisplay();
 		}
 
@@ -639,32 +579,9 @@ namespace glc.UI.Views
 		/// <param name="lines">Number of lines to scroll up.</param>
 		public virtual void ScrollUp(int lines)
 		{
-			top = Math.Max(top - lines, 0);
+			//top = Math.Max(top - lines, 0);
 			SetNeedsDisplay();
 		}
-
-		/// <summary>
-		/// Scrolls the view right.
-		/// </summary>
-		/// <param name="cols">Number of columns to scroll right.</param>
-		public virtual void ScrollRight(int cols)
-		{
-			left = Math.Max(Math.Min(left + cols, Maxlength - 1), 0);
-			SetNeedsDisplay();
-		}
-
-		/// <summary>
-		/// Scrolls the view left.
-		/// </summary>
-		/// <param name="cols">Number of columns to scroll left.</param>
-		public virtual void ScrollLeft(int cols)
-		{
-			left = Math.Max(left - cols, 0);
-			SetNeedsDisplay();
-		}
-
-		int lastSelectedItem = -1;
-		private bool allowsMultipleSelection = true;
 
 		/// <summary>
 		/// Invokes the SelectedChanged event if it is defined.
@@ -744,6 +661,7 @@ namespace glc.UI.Views
 
 		void EnsuresVisibilitySelectedItem()
 		{
+			/*
 			SuperView?.LayoutSubviews();
 			int globalSelection = CalculateGlobalSelection();
 			if(globalSelection < top)
@@ -754,18 +672,19 @@ namespace glc.UI.Views
 			{
 				top = Math.Max(globalSelection - Frame.Height + 2, 0);
 			}
+			*/
 		}
 
 		///<inheritdoc/>
 		public override void PositionCursor()
 		{
-			Move(Bounds.Width - 1, CalculateGlobalSelection() - top);
+			//Move(Bounds.Width - 1, CalculateGlobalSelection() - top);
 		}
 
 		///<inheritdoc/>
 		public override bool MouseEvent(MouseEvent me)
 		{
-			return true;
+			return true; // TODO: mouse disabled
 
 			if(!me.Flags.HasFlag(MouseFlags.Button1Clicked) && !me.Flags.HasFlag(MouseFlags.Button1DoubleClicked) &&
 				me.Flags != MouseFlags.WheeledDown && me.Flags != MouseFlags.WheeledUp &&
@@ -792,21 +711,13 @@ namespace glc.UI.Views
 				ScrollUp(1);
 				return true;
 			}
-			else if(me.Flags == MouseFlags.WheeledRight)
-			{
-				ScrollRight(1);
-				return true;
-			}
-			else if(me.Flags == MouseFlags.WheeledLeft)
-			{
-				ScrollLeft(1);
-				return true;
-			}
 
+			/*
 			if(me.Y + top >= source.TotalCount)
 			{
 				return true;
 			}
+			*/
 
 			//globalSelection = top + me.Y;
 
@@ -837,6 +748,8 @@ namespace glc.UI.Views
 				singleListMode = true;
 				selectedItem = 0;
 				selectedSublist = index;
+				topItem = 0;
+				topSublist = index;
             }
 
 			// TODO: fix
