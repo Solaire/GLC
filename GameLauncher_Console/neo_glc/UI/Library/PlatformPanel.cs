@@ -60,7 +60,7 @@ namespace glc.UI.Library
                         continue;
                     }
 
-                    root.Tags.Add(new PlatformTagNode(tag.PrimaryKey, tag.Name));
+                    root.Tags.Add(new PlatformTagNode(tag.PrimaryKey, tag.Name, platform.PrimaryKey));
                 }
 
                 m_containerView.AddObject(root);
@@ -71,7 +71,7 @@ namespace glc.UI.Library
 
         public void SetSearchResults(string searchTerm)
         {
-            PlatformTagNode newSearchNode = new PlatformTagNode((int)SpecialPlatformID.cSearch, searchTerm);
+            PlatformTagNode newSearchNode = new PlatformTagNode((int)SpecialPlatformID.cSearch, searchTerm, 0);
             if(!m_gotSearchNode)
             {
                 IEnumerable<IPlatformTreeNode> existing = new List<IPlatformTreeNode>(m_containerView.Objects);
@@ -136,10 +136,19 @@ namespace glc.UI.Library
 
     public class PlatformTagNode : CPlatformTreeNode
     {
-        public PlatformTagNode(int id, string name)
+        private int platformID;
+
+        public PlatformTagNode(int id, string name, int platformID)
         {
             this.id = id;
             this.name = name;
+            this.platformID = platformID;
+        }
+
+        public int PlatformID
+        {
+            get { return platformID; }
+            set { platformID = value; }
         }
     }
 
