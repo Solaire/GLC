@@ -1,12 +1,39 @@
 ﻿using core.Game;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Terminal.Gui;
 
 namespace glc.UI.Views
 {
+	public class AppendOnlyList<T> : IEnumerable<T>
+    {
+		private List<T> m_items = new List<T>();
+
+		/// <summary>
+		/// Add item to the list
+		/// </summary>
+		/// <param name="newItem">The item to be added</param>
+		public void Append(T newItem)
+		{
+			m_items.Add(newItem);
+		}
+
+		///<inheritdoc/>
+		public IEnumerator<T> GetEnumerator()
+        {
+            return m_items.GetEnumerator();
+        }
+
+		///<inheritdoc/>
+		IEnumerator IEnumerable.GetEnumerator()
+        {
+            return m_items.GetEnumerator();
+        }
+    }
+
 	/// <summary>
-	/// Extension of <see cref="List<GameObject>"/> providing some additional properties
+	/// Extension of <see cref="List{GameObject}"/> providing some additional properties
 	/// </summary>
 	public class CGameList : List<GameObject>
     {
@@ -116,11 +143,9 @@ namespace glc.UI.Views
 	/// </summary>
 	public class CMultilistView : View
     {
-        int top, left;
-
+        int		top, left;
+		int		selectedSublist, selectedItem;
 		bool	singleListMode;
-		int		selectedSublist;
-		int		selectedItem;
 
 		IMultilistDataSource source;
 
@@ -248,6 +273,19 @@ namespace glc.UI.Views
 			return globalSelection;
 		}
 
+		int ToLocalIndex(int sublistIndex, int globalIndex)
+        {
+			int localIndex = globalIndex;
+			//localIndex -= (selectedSublist + 1);
+
+			for(int i = 0; i < sublistIndex; ++i)
+            {
+				localIndex -= source.SublistCount(source.SublistKeys[i]);
+            }
+
+			return Math.Max(0, localIndex);
+        }
+
 		/// <summary>
 		/// Calculate and return the sublist heading for the current selection.
 		/// </summary>
@@ -283,6 +321,12 @@ namespace glc.UI.Views
 		///<inheritdoc/>
 		public override void Redraw(Rect bounds)
 		{
+			// Rendering logic:
+			// If in single-list mode then simply draw the sublist starting at the 'top'
+			// To draw multiple
+
+			// TODO: refactor
+
 			var current = ColorScheme.Focus;
 			Driver.SetAttribute(current);
 			Move(0, 0);
@@ -293,55 +337,12 @@ namespace glc.UI.Views
 			int row = 0;
 			int start = left;
 
-			// TODO: code duplication and bugs
-			if(singleListMode)
-            {
-				int sublistInner = selectedSublist;
-				bool drawHeadingInner = true;
-				int singleListCount = source.SublistCount(source.SublistKeys[sublistInner]);
-
-				for(; row < f.Height && item < singleListCount; row++)
-				{
-					bool isSelected = (!drawHeadingInner && (item == selectedItem));
-					var newcolor = focused ? (isSelected ? ColorScheme.Focus : GetNormalColor ())
-							   : (isSelected ? ColorScheme.HotNormal : GetNormalColor ());
-
-					if(newcolor != current)
-					{
-						Driver.SetAttribute(newcolor);
-						current = newcolor;
-					}
-
-					Move(0, row);
-					if(source == null || item >= source.TotalCount)
-					{
-						for(int c = 0; c < f.Width; c++)
-						{
-							Driver.AddRune(' ');
-						}
-						drawHeadingInner = false;
-					}
-					else if(drawHeadingInner)
-					{
-						Driver.AddStr(Source.SublistKeys[sublistInner] + " ".PadRight(f.Width, '─'));
-						drawHeadingInner = false;
-					}
-					else
-					{
-						Source.Render(this, Driver, isSelected, Source.SublistKeys[sublistInner], item, col, row, f.Width - col, start);
-						item++;
-					}
-				}
-
-				return;
-            }
-
-            int sublist = CalculateSublistIndex(item);
+			bool drawHeading = true; // Always start with sublist heading
+			int sublist = (singleListMode) ? selectedSublist : CalculateSublistIndex(item);
 			int globalSelection = CalculateGlobalSelection();
-			bool drawHeading = true; // First visible row should always be the current heading
 
 			for(; row < f.Height; row++)
-            {
+			{
 				bool isSelected = (!drawHeading && (item + selectedSublist + 1 == globalSelection));
 				var newcolor = focused ? (isSelected ? ColorScheme.Focus : GetNormalColor ())
 							   : (isSelected ? ColorScheme.HotNormal : GetNormalColor ());
@@ -356,7 +357,7 @@ namespace glc.UI.Views
 				if(source == null || item >= source.TotalCount)
 				{
 					for(int c = 0; c < f.Width; c++)
-                    {
+					{
 						Driver.AddRune(' ');
 					}
 					drawHeading = false;
@@ -372,9 +373,13 @@ namespace glc.UI.Views
 					item++;
 					int newSublist = CalculateSublistIndex(item);
 					drawHeading = (newSublist != sublist);
-					sublist = newSublist;
-					if(drawHeading)
+					if(drawHeading && singleListMode)
+					{
+						break;
+					}
+					else if(drawHeading)
                     {
+						sublist = newSublist;
 						continue;
                     }
 				}
