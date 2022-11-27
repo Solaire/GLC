@@ -1,78 +1,6 @@
-﻿#define TABLE_TEST_
-
-#if TABLE_TEST
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using core.Game;
-using Terminal.Gui;
-
-namespace glc.UI.Library
-{
-    public class CGamePanel : CFramePanel<GameObject, TableView>
-    {
-        public CGamePanel(List<GameObject> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
-            : base(name, x, y, width, height, canFocus)
-        {
-            m_contentList = games;
-            Initialise(name, x, y, width, height, canFocus);
-        }
-
-        public override void CreateContainerView()
-        {
-            m_containerView = new TableView(new CGameDataTableSource(m_contentList))
-            {
-                X = 0,
-                Y = 0,
-                Width = Dim.Fill(0),
-                Height = Dim.Fill(0),
-                CanFocus = true,
-                FullRowSelect = true,
-                MultiSelect = false
-            };
-            m_containerView.Style.AlwaysShowHeaders = true;
-            m_containerView.Style.ShowVerticalCellLines = false;
-            m_containerView.Style.ExpandLastColumn = false;
-            m_frameView.Add(m_containerView);
-        }
-
-        public void UpdateTable()
-        {
-            m_containerView.Table = new CGameDataTableSource(m_contentList);
-        }
-    }
-
-    internal class CGameDataTableSource : DataTable
-    {
-        public CGameDataTableSource(List<GameObject> itemList)
-            : base()
-        {
-            Columns.Add(new DataColumn("Title", typeof(string)));
-            Columns.Add(new DataColumn("Alias", typeof(string)));
-            Columns.Add(new DataColumn("Fav",   typeof(bool)));
-            Columns.Add(new DataColumn("Rating",typeof(int)));
-
-            for(int i = 0; i < itemList.Count; ++i)
-            {
-                List<object> row = new List<object>()
-                {
-                    itemList[i].Title,
-                    itemList[i].Alias,
-                    itemList[i].IsFavourite,
-                    itemList[i].ID, // TODO: replace
-                };
-                Rows.Add(row.ToArray());
-            }
-        }
-    }
-}
-
-#else
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Linq;
 using core.Game;
 using glc.UI.Views;
 using NStack;
@@ -85,7 +13,6 @@ namespace glc.UI.Library
         public Dictionary<string, CGameList> m_contentDictionary;
         public string singleSublist;
 
-        //public CGamePanel(List<GameObject> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
         public CGamePanel(Dictionary<string, CGameList> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
             : base(name, x, y, width, height, canFocus)
         {
@@ -140,7 +67,7 @@ namespace glc.UI.Library
 
     internal class CGameDataMultilistSource : IMultilistDataSource
     {
-        public List<string> SublistKeys { get; }
+        public AppendOnlyList<string> SublistKeys { get; }
         public Dictionary<string, CGameList> Sublists { get; }
         public List<int> HeadingIndexes { get; }
 
@@ -174,14 +101,10 @@ namespace glc.UI.Library
 
         public int SublistCount(int sublistIndex)
         {
-            if(sublistIndex < 0 || sublistIndex >= Sublists.Count)
-            {
-                return 0;
-            }
-            return Sublists[SublistKeys[sublistIndex]].Count;
+            return (sublistIndex >= 0 && sublistIndex < SublistKeys.Count) ? SublistCount(SublistKeys[sublistIndex]) : 0;
         }
 
-        public GameObject ? GetItem(string sublist, int itemIndex)
+        public GameObject? GetItem(string sublist, int itemIndex)
         {
             if(!Sublists.ContainsKey(sublist))
             {
@@ -197,7 +120,7 @@ namespace glc.UI.Library
         public CGameDataMultilistSource(Dictionary<string, CGameList> dataSource)
         {
             Sublists = dataSource;
-            SublistKeys = new List<string>(Sublists.Keys);
+            SublistKeys = new AppendOnlyList<string>(Sublists.Keys.ToList());
 
             HeadingIndexes = new List<int>() { 0 };
             for(int i = 0, j = 0; i < SublistKeys.Count - 1; i++)
@@ -233,19 +156,6 @@ namespace glc.UI.Library
                 }
             }
 
-            /*
-            for(int i = 0; i < ItemList.Count; i++)
-            {
-                var s = ConstructString(i);
-                var sc = $"{s}  {GetString(i)}";
-                var l = sc.Length;
-                if(l > maxLength)
-                {
-                    maxLength = l;
-                }
-            }
-            */
-
             return maxLength;
         }
 
@@ -279,31 +189,5 @@ namespace glc.UI.Library
             }
             return String.Format(String.Format("  {{0,{0}}}", 0), Sublists[sublist][itemIndex].Title);
         }
-
-        /*
-        protected string GetString(int globalIndex)
-        {
-            int sublistIndex = 0;
-            int itemIntex = 0;
-
-            for(int i = 0; i < SublistKeys.Count; ++i)
-            {
-                if(globalIndex >= Sublists[SublistKeys[i]].Count)
-                {
-                    globalIndex -= Sublists[SublistKeys[i]].Count;
-                }
-                else
-                {
-                    sublistIndex = i;
-                    itemIntex = globalIndex;
-                    break;
-                }
-            }
-
-            return Sublists[SublistKeys[sublistIndex]][itemIntex].Title;
-        }
-        */
     }
 }
-
-#endif

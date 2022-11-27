@@ -10,6 +10,11 @@ namespace glc.UI.Views
     {
 		private List<T> m_items = new List<T>();
 
+		public AppendOnlyList(List<T> items)
+        {
+			m_items = items;
+        }
+
 		/// <summary>
 		/// Add item to the list
 		/// </summary>
@@ -18,6 +23,23 @@ namespace glc.UI.Views
 		{
 			m_items.Add(item);
 		}
+
+		/// <summary>
+		/// Indexer property.
+		/// Return item at specified index.
+		/// NOTE: Index is not checked for range
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <returns></returns>
+		public T this[int index]
+        {
+			get { return m_items[index]; }
+        }
+
+		public int Count
+        {
+			get { return m_items.Count; }
+        }
 
 		///<inheritdoc/>
 		public IEnumerator<T> GetEnumerator()
@@ -78,7 +100,7 @@ namespace glc.UI.Views
 		/// <summary>
 		/// List of sublist keys, preserving insert order
 		/// </summary>
-		List<string> SublistKeys { get; }
+		AppendOnlyList<string> SublistKeys { get; }
 
 		/// <summary>
 		/// Sublists keyed on the sublist name
@@ -121,6 +143,8 @@ namespace glc.UI.Views
 		/// <param name="sublist">The sublist name</param>
 		/// <returns>Number of items in the sublist; if the sublist does not exist, should return -1</returns>
         int SublistCount(string sublist);
+
+		int SublistCount(int sublist);
 
 		/// <summary>
 		/// Retrieve the item from the data source
@@ -238,7 +262,7 @@ namespace glc.UI.Views
 			int globalSelection = 0;
 			for(int i = 0; i < sublistIndex; ++i)
 			{
-				globalSelection += source.SublistCount(source.SublistKeys[i]);
+				globalSelection += source.SublistCount(i);
 			}
 			globalSelection += itemIndex + sublistIndex + 1; // Account for headings
 			return globalSelection;
@@ -259,9 +283,9 @@ namespace glc.UI.Views
 
 				for(int i = 0; i < source.SublistKeys.Count && globalTop > 0; ++i)
 				{
-					if(globalTop >= Source.SublistCount(source.SublistKeys[i]))
+					if(globalTop >= Source.SublistCount(i))
                     {
-						globalTop -= Source.SublistCount(source.SublistKeys[i]);
+						globalTop -= Source.SublistCount(i);
 						continue;
 					}
 					topSublist = i;
@@ -275,15 +299,15 @@ namespace glc.UI.Views
 			if(globalSelection + 1 >= globalTop + Frame.Height)
             {
 				topItem += ((globalSelection + 1) - (globalTop + Frame.Height) + 1);
-				while(topItem >= source.SublistCount(source.SublistKeys[topSublist]))
+				while(topItem >= source.SublistCount(topSublist))
                 {
 					if(topSublist + 1 >= source.SublistKeys.Count)
                     {
-						topItem = source.SublistCount(source.SublistKeys[topSublist]) - Frame.Height;
+						topItem = source.SublistCount(topSublist) - Frame.Height;
 						return;
 					}
 
-					int delta = source.SublistCount(source.SublistKeys[topSublist]) - topItem;
+					int delta = source.SublistCount(topSublist) - topItem;
 					topSublist++;
 					topItem = delta;
 				}
@@ -336,7 +360,7 @@ namespace glc.UI.Views
 					Source.Render(this, Driver, isSelected, Source.SublistKeys[sublist], item, col, row, f.Width - col);
 					item++;
 
-					bool nextSublist = (item >= source.SublistCount(source.SublistKeys[sublist]));
+					bool nextSublist = (item >= source.SublistCount(sublist));
 					if(singleListMode && nextSublist)
                     {
 						break;
@@ -484,7 +508,7 @@ namespace glc.UI.Views
 			else if(!singleListMode && selectedSublist - 1 >= 0) // Move to the last element of the previous sublist
 			{
 				selectedSublist--;
-				selectedItem = source.SublistCount(Source.SublistKeys[selectedSublist]) - 1;
+				selectedItem = source.SublistCount(selectedSublist) - 1;
 			}
 			else // Can't do anything
 			{
@@ -511,7 +535,7 @@ namespace glc.UI.Views
 				return true; //Nothing for us to move to
 			}
 
-			if(selectedItem + 1 < source.SublistCount(Source.SublistKeys[selectedSublist])) // Next item on the current sublist
+			if(selectedItem + 1 < source.SublistCount(selectedSublist)) // Next item on the current sublist
 			{
 				selectedItem++;
 			}
@@ -554,7 +578,7 @@ namespace glc.UI.Views
 		public virtual bool MoveEnd()
 		{
 			selectedSublist = source.SublistKeys.Count - 1;
-			selectedItem = source.SublistCount(Source.SublistKeys[selectedSublist]) - 1;
+			selectedItem = source.SublistCount(selectedSublist) - 1;
 
 			NormaliseTopItems();
 			OnSelectedChanged();

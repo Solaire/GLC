@@ -16,7 +16,11 @@ namespace glc.UI
 		public U         ContainerView	{ get { return m_containerView; } }
 		public List<T>   ContentList
 		{
-			get { return m_contentList; }
+			get
+			{
+				System.Diagnostics.Debug.WriteLine($"m_contentList {m_contentList.Count}");
+				return m_contentList;
+			}
 			set { m_contentList = value; }
 		}
 
