@@ -46,6 +46,10 @@ namespace glc.UI.Library
 				{
 					SelectedGameSetRating();
 				}),
+				new StatusItem(Key.R, "~S~ Search", () =>
+				{
+					GameSearch();
+				}),
 				new StatusItem(Key.Enter, "~Entry~ Start game", () =>
 				{
 					//GameListView_OpenSelectedItem(new ListViewItemEventArgs(m_gamePanel.ContainerView.SelectedItem, m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem]));
@@ -289,7 +293,7 @@ namespace glc.UI.Library
 			//}
 
 			// Game search
-			if(a.KeyEvent.Key == (Key.CtrlMask | Key.F))
+			if(a.KeyEvent.Key == (Key.CtrlMask | Key.S))
             {
 				GameSearch();
             }
