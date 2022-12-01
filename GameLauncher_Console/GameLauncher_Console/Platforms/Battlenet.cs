@@ -308,14 +308,14 @@ namespace GameLauncher_Console
 // Copyright (C) 2016-2019 madalien.com
 
 #pragma warning disable CS1591, CS0612, CS3021, IDE1006, CA1033
-    [global::ProtoBuf.ProtoContract()]
-    public partial class LanguageSetting : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetLanguageSetting : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"language")]
+        [ProtoMember(1, Name = @"language")]
         [global::System.ComponentModel.DefaultValue("")]
         public string Language
         {
@@ -326,27 +326,27 @@ namespace GameLauncher_Console
         public void ResetLanguage() => __pbn__Language = null;
         private string __pbn__Language;
 
-        [global::ProtoBuf.ProtoMember(2, Name = @"option")]
-        [global::System.ComponentModel.DefaultValue(LanguageOption.LangoptionNone)]
-        public LanguageOption Option
+        [ProtoMember(2, Name = @"option")]
+        [global::System.ComponentModel.DefaultValue(BnetLanguageOption.LangoptionNone)]
+        public BnetLanguageOption Option
         {
-            get { return __pbn__Option ?? LanguageOption.LangoptionNone; }
+            get { return __pbn__Option ?? BnetLanguageOption.LangoptionNone; }
             set { __pbn__Option = value; }
         }
         public bool ShouldSerializeOption() => __pbn__Option != null;
         public void ResetOption() => __pbn__Option = null;
-        private LanguageOption? __pbn__Option;
+        private BnetLanguageOption? __pbn__Option;
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class UserSettings : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetUserSettings : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1)]
+        [ProtoMember(1)]
         [global::System.ComponentModel.DefaultValue("")]
         public string installPath
         {
@@ -357,7 +357,7 @@ namespace GameLauncher_Console
         public void ResetinstallPath() => __pbn__installPath = null;
         private string __pbn__installPath;
 
-        [global::ProtoBuf.ProtoMember(2)]
+        [ProtoMember(2)]
         [global::System.ComponentModel.DefaultValue("")]
         public string playRegion
         {
@@ -368,40 +368,40 @@ namespace GameLauncher_Console
         public void ResetplayRegion() => __pbn__playRegion = null;
         private string __pbn__playRegion;
 
-        [global::ProtoBuf.ProtoMember(3)]
-        [global::System.ComponentModel.DefaultValue(ShortcutOption.ShortcutNone)]
-        public ShortcutOption desktopShortcut
+        [ProtoMember(3)]
+        [global::System.ComponentModel.DefaultValue(BnetShortcutOption.ShortcutNone)]
+        public BnetShortcutOption desktopShortcut
         {
-            get { return __pbn__desktopShortcut ?? ShortcutOption.ShortcutNone; }
+            get { return __pbn__desktopShortcut ?? BnetShortcutOption.ShortcutNone; }
             set { __pbn__desktopShortcut = value; }
         }
         public bool ShouldSerializedesktopShortcut() => __pbn__desktopShortcut != null;
         public void ResetdesktopShortcut() => __pbn__desktopShortcut = null;
-        private ShortcutOption? __pbn__desktopShortcut;
+        private BnetShortcutOption? __pbn__desktopShortcut;
 
-        [global::ProtoBuf.ProtoMember(4)]
-        [global::System.ComponentModel.DefaultValue(ShortcutOption.ShortcutNone)]
-        public ShortcutOption startmenuShortcut
+        [ProtoMember(4)]
+        [global::System.ComponentModel.DefaultValue(BnetShortcutOption.ShortcutNone)]
+        public BnetShortcutOption startmenuShortcut
         {
-            get { return __pbn__startmenuShortcut ?? ShortcutOption.ShortcutNone; }
+            get { return __pbn__startmenuShortcut ?? BnetShortcutOption.ShortcutNone; }
             set { __pbn__startmenuShortcut = value; }
         }
         public bool ShouldSerializestartmenuShortcut() => __pbn__startmenuShortcut != null;
         public void ResetstartmenuShortcut() => __pbn__startmenuShortcut = null;
-        private ShortcutOption? __pbn__startmenuShortcut;
+        private BnetShortcutOption? __pbn__startmenuShortcut;
 
-        [global::ProtoBuf.ProtoMember(5)]
-        [global::System.ComponentModel.DefaultValue(LanguageSettingType.LangsettingNone)]
-        public LanguageSettingType languageSettings
+        [ProtoMember(5)]
+        [global::System.ComponentModel.DefaultValue(BnetLanguageSettingType.LangsettingNone)]
+        public BnetLanguageSettingType languageSettings
         {
-            get { return __pbn__languageSettings ?? LanguageSettingType.LangsettingNone; }
+            get { return __pbn__languageSettings ?? BnetLanguageSettingType.LangsettingNone; }
             set { __pbn__languageSettings = value; }
         }
         public bool ShouldSerializelanguageSettings() => __pbn__languageSettings != null;
         public void ResetlanguageSettings() => __pbn__languageSettings = null;
-        private LanguageSettingType? __pbn__languageSettings;
+        private BnetLanguageSettingType? __pbn__languageSettings;
 
-        [global::ProtoBuf.ProtoMember(6)]
+        [ProtoMember(6)]
         [global::System.ComponentModel.DefaultValue("")]
         public string selectedTextLanguage
         {
@@ -412,7 +412,7 @@ namespace GameLauncher_Console
         public void ResetselectedTextLanguage() => __pbn__selectedTextLanguage = null;
         private string __pbn__selectedTextLanguage;
 
-        [global::ProtoBuf.ProtoMember(7)]
+        [ProtoMember(7)]
         [global::System.ComponentModel.DefaultValue("")]
         public string selectedSpeechLanguage
         {
@@ -423,10 +423,10 @@ namespace GameLauncher_Console
         public void ResetselectedSpeechLanguage() => __pbn__selectedSpeechLanguage = null;
         private string __pbn__selectedSpeechLanguage;
 
-        [global::ProtoBuf.ProtoMember(8, Name = @"languages")]
-        public global::System.Collections.Generic.List<LanguageSetting> Languages { get; } = new global::System.Collections.Generic.List<LanguageSetting>();
+        [ProtoMember(8, Name = @"languages")]
+        public List<BnetLanguageSetting> Languages { get; } = new List<BnetLanguageSetting>();
 
-        [global::ProtoBuf.ProtoMember(9, Name = @"gfx_override_tags")]
+        [ProtoMember(9, Name = @"gfx_override_tags")]
         [global::System.ComponentModel.DefaultValue("")]
         public string GfxOverrideTags
         {
@@ -437,7 +437,7 @@ namespace GameLauncher_Console
         public void ResetGfxOverrideTags() => __pbn__GfxOverrideTags = null;
         private string __pbn__GfxOverrideTags;
 
-        [global::ProtoBuf.ProtoMember(10, Name = @"versionbranch")]
+        [ProtoMember(10, Name = @"versionbranch")]
         [global::System.ComponentModel.DefaultValue("")]
         public string Versionbranch
         {
@@ -450,14 +450,14 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BnetInstallHandshake : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetInstallHandshake : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"product")]
+        [ProtoMember(1, Name = @"product")]
         [global::System.ComponentModel.DefaultValue("")]
         public string Product
         {
@@ -468,7 +468,7 @@ namespace GameLauncher_Console
         public void ResetProduct() => __pbn__Product = null;
         private string __pbn__Product;
 
-        [global::ProtoBuf.ProtoMember(2, Name = @"uid")]
+        [ProtoMember(2, Name = @"uid")]
         [global::System.ComponentModel.DefaultValue("")]
         public string Uid
         {
@@ -479,19 +479,19 @@ namespace GameLauncher_Console
         public void ResetUid() => __pbn__Uid = null;
         private string __pbn__Uid;
 
-        [global::ProtoBuf.ProtoMember(3, Name = @"settings")]
-        public UserSettings Settings { get; set; }
+        [ProtoMember(3, Name = @"settings")]
+        public BnetUserSettings Settings { get; set; }
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BuildConfig : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetBuildConfig : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"region")]
+        [ProtoMember(1, Name = @"region")]
         [global::System.ComponentModel.DefaultValue("")]
         public string Region
         {
@@ -502,7 +502,7 @@ namespace GameLauncher_Console
         public void ResetRegion() => __pbn__Region = null;
         private string __pbn__Region;
 
-        [global::ProtoBuf.ProtoMember(2)]
+        [ProtoMember(2)]
         [global::System.ComponentModel.DefaultValue("")]
         public string buildConfig
         {
@@ -515,14 +515,14 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BaseProductState : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetBaseProductState : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"installed")]
+        [ProtoMember(1, Name = @"installed")]
         public bool Installed
         {
             get { return __pbn__Installed.GetValueOrDefault(); }
@@ -532,7 +532,7 @@ namespace GameLauncher_Console
         public void ResetInstalled() => __pbn__Installed = null;
         private bool? __pbn__Installed;
 
-        [global::ProtoBuf.ProtoMember(2, Name = @"playable")]
+        [ProtoMember(2, Name = @"playable")]
         public bool Playable
         {
             get { return __pbn__Playable.GetValueOrDefault(); }
@@ -542,7 +542,7 @@ namespace GameLauncher_Console
         public void ResetPlayable() => __pbn__Playable = null;
         private bool? __pbn__Playable;
 
-        [global::ProtoBuf.ProtoMember(3)]
+        [ProtoMember(3)]
         public bool updateComplete
         {
             get { return __pbn__updateComplete.GetValueOrDefault(); }
@@ -552,7 +552,7 @@ namespace GameLauncher_Console
         public void ResetupdateComplete() => __pbn__updateComplete = null;
         private bool? __pbn__updateComplete;
 
-        [global::ProtoBuf.ProtoMember(4)]
+        [ProtoMember(4)]
         public bool backgroundDownloadAvailable
         {
             get { return __pbn__backgroundDownloadAvailable.GetValueOrDefault(); }
@@ -562,7 +562,7 @@ namespace GameLauncher_Console
         public void ResetbackgroundDownloadAvailable() => __pbn__backgroundDownloadAvailable = null;
         private bool? __pbn__backgroundDownloadAvailable;
 
-        [global::ProtoBuf.ProtoMember(5)]
+        [ProtoMember(5)]
         public bool backgroundDownloadComplete
         {
             get { return __pbn__backgroundDownloadComplete.GetValueOrDefault(); }
@@ -572,7 +572,7 @@ namespace GameLauncher_Console
         public void ResetbackgroundDownloadComplete() => __pbn__backgroundDownloadComplete = null;
         private bool? __pbn__backgroundDownloadComplete;
 
-        [global::ProtoBuf.ProtoMember(6)]
+        [ProtoMember(6)]
         [global::System.ComponentModel.DefaultValue("")]
         public string currentVersion
         {
@@ -583,7 +583,7 @@ namespace GameLauncher_Console
         public void ResetcurrentVersion() => __pbn__currentVersion = null;
         private string __pbn__currentVersion;
 
-        [global::ProtoBuf.ProtoMember(7)]
+        [ProtoMember(7)]
         [global::System.ComponentModel.DefaultValue("")]
         public string currentVersionStr
         {
@@ -594,13 +594,13 @@ namespace GameLauncher_Console
         public void ResetcurrentVersionStr() => __pbn__currentVersionStr = null;
         private string __pbn__currentVersionStr;
 
-        [global::ProtoBuf.ProtoMember(8, Name = @"installedBuildConfig")]
-        public global::System.Collections.Generic.List<BuildConfig> installedBuildConfigs { get; } = new global::System.Collections.Generic.List<BuildConfig>();
+        [ProtoMember(8, Name = @"installedBuildConfig")]
+        public List<BnetBuildConfig> installedBuildConfigs { get; } = new List<BnetBuildConfig>();
 
-        [global::ProtoBuf.ProtoMember(9, Name = @"backgroundDownloadBuildConfig")]
-        public global::System.Collections.Generic.List<BuildConfig> backgroundDownloadBuildConfigs { get; } = new global::System.Collections.Generic.List<BuildConfig>();
+        [ProtoMember(9, Name = @"backgroundDownloadBuildConfig")]
+        public List<BnetBuildConfig> backgroundDownloadBuildConfigs { get; } = new List<BnetBuildConfig>();
 
-        [global::ProtoBuf.ProtoMember(10)]
+        [ProtoMember(10)]
         [global::System.ComponentModel.DefaultValue("")]
         public string decryptionKey
         {
@@ -611,19 +611,19 @@ namespace GameLauncher_Console
         public void ResetdecryptionKey() => __pbn__decryptionKey = null;
         private string __pbn__decryptionKey;
 
-        [global::ProtoBuf.ProtoMember(11)]
-        public global::System.Collections.Generic.List<string> completedInstallActions { get; } = new global::System.Collections.Generic.List<string>();
+        [ProtoMember(11)]
+        public List<string> completedInstallActions { get; } = new List<string>();
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BackfillProgress : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetBackfillProgress : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"progress")]
+        [ProtoMember(1, Name = @"progress")]
         public double Progress
         {
             get { return __pbn__Progress.GetValueOrDefault(); }
@@ -633,7 +633,7 @@ namespace GameLauncher_Console
         public void ResetProgress() => __pbn__Progress = null;
         private double? __pbn__Progress;
 
-        [global::ProtoBuf.ProtoMember(2, Name = @"backgrounddownload")]
+        [ProtoMember(2, Name = @"backgrounddownload")]
         public bool Backgrounddownload
         {
             get { return __pbn__Backgrounddownload.GetValueOrDefault(); }
@@ -643,7 +643,7 @@ namespace GameLauncher_Console
         public void ResetBackgrounddownload() => __pbn__Backgrounddownload = null;
         private bool? __pbn__Backgrounddownload;
 
-        [global::ProtoBuf.ProtoMember(3, Name = @"paused")]
+        [ProtoMember(3, Name = @"paused")]
         public bool Paused
         {
             get { return __pbn__Paused.GetValueOrDefault(); }
@@ -653,7 +653,7 @@ namespace GameLauncher_Console
         public void ResetPaused() => __pbn__Paused = null;
         private bool? __pbn__Paused;
 
-        [global::ProtoBuf.ProtoMember(4)]
+        [ProtoMember(4)]
         public ulong downloadLimit
         {
             get { return __pbn__downloadLimit.GetValueOrDefault(); }
@@ -665,14 +665,14 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class RepairProgress : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetRepairProgress : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"progress")]
+        [ProtoMember(1, Name = @"progress")]
         public double Progress
         {
             get { return __pbn__Progress.GetValueOrDefault(); }
@@ -684,14 +684,14 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class UpdateProgress : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetUpdateProgress : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1)]
+        [ProtoMember(1)]
         [global::System.ComponentModel.DefaultValue("")]
         public string lastDiscSetUsed
         {
@@ -702,7 +702,7 @@ namespace GameLauncher_Console
         public void ResetlastDiscSetUsed() => __pbn__lastDiscSetUsed = null;
         private string __pbn__lastDiscSetUsed;
 
-        [global::ProtoBuf.ProtoMember(2, Name = @"progress")]
+        [ProtoMember(2, Name = @"progress")]
         public double Progress
         {
             get { return __pbn__Progress.GetValueOrDefault(); }
@@ -712,7 +712,7 @@ namespace GameLauncher_Console
         public void ResetProgress() => __pbn__Progress = null;
         private double? __pbn__Progress;
 
-        [global::ProtoBuf.ProtoMember(3)]
+        [ProtoMember(3)]
         public bool discIgnored
         {
             get { return __pbn__discIgnored.GetValueOrDefault(); }
@@ -722,7 +722,7 @@ namespace GameLauncher_Console
         public void ResetdiscIgnored() => __pbn__discIgnored = null;
         private bool? __pbn__discIgnored;
 
-        [global::ProtoBuf.ProtoMember(4)]
+        [ProtoMember(4)]
         [global::System.ComponentModel.DefaultValue(0)]
         public ulong totalToDownload
         {
@@ -733,7 +733,7 @@ namespace GameLauncher_Console
         public void ResettotalToDownload() => __pbn__totalToDownload = null;
         private ulong? __pbn__totalToDownload;
 
-        [global::ProtoBuf.ProtoMember(5)]
+        [ProtoMember(5)]
         [global::System.ComponentModel.DefaultValue(0)]
         public ulong downloadRemaining
         {
@@ -746,46 +746,46 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class CachedProductState : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetCachedProductState : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1)]
-        public BaseProductState baseProductState { get; set; }
+        [ProtoMember(1)]
+        public BnetBaseProductState baseProductState { get; set; }
 
-        [global::ProtoBuf.ProtoMember(2)]
-        public BackfillProgress backfillProgress { get; set; }
+        [ProtoMember(2)]
+        public BnetBackfillProgress backfillProgress { get; set; }
 
-        [global::ProtoBuf.ProtoMember(3)]
-        public RepairProgress repairProgress { get; set; }
+        [ProtoMember(3)]
+        public BnetRepairProgress repairProgress { get; set; }
 
-        [global::ProtoBuf.ProtoMember(4)]
-        public UpdateProgress updateProgress { get; set; }
+        [ProtoMember(4)]
+        public BnetUpdateProgress updateProgress { get; set; }
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class ProductOperations : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetProductOperations : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1)]
-        [global::System.ComponentModel.DefaultValue(Operation.OpNone)]
-        public Operation activeOperation
+        [ProtoMember(1)]
+        [global::System.ComponentModel.DefaultValue(BnetOperation.OpNone)]
+        public BnetOperation activeOperation
         {
-            get { return __pbn__activeOperation ?? Operation.OpNone; }
+            get { return __pbn__activeOperation ?? BnetOperation.OpNone; }
             set { __pbn__activeOperation = value; }
         }
         public bool ShouldSerializeactiveOperation() => __pbn__activeOperation != null;
         public void ResetactiveOperation() => __pbn__activeOperation = null;
-        private Operation? __pbn__activeOperation;
+        private BnetOperation? __pbn__activeOperation;
 
-        [global::ProtoBuf.ProtoMember(2, Name = @"priority")]
+        [ProtoMember(2, Name = @"priority")]
         public ulong Priority
         {
             get { return __pbn__Priority.GetValueOrDefault(); }
@@ -797,14 +797,14 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BnetProductInstall : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetProductInstall : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"uid")]
+        [ProtoMember(1, Name = @"uid")]
         [global::System.ComponentModel.DefaultValue("")]
         public string Uid
         {
@@ -815,7 +815,7 @@ namespace GameLauncher_Console
         public void ResetUid() => __pbn__Uid = null;
         private string __pbn__Uid;
 
-        [global::ProtoBuf.ProtoMember(2)]
+        [ProtoMember(2)]
         [global::System.ComponentModel.DefaultValue("")]
         public string productCode
         {
@@ -826,25 +826,25 @@ namespace GameLauncher_Console
         public void ResetproductCode() => __pbn__productCode = null;
         private string __pbn__productCode;
 
-        [global::ProtoBuf.ProtoMember(3, Name = @"settings")]
-        public UserSettings Settings { get; set; }
+        [ProtoMember(3, Name = @"settings")]
+        public BnetUserSettings Settings { get; set; }
 
-        [global::ProtoBuf.ProtoMember(4)]
-        public CachedProductState cachedProductState { get; set; }
+        [ProtoMember(4)]
+        public BnetCachedProductState cachedProductState { get; set; }
 
-        [global::ProtoBuf.ProtoMember(5)]
-        public ProductOperations productOperations { get; set; }
+        [ProtoMember(5)]
+        public BnetProductOperations productOperations { get; set; }
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BnetProductConfig : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetProductConfig : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1)]
+        [ProtoMember(1)]
         [global::System.ComponentModel.DefaultValue("")]
         public string productCode
         {
@@ -855,7 +855,7 @@ namespace GameLauncher_Console
         public void ResetproductCode() => __pbn__productCode = null;
         private string __pbn__productCode;
 
-        [global::ProtoBuf.ProtoMember(2)]
+        [ProtoMember(2)]
         [global::System.ComponentModel.DefaultValue("")]
         public string metadataHash
         {
@@ -866,7 +866,7 @@ namespace GameLauncher_Console
         public void ResetmetadataHash() => __pbn__metadataHash = null;
         private string __pbn__metadataHash;
 
-        [global::ProtoBuf.ProtoMember(3, Name = @"timestamp")]
+        [ProtoMember(3, Name = @"timestamp")]
         [global::System.ComponentModel.DefaultValue("")]
         public string Timestamp
         {
@@ -879,14 +879,14 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BnetActiveProcess : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetActiveProcess : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1)]
+        [ProtoMember(1)]
         [global::System.ComponentModel.DefaultValue("")]
         public string processName
         {
@@ -897,7 +897,7 @@ namespace GameLauncher_Console
         public void ResetprocessName() => __pbn__processName = null;
         private string __pbn__processName;
 
-        [global::ProtoBuf.ProtoMember(2, Name = @"pid")]
+        [ProtoMember(2, Name = @"pid")]
         public int Pid
         {
             get { return __pbn__Pid.GetValueOrDefault(); }
@@ -907,19 +907,19 @@ namespace GameLauncher_Console
         public void ResetPid() => __pbn__Pid = null;
         private int? __pbn__Pid;
 
-        [global::ProtoBuf.ProtoMember(3, Name = @"uri")]
-        public global::System.Collections.Generic.List<string> Uris { get; } = new global::System.Collections.Generic.List<string>();
+        [ProtoMember(3, Name = @"uri")]
+        public List<string> Uris { get; } = new List<string>();
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BnetDownloadSettings : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetDownloadSettings : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1)]
+        [ProtoMember(1)]
         [global::System.ComponentModel.DefaultValue(-1)]
         public int downloadLimit
         {
@@ -930,7 +930,7 @@ namespace GameLauncher_Console
         public void ResetdownloadLimit() => __pbn__downloadLimit = null;
         private int? __pbn__downloadLimit;
 
-        [global::ProtoBuf.ProtoMember(2)]
+        [ProtoMember(2)]
         [global::System.ComponentModel.DefaultValue(-1)]
         public int backfillLimit
         {
@@ -943,77 +943,77 @@ namespace GameLauncher_Console
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public partial class BnetDatabase : global::ProtoBuf.IExtensible
+    [ProtoContract()]
+    public partial class BnetDatabase : IExtensible
     {
-        private global::ProtoBuf.IExtension __pbn__extensionData;
-        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+        private IExtension __pbn__extensionData;
+        IExtension IExtensible.GetExtensionObject(bool createIfMissing)
+            => Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
-        [global::ProtoBuf.ProtoMember(1, Name = @"productInstall")]
-        public global::System.Collections.Generic.List<BnetProductInstall> productInstalls { get; } = new global::System.Collections.Generic.List<BnetProductInstall>();
+        [ProtoMember(1, Name = @"productInstall")]
+        public List<BnetProductInstall> productInstalls { get; } = new List<BnetProductInstall>();
 
-        [global::ProtoBuf.ProtoMember(2)]
-        public global::System.Collections.Generic.List<BnetInstallHandshake> activeInstalls { get; } = new global::System.Collections.Generic.List<BnetInstallHandshake>();
+        [ProtoMember(2)]
+        public List<BnetInstallHandshake> activeInstalls { get; } = new List<BnetInstallHandshake>();
 
-        [global::ProtoBuf.ProtoMember(3)]
-        public global::System.Collections.Generic.List<BnetActiveProcess> activeProcesses { get; } = new global::System.Collections.Generic.List<BnetActiveProcess>();
+        [ProtoMember(3)]
+        public List<BnetActiveProcess> activeProcesses { get; } = new List<BnetActiveProcess>();
 
-        [global::ProtoBuf.ProtoMember(4)]
-        public global::System.Collections.Generic.List<BnetProductConfig> productConfigs { get; } = new global::System.Collections.Generic.List<BnetProductConfig>();
+        [ProtoMember(4)]
+        public List<BnetProductConfig> productConfigs { get; } = new List<BnetProductConfig>();
 
-        [global::ProtoBuf.ProtoMember(5)]
+        [ProtoMember(5)]
         public BnetDownloadSettings downloadSettings { get; set; }
 
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public enum LanguageOption
+    [ProtoContract()]
+    public enum BnetLanguageOption
     {
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGOPTION_NONE")]
+        [ProtoEnum(Name = @"LANGOPTION_NONE")]
         LangoptionNone = 0,
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGOPTION_TEXT")]
+        [ProtoEnum(Name = @"LANGOPTION_TEXT")]
         LangoptionText = 1,
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGOPTION_SPEECH")]
+        [ProtoEnum(Name = @"LANGOPTION_SPEECH")]
         LangoptionSpeech = 2,
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGOPTION_TEXT_AND_SPEECH")]
+        [ProtoEnum(Name = @"LANGOPTION_TEXT_AND_SPEECH")]
         LangoptionTextAndSpeech = 3,
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public enum LanguageSettingType
+    [ProtoContract()]
+    public enum BnetLanguageSettingType
     {
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGSETTING_NONE")]
+        [ProtoEnum(Name = @"LANGSETTING_NONE")]
         LangsettingNone = 0,
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGSETTING_SINGLE")]
+        [ProtoEnum(Name = @"LANGSETTING_SINGLE")]
         LangsettingSingle = 1,
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGSETTING_SIMPLE")]
+        [ProtoEnum(Name = @"LANGSETTING_SIMPLE")]
         LangsettingSimple = 2,
-        [global::ProtoBuf.ProtoEnum(Name = @"LANGSETTING_ADVANCED")]
+        [ProtoEnum(Name = @"LANGSETTING_ADVANCED")]
         LangsettingAdvanced = 3,
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public enum ShortcutOption
+    [ProtoContract()]
+    public enum BnetShortcutOption
     {
-        [global::ProtoBuf.ProtoEnum(Name = @"SHORTCUT_NONE")]
+        [ProtoEnum(Name = @"SHORTCUT_NONE")]
         ShortcutNone = 0,
-        [global::ProtoBuf.ProtoEnum(Name = @"SHORTCUT_USER")]
+        [ProtoEnum(Name = @"SHORTCUT_USER")]
         ShortcutUser = 1,
-        [global::ProtoBuf.ProtoEnum(Name = @"SHORTCUT_ALL_USERS")]
+        [ProtoEnum(Name = @"SHORTCUT_ALL_USERS")]
         ShortcutAllUsers = 2,
     }
 
-    [global::ProtoBuf.ProtoContract()]
-    public enum Operation
+    [ProtoContract()]
+    public enum BnetOperation
     {
-        [global::ProtoBuf.ProtoEnum(Name = @"OP_NONE")]
+        [ProtoEnum(Name = @"OP_NONE")]
         OpNone = -1,
-        [global::ProtoBuf.ProtoEnum(Name = @"OP_UPDATE")]
+        [ProtoEnum(Name = @"OP_UPDATE")]
         OpUpdate = 0,
-        [global::ProtoBuf.ProtoEnum(Name = @"OP_BACKFILL")]
+        [ProtoEnum(Name = @"OP_BACKFILL")]
         OpBackfill = 1,
-        [global::ProtoBuf.ProtoEnum(Name = @"OP_REPAIR")]
+        [ProtoEnum(Name = @"OP_REPAIR")]
         OpRepair = 2,
     }
 #pragma warning restore CS1591, CS0612, CS3021, IDE1006, CA1033
