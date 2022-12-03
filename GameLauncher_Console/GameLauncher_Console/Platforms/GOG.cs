@@ -433,10 +433,10 @@ namespace GameLauncher_Console
         }
 
         /// <summary>
-        /// Scan the key name and extract the Steam game id
+        /// Scan the key name and extract the GOG game id
         /// </summary>
         /// <param name="key">The game string</param>
-        /// <returns>Steam game ID as string</returns>
+        /// <returns>GOG game ID as string</returns>
         public static string GetGameID(string key)
 		{
             if (key.StartsWith("gog_"))
