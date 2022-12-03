@@ -1,4 +1,5 @@
-﻿using System;
+﻿//using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -10,13 +11,15 @@ using System.Windows.Forms;
 
 namespace GameLauncher_Console
 {
-	// TODO: After switch to .NET 5, move App.config to appsettings.json
-
 	/// <summary>
 	/// Contains the definition of the configuration data
 	/// </summary>
 	public class CConfig
 	{
+        // TODO: After switch to .NET 5+, move App.config to appsettings.json?
+        // [Requires copying to output directory?]
+        //public static ConfigurationBuilder builder;
+
 		public static Dictionary<string, string> config;
 
 		// Config JSON field defaults
