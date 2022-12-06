@@ -58,7 +58,7 @@ namespace GameLauncher_Console
 
 		public static readonly string currentPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 		public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
-		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" };
+		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT", "EXI", "EXIF" };
 		public static bool noInteractive = false;
 		public static Size sizeIcon;
 		public static Size sizeImage;
