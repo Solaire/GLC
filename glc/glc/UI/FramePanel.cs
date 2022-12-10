@@ -9,24 +9,13 @@ namespace glc.UI
     {
 		protected FrameView m_frameView;
         protected U         m_containerView;
-        protected List<T>   m_contentList;
         protected int       m_listSelection;
 
 		public FrameView FrameView		{ get { return m_frameView; } }
 		public U         ContainerView	{ get { return m_containerView; } }
-		public List<T>   ContentList
-		{
-			get
-			{
-				System.Diagnostics.Debug.WriteLine($"m_contentList {m_contentList.Count}");
-				return m_contentList;
-			}
-			set { m_contentList = value; }
-		}
 
 		public CFramePanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
         {
-			m_contentList = new List<T>();
 			m_listSelection = 0;
 		}
 

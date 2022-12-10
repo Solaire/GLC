@@ -56,7 +56,8 @@ namespace glc.UI.Settings
 
 		private static void Categories_SelectedChanged(ListViewItemEventArgs e)
 		{
-			m_settingEditPanel.LoadCategory(m_settingCategoryPanel.ContentList[m_settingCategoryPanel.ContainerView.SelectedItem]);
+			// TODO: fix
+			//m_settingEditPanel.LoadCategory(m_settingCategoryPanel.ContentList[m_settingCategoryPanel.ContainerView.SelectedItem]);
 		}
 
 		/// <summary>
