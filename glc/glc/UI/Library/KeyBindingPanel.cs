@@ -8,16 +8,18 @@ namespace glc.UI.Library
     // TODO: Replace with a custom list view or something that allows multiple columns
     public class CKeyBindingPanel : CFramePanel<StatusItem, ListView>
     {
+        private List<StatusItem> m_bindings;
+
         public CKeyBindingPanel(List<StatusItem> keyBindings, string name, Pos x, Pos y, Dim width, Dim height)
             : base(name, x, y, width, height, false)
         {
-            m_contentList = keyBindings;
+            m_bindings = keyBindings;
             Initialise(name, x, y, width, height, false);
         }
 
         public override void CreateContainerView()
         {
-            m_containerView = new ListView(new CKeyBindingDataSource(m_contentList))
+            m_containerView = new ListView(new CKeyBindingDataSource(m_bindings))
             {
                 X = 0,
                 Y = 0,
@@ -56,11 +58,11 @@ namespace glc.UI.Library
 
         public void PerformKeyAction(View.KeyEventEventArgs a)
         {
-            for(int i = 0; i < m_contentList.Count; ++i)
+            for(int i = 0; i < m_bindings.Count; ++i)
             {
-                if((m_contentList[i].Shortcut & a.KeyEvent.Key) == m_contentList[i].Shortcut)
+                if((m_bindings[i].Shortcut & a.KeyEvent.Key) == m_bindings[i].Shortcut)
                 {
-                    m_contentList[i].Action.Invoke();
+                    m_bindings[i].Action.Invoke();
                     return;
                 }
             }

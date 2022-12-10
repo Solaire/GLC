@@ -14,6 +14,8 @@ namespace glc.UI.Library
         PlatformRootNode m_searchNode;
         bool m_gotSearchNode;
 
+        List<CBasicPlatform> m_platformList;
+
         public CPlatformTreePanel(List<CBasicPlatform> platforms, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
             : base(name, x, y, width, height, canFocus)
         {
@@ -25,7 +27,7 @@ namespace glc.UI.Library
             };
             m_gotSearchNode = false;
 
-            m_contentList = platforms;
+            m_platformList = platforms;
             Initialise(name, x, y, width, height, canFocus);
         }
 
@@ -42,7 +44,7 @@ namespace glc.UI.Library
 
             m_containerView.TreeBuilder = new PlatformTreeBuilder();
 
-            foreach(CPlatform platform in m_contentList)
+            foreach(CPlatform platform in m_platformList)
             {
                 PlatformRootNode root = new PlatformRootNode()
                 {
@@ -93,6 +95,7 @@ namespace glc.UI.Library
             {
                 m_containerView.Expand(m_searchNode);
             }
+            m_containerView.GoTo(m_searchNode);
             m_containerView.GoTo(newSearchNode);
         }
     }

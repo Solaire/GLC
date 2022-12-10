@@ -16,7 +16,6 @@ namespace glc.UI.Library
         public CGamePanel(Dictionary<string, CGameList> games, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
             : base(name, x, y, width, height, canFocus)
         {
-            //m_contentList = games;
             m_contentDictionary = games;
             Initialise(name, x, y, width, height, canFocus);
         }

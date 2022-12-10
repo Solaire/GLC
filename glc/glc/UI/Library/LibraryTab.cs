@@ -125,6 +125,63 @@ namespace glc.UI.Library
 			if(val is PlatformRootNode) // Switch to new multilist
             {
 				PlatformRootNode node = (PlatformRootNode)val;
+				Dictionary<string, List<GameObject>> sqlSource;
+
+				if(node.ID == (int)SpecialPlatformID.cSearch) // Special search handler
+                {
+					sqlSource = new Dictionary<string, List<GameObject>>();
+
+					foreach(PlatformTagNode tag in node.Tags)
+                    {
+                        sqlSource[tag.Name] = CGameSQL.GameSearch(tag.Name).ToList();
+					}
+				}
+				else if(node.ID > 0) // Normal node
+                {
+					sqlSource = CGameSQL.LoadPlatformGamesAsDict(node.ID);
+				}
+				else
+                {
+					return;
+                }
+
+				Dictionary<string, CGameList> multilistSource = new Dictionary<string, CGameList>();
+				foreach(KeyValuePair<string, List<GameObject>> kv in sqlSource)
+				{
+					multilistSource[kv.Key] = new CGameList(kv);
+				}
+
+				m_gamePanel.NewMultilistSource(multilistSource);
+			}
+
+			else if(val is PlatformTagNode)
+			{
+				// TODO: Handle the following cases:
+				//		Game search
+				//		Favourites
+
+				PlatformTagNode node = (PlatformTagNode)val;
+				if(node.ID == (int)SpecialPlatformID.cSearch) // Handle search
+				{
+					//m_gamePanel.ContentList = CGameSQL.GameSearch(node.Name).ToList();
+					m_gamePanel.SingleListMode(node.Name);
+				}
+				/*
+				else if(node.ID == (int)SpecialPlatformID.cFavourites) // Handle favourite games
+				{
+					//m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.PlatformID, true).ToList();
+				}
+				*/
+				if(node.ID > 0)
+				{
+					m_gamePanel.SingleListMode(node.Name);
+				}
+			}
+
+			/*
+			if(val is PlatformRootNode) // Switch to new multilist
+            {
+				PlatformRootNode node = (PlatformRootNode)val;
 				Dictionary<string, List<GameObject>> gameDict = CGameSQL.LoadPlatformGamesAsDict(node.ID);
 				Dictionary<string, CGameList> gameList = new Dictionary<string, CGameList>();
 				foreach(KeyValuePair<string, List<GameObject>> kv in gameDict)
@@ -143,17 +200,18 @@ namespace glc.UI.Library
 				PlatformTagNode node = (PlatformTagNode)val;
 				if(node.ID == (int)SpecialPlatformID.cSearch) // Handle search
 				{
-					m_gamePanel.ContentList = CGameSQL.GameSearch(node.Name).ToList();
+					//m_gamePanel.ContentList = CGameSQL.GameSearch(node.Name).ToList();
 				}
 				else if(node.ID == (int)SpecialPlatformID.cFavourites) // Handle favourite games
 				{
-					m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.PlatformID, true).ToList();
+					//m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.PlatformID, true).ToList();
 				}
 				if(node.ID > 0)
                 {
 					m_gamePanel.SingleListMode(node.Name);
                 }
             }
+			*/
 
 			/*
 			if(val is PlatformRootNode)
@@ -226,10 +284,6 @@ namespace glc.UI.Library
 			System.Diagnostics.Debug.WriteLine($"Selected game: {game.Title}");
 			return;
 
-			if(m_gamePanel.ContentList.Count == 0)
-            {
-				return;
-            }
 			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
 			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 
@@ -271,7 +325,8 @@ namespace glc.UI.Library
 				return;
             }
 
-			if(m_gamePanel.ContentList.Count == 0)
+			//if(m_gamePanel.ContentList.Count == 0)
+			if(false)
 			{
 				m_infoPanel.FrameView.RemoveAll();
 				return;
@@ -323,7 +378,8 @@ namespace glc.UI.Library
 
 		private static void SelectedGameToggleFavourite()
         {
-			if(m_gamePanel.ContentList.Count == 0)
+			//if(m_gamePanel.ContentList.Count == 0)
+			if(false)
 			{
 				return;
 			}
@@ -341,7 +397,8 @@ namespace glc.UI.Library
 		// Create a large dialog
 		private static void SelectedGameEdit()
         {
-			if(m_gamePanel.ContentList.Count == 0)
+			//if(m_gamePanel.ContentList.Count == 0)
+			if(false)
 			{
 				return;
 			}
@@ -377,7 +434,8 @@ namespace glc.UI.Library
 		// TODO: Neaten up
 		private static void SelectedGameSetRating()
         {
-			if(m_gamePanel.ContentList.Count == 0)
+			//if(m_gamePanel.ContentList.Count == 0)
+			if(false)
 			{
 				return;
 			}

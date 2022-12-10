@@ -13,15 +13,15 @@ namespace glc.UI.Settings
         public CSettingsCategoriesPanel(string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
             : base(name, x, y, width, height, canFocus)
         {
-            m_contentList = Enum.GetValues(typeof(SettingCategory))
-                            .Cast<SettingCategory>()
-                            .ToList();
             Initialise(name, x, y, width, height, canFocus);
         }
 
         public override void CreateContainerView()
         {
-            m_containerView = new ListView(new CSettingsDataSource(m_contentList))
+            m_containerView = new ListView(
+                                new CSettingsDataSource(Enum.GetValues(typeof(SettingCategory))
+                                .Cast<SettingCategory>()
+                                .ToList()))
             {
                 X = 0,
                 Y = 0,

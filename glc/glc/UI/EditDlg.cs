@@ -264,12 +264,13 @@ namespace glc.UI
 	public class CDialogSelectionPanel : CFramePanel<IDataNode, ListView>
     {
 		private List<IDataNode> m_originalNodes;
+		private List<IDataNode> m_currentNodes;
 
 		public CDialogSelectionPanel(string title, int x, int y, List<IDataNode> nodes, bool isVisible)
 			: base(title, x, y, Dim.Fill(), Dim.Fill(), true)
         {
-			m_contentList = nodes;
 			m_originalNodes = new List<IDataNode>(nodes);
+			m_currentNodes = new List<IDataNode>(nodes);
 
 			Initialise(title, x, y, Dim.Fill(), Dim.Fill(3), true);
 
@@ -279,7 +280,7 @@ namespace glc.UI
 
 		public override void CreateContainerView()
 		{
-			m_containerView = new ListView(new CDialogSelectionDataSource(m_contentList))
+			m_containerView = new ListView(new CDialogSelectionDataSource(m_currentNodes))
 			{
 				X = 0,
 				Y = 0,
@@ -295,7 +296,7 @@ namespace glc.UI
 
 		public bool IsSelectionDirty()
         {
-			return m_originalNodes != m_contentList;
+			return m_originalNodes != m_currentNodes;
         }
 
 		internal class CDialogSelectionDataSource : CGenericDataSource<IDataNode>
