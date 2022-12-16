@@ -113,8 +113,24 @@ namespace GameLauncher_Console
 			CLogger.LogDebug("------------------------");
 		}
 
-		public static string GetIconUrl(CGame _) => throw new NotImplementedException();
+        public static string GetIconUrl(CGame game)
+        {
+            return GetIconUrl(GetGameID(game.ID), game.Title);
+        }
 
-		public static string GetGameID(string key) => key;
+        public static string GetIconUrl(string id, string title)
+        {
+            if (string.IsNullOrEmpty(title))
+                return "";
+
+			if (id.Equals("gta3") || id.Equals("gtavc") || id.Equals("gtasa"))
+				id += "unreal";
+            //id should be (as of 2022/12/15) one of: "bully", "gta3unreal", "gtavcunreal", "gtasaunreal", "gtaiv", "gtav", "lan", "lanvr", "mp3", "rdr2"
+            string iconUrl = string.Format("https://s.rsg.sc/sc/images/react/games/boxart/{0}.jpg", id);
+
+            return iconUrl;
+        }
+
+        public static string GetGameID(string key) => key;
 	}
 }
