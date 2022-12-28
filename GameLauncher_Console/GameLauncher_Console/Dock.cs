@@ -58,7 +58,7 @@ namespace GameLauncher_Console
 
 		public static readonly string currentPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 		public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
-		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT" };
+		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT", "EXI", "EXIF" };
 		public static bool noInteractive = false;
 		public static Size sizeIcon;
 		public static Size sizeImage;
@@ -896,7 +896,7 @@ namespace GameLauncher_Console
 									//DownloadCustomImage(selectedGame.Title, PlatformBattlenet.GetIconUrl(selectedGame), true);
 									break;
 								case GamePlatform.Rockstar:
-									//DownloadCustomImage(selectedGame.Title, PlatformRockstar.GetIconUrl(selectedGame), true);
+									DownloadCustomImage(selectedGame.Title, PlatformRockstar.GetIconUrl(selectedGame), true);
 									break;
 								case GamePlatform.Amazon:
 									DownloadCustomImage(selectedGame.Title, PlatformAmazon.GetIconUrl(selectedGame), true);
@@ -1058,12 +1058,29 @@ namespace GameLauncher_Console
 #if !DEBUG
 						if (!StartGame(selectedGame))
 						{
-							SetFgColour(cols.errorCC, cols.errorLtCC);
-							CLogger.LogWarn("Remove game from file.");
-							Console.WriteLine("{0} will be removed from the list.", selectedGame.Title);
-							Console.ResetColor();
-							RemoveGame(selectedGame);
-						}
+							if (noInteractive)
+							{
+                                SetFgColour(cols.errorCC, cols.errorLtCC);
+                                CLogger.LogWarn("Remove game from file.");
+                                Console.WriteLine("{0} will be removed from the list.", selectedGame.Title);
+                                Console.ResetColor();
+                                RemoveGame(selectedGame);
+							}
+							else
+							{
+                                //string answer = InputPrompt(string.Format("{0} not found! Remove from list? [y/n] >>> ", selectedGame.Title), cols);
+                                //ClearInputLine(cols);
+                                SetFgColour(cols.inputCC, cols.inputLtCC);
+                                Console.Write("{0} not found! Remove from list? [y/n] >>> ", selectedGame.Title);
+                                string answer = Console.ReadLine();
+                                if (answer[0] == 'Y' || answer[0] == 'y')
+                                {
+                                    CLogger.LogWarn("Remove game from file.");
+                                    RemoveGame(selectedGame);
+                                }
+                                Console.ResetColor();
+                            }
+                        }
 #else
 						// DEBUG MODE
 						// Make sure we've written to configuration file *before* this point, as we're setting overrides to CConfig.config below

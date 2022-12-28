@@ -23,8 +23,8 @@ namespace GameLauncher_Console
 		//private const string PLARIUM_FOLDER	= "InstallFolder";
 		//private const string PLARIUM_REG		= "PlariumPlayInstaller"; //HKCU64
 		//private const string PLARIUM_UNREG	= "{970D6975-3C2A-4AF9-B190-12AF8837331F}";	// HKLM32 Uninstall
-		private const string PLARIUM_DB			= @"Plarium\PlariumPlay\gamestorage.gsfn";	// AppData\Local
-		private const string PLARIUM_GAMES		= @"Plarium\PlariumPlay\StandAloneApps";	// AppData\Local
+		private const string PLARIUM_DB			= @"PlariumPlay\gamestorage.gsfn";  // AppData\Local [may or may not have "Plarium\" before this, and registry may be wrong]
+        private const string PLARIUM_GAMES		= @"PlariumPlay\StandAloneApps";	// AppData\Local [may or may not have "Plarium\" before this, and registry may be wrong]
 
 		private static readonly string _name = Enum.GetName(typeof(GamePlatform), ENUM);
 
@@ -87,10 +87,15 @@ namespace GameLauncher_Console
 
 			if (!File.Exists(file))
 			{
-				CLogger.LogInfo("{0} database not found.", _name.ToUpper());
-				return;
+                file = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), "Plarium", PLARIUM_DB);
+				if (!File.Exists(file))
+				{
+					CLogger.LogInfo("{0} database not found.", _name.ToUpper());
+					return;
+				}
 			}
-			try
+            
+            try
 			{
 				while (true)
 				{
@@ -122,7 +127,7 @@ namespace GameLauncher_Console
 
 						foreach (JsonProperty gameVal in game.Value.EnumerateObject())
 						{
-							if (gameVal.Name.Equals("InsalledGames", CDock.IGNORE_CASE))
+							if (gameVal.Name.Equals("InsalledGames", CDock.IGNORE_CASE)) // "InsalledGames" [sic]
 							{
 								foreach (JsonProperty install in gameVal.Value.EnumerateObject())
 								{
@@ -130,7 +135,9 @@ namespace GameLauncher_Console
 									string id = install.Name;
 									strID = "plarium_" + id;
 									string path = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), PLARIUM_GAMES, id, num);
-									strLaunch = FindGameBinaryFile(path, id);
+									if (!Path.Exists(path))
+                                        path = Path.Combine(GetFolderPath(SpecialFolder.LocalApplicationData), "Plarium", PLARIUM_GAMES, id, num);
+                                    strLaunch = FindGameBinaryFile(path, id);
 									string infoPath = Path.Combine(path, id + "_Data", "app.info");
 									string jsonPath = Path.Combine(path, "settings.json");
 									if (File.Exists(infoPath))
@@ -164,7 +171,15 @@ namespace GameLauncher_Console
 									if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 										strAlias = "";
 									if (!string.IsNullOrEmpty(strLaunch))
-										gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+									{
+                                        gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
+                                        
+										// Use website to download missing icons
+										/*
+                                        if (expensiveIcons && !(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
+											CDock.DownloadCustomImage(strTitle, GetIconUrl(strTitle));
+										*/
+                                    }
 								}
 							}
 						}
@@ -185,8 +200,35 @@ namespace GameLauncher_Console
 			CLogger.LogDebug("------------------------");
 		}
 
-		public static string GetIconUrl(CGame _) => throw new NotImplementedException();
+		public static string GetIconUrl(CGame game)
+		{
+			return GetIconUrl(game.Title);
+		}
 
-		public static string GetGameID(string key) => key;
-	}
+		public static string GetIconUrl(string title)
+		{
+			if (string.IsNullOrEmpty(title))
+				return "";
+
+			// Webp won't be supported until we finish switch to a cross-platform graphics library
+            string iconUrl = string.Format("https://cdn01.x-plarium.com/browser/content/plarium-play/games/notification_img/{0}.webp", title.ToLower());
+            // Unfortunately, the following art uses an abbreviated title, so we'd have to do additional web parsing to get these:
+            //string iconUrl2 = string.Format("https://cdn01.x-plarium.com/browser/content/plarium-play/games/{0}/game-grid-preview.webp", id.ToUpper());
+            //string iconWideUrl = string.Format("https://cdn01.x-plarium.com/browser/content/plarium-play/games/grid/{0}.webp", id);
+
+            return iconUrl;
+		}
+
+        /// <summary>
+        /// Scan the key name and extract the Plarium game id
+        /// </summary>
+        /// <param name="key">The game string</param>
+        /// <returns>Plarium game ID as string</returns>
+        public static string GetGameID(string key)
+        {
+            if (key.StartsWith("plarium_"))
+                return key[8..];
+            return key;
+        }
+    }
 }
