@@ -8,6 +8,8 @@ using System.Runtime.Loader;
 
 using Logger;
 using core.Platform;
+using SqlDB;
+using core.DataAccess;
 
 namespace core
 {
@@ -121,7 +123,7 @@ namespace core
         private bool InitialisePlatforms()
         {
             var pluginLoader = new PluginLoader<CPlatformFactory<CPlatform>>();
-            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc\bin\Debug\netcoreapp3.1\platforms"); // TODO: path
+            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc\bin\Debug\net6.0\platforms"); // TODO: path
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 
             foreach(var plugin in plugins)

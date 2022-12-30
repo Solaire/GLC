@@ -23,8 +23,8 @@ namespace BasePlatformExtension
             m_platformID = platformID;
         }
 
-        public abstract HashSet<GameObject> GetInstalledGames(bool expensiveIcons);
-		public abstract HashSet<GameObject> GetNonInstalledGames(bool expensiveIcons);
+        public abstract HashSet<Game> GetInstalledGames(bool expensiveIcons);
+		public abstract HashSet<Game> GetNonInstalledGames(bool expensiveIcons);
 	}
 
 	public abstract class CBasePlatformExtension<T> : CPlatform where T : CBasePlatformScanner//, new()
@@ -38,16 +38,16 @@ namespace BasePlatformExtension
             //m_scanner = new T();
         }
 
-        public override HashSet<GameObject> GetInstalledGames()
+        public override HashSet<Game> GetInstalledGames()
         {
-            HashSet<GameObject> result = new HashSet<GameObject>();
+            HashSet<Game> result = new HashSet<Game>();
             m_scanner.GetInstalledGames(false);
             return result;
         }
 
-        public override HashSet<GameObject> GetNonInstalledGames()
+        public override HashSet<Game> GetNonInstalledGames()
         {
-            HashSet<GameObject> result = new HashSet<GameObject>();
+            HashSet<Game> result = new HashSet<Game>();
             m_scanner.GetNonInstalledGames(false);
             return result;
         }

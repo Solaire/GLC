@@ -1,4 +1,6 @@
-﻿namespace core.Tag
+﻿using core.DataAccess;
+
+namespace core.Tag
 {
     public struct TagObject : IDataNode
     {

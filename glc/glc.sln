@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "glc", "glc\glc.csproj", "{0
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlatformExtension", "PlatformExtension\PlatformExtension.csproj", "{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlDB", "SqlDB\SqlDB.csproj", "{6E2124CC-EC73-482A-BB0A-97CC9567C166}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csproj", "{9B4BAD63-23DC-41A9-9C2F-9F0703C966C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DBEFC8D-4F17-4155-AA28-3BDB8C93205F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E2124CC-EC73-482A-BB0A-97CC9567C166}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E2124CC-EC73-482A-BB0A-97CC9567C166}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E2124CC-EC73-482A-BB0A-97CC9567C166}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E2124CC-EC73-482A-BB0A-97CC9567C166}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B4BAD63-23DC-41A9-9C2F-9F0703C966C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B4BAD63-23DC-41A9-9C2F-9F0703C966C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B4BAD63-23DC-41A9-9C2F-9F0703C966C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B4BAD63-23DC-41A9-9C2F-9F0703C966C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

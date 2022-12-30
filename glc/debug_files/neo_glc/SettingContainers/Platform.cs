@@ -2,7 +2,6 @@
 using System.Linq;
 
 using core;
-using core.DataAccess;
 using core.Platform;
 using core.Tag;
 using glc.UI;

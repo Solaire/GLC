@@ -1,9 +1,11 @@
-﻿namespace core.Game
+﻿using core.DataAccess;
+
+namespace core
 {
     /// <summary>
-    /// Structure describing a row in the game table.
+    /// The database game object.
     /// </summary>
-    public struct GameObject : System.IEquatable<GameObject>
+    public class Game : IEquatable<Game>
     {
         #region Properties
 
@@ -69,54 +71,20 @@
 
         #endregion Properties
 
-        #region Comparison functions
-
-        /// <summary>
-        /// Compare the instance with another GameObject using the ID property
-        /// </summary>
-        /// <param name="other">The GameObject instance to compare</param>
-        /// <returns>True if this.ID > other.ID</returns>
-        public bool CompareByID(GameObject other)
-        {
-            return this.ID > other.ID;
-        }
-
-        /// <summary>
-        /// Compare the instance with another GameObject using the IsFavourite property
-        /// </summary>
-        /// <param name="other">The GameObject instance to compare</param>
-        /// <returns>True if instance is favourite and other is not favourite</returns>
-        public bool CompareByFavourite(GameObject other)
-        {
-            return this.IsFavourite && !other.IsFavourite;
-        }
-
-        /// <summary>
-        /// Compare the instance with another GameObject using the Frequency property
-        /// </summary>
-        /// <param name="other">The GameObject instance to compare</param>
-        /// <returns>True if this.Frequency > other.Frequency</returns>
-        public bool CompareByFrequency(GameObject other)
-        {
-            return this.Frequency > other.Frequency;
-        }
-
         /// <summary>
         /// Determine the equality of this instance and another GameObject
         /// using the Identifier property
         /// </summary>
         /// <param name="other">The GameObject instance to compare</param>
         /// <returns>True if this instance and other have the same Identifier field</returns>
-        public bool Equals(GameObject other)
+        public bool Equals(Game other)
         {
-            return this.Identifier == other.Identifier;
+            return (other == null) ? false : Identifier == other.Identifier;
         }
-
-        #endregion Comparison functions
 
         /// <summary>
         /// Constructor.
-        /// Create a game object with minimal data.
+        /// Create a game object with minimal necessary data.
         /// Should be used for new game entries found with the platform's scanner
         /// </summary>
         /// <param name="title">The title</param>
@@ -125,20 +93,20 @@
         /// <param name="alias">The alias</param>
         /// <param name="launch">The launch command</param>
         /// <param name="tag">The game's tag</param>
-        public GameObject(string title, int platformFK, string identifier, string alias, string launch, string tag)
+        public Game(string title, int platformFK, string identifier, string alias, string launch, string tag)
         {
-            this.PlatformFK = platformFK;
-            this.Identifier = identifier;
-            this.Title      = title;
-            this.Alias      = alias;
-            this.Launch     = launch;
-            this.Tag        = tag;
+            PlatformFK = platformFK;
+            Identifier = identifier;
+            Title      = title;
+            Alias      = alias;
+            Launch     = launch;
+            Tag        = tag;
 
-            this.ID         = 0;
-            this.Frequency  = 0.0;
-            this.IsFavourite= false;
-            this.IsHidden   = false;
-            this.Icon       = ""; // TODO
+            ID         = 0;
+            Frequency  = 0.0;
+            IsFavourite= false;
+            IsHidden   = false;
+            Icon       = ""; // TODO
         }
 
         /// <summary>
@@ -146,37 +114,40 @@
         /// Create a full game object from the database entry.
         /// </summary>
         /// <param name="qry">The game query</param>
-        public GameObject(CGameSQL.CQryReadGame qry)
+        public Game(CGameSQL.CQryReadGame qry)
         {
-            this.ID         = qry.GameID;
-            this.PlatformFK = qry.PlatformFK;
-            this.Identifier = qry.Identifier;
-            this.Title      = qry.Title;
-            this.Alias      = qry.Alias;
-            this.Launch     = qry.Launch;
-            this.Frequency  = qry.Frequency;
-            this.IsFavourite= qry.IsFavourite;
-            this.IsHidden   = qry.IsHidden;
-            this.Icon       = qry.Icon;
-            this.Tag        = qry.Tag;
+            ID         = qry.GameID;
+            PlatformFK = qry.PlatformFK;
+            Identifier = qry.Identifier;
+            Title      = qry.Title;
+            Alias      = qry.Alias;
+            Launch     = qry.Launch;
+            Frequency  = qry.Frequency;
+            IsFavourite= qry.IsFavourite;
+            IsHidden   = qry.IsHidden;
+            Icon       = qry.Icon;
+            Tag        = qry.Tag;
         }
 
         // TODO: Remove later
-        public GameObject(CGameSQL.CQryGameFuzzySearch qry)
+        public Game(CGameSQL.CQryGameFuzzySearch qry)
         {
-            this.ID         = qry.GameID;
-            this.PlatformFK = qry.PlatformFK;
-            this.Identifier = qry.Identifier;
-            this.Title      = qry.Title;
-            this.Alias      = qry.Alias;
-            this.Launch     = qry.Launch;
-            this.Frequency  = qry.Frequency;
-            this.IsFavourite= qry.IsFavourite;
-            this.IsHidden   = qry.IsHidden;
-            this.Icon       = qry.Icon;
-            this.Tag        = qry.Tag;
+            ID         = qry.GameID;
+            PlatformFK = qry.PlatformFK;
+            Identifier = qry.Identifier;
+            Title      = qry.Title;
+            Alias      = qry.Alias;
+            Launch     = qry.Launch;
+            Frequency  = qry.Frequency;
+            IsFavourite= qry.IsFavourite;
+            IsHidden   = qry.IsHidden;
+            Icon       = qry.Icon;
+            Tag        = qry.Tag;
         }
 
+        /// <summary>
+        /// Toggle the favourite flag
+        /// </summary>
         public void ToggleFavourite()
         {
             SetFavourite(!IsFavourite);
@@ -188,10 +159,10 @@
         /// <param name="isFavourite">The new favourite flag</param>
         private void SetFavourite(bool isFavourite)
         {
-            if(this.IsFavourite != isFavourite)
+            if(IsFavourite != isFavourite)
             {
-                this.IsFavourite = isFavourite;
-                CGameSQL.ToggleFavourite(this.ID, isFavourite);
+                IsFavourite = isFavourite;
+                CGameSQL.ToggleFavourite(ID, isFavourite);
             }
         }
 
@@ -201,10 +172,10 @@
         /// <param name="isHidden">The new hidden flag</param>
         public void SetHidden(bool isHidden)
         {
-            if(this.IsHidden != isHidden)
+            if(IsHidden != isHidden)
             {
-                this.IsHidden = isHidden;
-                CGameSQL.ToggleHidden(this.ID, isHidden);
+                IsHidden = isHidden;
+                CGameSQL.ToggleHidden(ID, isHidden);
             }
         }
 
@@ -215,13 +186,13 @@
         /// <param name="isDecimate">If true, decrease value by 10%</param>
         public void UpdateFrequency(bool isDecimate)
         {
-            this.Frequency = (isDecimate) ? this.Frequency * 0.90 : this.Frequency + 1;
+            Frequency = (isDecimate) ? Frequency * 0.90 : Frequency + 1;
         }
 
         public void UpdateRating(int rating)
         {
-            // this.Rating = rating;
-            //CGameSQL.UpdateRating(this.ID, rating);
+            // Rating = rating;
+            //CGameSQL.UpdateRating(ID, rating);
         }
 
         public void Update()

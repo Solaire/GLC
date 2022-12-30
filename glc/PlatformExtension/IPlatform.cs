@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿using core.DataAccess;
 using core.Game;
 
 namespace core.Platform
@@ -88,27 +87,27 @@ namespace core.Platform
     /// </summary>
     public abstract class CPlatform : CBasicPlatform
     {
-        protected Dictionary<string, HashSet<GameObject>> m_gameDictionary;
+        protected Dictionary<string, HashSet<Game.Game>> m_gameDictionary;
 
         #region Properties
 
         /// <summary>
         /// Game dictionary, grouped by Game's Tag property
         /// </summary>
-        public Dictionary<string, HashSet<GameObject>> Games { get { return m_gameDictionary; } }
+        public Dictionary<string, HashSet<Game.Game>> Games { get { return m_gameDictionary; } }
 
         /// <summary>
         /// Retrieve games with specific tag
         /// </summary>
         /// <param name="tag">The tag name</param>
         /// <returns>HashSet of GameObject types</returns>
-        public HashSet<GameObject> this[string tag]
+        public HashSet<Game.Game> this[string tag]
         {
             get
             {
                 if(!m_gameDictionary.ContainsKey(tag))
                 {
-                    m_gameDictionary[tag] = new HashSet<GameObject>();
+                    m_gameDictionary[tag] = new HashSet<Game.Game>();
                 }
                 return m_gameDictionary[tag];
             }
@@ -127,7 +126,7 @@ namespace core.Platform
         public CPlatform(int id, string name, string description, string path, bool isActive)
             : base(id, name, description, path, isActive)
         {
-            m_gameDictionary = new Dictionary<string, HashSet<GameObject>>();
+            m_gameDictionary = new Dictionary<string, HashSet<Game.Game>>();
         }
 
         /// <summary>
@@ -146,7 +145,7 @@ namespace core.Platform
         /// </summary>
         /// <param name="tag">The tag to store the game in</param>
         /// <param name="game">The GameObject instance</param>
-        public void AddGame(string tag, GameObject game)
+        public void AddGame(string tag, Game.Game game)
         {
             this[tag].Add(game);
         }
@@ -155,21 +154,21 @@ namespace core.Platform
         /// Save newly found games into the database and remove uninstalled games
         /// </summary>
         /// <param name="newGames">The HashSet containing new games</param>
-        protected virtual void SaveNewGames(HashSet<GameObject> newGames)
+        protected virtual void SaveNewGames(HashSet<Game.Game> newGames)
         {
-            HashSet<GameObject> allGames = CGameSQL.LoadPlatformGames(this.PrimaryKey);
-            HashSet<GameObject> gamesToAdd = new HashSet<GameObject>(newGames);
-            HashSet<GameObject> gamesToRemove = new HashSet<GameObject>(allGames);
+            HashSet<Game.Game> allGames = CGameSQL.LoadPlatformGames(this.PrimaryKey);
+            HashSet<Game.Game> gamesToAdd = new HashSet<Game.Game>(newGames);
+            HashSet<Game.Game> gamesToRemove = new HashSet<Game.Game>(allGames);
 
             gamesToAdd.ExceptWith(allGames);
             gamesToRemove.ExceptWith(newGames);
 
-            foreach(GameObject game in gamesToAdd)
+            foreach(Game.Game game in gamesToAdd)
             {
                 m_gameDictionary[game.Tag].Add(game);
                 CGameSQL.InsertGame(game);
             }
-            foreach(GameObject game in gamesToRemove)
+            foreach(Game.Game game in gamesToRemove)
             {
                 m_gameDictionary[game.Tag].Remove(game);
                 CGameSQL.DeleteGame(game.ID);
@@ -182,14 +181,14 @@ namespace core.Platform
         /// Search for platform games
         /// </summary>
         /// <returns>HashSet of GameObjects</returns>
-        public abstract HashSet<GameObject> GameScanner();
+        public abstract HashSet<Game.Game> GameScanner();
 
         /// <summary>
         /// Launch or activate specified game
         /// </summary>
         /// <param name="game">The game to launch</param>
         /// <returns>True on success</returns>
-        public abstract bool GameLaunch(GameObject game);
+        public abstract bool GameLaunch(Game.Game game);
 
         #endregion Abstract functions
     }

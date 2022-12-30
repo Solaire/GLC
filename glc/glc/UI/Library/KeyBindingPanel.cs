@@ -1,5 +1,4 @@
-﻿using core.Game;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Terminal.Gui;
 

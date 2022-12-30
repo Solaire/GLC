@@ -1,7 +1,9 @@
-﻿using System;
+﻿using core.SystemAttribute;
+using SqlDB;
+using System;
 using System.Collections.Generic;
 
-namespace core.SystemAttribute
+namespace core.DataAccess
 {
     /// <summary>
     /// Class for accessing and modyding the "SystemAttribute" table.
@@ -10,26 +12,26 @@ namespace core.SystemAttribute
     public static class CSystemAttributeSQL
     {
         // List of supported core system attributes
-        public const string A_HIDE_EMPTY_PLATFORMS  = "HIDE_EMPTY_PLATFORMS";
-        public const string A_HIDE_EMPTY_GROUPS     = "HIDE_EMPTY_GROUPS";
+        public const string A_HIDE_EMPTY_PLATFORMS = "HIDE_EMPTY_PLATFORMS";
+        public const string A_HIDE_EMPTY_GROUPS = "HIDE_EMPTY_GROUPS";
         public const string A_CLOSE_AFTER_LAUNCHING = "CLOSE_AFTER_LAUNCHING";
         public const string A_SHOW_SEARCH_IN_DIALOG = "SHOW_SEARCH_IN_DIALOG";
-        public const string A_SHOW_GAME_INFO_PANEL  = "SHOW_GAME_INFO_PANEL";
+        public const string A_SHOW_GAME_INFO_PANEL = "SHOW_GAME_INFO_PANEL";
 
         // Query parameter names
-        private const string FIELD_ATTRIBUTE_NAME  = "AttributeName";
+        private const string FIELD_ATTRIBUTE_NAME = "AttributeName";
         private const string FIELD_ATTRIBUTE_VALUE = "AttributeValue";
-        private const string FIELD_ATTRIBUTE_DESC  = "AttributeDesc";
-        private const string FIELD_ATTRIBUTE_TYPE  = "AttributeType";
+        private const string FIELD_ATTRIBUTE_DESC = "AttributeDesc";
+        private const string FIELD_ATTRIBUTE_TYPE = "AttributeType";
 
-        public const string BOOL_VALUE_TRUE  = "true";
+        public const string BOOL_VALUE_TRUE = "true";
         public const string BOOL_VALUE_FALSE = "false";
 
         public enum AttributeType
         {
             cTypeInteger = 0,
-            cTypeBool    = 1,
-            cTypeString  = 2,
+            cTypeBool = 1,
+            cTypeString = 2,
         }
 
         /// <summary>
@@ -40,10 +42,10 @@ namespace core.SystemAttribute
             public CQryAttribute()
                 : base("SystemAttribute", "", "")
             {
-                m_sqlRow[FIELD_ATTRIBUTE_NAME]  = new CSqlFieldString(FIELD_ATTRIBUTE_NAME,  CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere | CSqlField.QryFlag.cUpdWhere);
+                m_sqlRow[FIELD_ATTRIBUTE_NAME] = new CSqlFieldString(FIELD_ATTRIBUTE_NAME, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere | CSqlField.QryFlag.cUpdWhere);
                 m_sqlRow[FIELD_ATTRIBUTE_VALUE] = new CSqlFieldString(FIELD_ATTRIBUTE_VALUE, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_ATTRIBUTE_DESC]  = new CSqlFieldString(FIELD_ATTRIBUTE_DESC,  CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_ATTRIBUTE_TYPE]  = new CSqlFieldInteger(FIELD_ATTRIBUTE_TYPE, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ATTRIBUTE_DESC] = new CSqlFieldString(FIELD_ATTRIBUTE_DESC, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ATTRIBUTE_TYPE] = new CSqlFieldInteger(FIELD_ATTRIBUTE_TYPE, CSqlField.QryFlag.cSelRead);
             }
             public string AttributeName
             {
@@ -79,12 +81,12 @@ namespace core.SystemAttribute
             List<SystemAttributeNode> nodes = new List<SystemAttributeNode>();
 
             m_qryAttribute.MakeFieldsNull();
-            if(m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
                     nodes.Add(new SystemAttributeNode(m_qryAttribute));
-                } while(m_qryAttribute.Fetch());
+                } while (m_qryAttribute.Fetch());
             }
             return nodes;
         }
@@ -94,11 +96,11 @@ namespace core.SystemAttribute
         /// </summary>
         /// <param name="attributeName">The attribute name</param>
         /// <returns>Nullable SystemAttributeNode instance, null if lookup failed</returns>
-        public static SystemAttributeNode ? GetNode(string attributeName)
+        public static SystemAttributeNode? GetNode(string attributeName)
         {
             m_qryAttribute.MakeFieldsNull();
             m_qryAttribute.AttributeName = attributeName;
-            if(m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 return new SystemAttributeNode(m_qryAttribute);
             }
@@ -114,7 +116,7 @@ namespace core.SystemAttribute
         {
             m_qryAttribute.MakeFieldsNull();
             m_qryAttribute.AttributeName = attributeName;
-            if(m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 return m_qryAttribute.AttributeValue;
             }
@@ -130,9 +132,9 @@ namespace core.SystemAttribute
         {
             m_qryAttribute.MakeFieldsNull();
             m_qryAttribute.AttributeName = attributeName;
-            if(m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
-                Int32.TryParse(m_qryAttribute.AttributeValue, out int intValue);
+                int.TryParse(m_qryAttribute.AttributeValue, out int intValue);
                 return intValue;
             }
             return 0;
@@ -147,7 +149,7 @@ namespace core.SystemAttribute
         {
             m_qryAttribute.MakeFieldsNull();
             m_qryAttribute.AttributeName = attributeName;
-            if(m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 return IsTrue(m_qryAttribute.AttributeValue);
             }
@@ -163,7 +165,7 @@ namespace core.SystemAttribute
         {
             m_qryAttribute.MakeFieldsNull();
             m_qryAttribute.AttributeName = attributeName;
-            return (m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok);
+            return m_qryAttribute.Select() == System.Data.SQLite.SQLiteErrorCode.Ok;
         }
 
         /// <summary>
@@ -184,9 +186,9 @@ namespace core.SystemAttribute
         public static bool UpdateNode(SystemAttributeNode node)
         {
             m_qryAttribute.MakeFieldsNull();
-            m_qryAttribute.AttributeName  = node.AttributeName;
+            m_qryAttribute.AttributeName = node.AttributeName;
             m_qryAttribute.AttributeValue = node.AttributeValue;
-            return (m_qryAttribute.Update() == System.Data.SQLite.SQLiteErrorCode.Ok);
+            return m_qryAttribute.Update() == System.Data.SQLite.SQLiteErrorCode.Ok;
         }
     }
 }

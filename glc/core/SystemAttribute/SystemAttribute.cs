@@ -1,4 +1,6 @@
-﻿namespace core.SystemAttribute
+﻿using core.DataAccess;
+
+namespace core.SystemAttribute
 {
     /// <summary>
     /// Structure representing a system attribute node

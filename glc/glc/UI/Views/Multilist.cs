@@ -1,4 +1,4 @@
-﻿using core.Game;
+﻿using core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -57,16 +57,16 @@ namespace glc.UI.Views
 	/// <summary>
 	/// Extension of <see cref="List{GameObject}"/> providing some additional properties
 	/// </summary>
-	public class CGameList : List<GameObject>
+	public class CGameList : List<Game>
     {
-		public CGameList(string listName, List<GameObject> games)
+		public CGameList(string listName, List<Game> games)
 			: base(games)
         {
 			ListName = listName;
 			IsVisible = true; // TODO: Only show when have items
         }
 
-		public CGameList(KeyValuePair<string, List<GameObject>> kv)
+		public CGameList(KeyValuePair<string, List<Game>> kv)
 			: base(kv.Value)
         {
 			ListName = kv.Key;
@@ -152,7 +152,7 @@ namespace glc.UI.Views
 		/// <param name="sublistIndex">The sublist index</param>
 		/// <param name="itemIndex">The item index</param>
 		/// <returns>Data source item; if the sublist doesn't exist, or the item index is out of bounds, should return null</returns>
-		GameObject ? GetItem(string sublistName, int itemIndex);
+		Game ? GetItem(string sublistName, int itemIndex);
 	}
 
 	/// <summary>
@@ -624,7 +624,7 @@ namespace glc.UI.Views
 				return true;
             }
 
-			GameObject value = (GameObject)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
+			Game value = (Game)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
 			SelectedItemChanged?.Invoke(new MultilistViewItemEventArgs(globalSelection, value));
 			if(HasFocus)
             {
@@ -649,7 +649,7 @@ namespace glc.UI.Views
 				return true;
             }
 
-			GameObject value = (GameObject)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
+			Game value = (Game)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
 
 			OpenSelectedItem?.Invoke(new MultilistViewItemEventArgs(CalculateGlobalSelection(), value));
 
