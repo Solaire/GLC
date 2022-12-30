@@ -10,13 +10,15 @@ namespace glc
 
         }
 
-        protected override bool Initialise()
+        public override bool Initialise()
         {
-            bool isOk = base.Initialise();
+            if(!base.Initialise())
+            {
+                return false;
+            }
 
             CAppWindow.Initialise(m_platforms);
-
-            return isOk;
+            return true;
         }
 
         public void Run()
