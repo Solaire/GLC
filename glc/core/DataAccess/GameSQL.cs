@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using SqlDB;
+using System.Collections.Generic;
 
-namespace core.Game
+namespace core.DataAccess
 {
     public static class CGameSQL
     {
@@ -24,17 +25,17 @@ namespace core.Game
         };
 
         // Query parameter names
-        private const string FIELD_GAME_ID       = "GameID";
-        private const string FIELD_PLATFORM_FK   = "PlatformFK";
-        private const string FIELD_IDENTIFIER    = "Identifier";
-        private const string FIELD_TITLE         = "Title";
-        private const string FIELD_ALIAS         = "Alias";
-        private const string FIELD_LAUNCH        = "Launch";
-        private const string FIELD_FREQUENCY     = "Frequency";
-        private const string FIELD_IS_FAVOURITE  = "IsFavourite";
-        private const string FIELD_IS_HIDDEN     = "IsHidden";
-        private const string FIELD_TAG           = "Tag";
-        private const string FIELD_ICON          = "Icon";
+        private const string FIELD_GAME_ID = "GameID";
+        private const string FIELD_PLATFORM_FK = "PlatformFK";
+        private const string FIELD_IDENTIFIER = "Identifier";
+        private const string FIELD_TITLE = "Title";
+        private const string FIELD_ALIAS = "Alias";
+        private const string FIELD_LAUNCH = "Launch";
+        private const string FIELD_FREQUENCY = "Frequency";
+        private const string FIELD_IS_FAVOURITE = "IsFavourite";
+        private const string FIELD_IS_HIDDEN = "IsHidden";
+        private const string FIELD_TAG = "Tag";
+        private const string FIELD_ICON = "Icon";
 
         // Due to C#'s limitations, every query will come with a lot of bloated boilerplate code
         // Best thing to do for now is to hide them away in a region and just use them. I will have to return to them one day
@@ -48,16 +49,16 @@ namespace core.Game
             public CQryNewGame()
                 : base("Game", "", "")
             {
-                m_sqlRow[FIELD_PLATFORM_FK]  = new CSqlFieldInteger(FIELD_PLATFORM_FK  , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_IDENTIFIER]   = new CSqlFieldString(FIELD_IDENTIFIER    , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_TITLE]        = new CSqlFieldString(FIELD_TITLE         , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_ALIAS]        = new CSqlFieldString(FIELD_ALIAS         , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_LAUNCH]       = new CSqlFieldString(FIELD_LAUNCH        , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_IS_FAVOURITE] = new CSqlFieldBoolean(FIELD_IS_FAVOURITE , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_IS_HIDDEN]    = new CSqlFieldBoolean(FIELD_IS_HIDDEN    , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_FREQUENCY]    = new CSqlFieldDouble(FIELD_FREQUENCY     , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_ICON]         = new CSqlFieldString(FIELD_ICON          , CSqlField.QryFlag.cInsWrite);
-                m_sqlRow[FIELD_TAG]          = new CSqlFieldString(FIELD_TAG           , CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_PLATFORM_FK] = new CSqlFieldInteger(FIELD_PLATFORM_FK, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_IDENTIFIER] = new CSqlFieldString(FIELD_IDENTIFIER, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_TITLE] = new CSqlFieldString(FIELD_TITLE, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_ALIAS] = new CSqlFieldString(FIELD_ALIAS, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_LAUNCH] = new CSqlFieldString(FIELD_LAUNCH, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_IS_FAVOURITE] = new CSqlFieldBoolean(FIELD_IS_FAVOURITE, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_IS_HIDDEN] = new CSqlFieldBoolean(FIELD_IS_HIDDEN, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_FREQUENCY] = new CSqlFieldDouble(FIELD_FREQUENCY, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_ICON] = new CSqlFieldString(FIELD_ICON, CSqlField.QryFlag.cInsWrite);
+                m_sqlRow[FIELD_TAG] = new CSqlFieldString(FIELD_TAG, CSqlField.QryFlag.cInsWrite);
 
             }
             public int PlatformFK
@@ -120,17 +121,17 @@ namespace core.Game
             public CQryUpdateGame()
                 : base("Game", "", "")
             {
-                m_sqlRow[FIELD_GAME_ID]      = new CSqlFieldInteger(FIELD_GAME_ID      , CSqlField.QryFlag.cUpdWhere | CSqlField.QryFlag.cDelWhere);
-                m_sqlRow[FIELD_PLATFORM_FK]  = new CSqlFieldInteger(FIELD_PLATFORM_FK  , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_IDENTIFIER]   = new CSqlFieldString(FIELD_IDENTIFIER    , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_TITLE]        = new CSqlFieldString(FIELD_TITLE         , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_ALIAS]        = new CSqlFieldString(FIELD_ALIAS         , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_LAUNCH]       = new CSqlFieldString(FIELD_LAUNCH        , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_IS_FAVOURITE] = new CSqlFieldBoolean(FIELD_IS_FAVOURITE , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_IS_HIDDEN]    = new CSqlFieldBoolean(FIELD_IS_HIDDEN    , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_FREQUENCY]    = new CSqlFieldDouble(FIELD_FREQUENCY     , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_ICON]         = new CSqlFieldString(FIELD_ICON          , CSqlField.QryFlag.cUpdWrite);
-                m_sqlRow[FIELD_TAG]          = new CSqlFieldString(FIELD_TAG           , CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_GAME_ID] = new CSqlFieldInteger(FIELD_GAME_ID, CSqlField.QryFlag.cUpdWhere | CSqlField.QryFlag.cDelWhere);
+                m_sqlRow[FIELD_PLATFORM_FK] = new CSqlFieldInteger(FIELD_PLATFORM_FK, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_IDENTIFIER] = new CSqlFieldString(FIELD_IDENTIFIER, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_TITLE] = new CSqlFieldString(FIELD_TITLE, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_ALIAS] = new CSqlFieldString(FIELD_ALIAS, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_LAUNCH] = new CSqlFieldString(FIELD_LAUNCH, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_IS_FAVOURITE] = new CSqlFieldBoolean(FIELD_IS_FAVOURITE, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_IS_HIDDEN] = new CSqlFieldBoolean(FIELD_IS_HIDDEN, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_FREQUENCY] = new CSqlFieldDouble(FIELD_FREQUENCY, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_ICON] = new CSqlFieldString(FIELD_ICON, CSqlField.QryFlag.cUpdWrite);
+                m_sqlRow[FIELD_TAG] = new CSqlFieldString(FIELD_TAG, CSqlField.QryFlag.cUpdWrite);
             }
             public int GameID
             {
@@ -197,17 +198,17 @@ namespace core.Game
             public CQryReadGame()
                 : base("Game", "((& = ?) OR (& = ?))", "")
             {
-                m_sqlRow[FIELD_GAME_ID]      = new CSqlFieldInteger(FIELD_GAME_ID      , CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
-                m_sqlRow[FIELD_PLATFORM_FK]  = new CSqlFieldInteger(FIELD_PLATFORM_FK  , CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
-                m_sqlRow[FIELD_IDENTIFIER]   = new CSqlFieldString(FIELD_IDENTIFIER    , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_TITLE]        = new CSqlFieldString(FIELD_TITLE         , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_ALIAS]        = new CSqlFieldString(FIELD_ALIAS         , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_LAUNCH]       = new CSqlFieldString(FIELD_LAUNCH        , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_IS_FAVOURITE] = new CSqlFieldBoolean(FIELD_IS_FAVOURITE , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_IS_HIDDEN]    = new CSqlFieldBoolean(FIELD_IS_HIDDEN    , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_FREQUENCY]    = new CSqlFieldDouble(FIELD_FREQUENCY     , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_ICON]         = new CSqlFieldString(FIELD_ICON          , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_TAG]          = new CSqlFieldString(FIELD_TAG           , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_GAME_ID] = new CSqlFieldInteger(FIELD_GAME_ID, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
+                m_sqlRow[FIELD_PLATFORM_FK] = new CSqlFieldInteger(FIELD_PLATFORM_FK, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
+                m_sqlRow[FIELD_IDENTIFIER] = new CSqlFieldString(FIELD_IDENTIFIER, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_TITLE] = new CSqlFieldString(FIELD_TITLE, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ALIAS] = new CSqlFieldString(FIELD_ALIAS, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_LAUNCH] = new CSqlFieldString(FIELD_LAUNCH, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IS_FAVOURITE] = new CSqlFieldBoolean(FIELD_IS_FAVOURITE, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IS_HIDDEN] = new CSqlFieldBoolean(FIELD_IS_HIDDEN, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_FREQUENCY] = new CSqlFieldDouble(FIELD_FREQUENCY, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ICON] = new CSqlFieldString(FIELD_ICON, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_TAG] = new CSqlFieldString(FIELD_TAG, CSqlField.QryFlag.cSelRead);
             }
             public int GameID
             {
@@ -274,17 +275,17 @@ namespace core.Game
             public CQryGameFuzzySearch()
                 : base("Game", "(& LIKE '%?%')", "")
             {
-                m_sqlRow[FIELD_TITLE]       = new CSqlFieldString(FIELD_TITLE           , CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
-                m_sqlRow[FIELD_GAME_ID]     = new CSqlFieldInteger(FIELD_GAME_ID        , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_PLATFORM_FK] = new CSqlFieldInteger(FIELD_PLATFORM_FK    , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_IDENTIFIER]  = new CSqlFieldString(FIELD_IDENTIFIER      , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_ALIAS]       = new CSqlFieldString(FIELD_ALIAS           , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_LAUNCH]      = new CSqlFieldString(FIELD_LAUNCH          , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_IS_FAVOURITE]= new CSqlFieldBoolean(FIELD_IS_FAVOURITE   , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_IS_HIDDEN]   = new CSqlFieldBoolean(FIELD_IS_HIDDEN      , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_FREQUENCY]   = new CSqlFieldDouble(FIELD_FREQUENCY       , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_ICON]        = new CSqlFieldString(FIELD_ICON            , CSqlField.QryFlag.cSelRead);
-                m_sqlRow[FIELD_TAG]         = new CSqlFieldString(FIELD_TAG             , CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_TITLE] = new CSqlFieldString(FIELD_TITLE, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
+                m_sqlRow[FIELD_GAME_ID] = new CSqlFieldInteger(FIELD_GAME_ID, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_PLATFORM_FK] = new CSqlFieldInteger(FIELD_PLATFORM_FK, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IDENTIFIER] = new CSqlFieldString(FIELD_IDENTIFIER, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ALIAS] = new CSqlFieldString(FIELD_ALIAS, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_LAUNCH] = new CSqlFieldString(FIELD_LAUNCH, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IS_FAVOURITE] = new CSqlFieldBoolean(FIELD_IS_FAVOURITE, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_IS_HIDDEN] = new CSqlFieldBoolean(FIELD_IS_HIDDEN, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_FREQUENCY] = new CSqlFieldDouble(FIELD_FREQUENCY, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_ICON] = new CSqlFieldString(FIELD_ICON, CSqlField.QryFlag.cSelRead);
+                m_sqlRow[FIELD_TAG] = new CSqlFieldString(FIELD_TAG, CSqlField.QryFlag.cSelRead);
             }
             public int GameID
             {
@@ -345,27 +346,27 @@ namespace core.Game
 
         #endregion // Query definitions
 
-        private static CQryNewGame          m_qryNewGame         = new CQryNewGame();
-        private static CQryUpdateGame       m_qryUpdateGame      = new CQryUpdateGame();
-        private static CQryReadGame         m_qryReadGame        = new CQryReadGame();
-        private static CQryGameFuzzySearch  m_qryGameFuzzySearch = new CQryGameFuzzySearch();
+        private static CQryNewGame m_qryNewGame = new CQryNewGame();
+        private static CQryUpdateGame m_qryUpdateGame = new CQryUpdateGame();
+        private static CQryReadGame m_qryReadGame = new CQryReadGame();
+        private static CQryGameFuzzySearch m_qryGameFuzzySearch = new CQryGameFuzzySearch();
 
         /// <summary>
         /// Load all games from the database
         /// </summary>
         /// <returns>HashSet of game objects</returns>
-        public static HashSet<GameObject> LoadAllGames()
+        public static HashSet<Game> LoadAllGames()
         {
-            HashSet<GameObject> databaseGames = new HashSet<GameObject>();
+            HashSet<Game> databaseGames = new HashSet<Game>();
 
             m_qryReadGame.MakeFieldsNull();
             m_qryReadGame.SelectExtraCondition = "";
-            if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    databaseGames.Add(new GameObject(m_qryReadGame));
-                } while(m_qryReadGame.Fetch());
+                    databaseGames.Add(new Game(m_qryReadGame));
+                } while (m_qryReadGame.Fetch());
             }
 
             return databaseGames;
@@ -376,97 +377,97 @@ namespace core.Game
         /// </summary>
         /// <param name="platformFK">The platform foreign key</param>
         /// <returns>HashSet of platform-specific games</returns>
-        public static HashSet<GameObject> LoadPlatformGames(int platformFK)
+        public static HashSet<Game> LoadPlatformGames(int platformFK)
         {
-            HashSet<GameObject> databaseGames = new HashSet<GameObject>();
+            HashSet<Game> databaseGames = new HashSet<Game>();
 
             m_qryReadGame.MakeFieldsNull();
             m_qryReadGame.SelectExtraCondition = "";
             m_qryReadGame.PlatformFK = platformFK;
-            if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    databaseGames.Add(new GameObject(m_qryReadGame));
-                } while(m_qryReadGame.Fetch());
+                    databaseGames.Add(new Game(m_qryReadGame));
+                } while (m_qryReadGame.Fetch());
             }
 
             return databaseGames;
         }
 
-        public static Dictionary<string, List<GameObject>> LoadPlatformGamesAsDict(int platformFK)
+        public static Dictionary<string, List<Game>> LoadPlatformGamesAsDict(int platformFK)
         {
-            Dictionary<string, List<GameObject>> databaseGames = new Dictionary<string, List<GameObject>>();
+            Dictionary<string, List<Game>> databaseGames = new Dictionary<string, List<Game>>();
 
             m_qryReadGame.MakeFieldsNull();
             m_qryReadGame.SelectExtraCondition = "";
             m_qryReadGame.PlatformFK = platformFK;
-            if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    if(!databaseGames.ContainsKey(m_qryReadGame.Tag))
+                    if (!databaseGames.ContainsKey(m_qryReadGame.Tag))
                     {
-                        databaseGames[m_qryReadGame.Tag] = new List<GameObject>();
+                        databaseGames[m_qryReadGame.Tag] = new List<Game>();
                     }
-                    databaseGames[m_qryReadGame.Tag].Add(new GameObject(m_qryReadGame));
-                } while(m_qryReadGame.Fetch());
+                    databaseGames[m_qryReadGame.Tag].Add(new Game(m_qryReadGame));
+                } while (m_qryReadGame.Fetch());
             }
 
             return databaseGames;
         }
 
-        public static HashSet<GameObject> LoadPlatformGames(int platformFK, bool favourites)
+        public static HashSet<Game> LoadPlatformGames(int platformFK, bool favourites)
         {
-            HashSet<GameObject> databaseGames = new HashSet<GameObject>();
+            HashSet<Game> databaseGames = new HashSet<Game>();
 
             m_qryReadGame.MakeFieldsNull();
             m_qryReadGame.PlatformFK = platformFK;
-            if(favourites)
+            if (favourites)
             {
                 m_qryReadGame.SelectExtraCondition = " AND (IsFavourite = 1)";
             }
-            if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    databaseGames.Add(new GameObject(m_qryReadGame));
-                } while(m_qryReadGame.Fetch());
+                    databaseGames.Add(new Game(m_qryReadGame));
+                } while (m_qryReadGame.Fetch());
             }
 
             return databaseGames;
         }
 
-        public static HashSet<GameObject> LoadPlatformGames(int platformFK, string groupName)
+        public static HashSet<Game> LoadPlatformGames(int platformFK, string groupName)
         {
-            HashSet<GameObject> databaseGames = new HashSet<GameObject>();
+            HashSet<Game> databaseGames = new HashSet<Game>();
 
             m_qryReadGame.MakeFieldsNull();
             m_qryReadGame.PlatformFK = platformFK;
             m_qryReadGame.SelectExtraCondition = $" AND (Tag = '{groupName}')";
-            if(m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryReadGame.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    databaseGames.Add(new GameObject(m_qryReadGame));
-                } while(m_qryReadGame.Fetch());
+                    databaseGames.Add(new Game(m_qryReadGame));
+                } while (m_qryReadGame.Fetch());
             }
 
             return databaseGames;
         }
 
 
-        public static HashSet<GameObject> GameSearch(string searchTerm)
+        public static HashSet<Game> GameSearch(string searchTerm)
         {
-            HashSet<GameObject> databaseGames = new HashSet<GameObject>();
+            HashSet<Game> databaseGames = new HashSet<Game>();
             m_qryGameFuzzySearch.MakeFieldsNull();
             m_qryGameFuzzySearch.Title = searchTerm;
-            if(m_qryGameFuzzySearch.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryGameFuzzySearch.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    databaseGames.Add(new GameObject(m_qryGameFuzzySearch));
-                } while(m_qryGameFuzzySearch.Fetch());
+                    databaseGames.Add(new Game(m_qryGameFuzzySearch));
+                } while (m_qryGameFuzzySearch.Fetch());
             }
 
             return databaseGames;
@@ -514,15 +515,15 @@ namespace core.Game
         /// </summary>
         /// <param name="game">The new game</param>
         /// <returns>True if insert was successful</returns>
-        public static bool InsertGame(GameObject game)
+        public static bool InsertGame(Game game)
         {
             m_qryNewGame.MakeFieldsNull();
-            m_qryNewGame.PlatformFK    = game.PlatformFK;
-            m_qryNewGame.Identifier    = game.Identifier;
-            m_qryNewGame.Title         = game.Title;
-            m_qryNewGame.Alias         = game.Alias;
-            m_qryNewGame.Launch        = game.Launch;
-            m_qryNewGame.Tag           = game.Tag;
+            m_qryNewGame.PlatformFK = game.PlatformFK;
+            m_qryNewGame.Identifier = game.Identifier;
+            m_qryNewGame.Title = game.Title;
+            m_qryNewGame.Alias = game.Alias;
+            m_qryNewGame.Launch = game.Launch;
+            m_qryNewGame.Tag = game.Tag;
 
             return m_qryNewGame.Insert() == System.Data.SQLite.SQLiteErrorCode.Ok;
         }

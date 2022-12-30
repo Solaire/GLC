@@ -1,4 +1,4 @@
-﻿using core;
+﻿using core.Game;
 using Terminal.Gui;
 
 namespace glc.UI.Library
@@ -6,7 +6,7 @@ namespace glc.UI.Library
     public class CGameInfoPanel
     {
         private FrameView  m_frameView;
-        private Game m_gameObject;
+        private GameObject m_gameObject;
 
         public FrameView FrameView { get { return m_frameView; } }
 
@@ -22,10 +22,10 @@ namespace glc.UI.Library
                 CanFocus = false
             };
             m_frameView.Title = $"{m_frameView.Title}";
-            m_gameObject = new Game("", 1, "", "", "", "");
+            m_gameObject = new GameObject();
         }
 
-        public void SwitchGameInfo(Game gameObject)
+        public void SwitchGameInfo(GameObject gameObject)
         {
             m_gameObject = gameObject;
             m_frameView.RemoveAll();

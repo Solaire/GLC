@@ -1,19 +1,21 @@
 ﻿using System.Collections.Generic;
 
 using core.Platform;
+using core.Tag;
+using SqlDB;
 
-namespace core.Tag
+namespace core.DataAccess
 {
     public static class CTagSQL
     {
-        public const string FIELD_TAG_ID        = "TagID";
-        public const string FIELD_TAG_NAME      = "Name";
-        public const string FIELD_TAG_DESC      = "Description";
+        public const string FIELD_TAG_ID = "TagID";
+        public const string FIELD_TAG_NAME = "Name";
+        public const string FIELD_TAG_DESC = "Description";
         public const string FIELD_TAG_IS_ACTIVE = "IsActive";
         public const string FIELD_TAG_IS_INTERNAL = "IsInternal";
 
-        public const string FIELD_TAG_PLATFORM_ID       = "PlatformID";
-        public const string FIELD_TAG_PLATFORM_ENABLED  = "PlatformEnabled";
+        public const string FIELD_TAG_PLATFORM_ID = "PlatformID";
+        public const string FIELD_TAG_PLATFORM_ENABLED = "PlatformEnabled";
 
         /// <summary>
         /// Query for reading system attribute
@@ -172,12 +174,12 @@ namespace core.Tag
         {
             List<TagObject> tags = new List<TagObject>();
             m_qryTag.MakeFieldsNull();
-            if(m_qryTag.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryTag.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
                     tags.Add(new TagObject(m_qryTag));
-                } while(m_qryTag.Fetch());
+                } while (m_qryTag.Fetch());
             }
             return tags;
         }
@@ -187,12 +189,12 @@ namespace core.Tag
             List<TagObject> tags = new List<TagObject>();
             m_qryTagsForPlatform.MakeFieldsNull();
             m_qryTagsForPlatform.PlatformFK = platformID;
-            if(m_qryTagsForPlatform.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryTagsForPlatform.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
                     tags.Add(new TagObject(m_qryTagsForPlatform));
-                } while(m_qryTagsForPlatform.Fetch());
+                } while (m_qryTagsForPlatform.Fetch());
             }
             return tags;
         }
@@ -202,12 +204,12 @@ namespace core.Tag
             List<CBasicPlatform> platforms = new List<CBasicPlatform>();
             m_qryPlatformsForTag.MakeFieldsNull();
             m_qryPlatformsForTag.TagID = tagID;
-            if(m_qryPlatformsForTag.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
+            if (m_qryPlatformsForTag.Select() == System.Data.SQLite.SQLiteErrorCode.Ok)
             {
                 do
                 {
                     platforms.Add(new CBasicPlatform(m_qryPlatformsForTag.PlatformID, m_qryPlatformsForTag.Name, m_qryPlatformsForTag.Description, "", m_qryPlatformsForTag.PlatformEnabled));
-                } while(m_qryPlatformsForTag.Fetch());
+                } while (m_qryPlatformsForTag.Fetch());
             }
             return platforms;
         }

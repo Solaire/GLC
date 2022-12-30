@@ -5,7 +5,7 @@ using System.Data.SQLite;
 using System.IO;
 using Logger;
 
-namespace core
+namespace SqlDB
 {
     /// <summary>
     /// SQL database core implementation as a singleton pattern.

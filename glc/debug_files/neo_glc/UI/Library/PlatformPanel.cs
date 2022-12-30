@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using core.DataAccess;
+
 using core.Platform;
 using core.Tag;
 
@@ -14,8 +14,6 @@ namespace glc.UI.Library
         PlatformRootNode m_searchNode;
         bool m_gotSearchNode;
 
-        List<CBasicPlatform> m_platformList;
-
         public CPlatformTreePanel(List<CBasicPlatform> platforms, string name, Pos x, Pos y, Dim width, Dim height, bool canFocus)
             : base(name, x, y, width, height, canFocus)
         {
@@ -27,7 +25,7 @@ namespace glc.UI.Library
             };
             m_gotSearchNode = false;
 
-            m_platformList = platforms;
+            m_contentList = platforms;
             Initialise(name, x, y, width, height, canFocus);
         }
 
@@ -44,7 +42,7 @@ namespace glc.UI.Library
 
             m_containerView.TreeBuilder = new PlatformTreeBuilder();
 
-            foreach(CPlatform platform in m_platformList)
+            foreach(CPlatform platform in m_contentList)
             {
                 PlatformRootNode root = new PlatformRootNode()
                 {
@@ -62,7 +60,7 @@ namespace glc.UI.Library
                         continue;
                     }
 
-                    root.Tags.Add(new PlatformTagNode(tag.PrimaryKey, tag.Name, platform.PrimaryKey));
+                    root.Tags.Add(new PlatformTagNode(tag.PrimaryKey, tag.Name));
                 }
 
                 m_containerView.AddObject(root);
@@ -73,30 +71,21 @@ namespace glc.UI.Library
 
         public void SetSearchResults(string searchTerm)
         {
-            PlatformTagNode newSearchNode = new PlatformTagNode((int)SpecialPlatformID.cSearch, searchTerm, 0);
-            if(!m_gotSearchNode)
+            if(m_gotSearchNode && m_searchNode.Tags.FindIndex(tag => tag.Name == searchTerm) == -1)
             {
-                IEnumerable<IPlatformTreeNode> existing = new List<IPlatformTreeNode>(m_containerView.Objects);
-                m_containerView.ClearObjects();
-
-                m_searchNode.Tags.Add(newSearchNode);
-                m_containerView.AddObject(m_searchNode);
-                m_containerView.AddObjects(existing);
-
-                m_gotSearchNode = true;
-            }
-            else if(m_searchNode.Tags.FindIndex(tag => tag.Name == searchTerm) == -1)
-            {
-                m_searchNode.Tags.Add(newSearchNode);
+                m_searchNode.Tags.Add(new PlatformTagNode(0, searchTerm));
                 m_containerView.RefreshObject(m_searchNode);
+                return;
             }
 
-            if(!m_searchNode.IsExpanded)
-            {
-                m_containerView.Expand(m_searchNode);
-            }
-            m_containerView.GoTo(m_searchNode);
-            m_containerView.GoTo(newSearchNode);
+            IEnumerable<IPlatformTreeNode> existing = new List<IPlatformTreeNode>(m_containerView.Objects);
+            m_containerView.ClearObjects();
+
+            m_searchNode.Tags.Add(new PlatformTagNode(0, searchTerm));
+            m_containerView.AddObject(m_searchNode);
+            m_containerView.AddObjects(existing);
+
+            m_gotSearchNode = true;
         }
     }
 
@@ -139,19 +128,10 @@ namespace glc.UI.Library
 
     public class PlatformTagNode : CPlatformTreeNode
     {
-        private int platformID;
-
-        public PlatformTagNode(int id, string name, int platformID)
+        public PlatformTagNode(int id, string name)
         {
             this.id = id;
             this.name = name;
-            this.platformID = platformID;
-        }
-
-        public int PlatformID
-        {
-            get { return platformID; }
-            set { platformID = value; }
         }
     }
 

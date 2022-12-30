@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using core.Game;
+using core;
 using glc.UI.Views;
 using NStack;
 using Terminal.Gui;
 
 namespace glc.UI.Library
 {
-    public class CGamePanel : CFramePanel<GameObject, CMultilistView>
+    public class CGamePanel : CFramePanel<Game, CMultilistView>
     {
         public Dictionary<string, CGameList> m_contentDictionary;
         public string singleSublist;
@@ -45,9 +45,9 @@ namespace glc.UI.Library
         }
     }
 
-    internal class CGameDataSource : CGenericDataSource<GameObject>
+    internal class CGameDataSource : CGenericDataSource<Game>
     {
-        public CGameDataSource(List<GameObject> itemList)
+        public CGameDataSource(List<Game> itemList)
             : base(itemList)
         {
 
@@ -103,7 +103,7 @@ namespace glc.UI.Library
             return (sublistIndex >= 0 && sublistIndex < SublistKeys.Count) ? SublistCount(SublistKeys[sublistIndex]) : 0;
         }
 
-        public GameObject? GetItem(string sublist, int itemIndex)
+        public Game? GetItem(string sublist, int itemIndex)
         {
             if(!Sublists.ContainsKey(sublist))
             {

@@ -7,7 +7,6 @@ using core.Tag;
 using core.Platform;
 using Terminal.Gui;
 using glc.UI;
-using core.DataAccess;
 
 namespace glc.Settings
 {

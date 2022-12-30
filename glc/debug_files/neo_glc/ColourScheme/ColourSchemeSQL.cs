@@ -2,7 +2,6 @@
 using System.Linq;
 
 using core;
-using SqlDB;
 
 namespace glc.ColourScheme
 {

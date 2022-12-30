@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 
 using core.Platform;
-using core.Game;
 
 using Terminal.Gui;
 using Terminal.Gui.Trees;
 using System;
 using core.Tag;
 using core;
-using core.SystemAttribute;
 using static Terminal.Gui.TableView;
 using glc.UI.Views;
+using core.DataAccess;
 
 namespace glc.UI.Library
 {
-	public class CLibraryTab : TabView.Tab
+    public class CLibraryTab : TabView.Tab
     {
 		private static View m_container;
 
@@ -31,7 +30,7 @@ namespace glc.UI.Library
 
 			// Construct the panels
 			//List<GameObject> gameList = (platforms.Count > 0) ? CGameSQL.LoadPlatformGames(platforms[0].PrimaryKey).ToList() : new List<GameObject>();
-			Dictionary<string, List<GameObject>> gameDictionary = (platforms.Count > 0) ? CGameSQL.LoadPlatformGamesAsDict(platforms[0].PrimaryKey) : new Dictionary<string, List<GameObject>>();
+			Dictionary<string, List<Game>> gameDictionary = (platforms.Count > 0) ? CGameSQL.LoadPlatformGamesAsDict(platforms[0].PrimaryKey) : new Dictionary<string, List<Game>>();
 			List<StatusItem> keyBindings = new List<StatusItem>
 			{
 				new StatusItem(Key.F, "~F~ Favourite", () =>
@@ -60,7 +59,7 @@ namespace glc.UI.Library
 			m_platformPanel		= new CPlatformTreePanel(platforms, "Platforms", 0, 0, Dim.Percent(25), Dim.Percent(60), true);
 
 			Dictionary<string, CGameList> gameList = new Dictionary<string, CGameList>();
-			foreach(KeyValuePair<string, List<GameObject>> kv in gameDictionary)
+			foreach(KeyValuePair<string, List<Game>> kv in gameDictionary)
 			{
 				gameList[kv.Key] = new CGameList(kv);
 			}
@@ -125,11 +124,11 @@ namespace glc.UI.Library
 			if(val is PlatformRootNode) // Switch to new multilist
             {
 				PlatformRootNode node = (PlatformRootNode)val;
-				Dictionary<string, List<GameObject>> sqlSource;
+				Dictionary<string, List<Game>> sqlSource;
 
 				if(node.ID == (int)SpecialPlatformID.cSearch) // Special search handler
                 {
-					sqlSource = new Dictionary<string, List<GameObject>>();
+					sqlSource = new Dictionary<string, List<Game>>();
 
 					foreach(PlatformTagNode tag in node.Tags)
                     {
@@ -146,7 +145,7 @@ namespace glc.UI.Library
                 }
 
 				Dictionary<string, CGameList> multilistSource = new Dictionary<string, CGameList>();
-				foreach(KeyValuePair<string, List<GameObject>> kv in sqlSource)
+				foreach(KeyValuePair<string, List<Game>> kv in sqlSource)
 				{
 					multilistSource[kv.Key] = new CGameList(kv);
 				}
@@ -280,7 +279,7 @@ namespace glc.UI.Library
 		//private static void GameListView_OpenSelectedItem(ListViewItemEventArgs e)
 		//private static void GameListView_OpenSelectedItem(CellActivatedEventArgs e)
 		{
-			GameObject game = (GameObject)e.Value;
+			Game game = (Game)e.Value;
 			System.Diagnostics.Debug.WriteLine($"Selected game: {game.Title}");
 			return;
 
@@ -331,7 +330,7 @@ namespace glc.UI.Library
 				m_infoPanel.FrameView.RemoveAll();
 				return;
 			}
-			GameObject game = new GameObject();
+			Game game = new Game("", 1, "", "", "", "");
 			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
 			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 			m_infoPanel.SwitchGameInfo(game);
@@ -383,10 +382,10 @@ namespace glc.UI.Library
 			{
 				return;
 			}
-			GameObject game = new GameObject();
-			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
-			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
-			game.ToggleFavourite();
+            Game game = new Game("", 1, "", "", "", "");
+            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
+            game.ToggleFavourite();
 
 			if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
             {
@@ -403,10 +402,10 @@ namespace glc.UI.Library
 				return;
 			}
 
-			GameObject game = new GameObject();
-			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
-			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
-			List<TagObject> tempTagList = CTagSQL.GetTagsforPlatform(game.PlatformFK);
+            Game game = new Game("", 1, "", "", "", "");
+            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
+            List<TagObject> tempTagList = CTagSQL.GetTagsforPlatform(game.PlatformFK);
 			List<IDataNode> currentTags = new List<IDataNode>(tempTagList.Cast<IDataNode>());
 
 			CEditGameInfoDlg editGameInfoDlg = new CEditGameInfoDlg(game, currentTags);
@@ -440,10 +439,10 @@ namespace glc.UI.Library
 				return;
 			}
 
-			GameObject game = new GameObject();
-			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
-			//GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
-			int rating = 0;
+            Game game = new Game("", 1, "", "", "", "");
+            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
+            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
+            int rating = 0;
 			CEditRatingDlg ratingDlg = new CEditRatingDlg($"{game.Title} - rating", rating);
 			if(ratingDlg.Run(ref rating))
 			{
