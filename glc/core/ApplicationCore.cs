@@ -30,14 +30,13 @@ namespace core
         protected CApplicationCore()
         {
             m_platforms = new List<CBasicPlatform>();
-            Initialise();
         }
 
         /// <summary>
         /// Initialise the library's core functions
         /// </summary>
         /// <returns>True on initialise success</returns>
-        protected virtual bool Initialise()
+        public virtual bool Initialise()
         {
             if(!InitialiseLogger())
             {
