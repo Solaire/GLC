@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static core_2.DataAccess.CGameSQL;
 
-namespace core_2
+namespace core_2.Game
 {
     public class CGame : IData, IEquatable<CGame>
     {
@@ -42,7 +42,7 @@ namespace core_2
         /// <returns>True if this instance and other have the same Identifier field</returns>
         public bool Equals(CGame other)
         {
-            return (other == null) ? false : Identifier == other.Identifier;
+            return other == null ? false : Identifier == other.Identifier;
         }
 
         #endregion IEquatable<CGame>
@@ -168,7 +168,7 @@ namespace core_2
 
         public void UpdateFrequency(bool isDecimate)
         {
-            Frequency = (isDecimate) ? Frequency * 0.90 : Frequency + 1;
+            Frequency = isDecimate ? Frequency * 0.90 : Frequency + 1;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using SqlDB;
+﻿using core_2.Game;
+using SqlDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;

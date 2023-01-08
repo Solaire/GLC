@@ -3,12 +3,15 @@ using System.Runtime.Loader;
 using Logger;
 using core_2.DataAccess;
 using core_2.Platform;
+using core_2.Game;
 
 namespace core_2
 {
     public static class CDataManager
     {
-        private static List<CPlatform> m_platforms = new List<CPlatform>();
+        private static Dictionary<int, CPlatform> m_platforms = new Dictionary<int, CPlatform>();
+
+        public static List<CPlatform> Platforms => m_platforms.Values.ToList();
 
         public static bool Initialise()
         {
@@ -23,6 +26,12 @@ namespace core_2
         /// <returns>True on initialise success</returns>
         private static bool InitialisePlatforms()
         {
+            var testPlatformFactory = new CTestPlatformFactory();
+            m_platforms[1] = testPlatformFactory.CreateFromDatabase(1, "Test ID 1", "ID1", "", true);
+            m_platforms[2] = testPlatformFactory.CreateFromDatabase(2, "Test ID 2", "ID2", "", true);
+            return true;
+
+            /*
             var pluginLoader = new PluginLoader<CPlatformFactory<CPlatform>>();
             var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc\bin\Debug\net6.0\platforms"); // TODO: path
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
@@ -43,8 +52,110 @@ namespace core_2
             // We've loaded all data, no longer need to keep the DLLs loaded.
             pluginLoader.UnloadAll();
             return true;
+            */
+        }
+
+        public static bool GetBoolSetting(string key, bool defaultValue = true)
+        {
+            return defaultValue; // TODO
+        }
+
+        public static List<CTag> GetTagsForPlatform(int platformID)
+        {
+            return new List<CTag>()
+            {
+                CTag.CreateNew(1, "Installed", true, ""),
+                CTag.CreateNew(2, "Not installed", true, "")
+            };
+        }
+
+        public static void LoadPlatformGames(int platformID, bool reload = false)
+        {
+            if(!m_platforms.ContainsKey(platformID))
+            {
+                return;
+            }
+
+            CPlatform platform = m_platforms[platformID];
+
+            if(platform.IsLoaded && !reload)
+            {
+                return;
+            }
+
+            if(platform.IsLoaded && reload)
+            {
+                platform.m_games.Clear();
+            }
+
+            platform.m_games = LoadGames(platformID);
+        }
+
+        private static Dictionary<string, List<CGame>> LoadGames(int platformID)
+        {
+            if(platformID == 1)
+            {
+                return new Dictionary<string, List<CGame>>()
+                {
+                    {
+                        "Installed", new List<CGame>()
+                        {
+                            CGame.CreateNew("Installed 1", 1, "Installed1", "", "", "Installed"),
+                            CGame.CreateNew("Installed 2", 1, "Installed2", "", "", "Installed"),
+                            CGame.CreateNew("Installed 3", 1, "Installed3", "", "", "Installed"),
+                            CGame.CreateNew("Installed 4", 1, "Installed4", "", "", "Installed"),
+                            CGame.CreateNew("Installed 5", 1, "Installed5", "", "", "Installed"),
+                            CGame.CreateNew("Installed 6", 1, "Installed6", "", "", "Installed"),
+                        }
+                    },
+                    {
+                        "Not installed", new List<CGame>()
+                        {
+                            CGame.CreateNew("Deleted 1", 1, "Deleted1", "", "", "Not installed"),
+                            CGame.CreateNew("Deleted 2", 1, "Deleted2", "", "", "Not installed"),
+                            CGame.CreateNew("Deleted 3", 1, "Deleted3", "", "", "Not installed"),
+                            CGame.CreateNew("Deleted 4", 1, "Deleted4", "", "", "Not installed"),
+                            CGame.CreateNew("Deleted 5", 1, "Deleted5", "", "", "Not installed"),
+                            CGame.CreateNew("Deleted 6", 1, "Deleted6", "", "", "Not installed"),
+                        }
+                    }
+                };
+            }
+
+            return new Dictionary<string, List<CGame>>()
+            {
+                {
+                    "Installed", new List<CGame>()
+                    {
+                        CGame.CreateNew("Installed 10", 2, "Installed10", "", "", "Installed"),
+                        CGame.CreateNew("Installed 20", 2, "Installed20", "", "", "Installed"),
+                        CGame.CreateNew("Installed 30", 2, "Installed30", "", "", "Installed"),
+                        CGame.CreateNew("Installed 40", 2, "Installed40", "", "", "Installed"),
+                        CGame.CreateNew("Installed 50", 2, "Installed50", "", "", "Installed"),
+                        CGame.CreateNew("Installed 60", 2, "Installed60", "", "", "Installed"),
+                    }
+                },
+                {
+                    "Not installed", new List<CGame>()
+                    {
+                        CGame.CreateNew("Deleted 10", 2, "Deleted10", "", "", "Not installed"),
+                        CGame.CreateNew("Deleted 20", 2, "Deleted20", "", "", "Not installed"),
+                        CGame.CreateNew("Deleted 30", 2, "Deleted30", "", "", "Not installed"),
+                        CGame.CreateNew("Deleted 40", 2, "Deleted40", "", "", "Not installed"),
+                        CGame.CreateNew("Deleted 50", 2, "Deleted50", "", "", "Not installed"),
+                        CGame.CreateNew("Deleted 60", 2, "Deleted60", "", "", "Not installed"),
+                    }
+                }
+            };
+        }
+
+        public static Dictionary<string, List<CGame>> GetPlatformGames(int platformID)
+        {
+            return (m_platforms.ContainsKey(platformID)) ? m_platforms[platformID].m_games : new Dictionary<string, List<CGame>>();
         }
     }
+
+    #region PluginLoader
 
     /// <summary>
     /// Generic plugin loader class
@@ -148,6 +259,53 @@ namespace core_2
                 .GetReferencedAssemblies()
                 .Select(t => t.FullName)
                 .ToHashSet();
+        }
+    }
+
+    #endregion PluginLoader
+
+    public class CTestPlatform : CPlatform
+    {
+        public CTestPlatform(int id, string name, string description, string path, bool isEnabled)
+        {
+            ID = id;
+            Name = name;
+            Description = description;
+            Path = path;
+            IsEnabled = isEnabled;
+        }
+
+        public override bool GameLaunch(CGame game)
+        {
+            return true;
+        }
+
+        public override HashSet<CGame> GetInstalledGames()
+        {
+            return new HashSet<CGame>();
+        }
+
+        public override HashSet<CGame> GetNonInstalledGames()
+        {
+            return new HashSet<CGame>();
+        }
+    }
+
+    public class CTestPlatformFactory : CPlatformFactory<CPlatform>
+    {
+        public override CPlatform CreateDefault()
+        {
+            return new CTestPlatform(-1, GetPlatformName(), "", "", true);
+        }
+
+        public override CPlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
+        {
+            return new CTestPlatform(id, name, description, path, isActive);
+        }
+
+        public override string GetPlatformName()
+        {
+            return "Steam";
         }
     }
 }
