@@ -15,9 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logger", "Logger\Logger.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{BE72A8FD-9ECC-48E3-8532-97948C75DFC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Steam", "Platforms\Steam\Steam.csproj", "{CC82D41E-1881-4052-ADAB-D568AC6306F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Steam", "Platforms\Steam\Steam.csproj", "{CC82D41E-1881-4052-ADAB-D568AC6306F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gog", "Platforms\Gog\Gog.csproj", "{4C07E822-DF40-42ED-94B6-92A901E1A000}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gog", "Platforms\Gog\Gog.csproj", "{4C07E822-DF40-42ED-94B6-92A901E1A000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "core_2", "core_2\core_2.csproj", "{11604D81-BE43-4DD7-BAEB-E13C3FD2153B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{4C07E822-DF40-42ED-94B6-92A901E1A000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C07E822-DF40-42ED-94B6-92A901E1A000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C07E822-DF40-42ED-94B6-92A901E1A000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11604D81-BE43-4DD7-BAEB-E13C3FD2153B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11604D81-BE43-4DD7-BAEB-E13C3FD2153B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11604D81-BE43-4DD7-BAEB-E13C3FD2153B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11604D81-BE43-4DD7-BAEB-E13C3FD2153B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
