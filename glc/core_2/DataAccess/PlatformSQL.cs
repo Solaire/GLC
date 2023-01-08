@@ -177,15 +177,15 @@ namespace core_2.DataAccess
             return true;
         }
 
-        public static List<CPlatform> ListPlatforms()
+        public static List<CBasicPlatform> ListPlatforms()
         {
-            List<CPlatform> nodes = new List<CPlatform>();
+            List<CBasicPlatform> nodes = new List<CBasicPlatform>();
             m_qryReadPlatform.MakeFieldsNull();
             if(m_qryReadPlatform.Select() == SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    nodes.Add(new CPlatform(m_qryReadPlatform));
+                    nodes.Add(CBasicPlatform.CreateFromDB(m_qryReadPlatform));
                 } while(m_qryReadPlatform.Fetch());
             }
             return nodes;
@@ -207,7 +207,7 @@ namespace core_2.DataAccess
             {
                 return false;
             }
-            platform.PrimaryKey = (int)CSqlDB.Instance.Conn.SqlConn.LastInsertRowId;
+            platform.ID = (int)CSqlDB.Instance.Conn.SqlConn.LastInsertRowId;
             return true;
         }
 

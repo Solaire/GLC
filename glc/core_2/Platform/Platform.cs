@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using core_2.Game;
 
 namespace core_2.Platform
 {
@@ -11,14 +13,14 @@ namespace core_2.Platform
     /// </summary>
     public abstract class CPlatform : IData
     {
-        Dictionary<string, HashSet<CGame>> m_games;
+        internal Dictionary<string, List<CGame>> m_games = new Dictionary<string, List<CGame>>();
 
         #region IData
 
         public int ID
         {
             get;
-            protected set;
+            set;
         }
 
         public string Name
@@ -38,14 +40,35 @@ namespace core_2.Platform
         #region Properties
 
         /// <summary>
+        /// Platform description
+        /// </summary>
+        public string Description
+        {
+            get;
+            protected set;
+        }
+
+        /// <summary>
         /// Platform's install path
         /// </summary>
-        public string Path { get; protected set; }
+        public string Path
+        {
+            get;
+            protected set;
+        }
+
+        /// <summary>
+        /// Check if the platform has loaded the games
+        /// </summary>
+        public bool IsLoaded
+        {
+            get => m_games.Any();
+        }
 
         /// <summary>
         /// Getter for all games
         /// </summary>
-        public List<CGame> Games
+        public IEnumerable<CGame> AllGames
         {
             get
             {
@@ -61,7 +84,7 @@ namespace core_2.Platform
         /// <summary>
         /// Getter for favourite games
         /// </summary>
-        public List<CGame> Favourites
+        public IEnumerable<CGame> Favourites
         {
             get
             {
@@ -79,7 +102,7 @@ namespace core_2.Platform
         /// </summary>
         /// <param name="tag">The tag name</param>
         /// <returns>List of games with specific tag, or empty list</returns>
-        public List<CGame> this[string tag]
+        public IEnumerable<CGame> this[string tag]
         {
             get => (m_games.ContainsKey(tag)) ? m_games[tag].ToList() : new List<CGame>();
         }
