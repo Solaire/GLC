@@ -618,6 +618,11 @@ namespace glc_2.UI.Views
             return true;
         }
 
+        internal virtual CGame GetSelectedItem()
+        {
+            return source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
+        }
+
         ///<inheritdoc/>
         public override bool OnEnter(View view)
         {

@@ -4,6 +4,7 @@ using glc_2.UI.Panels;
 using glc_2.UI.Views;
 using System.Collections.Generic;
 using System.Xml;
+using System.Xml.Linq;
 using Terminal.Gui;
 using Terminal.Gui.Trees;
 
@@ -11,12 +12,16 @@ namespace glc_2.UI.Tabs
 {
     internal class CLibraryTab : TabView.Tab
     {
+        // TEMP
+        private int searchCounter = 0;
+        // TEMP
+
         private static View m_container;
 
         private static CPlatformPanel   m_platformPanel;
         private static CGamePanel       m_gamePanel;
         //private CGameInfoPanel   m_gameInfoPanel;
-        //private CKeyBindingPanel m_keyBindingPanel;
+        private CKeyBindingPanel m_keyBindingPanel;
 
         public CLibraryTab()
             : base()
@@ -34,10 +39,10 @@ namespace glc_2.UI.Tabs
             InitialisePlatformPanel();
             InitialiseGamePanel();
             //InitializeGameInfoPanel();
-            //InitialiseKeyBindingPanel();
+            InitialiseKeyBindingPanel();
 
             View = m_container;
-            //View.KeyDown += m_keyBindingPanel.PerformKeyAction;
+            View.KeyDown += m_keyBindingPanel.PerformKeyAction;
         }
 
         private void InitialisePlatformPanel()
@@ -75,38 +80,45 @@ namespace glc_2.UI.Tabs
                 m_gamePanel.FrameView.Height = Dim.Fill();
             }
         }
+        */
 
         private void InitialiseKeyBindingPanel()
         {
-            List<StatusItem> keyBindings = new List<StatusItem>
+            Dictionary<Key, StatusItem> keyBindings = new Dictionary<Key, StatusItem>()
             {
-                new StatusItem(Key.F, "~F~ Favourite", () =>
                 {
-                    SelectedGameToggleFavourite();
-                }),
-                new StatusItem(Key.E, "~E~ Edit", () =>
+                    Key.CtrlMask | Key.F,
+                    new StatusItem(Key.CtrlMask | Key.F, "~F~ Favourite", () =>
+                    {
+                        SelectedGameToggleFavourite();
+                    })
+                },
                 {
-                    SelectedGameEdit();
-                }),
-                new StatusItem(Key.R, "~R~ Set rating", () =>
+                    Key.CtrlMask | Key.E,
+                    new StatusItem(Key.CtrlMask | Key.E, "~E~ Edit", () =>
+                    {
+                        SelectedGameEdit();
+                    })
+                },
                 {
-                    SelectedGameSetRating();
-                }),
-                new StatusItem(Key.R, "~S~ Search", () =>
+                    Key.CtrlMask | Key.R,
+                    new StatusItem(Key.CtrlMask | Key.R, "~R~ Set rating", () =>
+                    {
+                        SelectedGameSetRating();
+                    })
+                },
                 {
-                    GameSearch();
-                }),
-                new StatusItem(Key.Enter, "~Entry~ Start game", () =>
-                {
-					//GameListView_OpenSelectedItem(new ListViewItemEventArgs(m_gamePanel.ContainerView.SelectedItem, m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem]));
-					//GameListView_OpenSelectedItem(new CellActivatedEventArgs(m_gamePanel.ContainerView.Table, m_gamePanel.ContainerView.SelectedRow, m_gamePanel.ContainerView.SelectedColumn));
-				}),
+                    Key.CtrlMask | Key.S,
+                    new StatusItem(Key.CtrlMask | Key.S, "~S~ Search", () =>
+                    {
+                        GameSearch();
+                    })
+                },
             };
 
-            m_keyBindingPanel = new CKeyBindingPanel(0, Pos.Percent(60), Dim.Percent(25), Dim.Fill(), keyBindings);
-            m_container.Add(m_keyBindingPanel.FrameView);
+            m_keyBindingPanel = new CKeyBindingPanel(new Square(0, Pos.Percent(60), Dim.Percent(25), Dim.Fill()), keyBindings);
+            m_container.Add(m_keyBindingPanel.View);
         }
-        */
 
         /// <summary>
 		/// Handle change in the platform list view
@@ -114,93 +126,46 @@ namespace glc_2.UI.Tabs
 		/// <param name="e">The event argument</param>
 		private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<CPlatformNode> e)
         {
-            var val = e.NewValue;
-            if(val == null || val == m_platformPanel.CurrentNode)
+            // Only process if acutally changed the node
+            if(e.NewValue == null || e.NewValue == m_platformPanel.CurrentNode)
             {
                 return;
             }
 
-            m_platformPanel.CurrentNode = val;
-            if(val is CPlatformRootNode) // Switch to new multilist
+            // Moving from root to a tag of another root
+            if(m_platformPanel.CurrentNode is CPlatformRootNode root
+                && e.NewValue is CPlatformTagNode t
+                && root != t.Parent)
             {
-                CPlatformRootNode node = (CPlatformRootNode)val;
+                CDataManager.LoadPlatformGames(t.Parent.ID);
+                m_gamePanel.ContainerView.Source = new CGameDataMultilistSource(CDataManager.GetPlatformGames(t.Parent.ID));
+                m_gamePanel.SingleListMode(t.Name);
 
-                // Going back to root
+                m_platformPanel.CurrentNode = e.NewValue;
+                return;
+            }
+
+            m_platformPanel.CurrentNode = e.NewValue;
+            if(m_platformPanel.CurrentNode is CPlatformRootNode)
+            {
+                CPlatformRootNode node = (CPlatformRootNode)m_platformPanel.CurrentNode;
+
+                // Root of the current tree. Switch back to multilist mode
                 if(m_platformPanel.CurrentNode is CPlatformTagNode tag && node.ID == tag.Parent.ID)
                 {
                     m_gamePanel.MultiListMode();
                     return;
                 }
 
-                /*
-                var temp = CDataManager.GetDefaultGames(node.ID);
-                Dictionary<string, CGameList> gameList = new Dictionary<string, CGameList>();
-                foreach(KeyValuePair<string, List<CGame>> kv in temp)
-                {
-                    gameList[kv.Key] = new CGameList(kv);
-                }
-                */
-
+                // Switching to new root. Load the platform games, if not done already
+                // NOTE: Platform should be poulated once - extra calls should be no op
                 CDataManager.LoadPlatformGames(node.ID);
                 m_gamePanel.ContainerView.Source = new CGameDataMultilistSource(CDataManager.GetPlatformGames(node.ID));
-
-                /*
-                CPlatformRootNode node = (CPlatformRootNode)val;
-                Dictionary<string, List<CGame>> sqlSource = new Dictionary<string, List<CGame>>();
-
-                // Special search handler
-                if(node.ID == -1) // (int)SpecialPlatformID.cSearch)
-                {
-                    foreach(CPlatformTagNode tag in node.Tags)
-                    {
-                        //sqlSource[tag.Name] = CGameSQL.GameSearch(tag.Name).ToList();
-                    }
-                }
-                else if(node.ID > 0) // Normal node
-                {
-                    //sqlSource = CGameSQL.LoadPlatformGamesAsDict(node.ID);
-                }
-                else
-                {
-                    return;
-                }
-
-                Dictionary<string, CGameList> multilistSource = new Dictionary<string, CGameList>();
-                foreach(KeyValuePair<string, List<CGame>> kv in sqlSource)
-                {
-                    multilistSource[kv.Key] = new CGameList(kv);
-                }
-
-                //m_gamePanel.NewMultilistSource(multilistSource);
-                m_gamePanel.ContainerView.Source = new CGameDataMultilistSource(multilistSource);
-                */
+                return;
             }
 
-            else if(val is CPlatformTagNode)
-            {
-                m_gamePanel.SingleListMode(val.Name);
-
-                // TODO: Handle the following cases:
-                //		Game search
-                //		Favourites
-
-                /*
-                CPlatformTagNode node = (CPlatformTagNode)val;
-                if(node.ID == -1) // (int)SpecialPlatformID.cSearch) // Handle search
-                {
-                    //m_gamePanel.ContentList = CGameSQL.GameSearch(node.Name).ToList();
-                    //m_gamePanel.SingleListMode(node.Name);
-                }
-				else if(node.ID == (int)SpecialPlatformID.cFavourites) // Handle favourite games
-				{
-					//m_gamePanel.ContentList = CGameSQL.LoadPlatformGames(node.PlatformID, true).ToList();
-				}
-                if(node.ID > 0)
-                {
-                    //m_gamePanel.SingleListMode(node.Name);
-                }
-				*/
-            }
+            // Moving to a tag node in the current root. Switch to single list mode
+            m_gamePanel.SingleListMode(m_platformPanel.CurrentNode.Name);
         }
 
         private static void PlatformListView_ObjectActivated(ObjectActivatedEventArgs<CPlatformNode> obj)
@@ -228,8 +193,6 @@ namespace glc_2.UI.Tabs
 		/// </summary>
 		/// <param name="e">The event argument</param>
 		private static void GameListView_OpenSelectedItem(MultilistViewItemEventArgs e)
-        //private static void GameListView_OpenSelectedItem(ListViewItemEventArgs e)
-        //private static void GameListView_OpenSelectedItem(CellActivatedEventArgs e)
         {
             CGame game = (CGame)e.Value;
             System.Diagnostics.Debug.WriteLine($"Selected game: {game.Name}");
@@ -288,6 +251,55 @@ namespace glc_2.UI.Tabs
             //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
             m_infoPanel.SwitchGameInfo(game);
             */
+        }
+
+        // TODO
+        private void SelectedGameToggleFavourite()
+        {
+            if(!m_gamePanel.View.HasFocus)
+            {
+                return;
+            }
+
+            CGame selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
+            selectedItem.ToggleFavourite();
+
+            System.Diagnostics.Debug.WriteLine($"Game: {selectedItem.Name}, Favourite: {selectedItem.IsFavourite}");
+        }
+
+        private void SelectedGameEdit()
+        {
+            if(!m_gamePanel.View.HasFocus)
+            {
+                return;
+            }
+
+            CGame selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
+            selectedItem.ToggleFavourite();
+
+            System.Diagnostics.Debug.WriteLine($"Game: {selectedItem.Name}, Entered edit mode");
+        }
+
+        private void SelectedGameSetRating()
+        {
+            if(!m_gamePanel.View.HasFocus)
+            {
+                return;
+            }
+
+            CGame selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
+            selectedItem.ToggleFavourite();
+
+            System.Diagnostics.Debug.WriteLine($"Game: {selectedItem.Name}, Entered rating mode");
+        }
+
+        private void GameSearch()
+        {
+            string searchTerm = string.Empty;
+            searchTerm = string.Format($"{++searchCounter}");
+
+            CDataManager.GameSearch(searchTerm);
+            m_platformPanel.SetSearchResults(searchTerm);
         }
     }
 }
