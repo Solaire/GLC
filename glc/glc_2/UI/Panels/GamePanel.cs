@@ -3,6 +3,7 @@ using glc_2.UI.Views;
 using NStack;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Terminal.Gui;
 
@@ -28,7 +29,6 @@ namespace glc_2.UI.Panels
                 Height = Dim.Fill(0),
                 CanFocus = true,
             };
-
             m_view.Add(m_containerView);
         }
 

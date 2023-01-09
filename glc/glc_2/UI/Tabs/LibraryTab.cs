@@ -14,14 +14,15 @@ namespace glc_2.UI.Tabs
     {
         // TEMP
         private int searchCounter = 0;
+        private static bool gameInfoPanelSetting = true;
         // TEMP
 
         private static View m_container;
 
         private static CPlatformPanel   m_platformPanel;
         private static CGamePanel       m_gamePanel;
-        //private CGameInfoPanel   m_gameInfoPanel;
-        private CKeyBindingPanel m_keyBindingPanel;
+        private static CGameInfoPanel   m_gameInfoPanel;
+        private static CKeyBindingPanel m_keyBindingPanel;
 
         public CLibraryTab()
             : base()
@@ -38,12 +39,14 @@ namespace glc_2.UI.Tabs
 
             InitialisePlatformPanel();
             InitialiseGamePanel();
-            //InitializeGameInfoPanel();
+            InitializeGameInfoPanel();
             InitialiseKeyBindingPanel();
 
             View = m_container;
-            View.KeyDown += m_keyBindingPanel.PerformKeyAction;
+            View.KeyDown += KeyDownHandler;
         }
+
+        #region Panel initialisation methods
 
         private void InitialisePlatformPanel()
         {
@@ -58,29 +61,25 @@ namespace glc_2.UI.Tabs
         {
             CDataManager.LoadPlatformGames(m_platformPanel.CurrentNode.ID);
 
-            //Dictionary<string, List<CGame>> games = CDataManager.LoadGames(m_platformPanel.CurrentNode.ID);
-
             m_gamePanel = new CGamePanel(new Square(Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60)), CDataManager.GetPlatformGames(m_platformPanel.CurrentNode.ID));
             m_gamePanel.ContainerView.OpenSelectedItem += GameListView_OpenSelectedItem;
             m_gamePanel.ContainerView.SelectedItemChanged += GameListView_SelectedChanged;
 
             m_container.Add(m_gamePanel.View);
         }
-        /*
+
         private void InitializeGameInfoPanel()
         {
-            //if(CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
-            if(CDataManager.GetBoolSetting(CAppSettings.A_SHOW_GAME_INFO_PANEL, false))
+            if(CDataManager.GetBoolSetting(CAppSettings.A_SHOW_GAME_INFO_PANEL, gameInfoPanelSetting))
             {
-                m_gameInfoPanel = new CGameInfoPanel(Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill());
-                m_container.Add(m_gameInfoPanel.FrameView);
+                m_gameInfoPanel = new CGameInfoPanel(new Square(Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill()));
+                m_container.Add(m_gameInfoPanel.View);
             }
             else
             {
-                m_gamePanel.FrameView.Height = Dim.Fill();
+                m_gamePanel.View.Height = Dim.Fill();
             }
         }
-        */
 
         private void InitialiseKeyBindingPanel()
         {
@@ -120,11 +119,36 @@ namespace glc_2.UI.Tabs
             m_container.Add(m_keyBindingPanel.View);
         }
 
+        #endregion Panel initialisation methods
+
+        #region Event handlers
+
+        private static void KeyDownHandler(View.KeyEventEventArgs a)
+        {
+            //if (a.KeyEvent.Key == Key.Tab || a.KeyEvent.Key == Key.BackTab) {
+            //	// BUGBUG: Work around Issue #434 by implementing our own TAB navigation
+            //	if (_top.MostFocused == _categoryListView)
+            //		_top.SetFocus (_rightPane);
+            //	else
+            //		_top.SetFocus (_leftPane);
+            //}
+
+            // All key bindings have ctrl mask
+            if((a.KeyEvent.Key & Key.CtrlMask) == Key.CtrlMask)
+            {
+                m_keyBindingPanel.PerformKeyAction(a);
+            }
+            else if(a.KeyEvent.Key == (Key.D1))
+            {
+                // TODO: local search mode (shift + semicolon \ colon)
+            }
+        }
+
         /// <summary>
-		/// Handle change in the platform list view
-		/// </summary>
-		/// <param name="e">The event argument</param>
-		private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<CPlatformNode> e)
+        /// Handle change in the platform list view
+        /// </summary>
+        /// <param name="e">The event argument</param>
+        private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<CPlatformNode> e)
         {
             // Only process if acutally changed the node
             if(e.NewValue == null || e.NewValue == m_platformPanel.CurrentNode)
@@ -194,6 +218,7 @@ namespace glc_2.UI.Tabs
 		/// <param name="e">The event argument</param>
 		private static void GameListView_OpenSelectedItem(MultilistViewItemEventArgs e)
         {
+            // TODO: Implement
             CGame game = (CGame)e.Value;
             System.Diagnostics.Debug.WriteLine($"Selected game: {game.Name}");
             return;
@@ -231,27 +256,19 @@ namespace glc_2.UI.Tabs
         }
 
         private static void GameListView_SelectedChanged(MultilistViewItemEventArgs e)
-        //private static void GameListView_SelectedChanged(ListViewItemEventArgs e)
-        //private static void GameListView_SelectedChanged(SelectedCellChangedEventArgs e)
         {
-            /*
-            if(!CSystemAttributeSQL.GetBoolValue(CSystemAttributeSQL.A_SHOW_GAME_INFO_PANEL))
+            if(!CDataManager.GetBoolSetting(CAppSettings.A_SHOW_GAME_INFO_PANEL, gameInfoPanelSetting))
             {
                 return;
             }
 
-            //if(m_gamePanel.ContentList.Count == 0)
-            if(false)
-            {
-                m_infoPanel.FrameView.RemoveAll();
-                return;
-            }
-            Game game = new Game("", 1, "", "", "", "");
-            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
-            //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
-            m_infoPanel.SwitchGameInfo(game);
-            */
+            CGame game = (CGame)e.Value;
+            m_gameInfoPanel.SetGameInfo(game);
         }
+
+        #endregion Event handlers
+
+        #region Key binding actions
 
         // TODO
         private void SelectedGameToggleFavourite()
@@ -301,5 +318,7 @@ namespace glc_2.UI.Tabs
             CDataManager.GameSearch(searchTerm);
             m_platformPanel.SetSearchResults(searchTerm);
         }
+
+        #endregion Key binding actions
     }
 }

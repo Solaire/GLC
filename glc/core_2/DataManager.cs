@@ -101,23 +101,29 @@ namespace core_2
                     {
                         "Installed", new List<CGame>()
                         {
-                            CGame.CreateNew("Installed 1", 1, "Installed1", "", "", "Installed"),
-                            CGame.CreateNew("Installed 2", 1, "Installed2", "", "", "Installed"),
-                            CGame.CreateNew("Installed 3", 1, "Installed3", "", "", "Installed"),
-                            CGame.CreateNew("Installed 4", 1, "Installed4", "", "", "Installed"),
-                            CGame.CreateNew("Installed 5", 1, "Installed5", "", "", "Installed"),
-                            CGame.CreateNew("Installed 6", 1, "Installed6", "", "", "Installed"),
+                            CGame.CreateNew("Installed 1", 1, "Installed1", "Installed1", "", "Installed"),
+                            CGame.CreateNew("Installed 2", 1, "Installed2", "Installed2", "", "Installed"),
+                            CGame.CreateNew("Installed 3", 1, "Installed3", "Installed3", "", "Installed"),
+                            CGame.CreateNew("Installed 4", 1, "Installed4", "Installed4", "", "Installed"),
+                            CGame.CreateNew("Installed 5", 1, "Installed5", "Installed5", "", "Installed"),
+                            CGame.CreateNew("Installed 6", 1, "Installed6", "Installed6", "", "Installed"),
+                            CGame.CreateNew("Installed 7", 1, "Installed7", "Installed7", "", "Installed"),
+                            CGame.CreateNew("Installed 8", 1, "Installed8", "Installed8", "", "Installed"),
+                            CGame.CreateNew("Installed 9", 1, "Installed9", "Installed9", "", "Installed"),
                         }
                     },
                     {
                         "Not installed", new List<CGame>()
                         {
-                            CGame.CreateNew("Deleted 1", 1, "Deleted1", "", "", "Not installed"),
-                            CGame.CreateNew("Deleted 2", 1, "Deleted2", "", "", "Not installed"),
-                            CGame.CreateNew("Deleted 3", 1, "Deleted3", "", "", "Not installed"),
-                            CGame.CreateNew("Deleted 4", 1, "Deleted4", "", "", "Not installed"),
-                            CGame.CreateNew("Deleted 5", 1, "Deleted5", "", "", "Not installed"),
-                            CGame.CreateNew("Deleted 6", 1, "Deleted6", "", "", "Not installed"),
+                            CGame.CreateNew("Deleted 1", 1, "Deleted1", "Deleted1", "", "Not installed"),
+                            CGame.CreateNew("Deleted 2", 1, "Deleted2", "Deleted2", "", "Not installed"),
+                            CGame.CreateNew("Deleted 3", 1, "Deleted3", "Deleted3", "", "Not installed"),
+                            CGame.CreateNew("Deleted 4", 1, "Deleted4", "Deleted4", "", "Not installed"),
+                            CGame.CreateNew("Deleted 5", 1, "Deleted5", "Deleted5", "", "Not installed"),
+                            CGame.CreateNew("Deleted 6", 1, "Deleted6", "Deleted6", "", "Not installed"),
+                            CGame.CreateNew("Deleted 7", 1, "Deleted7", "Deleted7", "", "Not installed"),
+                            CGame.CreateNew("Deleted 8", 1, "Deleted8", "Deleted8", "", "Not installed"),
+                            CGame.CreateNew("Deleted 9", 1, "Deleted9", "Deleted9", "", "Not installed"),
                         }
                     }
                 };
@@ -128,23 +134,29 @@ namespace core_2
                 {
                     "Installed", new List<CGame>()
                     {
-                        CGame.CreateNew("Installed 10", 2, "Installed10", "", "", "Installed"),
-                        CGame.CreateNew("Installed 20", 2, "Installed20", "", "", "Installed"),
-                        CGame.CreateNew("Installed 30", 2, "Installed30", "", "", "Installed"),
-                        CGame.CreateNew("Installed 40", 2, "Installed40", "", "", "Installed"),
-                        CGame.CreateNew("Installed 50", 2, "Installed50", "", "", "Installed"),
-                        CGame.CreateNew("Installed 60", 2, "Installed60", "", "", "Installed"),
+                        CGame.CreateNew("Installed 10", 2, "Installed10", "Installed10", "", "Installed"),
+                        CGame.CreateNew("Installed 20", 2, "Installed20", "Installed20", "", "Installed"),
+                        CGame.CreateNew("Installed 30", 2, "Installed30", "Installed30", "", "Installed"),
+                        CGame.CreateNew("Installed 40", 2, "Installed40", "Installed40", "", "Installed"),
+                        CGame.CreateNew("Installed 50", 2, "Installed50", "Installed50", "", "Installed"),
+                        CGame.CreateNew("Installed 60", 2, "Installed60", "Installed60", "", "Installed"),
+                        CGame.CreateNew("Installed 70", 1, "Installed70", "Installed70", "", "Installed"),
+                        CGame.CreateNew("Installed 80", 1, "Installed80", "Installed80", "", "Installed"),
+                        CGame.CreateNew("Installed 90", 1, "Installed90", "Installed90", "", "Installed"),
                     }
                 },
                 {
                     "Not installed", new List<CGame>()
                     {
-                        CGame.CreateNew("Deleted 10", 2, "Deleted10", "", "", "Not installed"),
-                        CGame.CreateNew("Deleted 20", 2, "Deleted20", "", "", "Not installed"),
-                        CGame.CreateNew("Deleted 30", 2, "Deleted30", "", "", "Not installed"),
-                        CGame.CreateNew("Deleted 40", 2, "Deleted40", "", "", "Not installed"),
-                        CGame.CreateNew("Deleted 50", 2, "Deleted50", "", "", "Not installed"),
-                        CGame.CreateNew("Deleted 60", 2, "Deleted60", "", "", "Not installed"),
+                        CGame.CreateNew("Deleted 10", 2, "Deleted10", "Deleted10", "", "Not installed"),
+                        CGame.CreateNew("Deleted 20", 2, "Deleted20", "Deleted20", "", "Not installed"),
+                        CGame.CreateNew("Deleted 30", 2, "Deleted30", "Deleted30", "", "Not installed"),
+                        CGame.CreateNew("Deleted 40", 2, "Deleted40", "Deleted40", "", "Not installed"),
+                        CGame.CreateNew("Deleted 50", 2, "Deleted50", "Deleted50", "", "Not installed"),
+                        CGame.CreateNew("Deleted 60", 2, "Deleted60", "Deleted60", "", "Not installed"),
+                        CGame.CreateNew("Deleted 70", 1, "Deleted70", "Deleted70", "", "Not installed"),
+                        CGame.CreateNew("Deleted 80", 1, "Deleted80", "Deleted80", "", "Not installed"),
+                        CGame.CreateNew("Deleted 90", 1, "Deleted90", "Deleted90", "", "Not installed"),
                     }
                 }
             };
