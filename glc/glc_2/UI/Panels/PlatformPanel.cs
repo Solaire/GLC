@@ -9,11 +9,20 @@ namespace glc_2.UI.Panels
 {
     internal class CPlatformPanel : CBasePanel<CPlatform, TreeView<CPlatformNode>>
     {
+        // TEMP
+        CPlatformRootNode m_searchRoot;
+
         public CPlatformNode CurrentNode { get; set; }
 
         internal CPlatformPanel(Square square)
             : base()
         {
+            m_searchRoot = new CPlatformRootNode()
+            {
+                Name = "Search",
+                ID = 0,
+                Tags = new List<CPlatformTagNode>()
+            };
             Initialise("Platforms", square, true);
         }
 
@@ -53,6 +62,35 @@ namespace glc_2.UI.Panels
 
             m_containerView.GoToFirst();
             CurrentNode = m_containerView.SelectedObject;
+        }
+
+        public void SetSearchResults(string searchTerm)
+        {
+            CPlatformTagNode searchNode = new CPlatformTagNode(m_searchRoot, searchTerm, 0);
+
+            // New search. Need to add the search root to the top of the tree
+            if(!m_searchRoot.Tags.Any())
+            {
+                IEnumerable<CPlatformNode> existing = new List<CPlatformNode>(m_containerView.Objects);
+                m_containerView.ClearObjects();
+
+                m_searchRoot.Tags.Add(searchNode);
+                m_containerView.AddObject(m_searchRoot);
+                m_containerView.AddObjects(existing);
+            }
+            else if(!m_searchRoot.Tags.Any(tag => tag.Name == searchTerm))
+            {
+                m_searchRoot.Tags.Add(searchNode);
+                m_containerView.RefreshObject(m_searchRoot);
+            }
+
+            if(!m_searchRoot.IsExpanded)
+            {
+                m_containerView.Expand(m_searchRoot);
+            }
+            m_containerView.GoTo(m_searchRoot);
+            m_containerView.GoTo(searchNode);
+
         }
     }
 

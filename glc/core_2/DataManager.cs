@@ -10,6 +10,7 @@ namespace core_2
     public static class CDataManager
     {
         private static Dictionary<int, CPlatform> m_platforms = new Dictionary<int, CPlatform>();
+        private static Dictionary<string, List<CGame>> m_searchResults = new Dictionary<string, List<CGame>>();
 
         public static List<CPlatform> Platforms => m_platforms.Values.ToList();
 
@@ -71,7 +72,7 @@ namespace core_2
 
         public static void LoadPlatformGames(int platformID, bool reload = false)
         {
-            if(!m_platforms.ContainsKey(platformID))
+            if(!m_platforms.ContainsKey(platformID) || platformID <= 0)
             {
                 return;
             }
@@ -151,7 +152,27 @@ namespace core_2
 
         public static Dictionary<string, List<CGame>> GetPlatformGames(int platformID)
         {
+            if(platformID <= 0)
+            {
+                return m_searchResults;
+            }
             return (m_platforms.ContainsKey(platformID)) ? m_platforms[platformID].m_games : new Dictionary<string, List<CGame>>();
+        }
+
+        public static void GameSearch(string searchTerm)
+        {
+            if(m_searchResults.ContainsKey(searchTerm))
+            {
+                return;
+            }
+
+            m_searchResults[searchTerm] = new List<CGame>();
+
+            // TEMP
+            foreach(CPlatform platform in m_platforms.Values)
+            {
+                m_searchResults[searchTerm].AddRange(platform.AllGames.Where(g => g.Name.Contains(searchTerm)));
+            }
         }
     }
 
