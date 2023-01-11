@@ -4,6 +4,7 @@ using glc_2.UI.Dialog;
 using glc_2.UI.Panels;
 using glc_2.UI.Views;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using Terminal.Gui;
 using Terminal.Gui.Trees;
 
@@ -321,11 +322,33 @@ namespace glc_2.UI.Tabs
                 return;
             }
 
+            // TODO: Better implementation
             CDataManager.GameSearch(searchTerm);
             m_platformPanel.SetSearchResults(searchTerm);
-            if(CDataManager.GetBoolSetting(CAppSettings.SHOW_SEARCH_IN_DLG, false))
+            if(CDataManager.GetBoolSetting(CAppSettings.SHOW_SEARCH_IN_DLG, true))
             {
-                // TODO
+                Terminal.Gui.Dialog dlg = new Terminal.Gui.Dialog(searchTerm)
+                {
+                    X = 4,
+                    Y = 4,
+                    Width  = Dim.Percent(80),
+                    Height = Dim.Percent(80)
+                };
+
+                CMultilistView view = new CMultilistView()
+                {
+                    X = 0,
+                    Y = 0,
+                    Width = Dim.Fill(),
+                    Height = Dim.Fill(),
+                    CanFocus = true,
+                };
+
+                CDataManager.LoadPlatformGames(0);
+                view.Source = new CGameDataMultilistSource(CDataManager.GetPlatformGames(0));
+                view.SingleListMode(searchTerm);
+                dlg.Add(view);
+                Application.Run(dlg);
             }
         }
 

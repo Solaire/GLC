@@ -90,7 +90,6 @@ namespace glc_2.UI.Panels
             }
             m_containerView.GoTo(m_searchRoot);
             m_containerView.GoTo(searchNode);
-
         }
     }
 
