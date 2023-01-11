@@ -186,6 +186,12 @@ namespace core_2
                 m_searchResults[searchTerm].AddRange(platform.AllGames.Where(g => g.Name.Contains(searchTerm)));
             }
         }
+
+        public static bool LaunchGame(CGame game)
+        {
+            CPlatform platform = Platforms.Single(p => p.ID == game.PlatformFK);
+            return platform.GameLaunch(game);
+        }
     }
 
     #region PluginLoader
@@ -310,6 +316,7 @@ namespace core_2
 
         public override bool GameLaunch(CGame game)
         {
+            System.Diagnostics.Debug.WriteLine($"Launching game: {game.Name}");
             return true;
         }
 

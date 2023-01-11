@@ -1,10 +1,9 @@
 ﻿using core_2;
 using core_2.Game;
+using glc_2.UI.Dialog;
 using glc_2.UI.Panels;
 using glc_2.UI.Views;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Linq;
 using Terminal.Gui;
 using Terminal.Gui.Trees;
 
@@ -15,7 +14,7 @@ namespace glc_2.UI.Tabs
         // TEMP
         private int searchCounter = 0;
         private static bool gameInfoPanelSetting = true;
-        // TEMP
+        // END TEMP
 
         private static View m_container;
 
@@ -218,11 +217,13 @@ namespace glc_2.UI.Tabs
 		/// <param name="e">The event argument</param>
 		private static void GameListView_OpenSelectedItem(MultilistViewItemEventArgs e)
         {
-            // TODO: Implement
-            CGame game = (CGame)e.Value;
-            System.Diagnostics.Debug.WriteLine($"Selected game: {game.Name}");
-            return;
+            if(!CDataManager.LaunchGame((CGame)e.Value))
+            {
+                throw new System.Exception("Could not launch game");
+            }
+            Application.RequestStop();
 
+            /*
             //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedItem];
             //GameObject game = m_gamePanel.ContentList[m_gamePanel.ContainerView.SelectedRow];
 
@@ -253,6 +254,7 @@ namespace glc_2.UI.Tabs
             var dialog = new Dialog (game.Name, width, height, buttons.ToArray());
 
             Application.Run(dialog);
+            */
         }
 
         private static void GameListView_SelectedChanged(MultilistViewItemEventArgs e)
@@ -313,10 +315,18 @@ namespace glc_2.UI.Tabs
         private void GameSearch()
         {
             string searchTerm = string.Empty;
-            searchTerm = string.Format($"{++searchCounter}");
+            CEditStringDlg searchDlg = new CEditStringDlg("Game Search", string.Empty);
+            if(!searchDlg.Run(ref searchTerm))
+            {
+                return;
+            }
 
             CDataManager.GameSearch(searchTerm);
             m_platformPanel.SetSearchResults(searchTerm);
+            if(CDataManager.GetBoolSetting(CAppSettings.SHOW_SEARCH_IN_DLG, false))
+            {
+                // TODO
+            }
         }
 
         #endregion Key binding actions
