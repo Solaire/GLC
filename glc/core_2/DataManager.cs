@@ -7,12 +7,12 @@ using core_2.Game;
 
 namespace core_2
 {
-    public static class CDataManager
+    public static class DataManager
     {
-        private static Dictionary<int, CPlatform> m_platforms = new Dictionary<int, CPlatform>();
+        private static Dictionary<int, Platform.Platform> m_platforms = new Dictionary<int, Platform.Platform>();
         private static Dictionary<string, List<CGame>> m_searchResults = new Dictionary<string, List<CGame>>();
 
-        public static List<CPlatform> Platforms => m_platforms.Values.ToList();
+        public static List<Platform.Platform> Platforms => m_platforms.Values.ToList();
 
         public static bool Initialise()
         {
@@ -77,7 +77,7 @@ namespace core_2
                 return;
             }
 
-            CPlatform platform = m_platforms[platformID];
+            Platform.Platform platform = m_platforms[platformID];
 
             if(platform.IsLoaded && !reload)
             {
@@ -181,7 +181,7 @@ namespace core_2
             m_searchResults[searchTerm] = new List<CGame>();
 
             // TEMP
-            foreach(CPlatform platform in m_platforms.Values)
+            foreach(Platform.Platform platform in m_platforms.Values)
             {
                 m_searchResults[searchTerm].AddRange(platform.AllGames.Where(g => g.Name.Contains(searchTerm)));
             }
@@ -189,7 +189,7 @@ namespace core_2
 
         public static bool LaunchGame(CGame game)
         {
-            CPlatform platform = Platforms.Single(p => p.ID == game.PlatformFK);
+            Platform.Platform platform = Platforms.Single(p => p.ID == game.PlatformFK);
             return platform.GameLaunch(game);
         }
     }
@@ -303,7 +303,7 @@ namespace core_2
 
     #endregion PluginLoader
 
-    public class CTestPlatform : CPlatform
+    public class CTestPlatform : Platform.Platform
     {
         public CTestPlatform(int id, string name, string description, string path, bool isEnabled)
         {
@@ -331,14 +331,14 @@ namespace core_2
         }
     }
 
-    public class CTestPlatformFactory : CPlatformFactory<CPlatform>
+    public class CTestPlatformFactory : CPlatformFactory<Platform.Platform>
     {
-        public override CPlatform CreateDefault()
+        public override Platform.Platform CreateDefault()
         {
             return new CTestPlatform(-1, GetPlatformName(), "", "", true);
         }
 
-        public override CPlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
+        public override Platform.Platform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
         {
             return new CTestPlatform(id, name, description, path, isActive);
         }

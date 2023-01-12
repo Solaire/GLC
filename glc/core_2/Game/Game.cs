@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static core_2.DataAccess.CGameSQL;
+using static core_2.DataAccess.GameSQL;
 
 namespace core_2.Game
 {
@@ -136,7 +136,7 @@ namespace core_2.Game
         /// </summary>
         /// <param name="row">A database row</param>
         /// <returns>Game object with database data</returns>
-        internal static CGame CreateFromDB(CQryBaseReadGame row)
+        internal static CGame CreateFromDB(QryBaseReadGame row)
         {
             return new CGame()
             {

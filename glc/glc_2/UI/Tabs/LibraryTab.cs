@@ -19,10 +19,10 @@ namespace glc_2.UI.Tabs
 
         private static View m_container;
 
-        private static CPlatformPanel   m_platformPanel;
+        private static PlatformPanel   m_platformPanel;
         private static CGamePanel       m_gamePanel;
         private static CGameInfoPanel   m_gameInfoPanel;
-        private static CKeyBindingPanel m_keyBindingPanel;
+        private static KeyBindingPanel m_keyBindingPanel;
 
         public CLibraryTab()
             : base()
@@ -50,7 +50,7 @@ namespace glc_2.UI.Tabs
 
         private void InitialisePlatformPanel()
         {
-            m_platformPanel = new CPlatformPanel(new Square(0, 0, Dim.Percent(25), Dim.Percent(60)));
+            m_platformPanel = new PlatformPanel(new Box(0, 0, Dim.Percent(25), Dim.Percent(60)));
             m_platformPanel.ContainerView.SelectionChanged += PlatformListView_SelectedChanged;
             m_platformPanel.ContainerView.ObjectActivated += PlatformListView_ObjectActivated;
 
@@ -59,9 +59,9 @@ namespace glc_2.UI.Tabs
 
         private void InitialiseGamePanel()
         {
-            CDataManager.LoadPlatformGames(m_platformPanel.CurrentNode.ID);
+            DataManager.LoadPlatformGames(m_platformPanel.CurrentNode.ID);
 
-            m_gamePanel = new CGamePanel(new Square(Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60)), CDataManager.GetPlatformGames(m_platformPanel.CurrentNode.ID));
+            m_gamePanel = new CGamePanel(new Box(Pos.Percent(25), 0, Dim.Fill(), Dim.Percent(60)), DataManager.GetPlatformGames(m_platformPanel.CurrentNode.ID));
             m_gamePanel.ContainerView.OpenSelectedItem += GameListView_OpenSelectedItem;
             m_gamePanel.ContainerView.SelectedItemChanged += GameListView_SelectedChanged;
 
@@ -70,9 +70,9 @@ namespace glc_2.UI.Tabs
 
         private void InitializeGameInfoPanel()
         {
-            if(CDataManager.GetBoolSetting(CAppSettings.A_SHOW_GAME_INFO_PANEL, gameInfoPanelSetting))
+            if(DataManager.GetBoolSetting(CAppSettings.A_SHOW_GAME_INFO_PANEL, gameInfoPanelSetting))
             {
-                m_gameInfoPanel = new CGameInfoPanel(new Square(Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill()));
+                m_gameInfoPanel = new CGameInfoPanel(new Box(Pos.Percent(25), Pos.Percent(60), Dim.Fill(), Dim.Fill()));
                 m_container.Add(m_gameInfoPanel.View);
             }
             else
@@ -115,7 +115,7 @@ namespace glc_2.UI.Tabs
                 },
             };
 
-            m_keyBindingPanel = new CKeyBindingPanel(new Square(0, Pos.Percent(60), Dim.Percent(25), Dim.Fill()), keyBindings);
+            m_keyBindingPanel = new KeyBindingPanel(new Box(0, Pos.Percent(60), Dim.Percent(25), Dim.Fill()), keyBindings);
             m_container.Add(m_keyBindingPanel.View);
         }
 
@@ -136,7 +136,7 @@ namespace glc_2.UI.Tabs
             // All key bindings have ctrl mask
             if((a.KeyEvent.Key & Key.CtrlMask) == Key.CtrlMask)
             {
-                m_keyBindingPanel.PerformKeyAction(a);
+                m_keyBindingPanel.PerformKeyAction(a.KeyEvent);
             }
             else if(a.KeyEvent.Key == (Key.D1))
             {
@@ -148,7 +148,7 @@ namespace glc_2.UI.Tabs
         /// Handle change in the platform list view
         /// </summary>
         /// <param name="e">The event argument</param>
-        private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<CPlatformNode> e)
+        private static void PlatformListView_SelectedChanged(object sender, SelectionChangedEventArgs<PlatformTreeNode> e)
         {
             // Only process if acutally changed the node
             if(e.NewValue == null || e.NewValue == m_platformPanel.CurrentNode)
@@ -157,12 +157,12 @@ namespace glc_2.UI.Tabs
             }
 
             // Moving from root to a tag of another root
-            if(m_platformPanel.CurrentNode is CPlatformRootNode root
-                && e.NewValue is CPlatformTagNode t
+            if(m_platformPanel.CurrentNode is PlatformRootNode root
+                && e.NewValue is PlatformTagNode t
                 && root != t.Parent)
             {
-                CDataManager.LoadPlatformGames(t.Parent.ID);
-                m_gamePanel.ContainerView.Source = new CGameDataMultilistSource(CDataManager.GetPlatformGames(t.Parent.ID));
+                DataManager.LoadPlatformGames(t.Parent.ID);
+                m_gamePanel.ContainerView.Source = new CGameDataMultilistSource(DataManager.GetPlatformGames(t.Parent.ID));
                 m_gamePanel.SingleListMode(t.Name);
 
                 m_platformPanel.CurrentNode = e.NewValue;
@@ -170,12 +170,12 @@ namespace glc_2.UI.Tabs
             }
 
             m_platformPanel.CurrentNode = e.NewValue;
-            if(m_platformPanel.CurrentNode is CPlatformRootNode)
+            if(m_platformPanel.CurrentNode is PlatformRootNode)
             {
-                CPlatformRootNode node = (CPlatformRootNode)m_platformPanel.CurrentNode;
+                PlatformRootNode node = (PlatformRootNode)m_platformPanel.CurrentNode;
 
                 // Root of the current tree. Switch back to multilist mode
-                if(m_platformPanel.CurrentNode is CPlatformTagNode tag && node.ID == tag.Parent.ID)
+                if(m_platformPanel.CurrentNode is PlatformTagNode tag && node.ID == tag.Parent.ID)
                 {
                     m_gamePanel.MultiListMode();
                     return;
@@ -183,8 +183,8 @@ namespace glc_2.UI.Tabs
 
                 // Switching to new root. Load the platform games, if not done already
                 // NOTE: Platform should be poulated once - extra calls should be no op
-                CDataManager.LoadPlatformGames(node.ID);
-                m_gamePanel.ContainerView.Source = new CGameDataMultilistSource(CDataManager.GetPlatformGames(node.ID));
+                DataManager.LoadPlatformGames(node.ID);
+                m_gamePanel.ContainerView.Source = new CGameDataMultilistSource(DataManager.GetPlatformGames(node.ID));
                 return;
             }
 
@@ -192,9 +192,9 @@ namespace glc_2.UI.Tabs
             m_gamePanel.SingleListMode(m_platformPanel.CurrentNode.Name);
         }
 
-        private static void PlatformListView_ObjectActivated(ObjectActivatedEventArgs<CPlatformNode> obj)
+        private static void PlatformListView_ObjectActivated(ObjectActivatedEventArgs<PlatformTreeNode> obj)
         {
-            if(obj.ActivatedObject is CPlatformRootNode root)
+            if(obj.ActivatedObject is PlatformRootNode root)
             {
                 if(root.IsExpanded)
                 {
@@ -206,7 +206,7 @@ namespace glc_2.UI.Tabs
                 }
                 root.IsExpanded = !root.IsExpanded;
             }
-            else if(obj.ActivatedObject is CPlatformTagNode leaf)
+            else if(obj.ActivatedObject is PlatformTagNode leaf)
             {
                 m_gamePanel.ContainerView.SetFocus();
             }
@@ -218,7 +218,7 @@ namespace glc_2.UI.Tabs
 		/// <param name="e">The event argument</param>
 		private static void GameListView_OpenSelectedItem(MultilistViewItemEventArgs e)
         {
-            if(!CDataManager.LaunchGame((CGame)e.Value))
+            if(!DataManager.LaunchGame((CGame)e.Value))
             {
                 throw new System.Exception("Could not launch game");
             }
@@ -260,7 +260,7 @@ namespace glc_2.UI.Tabs
 
         private static void GameListView_SelectedChanged(MultilistViewItemEventArgs e)
         {
-            if(!CDataManager.GetBoolSetting(CAppSettings.A_SHOW_GAME_INFO_PANEL, gameInfoPanelSetting))
+            if(!DataManager.GetBoolSetting(CAppSettings.A_SHOW_GAME_INFO_PANEL, gameInfoPanelSetting))
             {
                 return;
             }
@@ -316,16 +316,17 @@ namespace glc_2.UI.Tabs
         private void GameSearch()
         {
             string searchTerm = string.Empty;
-            CEditStringDlg searchDlg = new CEditStringDlg("Game Search", string.Empty);
-            if(!searchDlg.Run(ref searchTerm))
+            EditStringDlg searchDlg = new EditStringDlg("Game Search", string.Empty);
+            if(!searchDlg.Run())
             {
                 return;
             }
 
             // TODO: Better implementation
-            CDataManager.GameSearch(searchTerm);
+            searchTerm = searchDlg.NewValue;
+            DataManager.GameSearch(searchTerm);
             m_platformPanel.SetSearchResults(searchTerm);
-            if(CDataManager.GetBoolSetting(CAppSettings.SHOW_SEARCH_IN_DLG, true))
+            if(DataManager.GetBoolSetting(CAppSettings.SHOW_SEARCH_IN_DLG, true))
             {
                 Terminal.Gui.Dialog dlg = new Terminal.Gui.Dialog(searchTerm)
                 {
@@ -344,8 +345,8 @@ namespace glc_2.UI.Tabs
                     CanFocus = true,
                 };
 
-                CDataManager.LoadPlatformGames(0);
-                view.Source = new CGameDataMultilistSource(CDataManager.GetPlatformGames(0));
+                DataManager.LoadPlatformGames(0);
+                view.Source = new CGameDataMultilistSource(DataManager.GetPlatformGames(0));
                 view.SingleListMode(searchTerm);
                 dlg.Add(view);
                 Application.Run(dlg);

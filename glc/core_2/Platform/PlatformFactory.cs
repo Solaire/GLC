@@ -10,7 +10,7 @@ namespace core_2.Platform
     /// Platform factory interface for creating instances of T (derived classes)
     /// </summary>
     /// <typeparam name="T">Type that inherits from CPlatform abstract class</typeparam>
-    public abstract class CPlatformFactory<T> where T : CPlatform
+    public abstract class CPlatformFactory<T> where T : Platform
     {
         /// <summary>
         /// Create instance of child CPlatform with exisitng data

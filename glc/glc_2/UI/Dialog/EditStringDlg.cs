@@ -1,14 +1,23 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Xml.Schema;
 using Terminal.Gui;
 
 namespace glc_2.UI.Dialog
 {
-    internal class CEditStringDlg : CEditDlg<string>
+    /// <summary>
+    /// Implementation of <see cref="EditDlg{String}"/> for editing a single line of text.
+    /// </summary>
+    internal class EditStringDlg : EditDlg<string>
     {
         protected TextField m_textField;
 
-        public CEditStringDlg(string title , string initialValue)
+        /// <summary>
+        /// Construct the dialog and a single-line <see cref="TextField"/>
+        /// </summary>
+        /// <param name="title">The title of the dialog</param>
+        /// <param name="initialValue">Initial string value</param>
+        public EditStringDlg(string title , string initialValue)
             : base(title, initialValue)
         {
             m_textField = new TextField()
@@ -23,11 +32,15 @@ namespace glc_2.UI.Dialog
             m_textField.SetFocus();
         }
 
-        public override bool Run(ref string currentValue)
+        /// <summary>
+        /// Run the dialog and set the new string value if closed with the "okay" button.
+        /// </summary>
+        /// <returns>True if the new string value is different</returns>
+        public override bool Run()
         {
-            if(Run() && m_textField.Text.ToString() != m_editValue)
+            if(base.Run() && m_textField.Text.ToString() != InitialValue)
             {
-                currentValue = m_textField.Text.ToString();
+                NewValue = m_textField.Text.ToString();
                 return true;
             }
             return false;

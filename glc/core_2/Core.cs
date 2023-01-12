@@ -16,7 +16,7 @@ namespace core_2
                 return false;
             }
 
-            return CDataManager.Initialise();
+            return DataManager.Initialise();
         }
 
         /// <summary>

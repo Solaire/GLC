@@ -11,7 +11,7 @@ namespace core_2.Platform
     /// <summary>
     /// Base class for generic platform
     /// </summary>
-    public abstract class CPlatform : IData
+    public abstract class Platform : IData
     {
         internal Dictionary<string, List<CGame>> m_games = new Dictionary<string, List<CGame>>();
 

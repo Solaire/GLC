@@ -71,7 +71,7 @@ namespace core_2.Platform
                 IsEnabled = isEnabled
             };
         }
-        internal static CBasicPlatform CreateFromDB(CPlatformSQL.CQryReadPlatform qry)
+        internal static CBasicPlatform CreateFromDB(PlatformSQL.QryReadPlatform qry)
         {
             return new CBasicPlatform()
             {

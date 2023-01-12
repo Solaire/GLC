@@ -7,28 +7,42 @@ using core_2.Platform;
 
 namespace glc_2.UI.Panels
 {
-    internal class CPlatformPanel : CBasePanel<CPlatform, TreeView<CPlatformNode>>
+    internal class PlatformPanel : BasePanel<Platform, TreeView<PlatformTreeNode>>
     {
         // TEMP
-        CPlatformRootNode m_searchRoot;
+        PlatformRootNode m_searchRoot;
 
-        public CPlatformNode CurrentNode { get; set; }
+        /// <summary>
+        /// Currently seelcted platform node (<see cref="PlatformRootNode"/> or <see cref="PlatformTagNode"/>)
+        /// </summary>
+        internal PlatformTreeNode CurrentNode
+        {
+            get;
+            set;
+        }
 
-        internal CPlatformPanel(Square square)
+        /// <summary>
+        /// Construct the panel
+        /// </summary>
+        /// <param name="square">Position nad size of the panel</param>
+        internal PlatformPanel(Box square)
             : base()
         {
-            m_searchRoot = new CPlatformRootNode()
+            m_searchRoot = new PlatformRootNode()
             {
                 Name = "Search",
                 ID = 0,
-                Tags = new List<CPlatformTagNode>()
+                Tags = new List<PlatformTagNode>()
             };
             Initialise("Platforms", square, true);
         }
 
+        /// <summary>
+        /// Create a <see cref="TreeView"/> to display the platforms and their tags
+        /// </summary>
         protected override void CreateContainerView()
         {
-            m_containerView = new TreeView<CPlatformNode>()
+            m_containerView = new TreeView<PlatformTreeNode>()
             {
                 X = 0,
                 Y = 0,
@@ -37,24 +51,24 @@ namespace glc_2.UI.Panels
                 CanFocus = true
             };
 
-            m_containerView.TreeBuilder = new CPlatformTreeBuilder();
+            m_containerView.TreeBuilder = new PlatformTreeBuilder();
 
-            foreach(CPlatform platform in CDataManager.Platforms)
+            foreach(Platform platform in DataManager.Platforms)
             {
-                CPlatformRootNode root = new CPlatformRootNode()
+                PlatformRootNode root = new PlatformRootNode()
                 {
                     Name = platform.Name,
                     ID = platform.ID,
-                    Tags = new List<CPlatformTagNode>()
+                    Tags = new List<PlatformTagNode>()
                 };
 
-                foreach(CTag tag in CDataManager.GetTagsForPlatform(platform.ID)) // TODO: check if method is only called once
+                foreach(CTag tag in DataManager.GetTagsForPlatform(platform.ID)) // TODO: check if method is only called once
                 {
                     if(!tag.IsEnabled)
                     {
                         continue;
                     }
-                    root.Tags.Add(new CPlatformTagNode(root, tag.Name, tag.ID));
+                    root.Tags.Add(new PlatformTagNode(root, tag.Name, tag.ID));
                 }
                 m_containerView.AddObject(root);
             }
@@ -64,14 +78,20 @@ namespace glc_2.UI.Panels
             CurrentNode = m_containerView.SelectedObject;
         }
 
+        /// <summary>
+        /// Create a <see cref="PlatformTagNode"/> with the search term as the label and add
+        /// to the search root node.
+        /// </summary>
+        /// <param name="searchTerm"></param>
         public void SetSearchResults(string searchTerm)
         {
-            CPlatformTagNode searchNode = new CPlatformTagNode(m_searchRoot, searchTerm, 0);
+            PlatformTagNode searchNode = new PlatformTagNode(m_searchRoot, searchTerm, 0);
 
-            // New search. Need to add the search root to the top of the tree
+            // First search tag. Need to remove all nodes, so that the search root
+            // is a the top of the tree
             if(!m_searchRoot.Tags.Any())
             {
-                IEnumerable<CPlatformNode> existing = new List<CPlatformNode>(m_containerView.Objects);
+                IEnumerable<PlatformTreeNode> existing = new List<PlatformTreeNode>(m_containerView.Objects);
                 m_containerView.ClearObjects();
 
                 m_searchRoot.Tags.Add(searchNode);
@@ -84,6 +104,8 @@ namespace glc_2.UI.Panels
                 m_containerView.RefreshObject(m_searchRoot);
             }
 
+            // Expand the search node and navigate to the search term tag
+            // (the LibraryTab.PlatformListView_SelectedChanged) will sort the rest out
             if(!m_searchRoot.IsExpanded)
             {
                 m_containerView.Expand(m_searchRoot);
@@ -93,10 +115,29 @@ namespace glc_2.UI.Panels
         }
     }
 
-    internal abstract class CPlatformNode
+    /// <summary>
+    /// Base class representing a <see cref="core_2.Platform.Platform"/> or a <see cref="CTag"/>
+    /// as a <see cref="TreeView"/> node.
+    /// </summary>
+    internal abstract class PlatformTreeNode
     {
-        public int ID { get; set; }
-        public string Name { get; set; }
+        /// <summary>
+        /// The primary key
+        /// </summary>
+        internal int ID
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The name of the field
+        /// </summary>
+        internal string Name
+        {
+            get;
+            set;
+        }
 
         public override string ToString()
         {
@@ -104,82 +145,81 @@ namespace glc_2.UI.Panels
         }
     }
 
-    internal class CPlatformRootNode : CPlatformNode
+    /// <summary>
+    /// Implementation of <see cref="PlatformTreeNode"/> which represents a
+    /// <see cref="core_2.Platform.Platform"/>
+    /// </summary>
+    internal class PlatformRootNode : PlatformTreeNode
     {
-        /*
-        private int m_id;
-        private string m_name;
-
-        #region IPlatformNode
-        public int ID
+        /// <summary>
+        /// Flag determining if the node is expanded and should
+        /// show the children
+        /// </summary>
+        internal bool IsExpanded
         {
-            get => m_id;
-            set { m_id = value; }
+            get;
+            set;
         }
 
-        public string Name
+        /// <summary>
+        /// List of children nodes
+        /// </summary>
+        internal List<PlatformTagNode> Tags
         {
-            get => m_name;
-            set { m_name = value; }
+            get;
+            set;
         }
-        #endregion IPlatformNode
-        */
-
-        public bool IsExpanded { get; set; }
-
-        public List<CPlatformTagNode> Tags { get; set; }
     }
 
-    internal class CPlatformTagNode : CPlatformNode
+    /// <summary>
+    /// Implementation of <see cref="PlatformTreeNode"/> which represents a
+    /// <see cref="CTag"/>
+    /// </summary>
+    internal class PlatformTagNode : PlatformTreeNode
     {
-        public CPlatformRootNode Parent
+        /// <summary>
+        /// The parent node
+        /// </summary>
+        internal PlatformRootNode Parent
         {
             get;
             private set;
         }
-        /*
-        private string m_name;
-        private int m_id;
 
-        #region IPlatformNode
-        public int ID
-        {
-            get => m_id;
-            set { m_id = value; }
-        }
-
-        public string Name
-        {
-            get => m_name;
-            set { m_name = value; }
-        }
-        #endregion IPlatformNode
-        */
-
-        internal CPlatformTagNode(CPlatformRootNode parent, string name, int id)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="parent">the parent node</param>
+        /// <param name="name">The name of the node to display</param>
+        /// <param name="id">The primary key</param>
+        internal PlatformTagNode(PlatformRootNode parent, string name, int id)
         {
             Parent = parent;
-            Name = name;//m_name = name;
-            ID = id;//m_id = id;
+            Name = name;
+            ID = id;
         }
     }
 
-    internal class CPlatformTreeBuilder : ITreeBuilder<CPlatformNode>
+    /// <summary>
+    /// Implementation of <see cref="ITreeBuilder{PlatformTreeNode}"/> which is used
+    /// to create the tree of nodes to display in the <see cref="PlatformPanel"/>
+    /// </summary>
+    internal class PlatformTreeBuilder : ITreeBuilder<PlatformTreeNode>
     {
         public bool SupportsCanExpand => true;
 
-        public bool CanExpand(CPlatformNode node)
+        public bool CanExpand(PlatformTreeNode node)
         {
-            return node is CPlatformRootNode;
+            return node is PlatformRootNode;
         }
 
-        public IEnumerable<CPlatformNode> GetChildren(CPlatformNode node)
+        public IEnumerable<PlatformTreeNode> GetChildren(PlatformTreeNode node)
         {
-            if(node is CPlatformRootNode root)
+            if(node is PlatformRootNode root)
             {
                 return root.Tags;
             }
-            return Enumerable.Empty<CPlatformNode>();
+            return Enumerable.Empty<PlatformTreeNode>();
         }
     }
 }

@@ -1,14 +1,11 @@
-﻿using core_2.Game;
-using SqlDB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SqlDB;
 
 namespace core_2.DataAccess
 {
-    internal class CGameSQL
+    /// <summary>
+    /// Class for managing data in the "Game" database table.
+    /// </summary>
+    internal class GameSQL
     {
         // Query parameter names
         private const string FIELD_GAME_ID = "GameID";
@@ -30,9 +27,9 @@ namespace core_2.DataAccess
         /// <summary>
         /// Query for inserting new games into the database
         /// </summary>
-        public class CQryNewGame : CSqlQry
+        internal class QryNewGame : CSqlQry
         {
-            public CQryNewGame()
+            internal QryNewGame()
                 : base("Game", "", "")
             {
                 m_sqlRow[FIELD_PLATFORM_FK] = new CSqlFieldInteger(FIELD_PLATFORM_FK, CSqlField.QryFlag.cInsWrite);
@@ -47,52 +44,52 @@ namespace core_2.DataAccess
                 m_sqlRow[FIELD_TAG] = new CSqlFieldString(FIELD_TAG, CSqlField.QryFlag.cInsWrite);
 
             }
-            public int PlatformFK
+            internal int PlatformFK
             {
                 get { return m_sqlRow[FIELD_PLATFORM_FK].Integer; }
                 set { m_sqlRow[FIELD_PLATFORM_FK].Integer = value; }
             }
-            public string Identifier
+            internal string Identifier
             {
                 get { return m_sqlRow[FIELD_IDENTIFIER].String; }
                 set { m_sqlRow[FIELD_IDENTIFIER].String = value; }
             }
-            public string Name
+            internal string Name
             {
                 get { return m_sqlRow[FIELD_NAME].String; }
                 set { m_sqlRow[FIELD_NAME].String = value; }
             }
-            public string Alias
+            internal string Alias
             {
                 get { return m_sqlRow[FIELD_ALIAS].String; }
                 set { m_sqlRow[FIELD_ALIAS].String = value; }
             }
-            public string Launch
+            internal string Launch
             {
                 get { return m_sqlRow[FIELD_LAUNCH].String; }
                 set { m_sqlRow[FIELD_LAUNCH].String = value; }
             }
-            public bool IsFavourite
+            internal bool IsFavourite
             {
                 get { return m_sqlRow[FIELD_IS_FAVOURITE].Bool; }
                 set { m_sqlRow[FIELD_IS_FAVOURITE].Bool = value; }
             }
-            public bool IsEnabled
+            internal bool IsEnabled
             {
                 get { return m_sqlRow[FIELD_IS_ENABLED].Bool; }
                 set { m_sqlRow[FIELD_IS_ENABLED].Bool = value; }
             }
-            public double Frequency
+            internal double Frequency
             {
                 get { return m_sqlRow[FIELD_FREQUENCY].Double; }
                 set { m_sqlRow[FIELD_FREQUENCY].Double = value; }
             }
-            public string Icon // TODO: maybe different type (image, bytearray?)
+            internal string Icon // TODO: maybe different type (image, bytearray?)
             {
                 get { return m_sqlRow[FIELD_ICON].String; }
                 set { m_sqlRow[FIELD_ICON].String = value; }
             }
-            public string Tag
+            internal string Tag
             {
                 get { return m_sqlRow[FIELD_TAG].String; }
                 set { m_sqlRow[FIELD_TAG].String = value; }
@@ -102,9 +99,9 @@ namespace core_2.DataAccess
         /// <summary>
         /// Query for updating or removing a database entry
         /// </summary>
-        public class CQryUpdateGame : CSqlQry
+        internal class QryUpdateGame : CSqlQry
         {
-            public CQryUpdateGame()
+            internal QryUpdateGame()
                 : base("Game", "", "")
             {
                 m_sqlRow[FIELD_GAME_ID] = new CSqlFieldInteger(FIELD_GAME_ID, CSqlField.QryFlag.cUpdWhere | CSqlField.QryFlag.cDelWhere);
@@ -119,66 +116,69 @@ namespace core_2.DataAccess
                 m_sqlRow[FIELD_ICON] = new CSqlFieldString(FIELD_ICON, CSqlField.QryFlag.cUpdWrite);
                 m_sqlRow[FIELD_TAG] = new CSqlFieldString(FIELD_TAG, CSqlField.QryFlag.cUpdWrite);
             }
-            public int GameID
+            internal int GameID
             {
                 get { return m_sqlRow[FIELD_GAME_ID].Integer; }
                 set { m_sqlRow[FIELD_GAME_ID].Integer = value; }
             }
-            public int PlatformFK
+            internal int PlatformFK
             {
                 get { return m_sqlRow[FIELD_PLATFORM_FK].Integer; }
                 set { m_sqlRow[FIELD_PLATFORM_FK].Integer = value; }
             }
-            public string Identifier
+            internal string Identifier
             {
                 get { return m_sqlRow[FIELD_IDENTIFIER].String; }
                 set { m_sqlRow[FIELD_IDENTIFIER].String = value; }
             }
-            public string Name
+            internal string Name
             {
                 get { return m_sqlRow[FIELD_NAME].String; }
                 set { m_sqlRow[FIELD_NAME].String = value; }
             }
-            public string Alias
+            internal string Alias
             {
                 get { return m_sqlRow[FIELD_ALIAS].String; }
                 set { m_sqlRow[FIELD_ALIAS].String = value; }
             }
-            public string Launch
+            internal string Launch
             {
                 get { return m_sqlRow[FIELD_LAUNCH].String; }
                 set { m_sqlRow[FIELD_LAUNCH].String = value; }
             }
-            public bool IsFavourite
+            internal bool IsFavourite
             {
                 get { return m_sqlRow[FIELD_IS_FAVOURITE].Bool; }
                 set { m_sqlRow[FIELD_IS_FAVOURITE].Bool = value; }
             }
-            public bool IsEnabled
+            internal bool IsEnabled
             {
                 get { return m_sqlRow[FIELD_IS_ENABLED].Bool; }
                 set { m_sqlRow[FIELD_IS_ENABLED].Bool = value; }
             }
-            public double Frequency
+            internal double Frequency
             {
                 get { return m_sqlRow[FIELD_FREQUENCY].Double; }
                 set { m_sqlRow[FIELD_FREQUENCY].Double = value; }
             }
-            public string Icon // TODO: maybe different type (image, bytearray?)
+            internal string Icon // TODO: maybe different type (image, bytearray?)
             {
                 get { return m_sqlRow[FIELD_ICON].String; }
                 set { m_sqlRow[FIELD_ICON].String = value; }
             }
-            public string Tag
+            internal string Tag
             {
                 get { return m_sqlRow[FIELD_TAG].String; }
                 set { m_sqlRow[FIELD_TAG].String = value; }
             }
         }
 
-        public abstract class CQryBaseReadGame : CSqlQry
+        /// <summary>
+        /// Base class for read queries
+        /// </summary>
+        internal abstract class QryBaseReadGame : CSqlQry
         {
-            public CQryBaseReadGame(string query)
+            internal QryBaseReadGame(string query)
                 : base("Game", query, "")
             {
                 m_sqlRow[FIELD_GAME_ID] = new CSqlFieldInteger(FIELD_GAME_ID, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
@@ -193,57 +193,57 @@ namespace core_2.DataAccess
                 m_sqlRow[FIELD_ICON] = new CSqlFieldString(FIELD_ICON, CSqlField.QryFlag.cSelRead);
                 m_sqlRow[FIELD_TAG] = new CSqlFieldString(FIELD_TAG, CSqlField.QryFlag.cSelRead);
             }
-            public int GameID
+            internal int GameID
             {
                 get { return m_sqlRow[FIELD_GAME_ID].Integer; }
                 set { m_sqlRow[FIELD_GAME_ID].Integer = value; }
             }
-            public int PlatformFK
+            internal int PlatformFK
             {
                 get { return m_sqlRow[FIELD_PLATFORM_FK].Integer; }
                 set { m_sqlRow[FIELD_PLATFORM_FK].Integer = value; }
             }
-            public string Identifier
+            internal string Identifier
             {
                 get { return m_sqlRow[FIELD_IDENTIFIER].String; }
                 set { m_sqlRow[FIELD_IDENTIFIER].String = value; }
             }
-            public string Name
+            internal string Name
             {
                 get { return m_sqlRow[FIELD_NAME].String; }
                 set { m_sqlRow[FIELD_NAME].String = value; }
             }
-            public string Alias
+            internal string Alias
             {
                 get { return m_sqlRow[FIELD_ALIAS].String; }
                 set { m_sqlRow[FIELD_ALIAS].String = value; }
             }
-            public string Launch
+            internal string Launch
             {
                 get { return m_sqlRow[FIELD_LAUNCH].String; }
                 set { m_sqlRow[FIELD_LAUNCH].String = value; }
             }
-            public bool IsFavourite
+            internal bool IsFavourite
             {
                 get { return m_sqlRow[FIELD_IS_FAVOURITE].Bool; }
                 set { m_sqlRow[FIELD_IS_FAVOURITE].Bool = value; }
             }
-            public bool IsEnabled
+            internal bool IsEnabled
             {
                 get { return m_sqlRow[FIELD_IS_ENABLED].Bool; }
                 set { m_sqlRow[FIELD_IS_ENABLED].Bool = value; }
             }
-            public double Frequency
+            internal double Frequency
             {
                 get { return m_sqlRow[FIELD_FREQUENCY].Double; }
                 set { m_sqlRow[FIELD_FREQUENCY].Double = value; }
             }
-            public string Icon // TODO: maybe different type (image, bytearray?)
+            internal string Icon // TODO: maybe different type (image, bytearray?)
             {
                 get { return m_sqlRow[FIELD_ICON].String; }
                 set { m_sqlRow[FIELD_ICON].String = value; }
             }
-            public string Tag
+            internal string Tag
             {
                 get { return m_sqlRow[FIELD_TAG].String; }
                 set { m_sqlRow[FIELD_TAG].String = value; }
@@ -251,11 +251,11 @@ namespace core_2.DataAccess
         }
 
         /// <summary>
-        /// Query for updating or removing a database entry
+        /// Query for generic read
         /// </summary>
-        public class CQryReadGame : CQryBaseReadGame
+        internal class QryReadGame : QryBaseReadGame
         {
-            public CQryReadGame()
+            internal QryReadGame()
                 : base("((& = ?) OR (& = ?))")
             {
                 m_sqlRow[FIELD_GAME_ID] = new CSqlFieldInteger(FIELD_GAME_ID, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
@@ -275,9 +275,9 @@ namespace core_2.DataAccess
         /// <summary>
         /// Class for performing a fuzzy search
         /// </summary>
-        public class CQryGameFuzzySearch : CQryBaseReadGame
+        internal class QryGameFuzzySearch : QryBaseReadGame
         {
-            public CQryGameFuzzySearch()
+            internal QryGameFuzzySearch()
                 : base("(& LIKE '%?%')")
             {
                 m_sqlRow[FIELD_NAME] = new CSqlFieldString(FIELD_NAME, CSqlField.QryFlag.cSelRead | CSqlField.QryFlag.cSelWhere);
@@ -296,9 +296,9 @@ namespace core_2.DataAccess
 
         #endregion // Query definitions
 
-        private static CQryNewGame m_qryNewGame = new CQryNewGame();
-        private static CQryUpdateGame m_qryUpdateGame = new CQryUpdateGame();
-        private static CQryReadGame m_qryReadGame = new CQryReadGame();
-        private static CQryGameFuzzySearch m_qryGameFuzzySearch = new CQryGameFuzzySearch();
+        private static QryNewGame m_qryNewGame = new QryNewGame();
+        private static QryUpdateGame m_qryUpdateGame = new QryUpdateGame();
+        private static QryReadGame m_qryReadGame = new QryReadGame();
+        private static QryGameFuzzySearch m_qryGameFuzzySearch = new QryGameFuzzySearch();
     }
 }

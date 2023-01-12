@@ -1,24 +1,32 @@
-﻿using core_2.Game;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using Terminal.Gui;
 
 namespace glc_2.UI.Panels
 {
-    internal class CKeyBindingPanel : CBasePanel<StatusItem, ListView>
+    /// <summary>
+    /// Implementation of <see cref="BasePanel{StatusItem, ListView}"/> which will
+    /// store and display the keybindings used in the app. The methods called by the
+    /// keybindings might not be present in this class.
+    /// </summary>
+    internal class KeyBindingPanel : BasePanel<StatusItem, ListView>
     {
         private Dictionary<Key, StatusItem> m_bindings; // TODO: Will need a dictionary data source
 
-        public CKeyBindingPanel(Square square, Dictionary<Key, StatusItem> items) // List<StatusItem> items)
-            : base()
+        /// <summary>
+        /// Construct the panel and create the data source
+        /// </summary>
+        /// <param name="box">Position and size of the panel</param>
+        /// <param name="items">Dictionary of <see cref="StatusItem"/>, keyed on <see cref="Key"/></param>
+        internal KeyBindingPanel(Box box, Dictionary<Key, StatusItem> items) // List<StatusItem> items)
         {
-            Initialise("Key bindings", square, false);
-            m_containerView.Source = new CKeyBindingDataSource(items.Values.ToList());
+            Initialise("Key bindings", box, false);
+            m_containerView.Source = new KeyBindingDataSource(items.Values.ToList());
             m_bindings = items;
         }
 
+        /// <inheritdoc/>
         protected override void CreateContainerView()
         {
             m_containerView = new ListView()
@@ -34,9 +42,16 @@ namespace glc_2.UI.Panels
             m_view.Add(m_containerView);
         }
 
-        internal class CKeyBindingDataSource : CGenericDataSource<StatusItem>
+        /// <summary>
+        /// Implementation of <see cref="ListDataSource{StatusItem}"/>
+        /// </summary>
+        internal class KeyBindingDataSource : ListDataSource<StatusItem>
         {
-            public CKeyBindingDataSource(List<StatusItem> itemList)
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="itemList">List of <see cref="StatusItem"/></param>
+            public KeyBindingDataSource(List<StatusItem> itemList)
                 : base(itemList)
             {
 
@@ -58,15 +73,19 @@ namespace glc_2.UI.Panels
             }
         }
 
-        // TODO: Optimise with a non-list structure
-        public void PerformKeyAction(View.KeyEventEventArgs a)
+        /// <summary>
+        /// If the <see cref="KeyEvent.Key"/> is bound to a <see cref="StatusItem"/>, invoke the
+        /// bound action.
+        /// </summary>
+        /// <param name="keyEvent">The key event</param>
+        public void PerformKeyAction(KeyEvent keyEvent)
         {
-            if((a.KeyEvent.Key & Key.CtrlMask) != Key.CtrlMask || !m_bindings.ContainsKey(a.KeyEvent.Key))
+            if((keyEvent.Key & Key.CtrlMask) != Key.CtrlMask || !m_bindings.ContainsKey(keyEvent.Key))
             {
                 return;
             }
 
-            m_bindings[a.KeyEvent.Key].Action.Invoke();
+            m_bindings[keyEvent.Key].Action.Invoke();
         }
     }
 }

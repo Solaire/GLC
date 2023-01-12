@@ -5,54 +5,67 @@ using Terminal.Gui;
 
 namespace glc_2.UI.Panels
 {
-    internal abstract class CBasePanel<T, U> where U : View
+    /// <summary>
+    /// Base class for all GUI panels (not related to <see cref="Terminal.Gui.PanelView"/>). A panel
+    /// is a wrapper which encapsulates data, logic and an implementation of <see cref="Terminal.Gui.View"/>.
+    /// logic.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="U">Implementation of <see cref="Terminal.Gui.View"/></typeparam>
+    internal abstract class BasePanel<T, U> where U : View
     {
         protected FrameView m_view;
         protected U m_containerView;
         protected int m_selectionIndex;
 
-        public FrameView    View => m_view;
-        public U ContainerView => m_containerView;
+        internal FrameView View => m_view;
+        internal U ContainerView => m_containerView;
 
-        public CBasePanel()
+        /// <summary>
+        /// Create the main panel frame and call data container initialisation logic
+        /// </summary>
+        /// <param name="title">The panel title</param>
+        /// <param name="box">The position and size of the panel frame</param>
+        /// <param name="canFocus">Flag determining if the panel can be focused</param>
+        protected void Initialise(string title, Box box, bool canFocus = true)
         {
-            m_selectionIndex = 0;
-        }
-
-        protected void Initialise(string name, Square square, bool canFocus)
-        {
-            m_view = new FrameView(name)
+            m_view = new FrameView(title)
             {
-                X = square.x,
-                Y = square.y,
-                Width = square.w,
-                Height = square.h,
+                X = box.X,
+                Y = box.Y,
+                Width = box.Width,
+                Height = box.Height,
                 CanFocus = canFocus
             };
             m_view.Title = $"{m_view.Title}";
 
             CreateContainerView();
+            m_selectionIndex = 0;
         }
 
+        /// <summary>
+        /// Initialise data container view and add it to the panel frame.
+        /// </summary>
         protected abstract void CreateContainerView();
     }
 
-    public abstract class CGenericDataSource<T> : IListDataSource
+    /// <summary>
+    /// Generic base class for <see cref="IListDataSource"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    internal abstract class ListDataSource<T> : IListDataSource
     {
         private readonly int length;
 
-        public List<T> ItemList { get; set; }
-
-        public virtual bool IsMarked(int item) => false;
+        #region IListDataSource
 
         public int Count => ItemList.Count;
 
         public int Length => length;
 
-        public CGenericDataSource(List<T> itemList)
+        public virtual bool IsMarked(int item)
         {
-            ItemList = itemList;
-            length = GetMaxLengthItem();
+            return false;
         }
 
         public virtual void Render(ListView container, ConsoleDriver driver, bool selected, int item, int col, int line, int width, int start = 0)
@@ -62,11 +75,35 @@ namespace glc_2.UI.Panels
             var s = ConstructString(item);
             RenderUstr(driver, $"{s}", col, line, width, start);
         }
+
         public virtual void SetMark(int item, bool value)
         {
         }
 
-        int GetMaxLengthItem()
+        System.Collections.IList IListDataSource.ToList()
+        {
+            return ItemList;
+        }
+
+        #endregion IListDataSource
+
+        internal List<T> ItemList { get; set; }
+
+        /// <summary>
+        /// Set the data source and calculate longest item
+        /// </summary>
+        /// <param name="itemList">the data list</param>
+        internal ListDataSource(List<T> itemList)
+        {
+            ItemList = itemList;
+            length = GetMaxLengthItem();
+        }
+
+        /// <summary>
+        /// Calculate the longest string from the data source.
+        /// </summary>
+        /// <returns>Length of the longest string</returns>
+        private int GetMaxLengthItem()
         {
             if(ItemList?.Count == 0)
             {
@@ -110,27 +147,19 @@ namespace glc_2.UI.Panels
             }
         }
 
-        System.Collections.IList IListDataSource.ToList()
-        {
-            return ItemList;
-        }
-
+        /// <summary>
+        /// Construct a string from the specified item.
+        /// </summary>
+        /// <param name="itemIndex">The index of the selected item</param>
+        /// <returns>A string representing the specified item</returns>
         protected abstract String ConstructString(int itemIndex);
 
+        // TODO: might not be necessary
+        /// <summary>
+        /// Get the string of the specified item.
+        /// </summary>
+        /// <param name="itemIndex">The index of the selected item</param>
+        /// <returns>String from the specified item</returns>
         protected abstract string GetString(int itemIndex);
-    }
-
-    internal struct Square
-    {
-        public Pos x, y;
-        public Dim w, h;
-
-        public Square(Pos x, Pos y, Dim w, Dim h)
-        {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-        }
     }
 }

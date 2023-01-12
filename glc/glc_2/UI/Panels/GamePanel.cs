@@ -9,13 +9,13 @@ using Terminal.Gui;
 
 namespace glc_2.UI.Panels
 {
-    internal class CGamePanel : CBasePanel<CGame, CMultilistView>
+    internal class CGamePanel : BasePanel<CGame, CMultilistView>
     {
-        internal CGamePanel(Square square, Dictionary<string, List<CGame>> games)
+        internal CGamePanel(Box box, Dictionary<string, List<CGame>> games)
             : base()
         {
 
-            Initialise("Games", square, true);
+            Initialise("Games", box, true);
             m_containerView.Source = new CGameDataMultilistSource(games);
         }
 
