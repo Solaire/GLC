@@ -1,6 +1,6 @@
 ﻿using BasePlatformExtension;
-using core.Platform;
-using core;
+using core_2.Platform;
+using core_2.Game;
 using Logger;
 using System.Diagnostics;
 using System.IO;
@@ -21,7 +21,7 @@ namespace Steam
 
         public override bool GameLaunch(Game game)
         {
-            System.Console.WriteLine($"Steam game {game.Title} launched");
+            System.Console.WriteLine($"Steam game {game.Name} launched");
             return true;
 
             if(OperatingSystem.IsWindows())
@@ -48,14 +48,14 @@ namespace Steam
         }
     }
 
-    public class CSteamFactory : CPlatformFactory<CPlatform>
+    public class CSteamFactory : CPlatformFactory<BasePlatform>
     {
-        public override CPlatform CreateDefault()
+        public override BasePlatform CreateDefault()
         {
             return new CSteamPlatform(-1, GetPlatformName(), "", "", true);
         }
 
-        public override CPlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
+        public override BasePlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
         {
             return new CSteamPlatform(id, name, description, path, isActive);
         }

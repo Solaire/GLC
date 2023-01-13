@@ -132,6 +132,15 @@ namespace core_2.Platform
 
         #endregion Abstract methods
 
+        public BasePlatform(int id, string name, string description, string path, bool isActive)
+        {
+            ID = id;
+            Name = name;
+            Description = description;
+            Path = path;
+            IsEnabled = isActive;
+        }
+
         protected virtual void SaveNewGames(HashSet<Game.Game> newGames)
         {
 

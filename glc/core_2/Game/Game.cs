@@ -2,7 +2,7 @@
 
 namespace core_2.Game
 {
-    public class Game : IData, IEquatable<Game>
+    public class Game : IData
     {
         #region IData
 
@@ -25,21 +25,6 @@ namespace core_2.Game
         }
 
         #endregion IData
-
-        #region IEquatable<CGame>
-
-        /// <summary>
-        /// Determine the equality of this instance and another GameObject
-        /// using the Identifier property
-        /// </summary>
-        /// <param name="other">The GameObject instance to compare</param>
-        /// <returns>True if this instance and other have the same Identifier field</returns>
-        public bool Equals(Game other)
-        {
-            return other == null ? false : Identifier == other.Identifier;
-        }
-
-        #endregion IEquatable<CGame>
 
         #region Properties
 
@@ -135,7 +120,7 @@ namespace core_2.Game
             return new Game()
             {
                 ID = row.GameID,
-                Name = row.Name,
+                Name = row.Title,
                 PlatformFK = row.PlatformFK,
                 Identifier = row.Identifier,
                 Alias = row.Alias,
@@ -163,6 +148,19 @@ namespace core_2.Game
         public void UpdateFrequency(bool isDecimate)
         {
             Frequency = isDecimate ? Frequency * 0.90 : Frequency + 1;
+        }
+    }
+
+    public class GameComparer : IEqualityComparer<Game>
+    {
+        public bool Equals(Game l, Game r)
+        {
+            return l.Identifier == r.Identifier;
+        }
+
+        public int GetHashCode(Game game)
+        {
+            return game.Identifier.GetHashCode();
         }
     }
 }

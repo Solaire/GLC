@@ -1,5 +1,5 @@
 ﻿using BasePlatformExtension;
-using core;
+using core_2.Game;
 using Logger;
 using Microsoft.Win32;
 using static System.Environment;
@@ -214,7 +214,7 @@ namespace Gog
                                             */
 
                                             //gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, "", strAlias, true, strPlatform, bHidden: hidden, tags: tagList, dateLastRun: lastRun, rating: userRating));
-                                            games.Add(Game.FromScanner(0, strID, strTitle, strLaunch, strAlias, "Installed"));
+                                            games.Add(Game.CreateNew(strTitle, m_platformID, strID, (string.IsNullOrEmpty(strAlias) ? strTitle : strAlias), strLaunch, "Installed"));
                                         }
                                     }
                                 }
@@ -223,9 +223,9 @@ namespace Gog
                             // Add not-installed games
                             //if(string.IsNullOrEmpty(strLaunch) && !(bool)CConfig.GetConfigBool(CConfig.CFG_INSTONLY))
                             {
-                                CLogger.LogDebug($"- *{strTitle}");
+                                //CLogger.LogDebug($"- *{strTitle}");
                                 //gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, strPlatform));
-                                games.Add(Game.FromScanner(0, strID, strTitle, "", "", "Not installed"));
+                                //games.Add(Game.CreateNew(strTitle, m_platformID, strID, strTitle, "", "Not installed"));
 
                                 // Use icon from images (json) to download not-installed icons
                                 /*

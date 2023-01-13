@@ -36,7 +36,7 @@ namespace core_2
             }
 
             var pluginLoader = new PluginLoader<CPlatformFactory<BasePlatform>>();
-            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc\bin\Debug\net6.0\platforms"); // TODO: path
+            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc_2\bin\Debug\net6.0\Platforms"); // TODO: path
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 
             foreach(var plugin in plugins)
@@ -78,7 +78,7 @@ namespace core_2
                 return;
             }
 
-            Platform.BasePlatform platform = m_platforms[platformID];
+            BasePlatform platform = m_platforms[platformID];
 
             if(platform.IsLoaded && !reload)
             {
@@ -93,8 +93,13 @@ namespace core_2
             platform.m_games = LoadGames(platformID);
         }
 
-        private static Dictionary<string, List<Game.Game>> LoadGames(int platformID)
+        private static Dictionary<string, List<Game.Game>> LoadGames(int platformID, bool testData = false) // TODO: Remove test data
         {
+            if(!testData)
+            {
+                return GameSQL.LoadPlatformGames(platformID);
+            }
+
             if(platformID == 1)
             {
                 return new Dictionary<string, List<Game.Game>>()
@@ -192,6 +197,26 @@ namespace core_2
         {
             Platform.BasePlatform platform = Platforms.Single(p => p.ID == game.PlatformFK);
             return platform.GameLaunch(game);
+        }
+
+        public static void GameScanner()
+        {
+            foreach(BasePlatform platform in m_platforms.Values)
+            {
+                HashSet<Game.Game> newGames = platform.GetInstalledGames();
+                HashSet<Game.Game> currentGames = platform["Installed"].ToHashSet<Game.Game>();
+
+                HashSet<Game.Game> gamesToAdd = new HashSet<Game.Game>(newGames, new GameComparer());
+                //HashSet<Game.Game> gamesToRemove = new HashSet<Game.Game>(currentGames);
+
+                gamesToAdd.ExceptWith(currentGames);
+                //gamesToRemove.ExceptWith(newGames);
+
+                foreach(var game in gamesToAdd)
+                {
+                    GameSQL.InsertGame(game);
+                }
+            }
         }
     }
 
@@ -307,6 +332,7 @@ namespace core_2
     public class CTestPlatform : Platform.BasePlatform
     {
         public CTestPlatform(int id, string name, string description, string path, bool isEnabled)
+            : base(id, name, description, path, isEnabled)
         {
             ID = id;
             Name = name;

@@ -1,8 +1,8 @@
 ﻿using BasePlatformExtension;
-using core.Platform;
-using core;
 using Logger;
 using System.Diagnostics;
+using core_2.Game;
+using core_2.Platform;
 
 namespace Gog
 {
@@ -18,7 +18,7 @@ namespace Gog
 
         public override bool GameLaunch(Game game)
         {
-            System.Console.WriteLine($"Gog game {game.Title} launched");
+            System.Console.WriteLine($"Gog game {game.Name} launched");
             return true;
 
             //if((bool)CConfig.GetConfigBool(CConfig.CFG_USEGAL))
@@ -55,14 +55,14 @@ namespace Gog
         }
     }
 
-    public class CGogFactory : CPlatformFactory<CPlatform>
+    public class CGogFactory : CPlatformFactory<BasePlatform>
     {
-        public override CPlatform CreateDefault()
+        public override BasePlatform CreateDefault()
         {
             return new CGogPlatform(-1, GetPlatformName(), "", "", true);
         }
 
-        public override CPlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
+        public override BasePlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
         {
             return new CGogPlatform(id, name, description, path, isActive);
         }

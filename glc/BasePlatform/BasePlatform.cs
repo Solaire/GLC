@@ -41,8 +41,7 @@ namespace BasePlatformExtension
 
         public override HashSet<Game> GetInstalledGames()
         {
-            HashSet<Game> result = new HashSet<Game>();
-            m_scanner.GetInstalledGames(false);
+            HashSet<Game> result = m_scanner.GetInstalledGames(false);
             return result;
         }
 

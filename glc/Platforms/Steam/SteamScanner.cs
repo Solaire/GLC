@@ -1,6 +1,5 @@
 ﻿using BasePlatformExtension;
-using core;
-using core.DataAccess;
+using core_2.Game;
 using HtmlAgilityPack;
 using Logger;
 using Microsoft.Win32;
@@ -181,7 +180,7 @@ namespace Steam
                                 strAlias = "";
                             strUninstall = UNINST_GAME + id;
                             //games.Add(new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
-                            games.Add(Game.FromScanner(0, strID, strTitle, strLaunch, strAlias, "Installed"));
+                            games.Add(Game.CreateNew(strTitle, m_platformID, strID, (String.IsNullOrEmpty(strAlias) ? strTitle : strAlias), strLaunch, "Installed"));
                         }
                     }
                     catch(Exception e)
@@ -429,7 +428,7 @@ namespace Steam
                                     // Add not-installed games
                                     CLogger.LogDebug($"- *{strTitle}");
                                     //gameDataList.Add(new ImportGameData(strID, strTitle, "", "", "", "", false, STEAM_PLATFORM));
-                                    games.Add(Game.FromScanner(0, strID, strTitle, "", "", "Not installed"));
+                                    games.Add(Game.CreateNew(strTitle, m_platformID, strID, strTitle, "", "Not installed"));
 
                                     // Use logo to download not-installed icons
                                     /*

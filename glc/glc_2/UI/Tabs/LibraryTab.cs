@@ -110,7 +110,7 @@ namespace glc_2.UI.Tabs
                     Key.CtrlMask | Key.S,
                     new StatusItem(Key.CtrlMask | Key.S, "~S~ Search", () =>
                     {
-                        GameSearch();
+                        GameScanner();//GameSearch();
                     })
                 },
             };
@@ -351,6 +351,11 @@ namespace glc_2.UI.Tabs
                 dlg.Add(view);
                 Application.Run(dlg);
             }
+        }
+
+        private void GameScanner()
+        {
+            DataManager.GameScanner();
         }
 
         #endregion Key binding actions

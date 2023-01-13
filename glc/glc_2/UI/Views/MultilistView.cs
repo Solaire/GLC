@@ -403,11 +403,7 @@ namespace glc_2.UI.Views
         /// <returns>True</returns>
         internal virtual bool NextSublist()
         {
-<<<<<<< HEAD
             if(singleListMode || selectedSublist >= source.SublistKeys.Count - 1) // Can't move
-=======
-            if(selectedSublist >= source.SublistKeys.Count - 1) // Can't move
->>>>>>> 2598d967d42800b22452db768c4ce1e0cd8a6986
             {
                 return true;
             }
