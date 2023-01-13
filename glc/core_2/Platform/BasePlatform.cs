@@ -11,9 +11,9 @@ namespace core_2.Platform
     /// <summary>
     /// Base class for generic platform
     /// </summary>
-    public abstract class Platform : IData
+    public abstract class BasePlatform : IData
     {
-        internal Dictionary<string, List<CGame>> m_games = new Dictionary<string, List<CGame>>();
+        internal Dictionary<string, List<Game.Game>> m_games = new Dictionary<string, List<Game.Game>>();
 
         #region IData
 
@@ -68,11 +68,11 @@ namespace core_2.Platform
         /// <summary>
         /// Getter for all games
         /// </summary>
-        public IEnumerable<CGame> AllGames
+        public IEnumerable<Game.Game> AllGames
         {
             get
             {
-                HashSet<CGame> allGames = new HashSet<CGame>();
+                HashSet<Game.Game> allGames = new HashSet<Game.Game>();
                 foreach (var set in m_games.Values)
                 {
                     allGames.UnionWith(set);
@@ -84,11 +84,11 @@ namespace core_2.Platform
         /// <summary>
         /// Getter for favourite games
         /// </summary>
-        public IEnumerable<CGame> Favourites
+        public IEnumerable<Game.Game> Favourites
         {
             get
             {
-                HashSet<CGame> favourites = new HashSet<CGame>();
+                HashSet<Game.Game> favourites = new HashSet<Game.Game>();
                 foreach(var set in m_games.Values)
                 {
                     favourites.UnionWith(set.Where(t => t.IsFavourite));
@@ -102,9 +102,9 @@ namespace core_2.Platform
         /// </summary>
         /// <param name="tag">The tag name</param>
         /// <returns>List of games with specific tag, or empty list</returns>
-        public IEnumerable<CGame> this[string tag]
+        public IEnumerable<Game.Game> this[string tag]
         {
-            get => (m_games.ContainsKey(tag)) ? m_games[tag].ToList() : new List<CGame>();
+            get => (m_games.ContainsKey(tag)) ? m_games[tag].ToList() : new List<Game.Game>();
         }
 
         #endregion Properties
@@ -115,24 +115,24 @@ namespace core_2.Platform
         /// Scan for installed games
         /// </summary>
         /// <returns>HashSet containing installed game objects</returns>
-        public abstract HashSet<CGame> GetInstalledGames();
+        public abstract HashSet<Game.Game> GetInstalledGames();
 
         /// <summary>
         /// Scan for non-installed games
         /// </summary>
         /// <returns>HashSet containing non-installed game objects</returns>
-        public abstract HashSet<CGame> GetNonInstalledGames();
+        public abstract HashSet<Game.Game> GetNonInstalledGames();
 
         /// <summary>
         /// Launch or activate specified game
         /// </summary>
         /// <param name="game">The game to launch</param>
         /// <returns>True on success</returns>
-        public abstract bool GameLaunch(CGame game);
+        public abstract bool GameLaunch(Game.Game game);
 
         #endregion Abstract methods
 
-        protected virtual void SaveNewGames(HashSet<CGame> newGames)
+        protected virtual void SaveNewGames(HashSet<Game.Game> newGames)
         {
 
         }

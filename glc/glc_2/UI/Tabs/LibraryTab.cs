@@ -218,7 +218,7 @@ namespace glc_2.UI.Tabs
 		/// <param name="e">The event argument</param>
 		private static void GameListView_OpenSelectedItem(MultilistViewItemEventArgs e)
         {
-            if(!DataManager.LaunchGame((CGame)e.Value))
+            if(!DataManager.LaunchGame((Game)e.Value))
             {
                 throw new System.Exception("Could not launch game");
             }
@@ -265,7 +265,7 @@ namespace glc_2.UI.Tabs
                 return;
             }
 
-            CGame game = (CGame)e.Value;
+            Game game = (Game)e.Value;
             m_gameInfoPanel.SetGameInfo(game);
         }
 
@@ -281,7 +281,7 @@ namespace glc_2.UI.Tabs
                 return;
             }
 
-            CGame selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
+            Game selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
             selectedItem.ToggleFavourite();
 
             System.Diagnostics.Debug.WriteLine($"Game: {selectedItem.Name}, Favourite: {selectedItem.IsFavourite}");
@@ -294,7 +294,7 @@ namespace glc_2.UI.Tabs
                 return;
             }
 
-            CGame selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
+            Game selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
             selectedItem.ToggleFavourite();
 
             System.Diagnostics.Debug.WriteLine($"Game: {selectedItem.Name}, Entered edit mode");
@@ -307,7 +307,7 @@ namespace glc_2.UI.Tabs
                 return;
             }
 
-            CGame selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
+            Game selectedItem = m_gamePanel.ContainerView.GetSelectedItem();
             selectedItem.ToggleFavourite();
 
             System.Diagnostics.Debug.WriteLine($"Game: {selectedItem.Name}, Entered rating mode");

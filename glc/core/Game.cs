@@ -82,6 +82,12 @@ namespace core
             return (other == null) ? false : Identifier == other.Identifier;
         }
 
+        // TEMP
+        public static Game FromScanner(int platformFK, string identifier, string title, string launch, string alias, string tag)
+        {
+            return new Game(title, platformFK, identifier, alias, launch, tag);
+        }
+
         /// <summary>
         /// Constructor.
         /// Create a game object with minimal necessary data.

@@ -22,7 +22,7 @@ namespace glc_2.UI.Panels
             };
         }
 
-        public void SetGameInfo(CGame game)
+        public void SetGameInfo(Game game)
         {
             m_frameView.RemoveAll();
             m_frameView.Title = game.Name;

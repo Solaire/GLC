@@ -9,10 +9,10 @@ namespace core_2
 {
     public static class DataManager
     {
-        private static Dictionary<int, Platform.Platform> m_platforms = new Dictionary<int, Platform.Platform>();
-        private static Dictionary<string, List<CGame>> m_searchResults = new Dictionary<string, List<CGame>>();
+        private static Dictionary<int, Platform.BasePlatform> m_platforms = new Dictionary<int, Platform.BasePlatform>();
+        private static Dictionary<string, List<Game.Game>> m_searchResults = new Dictionary<string, List<Game.Game>>();
 
-        public static List<Platform.Platform> Platforms => m_platforms.Values.ToList();
+        public static List<Platform.BasePlatform> Platforms => m_platforms.Values.ToList();
 
         public static bool Initialise()
         {
@@ -25,35 +25,36 @@ namespace core_2
         /// create default instance and insert into the database
         /// </summary>
         /// <returns>True on initialise success</returns>
-        private static bool InitialisePlatforms()
+        private static bool InitialisePlatforms(bool testData = false) // TODO: Remove temp variable
         {
-            var testPlatformFactory = new CTestPlatformFactory();
-            m_platforms[1] = testPlatformFactory.CreateFromDatabase(1, "Test ID 1", "ID1", "", true);
-            m_platforms[2] = testPlatformFactory.CreateFromDatabase(2, "Test ID 2", "ID2", "", true);
-            return true;
+            if(testData)
+            {
+                var testPlatformFactory = new CTestPlatformFactory();
+                m_platforms[1] = testPlatformFactory.CreateFromDatabase(1, "Test ID 1", "ID1", "", true);
+                m_platforms[2] = testPlatformFactory.CreateFromDatabase(2, "Test ID 2", "ID2", "", true);
+                return true;
+            }
 
-            /*
-            var pluginLoader = new PluginLoader<CPlatformFactory<CPlatform>>();
+            var pluginLoader = new PluginLoader<CPlatformFactory<BasePlatform>>();
             var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc\bin\Debug\net6.0\platforms"); // TODO: path
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 
             foreach(var plugin in plugins)
             {
                 CLogger.LogInfo($"Loaded plugin: {plugin.GetPlatformName()}");
-                CPlatform platform = null;
-                if(!CPlatformSQL.LoadPlatform(plugin, out platform))
+                BasePlatform platform = null;
+                if(!PlatformSQL.LoadPlatform(plugin, out platform))
                 {
                     platform = plugin.CreateDefault();
-                    CPlatformSQL.InsertPlatform(platform);
+                    PlatformSQL.InsertPlatform(platform);
                     CLogger.LogInfo($"Added new platform: {platform.Name}");
                 }
-                m_platforms.Add(platform);
+                m_platforms[platform.ID] = platform;
             }
 
             // We've loaded all data, no longer need to keep the DLLs loaded.
             pluginLoader.UnloadAll();
             return true;
-            */
         }
 
         public static bool GetBoolSetting(string key, bool defaultValue = true)
@@ -77,7 +78,7 @@ namespace core_2
                 return;
             }
 
-            Platform.Platform platform = m_platforms[platformID];
+            Platform.BasePlatform platform = m_platforms[platformID];
 
             if(platform.IsLoaded && !reload)
             {
@@ -92,83 +93,83 @@ namespace core_2
             platform.m_games = LoadGames(platformID);
         }
 
-        private static Dictionary<string, List<CGame>> LoadGames(int platformID)
+        private static Dictionary<string, List<Game.Game>> LoadGames(int platformID)
         {
             if(platformID == 1)
             {
-                return new Dictionary<string, List<CGame>>()
+                return new Dictionary<string, List<Game.Game>>()
                 {
                     {
-                        "Installed", new List<CGame>()
+                        "Installed", new List<Game.Game>()
                         {
-                            CGame.CreateNew("Installed 1", 1, "Installed1", "Installed1", "", "Installed"),
-                            CGame.CreateNew("Installed 2", 1, "Installed2", "Installed2", "", "Installed"),
-                            CGame.CreateNew("Installed 3", 1, "Installed3", "Installed3", "", "Installed"),
-                            CGame.CreateNew("Installed 4", 1, "Installed4", "Installed4", "", "Installed"),
-                            CGame.CreateNew("Installed 5", 1, "Installed5", "Installed5", "", "Installed"),
-                            CGame.CreateNew("Installed 6", 1, "Installed6", "Installed6", "", "Installed"),
-                            CGame.CreateNew("Installed 7", 1, "Installed7", "Installed7", "", "Installed"),
-                            CGame.CreateNew("Installed 8", 1, "Installed8", "Installed8", "", "Installed"),
-                            CGame.CreateNew("Installed 9", 1, "Installed9", "Installed9", "", "Installed"),
+                            Game.Game.CreateNew("Installed 1", 1, "Installed1", "Installed1", "", "Installed"),
+                            Game.Game.CreateNew("Installed 2", 1, "Installed2", "Installed2", "", "Installed"),
+                            Game.Game.CreateNew("Installed 3", 1, "Installed3", "Installed3", "", "Installed"),
+                            Game.Game.CreateNew("Installed 4", 1, "Installed4", "Installed4", "", "Installed"),
+                            Game.Game.CreateNew("Installed 5", 1, "Installed5", "Installed5", "", "Installed"),
+                            Game.Game.CreateNew("Installed 6", 1, "Installed6", "Installed6", "", "Installed"),
+                            Game.Game.CreateNew("Installed 7", 1, "Installed7", "Installed7", "", "Installed"),
+                            Game.Game.CreateNew("Installed 8", 1, "Installed8", "Installed8", "", "Installed"),
+                            Game.Game.CreateNew("Installed 9", 1, "Installed9", "Installed9", "", "Installed"),
                         }
                     },
                     {
-                        "Not installed", new List<CGame>()
+                        "Not installed", new List<Game.Game>()
                         {
-                            CGame.CreateNew("Deleted 1", 1, "Deleted1", "Deleted1", "", "Not installed"),
-                            CGame.CreateNew("Deleted 2", 1, "Deleted2", "Deleted2", "", "Not installed"),
-                            CGame.CreateNew("Deleted 3", 1, "Deleted3", "Deleted3", "", "Not installed"),
-                            CGame.CreateNew("Deleted 4", 1, "Deleted4", "Deleted4", "", "Not installed"),
-                            CGame.CreateNew("Deleted 5", 1, "Deleted5", "Deleted5", "", "Not installed"),
-                            CGame.CreateNew("Deleted 6", 1, "Deleted6", "Deleted6", "", "Not installed"),
-                            CGame.CreateNew("Deleted 7", 1, "Deleted7", "Deleted7", "", "Not installed"),
-                            CGame.CreateNew("Deleted 8", 1, "Deleted8", "Deleted8", "", "Not installed"),
-                            CGame.CreateNew("Deleted 9", 1, "Deleted9", "Deleted9", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 1", 1, "Deleted1", "Deleted1", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 2", 1, "Deleted2", "Deleted2", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 3", 1, "Deleted3", "Deleted3", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 4", 1, "Deleted4", "Deleted4", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 5", 1, "Deleted5", "Deleted5", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 6", 1, "Deleted6", "Deleted6", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 7", 1, "Deleted7", "Deleted7", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 8", 1, "Deleted8", "Deleted8", "", "Not installed"),
+                            Game.Game.CreateNew("Deleted 9", 1, "Deleted9", "Deleted9", "", "Not installed"),
                         }
                     }
                 };
             }
 
-            return new Dictionary<string, List<CGame>>()
+            return new Dictionary<string, List<Game.Game>>()
             {
                 {
-                    "Installed", new List<CGame>()
+                    "Installed", new List<Game.Game>()
                     {
-                        CGame.CreateNew("Installed 10", 2, "Installed10", "Installed10", "", "Installed"),
-                        CGame.CreateNew("Installed 20", 2, "Installed20", "Installed20", "", "Installed"),
-                        CGame.CreateNew("Installed 30", 2, "Installed30", "Installed30", "", "Installed"),
-                        CGame.CreateNew("Installed 40", 2, "Installed40", "Installed40", "", "Installed"),
-                        CGame.CreateNew("Installed 50", 2, "Installed50", "Installed50", "", "Installed"),
-                        CGame.CreateNew("Installed 60", 2, "Installed60", "Installed60", "", "Installed"),
-                        CGame.CreateNew("Installed 70", 1, "Installed70", "Installed70", "", "Installed"),
-                        CGame.CreateNew("Installed 80", 1, "Installed80", "Installed80", "", "Installed"),
-                        CGame.CreateNew("Installed 90", 1, "Installed90", "Installed90", "", "Installed"),
+                        Game.Game.CreateNew("Installed 10", 2, "Installed10", "Installed10", "", "Installed"),
+                        Game.Game.CreateNew("Installed 20", 2, "Installed20", "Installed20", "", "Installed"),
+                        Game.Game.CreateNew("Installed 30", 2, "Installed30", "Installed30", "", "Installed"),
+                        Game.Game.CreateNew("Installed 40", 2, "Installed40", "Installed40", "", "Installed"),
+                        Game.Game.CreateNew("Installed 50", 2, "Installed50", "Installed50", "", "Installed"),
+                        Game.Game.CreateNew("Installed 60", 2, "Installed60", "Installed60", "", "Installed"),
+                        Game.Game.CreateNew("Installed 70", 1, "Installed70", "Installed70", "", "Installed"),
+                        Game.Game.CreateNew("Installed 80", 1, "Installed80", "Installed80", "", "Installed"),
+                        Game.Game.CreateNew("Installed 90", 1, "Installed90", "Installed90", "", "Installed"),
                     }
                 },
                 {
-                    "Not installed", new List<CGame>()
+                    "Not installed", new List<Game.Game>()
                     {
-                        CGame.CreateNew("Deleted 10", 2, "Deleted10", "Deleted10", "", "Not installed"),
-                        CGame.CreateNew("Deleted 20", 2, "Deleted20", "Deleted20", "", "Not installed"),
-                        CGame.CreateNew("Deleted 30", 2, "Deleted30", "Deleted30", "", "Not installed"),
-                        CGame.CreateNew("Deleted 40", 2, "Deleted40", "Deleted40", "", "Not installed"),
-                        CGame.CreateNew("Deleted 50", 2, "Deleted50", "Deleted50", "", "Not installed"),
-                        CGame.CreateNew("Deleted 60", 2, "Deleted60", "Deleted60", "", "Not installed"),
-                        CGame.CreateNew("Deleted 70", 1, "Deleted70", "Deleted70", "", "Not installed"),
-                        CGame.CreateNew("Deleted 80", 1, "Deleted80", "Deleted80", "", "Not installed"),
-                        CGame.CreateNew("Deleted 90", 1, "Deleted90", "Deleted90", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 10", 2, "Deleted10", "Deleted10", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 20", 2, "Deleted20", "Deleted20", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 30", 2, "Deleted30", "Deleted30", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 40", 2, "Deleted40", "Deleted40", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 50", 2, "Deleted50", "Deleted50", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 60", 2, "Deleted60", "Deleted60", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 70", 1, "Deleted70", "Deleted70", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 80", 1, "Deleted80", "Deleted80", "", "Not installed"),
+                        Game.Game.CreateNew("Deleted 90", 1, "Deleted90", "Deleted90", "", "Not installed"),
                     }
                 }
             };
         }
 
-        public static Dictionary<string, List<CGame>> GetPlatformGames(int platformID)
+        public static Dictionary<string, List<Game.Game>> GetPlatformGames(int platformID)
         {
             if(platformID <= 0)
             {
                 return m_searchResults;
             }
-            return (m_platforms.ContainsKey(platformID)) ? m_platforms[platformID].m_games : new Dictionary<string, List<CGame>>();
+            return (m_platforms.ContainsKey(platformID)) ? m_platforms[platformID].m_games : new Dictionary<string, List<Game.Game>>();
         }
 
         public static void GameSearch(string searchTerm)
@@ -178,18 +179,18 @@ namespace core_2
                 return;
             }
 
-            m_searchResults[searchTerm] = new List<CGame>();
+            m_searchResults[searchTerm] = new List<Game.Game>();
 
             // TEMP
-            foreach(Platform.Platform platform in m_platforms.Values)
+            foreach(Platform.BasePlatform platform in m_platforms.Values)
             {
                 m_searchResults[searchTerm].AddRange(platform.AllGames.Where(g => g.Name.Contains(searchTerm)));
             }
         }
 
-        public static bool LaunchGame(CGame game)
+        public static bool LaunchGame(Game.Game game)
         {
-            Platform.Platform platform = Platforms.Single(p => p.ID == game.PlatformFK);
+            Platform.BasePlatform platform = Platforms.Single(p => p.ID == game.PlatformFK);
             return platform.GameLaunch(game);
         }
     }
@@ -303,7 +304,7 @@ namespace core_2
 
     #endregion PluginLoader
 
-    public class CTestPlatform : Platform.Platform
+    public class CTestPlatform : Platform.BasePlatform
     {
         public CTestPlatform(int id, string name, string description, string path, bool isEnabled)
         {
@@ -314,31 +315,31 @@ namespace core_2
             IsEnabled = isEnabled;
         }
 
-        public override bool GameLaunch(CGame game)
+        public override bool GameLaunch(Game.Game game)
         {
             System.Diagnostics.Debug.WriteLine($"Launching game: {game.Name}");
             return true;
         }
 
-        public override HashSet<CGame> GetInstalledGames()
+        public override HashSet<Game.Game> GetInstalledGames()
         {
-            return new HashSet<CGame>();
+            return new HashSet<Game.Game>();
         }
 
-        public override HashSet<CGame> GetNonInstalledGames()
+        public override HashSet<Game.Game> GetNonInstalledGames()
         {
-            return new HashSet<CGame>();
+            return new HashSet<Game.Game>();
         }
     }
 
-    public class CTestPlatformFactory : CPlatformFactory<Platform.Platform>
+    public class CTestPlatformFactory : CPlatformFactory<Platform.BasePlatform>
     {
-        public override Platform.Platform CreateDefault()
+        public override Platform.BasePlatform CreateDefault()
         {
             return new CTestPlatform(-1, GetPlatformName(), "", "", true);
         }
 
-        public override Platform.Platform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
+        public override Platform.BasePlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
         {
             return new CTestPlatform(id, name, description, path, isActive);
         }

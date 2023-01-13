@@ -1,7 +1,8 @@
-﻿using core;
-using core.Platform;
+﻿using core_2.Game;
+using core_2.Platform;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace BasePlatformExtension
 {
@@ -27,7 +28,7 @@ namespace BasePlatformExtension
 		public abstract HashSet<Game> GetNonInstalledGames(bool expensiveIcons);
 	}
 
-	public abstract class CBasePlatformExtension<T> : CPlatform where T : CBasePlatformScanner//, new()
+	public abstract class CBasePlatformExtension<T> : BasePlatform where T : CBasePlatformScanner//, new()
     {
         protected readonly CBasePlatformScanner m_scanner;
 
@@ -50,6 +51,15 @@ namespace BasePlatformExtension
             HashSet<Game> result = new HashSet<Game>();
             m_scanner.GetNonInstalledGames(false);
             return result;
+        }
+
+        protected Process StartShellExecute(string file)
+        {
+            Process cmdProcess = new();
+            cmdProcess.StartInfo.FileName = file;
+            cmdProcess.StartInfo.UseShellExecute = true;
+            cmdProcess.Start();
+            return cmdProcess;
         }
     }
 }

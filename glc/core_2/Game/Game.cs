@@ -1,14 +1,8 @@
-﻿using SqlDB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static core_2.DataAccess.GameSQL;
+﻿using static core_2.DataAccess.GameSQL;
 
 namespace core_2.Game
 {
-    public class CGame : IData, IEquatable<CGame>
+    public class Game : IData, IEquatable<Game>
     {
         #region IData
 
@@ -40,7 +34,7 @@ namespace core_2.Game
         /// </summary>
         /// <param name="other">The GameObject instance to compare</param>
         /// <returns>True if this instance and other have the same Identifier field</returns>
-        public bool Equals(CGame other)
+        public bool Equals(Game other)
         {
             return other == null ? false : Identifier == other.Identifier;
         }
@@ -96,7 +90,7 @@ namespace core_2.Game
 
         #endregion Properties
 
-        private CGame()
+        private Game()
         {
 
         }
@@ -111,9 +105,9 @@ namespace core_2.Game
         /// <param name="launch">The launch command</param>
         /// <param name="tag">Tag associated with the game</param>
         /// <returns>A game object with minimal data</returns>
-        public static CGame CreateNew(string name, int platformFK, string identifier, string alias, string launch, string tag)
+        public static Game CreateNew(string name, int platformFK, string identifier, string alias, string launch, string tag)
         {
-            return new CGame()
+            return new Game()
             {
                 Name = name,
                 PlatformFK = platformFK,
@@ -136,9 +130,9 @@ namespace core_2.Game
         /// </summary>
         /// <param name="row">A database row</param>
         /// <returns>Game object with database data</returns>
-        internal static CGame CreateFromDB(QryBaseReadGame row)
+        internal static Game CreateFromDB(QryBaseReadGame row)
         {
-            return new CGame()
+            return new Game()
             {
                 ID = row.GameID,
                 Name = row.Name,

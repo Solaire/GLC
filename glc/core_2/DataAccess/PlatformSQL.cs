@@ -161,7 +161,7 @@ namespace core_2.DataAccess
         /// <param name="factory">Implementation of the Platform factory interface which will create the instance of T</param>
         /// <param name="platform">Out parameter of type T which is the loaded CPlatform instance</param>
         /// <returns>True if load is successful</returns>
-        internal static bool LoadPlatform<T>(CPlatformFactory<T> factory, out T? platform) where T : Platform.Platform
+        internal static bool LoadPlatform<T>(CPlatformFactory<T> factory, out T? platform) where T : Platform.BasePlatform
         {
             m_qryReadPlatform.MakeFieldsNull();
             m_qryReadPlatform.Name = factory.GetPlatformName();
@@ -175,15 +175,15 @@ namespace core_2.DataAccess
             return true;
         }
 
-        internal static List<CBasicPlatform> ListPlatforms()
+        internal static List<InternalPlatform> ListPlatforms()
         {
-            List<CBasicPlatform> nodes = new List<CBasicPlatform>();
+            List<InternalPlatform> nodes = new List<InternalPlatform>();
             m_qryReadPlatform.MakeFieldsNull();
             if(m_qryReadPlatform.Select() == SQLiteErrorCode.Ok)
             {
                 do
                 {
-                    nodes.Add(CBasicPlatform.CreateFromDB(m_qryReadPlatform));
+                    nodes.Add(InternalPlatform.CreateFromDB(m_qryReadPlatform));
                 } while(m_qryReadPlatform.Fetch());
             }
             return nodes;
@@ -194,7 +194,7 @@ namespace core_2.DataAccess
         /// </summary>
         /// <param name="platform">Instance of CPlatform</param>
         /// <returns>True if insert was successful</returns>
-        internal static bool InsertPlatform(Platform.Platform platform)
+        internal static bool InsertPlatform(Platform.BasePlatform platform)
         {
             m_qryNewPlatform.MakeFieldsNull();
             m_qryNewPlatform.Name = platform.Name;

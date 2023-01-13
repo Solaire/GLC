@@ -67,7 +67,7 @@ namespace glc_2.UI.Views
         /// <summary>
         /// Sublists keyed on the sublist name
         /// </summary>
-        Dictionary<string, List<CGame>> Sublists { get; }
+        Dictionary<string, List<Game>> Sublists { get; }
 
         /// <summary>
         /// Total count of all source items.
@@ -114,7 +114,7 @@ namespace glc_2.UI.Views
         /// <param name="sublistIndex">The sublist index</param>
         /// <param name="itemIndex">The item index</param>
         /// <returns>Data source item; if the sublist doesn't exist, or the item index is out of bounds, should return null</returns>
-        CGame? GetItem(string sublistName, int itemIndex);
+        Game? GetItem(string sublistName, int itemIndex);
     }
 
     /// <summary>
@@ -403,7 +403,11 @@ namespace glc_2.UI.Views
         /// <returns>True</returns>
         internal virtual bool NextSublist()
         {
+<<<<<<< HEAD
             if(singleListMode || selectedSublist >= source.SublistKeys.Count - 1) // Can't move
+=======
+            if(selectedSublist >= source.SublistKeys.Count - 1) // Can't move
+>>>>>>> 2598d967d42800b22452db768c4ce1e0cd8a6986
             {
                 return true;
             }
@@ -586,7 +590,7 @@ namespace glc_2.UI.Views
                 return true;
             }
 
-            CGame value = (CGame)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
+            Game value = (Game)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
             SelectedItemChanged?.Invoke(new MultilistViewItemEventArgs(globalSelection, value));
             if(HasFocus)
             {
@@ -611,14 +615,14 @@ namespace glc_2.UI.Views
                 return true;
             }
 
-            CGame value = (CGame)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
+            Game value = (Game)source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
 
             OpenSelectedItem?.Invoke(new MultilistViewItemEventArgs(CalculateGlobalSelection(), value));
 
             return true;
         }
 
-        internal virtual CGame GetSelectedItem()
+        internal virtual Game GetSelectedItem()
         {
             return source.GetItem(Source.SublistKeys[selectedSublist], selectedItem);
         }

@@ -1,6 +1,8 @@
 ﻿using BasePlatformExtension;
 using core.Platform;
 using core;
+using Logger;
+using System.Diagnostics;
 
 namespace Gog
 {
@@ -17,6 +19,38 @@ namespace Gog
         public override bool GameLaunch(Game game)
         {
             System.Console.WriteLine($"Gog game {game.Title} launched");
+            return true;
+
+            //if((bool)CConfig.GetConfigBool(CConfig.CFG_USEGAL))
+            if(true)
+            {
+                //CLogger.LogInfo("Setting up a {0} game...", GOG.NAME_LONG);
+                ProcessStartInfo gogProcess = new();
+                string gogClientPath = game.Launch.Contains(".") ? game.Launch.Substring(0, game.Launch.IndexOf('.') + 4) : game.Launch;
+                string gogArguments = game.Launch.Contains(".") ? game.Launch[(game.Launch.IndexOf('.') + 4)..] : string.Empty;
+                CLogger.LogInfo($"Launch: \"{gogClientPath}\" {gogArguments}");
+                gogProcess.FileName = gogClientPath;
+                gogProcess.Arguments = gogArguments;
+                Process.Start(gogProcess);
+                if(OperatingSystem.IsWindows())
+                {
+                    Thread.Sleep(4000);
+                    Process[] procs = Process.GetProcessesByName("GalaxyClient");
+                    foreach(Process proc in procs)
+                    {
+                        //CDock.WindowMessage.ShowWindowAsync(procs[0].MainWindowHandle, CDock.WindowMessage.SW_FORCEMINIMIZE);
+                    }
+                }
+                return true;
+            }
+
+            CLogger.LogInfo($"Launch: {game.Icon}");
+            if(OperatingSystem.IsWindows())
+            {
+                StartShellExecute(game.Icon);
+                return true;
+            }
+            Process.Start(game.Icon);
             return true;
         }
     }

@@ -7,7 +7,7 @@ using core_2.Platform;
 
 namespace glc_2.UI.Panels
 {
-    internal class PlatformPanel : BasePanel<Platform, TreeView<PlatformTreeNode>>
+    internal class PlatformPanel : BasePanel<BasePlatform, TreeView<PlatformTreeNode>>
     {
         // TEMP
         PlatformRootNode m_searchRoot;
@@ -33,6 +33,7 @@ namespace glc_2.UI.Panels
                 Name = "Search",
                 ID = 0,
                 Tags = new List<PlatformTagNode>()
+
             };
             Initialise("Platforms", square, true);
         }
@@ -53,7 +54,7 @@ namespace glc_2.UI.Panels
 
             m_containerView.TreeBuilder = new PlatformTreeBuilder();
 
-            foreach(Platform platform in DataManager.Platforms)
+            foreach(BasePlatform platform in DataManager.Platforms)
             {
                 PlatformRootNode root = new PlatformRootNode()
                 {
@@ -116,7 +117,7 @@ namespace glc_2.UI.Panels
     }
 
     /// <summary>
-    /// Base class representing a <see cref="core_2.Platform.Platform"/> or a <see cref="CTag"/>
+    /// Base class representing a <see cref="core_2.Platform.BasePlatform"/> or a <see cref="CTag"/>
     /// as a <see cref="TreeView"/> node.
     /// </summary>
     internal abstract class PlatformTreeNode
@@ -138,7 +139,6 @@ namespace glc_2.UI.Panels
             get;
             set;
         }
-
         public override string ToString()
         {
             return Name;
@@ -147,7 +147,7 @@ namespace glc_2.UI.Panels
 
     /// <summary>
     /// Implementation of <see cref="PlatformTreeNode"/> which represents a
-    /// <see cref="core_2.Platform.Platform"/>
+    /// <see cref="core_2.Platform.BasePlatform"/>
     /// </summary>
     internal class PlatformRootNode : PlatformTreeNode
     {
@@ -180,11 +180,7 @@ namespace glc_2.UI.Panels
         /// <summary>
         /// The parent node
         /// </summary>
-        internal PlatformRootNode Parent
-        {
-            get;
-            private set;
-        }
+        internal PlatformRootNode Parent;
 
         /// <summary>
         /// Constructor

@@ -9,9 +9,9 @@ using Terminal.Gui;
 
 namespace glc_2.UI.Panels
 {
-    internal class CGamePanel : BasePanel<CGame, CMultilistView>
+    internal class CGamePanel : BasePanel<Game, CMultilistView>
     {
-        internal CGamePanel(Box box, Dictionary<string, List<CGame>> games)
+        internal CGamePanel(Box box, Dictionary<string, List<Game>> games)
             : base()
         {
 
@@ -46,7 +46,7 @@ namespace glc_2.UI.Panels
     internal class CGameDataMultilistSource : IMultilistDataSource
     {
         public AppendOnlyList<string> SublistKeys { get; }
-        public Dictionary<string, List<CGame>> Sublists { get; }
+        public Dictionary<string, List<Game>> Sublists { get; }
         public List<int> HeadingIndexes { get; }
 
         public int TotalCount
@@ -54,7 +54,7 @@ namespace glc_2.UI.Panels
             get
             {
                 int c = 0;
-                foreach(KeyValuePair<string, List<CGame>> kv in Sublists)
+                foreach(KeyValuePair<string, List<Game>> kv in Sublists)
                 {
                     c += kv.Value.Count;
                 }
@@ -82,7 +82,7 @@ namespace glc_2.UI.Panels
             return (sublistIndex >= 0 && sublistIndex < SublistKeys.Count) ? SublistCount(SublistKeys[sublistIndex]) : 0;
         }
 
-        public CGame? GetItem(string sublist, int itemIndex)
+        public Game? GetItem(string sublist, int itemIndex)
         {
             if(!Sublists.ContainsKey(sublist))
             {
@@ -95,7 +95,7 @@ namespace glc_2.UI.Panels
             return Sublists[sublist][itemIndex];
         }
 
-        public CGameDataMultilistSource(Dictionary<string, List<CGame>> dataSource)
+        public CGameDataMultilistSource(Dictionary<string, List<Game>> dataSource)
         {
             Sublists = dataSource;
             SublistKeys = new AppendOnlyList<string>(Sublists.Keys.ToList());
@@ -120,7 +120,7 @@ namespace glc_2.UI.Panels
         int GetMaxLengthItem()
         {
             int maxLength = 0;
-            foreach(KeyValuePair<string, List<CGame>> kv in Sublists)
+            foreach(KeyValuePair<string, List<Game>> kv in Sublists)
             {
                 for(int i = 0; i < kv.Value.Count; ++i)
                 {

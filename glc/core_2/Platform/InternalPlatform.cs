@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace core_2.Platform
 {
-    public class CBasicPlatform : IData
+    public class InternalPlatform : IData
     {
         #region IData
 
@@ -58,11 +58,11 @@ namespace core_2.Platform
         /// </summary>
         // public bool IsSpecialPlatform { get { return m_id < 0; } }
 
-        private CBasicPlatform() { }
+        private InternalPlatform() { }
 
-        public static CBasicPlatform CreateNew(int id, string name, string description, string path, bool isEnabled)
+        public static InternalPlatform CreateNew(int id, string name, string description, string path, bool isEnabled)
         {
-            return new CBasicPlatform()
+            return new InternalPlatform()
             {
                 ID = id,
                 Name = name,
@@ -71,9 +71,9 @@ namespace core_2.Platform
                 IsEnabled = isEnabled
             };
         }
-        internal static CBasicPlatform CreateFromDB(PlatformSQL.QryReadPlatform qry)
+        internal static InternalPlatform CreateFromDB(PlatformSQL.QryReadPlatform qry)
         {
-            return new CBasicPlatform()
+            return new InternalPlatform()
             {
                 ID = qry.PlatformID,
                 Name = qry.Name,

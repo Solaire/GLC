@@ -1,5 +1,4 @@
 ﻿using core_2;
-using System.Security.Cryptography.X509Certificates;
 
 namespace glc_2
 {

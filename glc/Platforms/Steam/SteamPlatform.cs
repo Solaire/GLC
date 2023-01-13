@@ -1,11 +1,16 @@
 ﻿using BasePlatformExtension;
 using core.Platform;
 using core;
+using Logger;
+using System.Diagnostics;
+using System.IO;
 
 namespace Steam
 {
     /// <summary>
-    /// Steam platform implementation
+    /// Steam [Valve]
+    /// [installed games + owned games if account is public]
+	/// [NOTE: DLCs are currently listed as owned not-installed games]
     /// </summary>
     public class CSteamPlatform : CBasePlatformExtension<CSteamScanner>
     {
@@ -18,6 +23,28 @@ namespace Steam
         {
             System.Console.WriteLine($"Steam game {game.Title} launched");
             return true;
+
+            if(OperatingSystem.IsWindows())
+            {
+                StartShellExecute(game.Launch);
+                return true;
+            }
+            Process.Start(game.Launch);
+            return true;
+        }
+
+        /// <summary>
+        /// Scan the key name and extract the Steam game id
+        /// </summary>
+        /// <param name="key">The game string</param>
+        /// <returns>Steam game ID as string</returns>
+        private string GetGameID(string key)
+        {
+            if(key.StartsWith("appmanifest_"))
+            {
+                return string.Empty;// Path.GetFileNameWithoutExtension(key[11..]);
+            }
+            return key;
         }
     }
 

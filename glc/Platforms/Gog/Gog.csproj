@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BasePlatform\BasePlatform.csproj" />
-    <ProjectReference Include="..\..\core\core.csproj" />
   </ItemGroup>
 
 </Project>
