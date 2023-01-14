@@ -14,4 +14,8 @@
     <ProjectReference Include="..\core_2\core_2.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /F /Y /I &quot;$(TargetDir)&quot; &quot;$(SolutionDir)Out\$(Configuration)\&quot;" />
+  </Target>
+
 </Project>

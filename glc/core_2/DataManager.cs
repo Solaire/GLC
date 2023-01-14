@@ -36,7 +36,7 @@ namespace core_2
             }
 
             var pluginLoader = new PluginLoader<CPlatformFactory<BasePlatform>>();
-            var plugins = pluginLoader.LoadAll(@"C:\dev\GameHub\glc\glc_2\bin\Debug\net6.0\Platforms"); // TODO: path
+            var plugins = pluginLoader.LoadAll($"{Directory.GetCurrentDirectory()}\\Platforms"); // TODO: path
             CLogger.LogInfo($"Loaded {plugins.Count} plugin(s)");
 
             foreach(var plugin in plugins)
@@ -203,6 +203,7 @@ namespace core_2
         {
             foreach(BasePlatform platform in m_platforms.Values)
             {
+                LoadPlatformGames(platform.ID, true);
                 HashSet<Game.Game> newGames = platform.GetInstalledGames();
                 HashSet<Game.Game> currentGames = platform["Installed"].ToHashSet<Game.Game>();
 
