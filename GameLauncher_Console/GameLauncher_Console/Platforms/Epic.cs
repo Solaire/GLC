@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using static GameLauncher_Console.CGameData;
 using static GameLauncher_Console.CJsonWrapper;
-//using static GameLauncher_Console.CRegScanner;
+using static GameLauncher_Console.CRegScanner;
 using static System.Environment;
 
 namespace GameLauncher_Console
@@ -233,7 +233,7 @@ namespace GameLauncher_Console
 					if (string.IsNullOrEmpty(id))
 						id = Path.GetFileName(file);
 					string strID = $"epic_{id}";
-					string strTitle = GetStringProperty(document.RootElement, "DisplayName");
+					string strTitle = GetStringProperty(document.RootElement, GAME_DISPLAY_NAME);
 					CLogger.LogDebug($"- {strTitle}");
 					string strLaunch = GetStringProperty(document.RootElement, "LaunchExecutable"); // DLCs won't have this set
 					string strUninstall = "";
@@ -242,7 +242,7 @@ namespace GameLauncher_Console
 					if (!string.IsNullOrEmpty(strLaunch))
 					{
 						epicIds.Add(id);
-						strUninstall = GetStringProperty(document.RootElement, "InstallLocation");
+						strUninstall = GetStringProperty(document.RootElement, GAME_INSTALL_LOCATION);
 						strLaunch = Path.Combine(strUninstall, strLaunch);
 						strUninstall += ";" + Path.GetFileName(file);
 						// rather than an uninstaller like most platforms, for Epic, strUninstall will hold two fields: the install location and the manifest file

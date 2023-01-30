@@ -47,7 +47,7 @@ namespace GameLauncher_Console
 		public const char SEPARATOR_SYMBOL = '│';
 		public const char RATING_SYMBOL = '*';
 
-		public static readonly string FILENAME = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
+		public static readonly string filename = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
 
 		CConsoleHelper m_dockConsole;
 		private int nColumnCount = 2;
@@ -57,8 +57,12 @@ namespace GameLauncher_Console
 		public static int m_nCurrentSelection = 0;
 
 		public static readonly string currentPath = Path.GetDirectoryName(AppContext.BaseDirectory);
-		public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
-		public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT", "EXI", "EXIF" };
+        public static readonly string title = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
+        //public static readonly string product = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+        public static readonly string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
+        public static readonly string description = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+
+        public static readonly List<string> supportedImages = new() { "ICO", "PNG", "JPG", "JPE", "JPEG", "GIF", "BMP", "TIF", "TIFF", "EPR", "EPRT", "EXI", "EXIF" };
 		public static bool noInteractive = false;
 		public static Size sizeIcon;
 		public static Size sizeImage;
@@ -180,10 +184,10 @@ namespace GameLauncher_Console
 					{
 						if (OperatingSystem.IsWindows())
 						{
-							if (PathEnvironmentUpdate.Add(Path.GetDirectoryName(AppContext.BaseDirectory), false))
+							if (PathEnvironmentUpdate.Add(currentPath, false))
 							{
 								CLogger.LogInfo("Added program location to PATH.");
-								Console.WriteLine("Added {0}.exe location to your PATH environment variable.", FILENAME);
+								Console.WriteLine("Added {0}.exe location to your PATH environment variable.", filename);
 							}
 							else
 							{
@@ -1593,8 +1597,7 @@ namespace GameLauncher_Console
 
 			Console.Clear();
 			WriteWithBreak(ref line, height, cols.titleCC, cols.titleLtCC, cols.titleCC, cols.titleLtCC,
-				string.Format("{0} version {1}", Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product,
-				Assembly.GetEntryAssembly().GetName().Version.ToString()));
+				string.Format("{0} version {1}", title, version));
 			foreach (string str in m_helpLines)
 			{
 				WriteWithBreak(ref line, height, cols.entryCC, cols.entryLtCC, cols.titleCC, cols.titleLtCC, str);
@@ -1797,19 +1800,17 @@ namespace GameLauncher_Console
 			Console.WriteLine();
 			//				  0|-------|---------|---------|---------|---------|---------|---------|---------|80
 			SetFgColour(cols.titleCC);
-			Console.WriteLine("{0} version {1}",
-				Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product,
-				Assembly.GetEntryAssembly().GetName().Version.ToString());
-			Console.WriteLine(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyDescriptionAttribute>().Description);
+			Console.WriteLine("{0} version {1}", title, version);
+			Console.WriteLine(description);
 			Console.WriteLine();
 			Console.WriteLine("Usage:");
 			Console.ResetColor();
 			Console.WriteLine("Start in interactive mode by running with no parameters,");
 			Console.WriteLine("or launch a game by entering search on the command-line, e.g.:");
-			Console.WriteLine(" .\\{0} \"My Game\"", FILENAME);
+			Console.WriteLine(" .\\{0} \"My Game\"", filename);
 			Console.WriteLine("If there are multiple results in command-line mode, to select an item from a");
 			Console.WriteLine("prior search, enter e.g.:");
-			Console.WriteLine(" .\\{0} /2", FILENAME);
+			Console.WriteLine(" .\\{0} /2", filename);
 			Console.WriteLine();
 			SetFgColour(cols.titleCC);
 			Console.WriteLine("Other parameters:");
@@ -1825,7 +1826,7 @@ namespace GameLauncher_Console
 			//Console.WriteLine("/U \"My Game\": Uninstall game");						// TODO
 			//Console.WriteLine("/A myalias \"My Game Name\": Change game's alias");	// TODO
 			Console.WriteLine("   /C : Toggle command-line only mode");
-			Console.WriteLine("   /P : Add {0}.exe location to your path", FILENAME);
+			Console.WriteLine("   /P : Add {0}.exe location to your path", filename);
 			Console.WriteLine("/?|/H : Display this help");
 			if (parent.Equals("explorer"))
 			{
@@ -2256,7 +2257,8 @@ namespace GameLauncher_Console
 		[SupportedOSPlatform("windows")]
 		public static Guid GetGuid()
 		{
-            using RegistryKey key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", RegistryKeyPermissionCheck.ReadSubTree); // HKLM64
+            using RegistryKey key = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine,
+                RegistryView.Registry64).OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", RegistryKeyPermissionCheck.ReadSubTree); // HKLM64
             return Guid.Parse((string)key.GetValue("MachineGuid"));
         }
 
