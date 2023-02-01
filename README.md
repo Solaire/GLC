@@ -14,9 +14,11 @@ This is a simple Windows console program that will scan the system for video gam
 - Paradox Launcher;
 - Plarium Play;
 - Riot Client;
+- Rockstar Games Launcher;
 - Steam;
 - Ubisoft Connect [formerly Uplay];
 - Wargaming.net Game Center.
+
 [NOTE: Bethesda.net Launcher has been deprecated as of May 2022.]
 
 You can also use it to launch custom programs (see [below](#Using) for instructions).

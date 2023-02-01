@@ -72,7 +72,8 @@ namespace GameLauncher_Console
 			string launcherPath = "";
 			int? lang = 1;
 
-			using (RegistryKey launcherKey = Registry.CurrentUser.OpenSubKey(PLARIUM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKCU64
+			using (RegistryKey launcherKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, 
+				RegistryView.Registry64).OpenSubKey(PLARIUM_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKCU64
 			{
 				if (launcherKey == null)
 				{
