@@ -89,7 +89,11 @@ namespace GameLauncher_Console
 			[Description("Legacy")]
 			Legacy = 19,
 			[Description("Riot Client")]
-			Riot = 20
+			Riot = 20,
+			[Description("Game Jolt")]
+			Misc = 21,
+			[Description("Miscellaneous")]
+			Misc = 22
 		}
 		*/
 

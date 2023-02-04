@@ -77,8 +77,12 @@ namespace GameLauncher_Console
 			[Description("Legacy")]
 			Legacy = 26,
 			[Description("Riot Client")]
-			Riot = 27
-		}
+			Riot = 27,
+            [Description("Game Jolt")]
+            GameJolt = 28,
+            [Description("Miscellaneous")]
+            Misc = 29
+        }
 
 		public enum Match
 		{
