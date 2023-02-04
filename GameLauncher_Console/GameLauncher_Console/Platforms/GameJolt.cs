@@ -14,7 +14,7 @@ using static System.Environment;
 
 namespace GameLauncher_Console
 {
-	// Game Jolt
+	// Game Jolt Client
 	// [installed games only]
 	public class PlatformGameJolt : IPlatform
 	{
