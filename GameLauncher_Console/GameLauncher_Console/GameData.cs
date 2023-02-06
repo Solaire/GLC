@@ -80,8 +80,10 @@ namespace GameLauncher_Console
 			Riot = 27,
             [Description("Game Jolt Client")]
             GameJolt = 28,
+            [Description("Humble App")]
+            Humble = 29,
             [Description("Miscellaneous")]
-            Misc = 29
+            Misc = 30
         }
 
 		public enum Match

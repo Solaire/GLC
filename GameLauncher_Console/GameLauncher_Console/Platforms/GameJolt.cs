@@ -195,7 +195,7 @@ namespace GameLauncher_Console
                 }
             }
 
-            CLogger.LogInfo("Icon for {0} game \"{1}\" not found on website.", _name.ToUpper(), title);
+            CLogger.LogInfo("Icon for {0} game \"{1}\" not found in file.", _name.ToUpper(), title);
             return "";
         }
 

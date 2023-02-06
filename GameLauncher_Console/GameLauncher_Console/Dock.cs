@@ -76,7 +76,7 @@ namespace GameLauncher_Console
 		//  0|-------|---------|---------|---------|---------|---------|---------|---------|80
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
-			" *Amazon *Battle.net *BigFish *EA *Epic *GameJolt *GOG *Indiegala *itch",
+			" *Amazon *BattleNet *BigFish *EA *Epic *GameJolt *GOG *Humble *Indiegala *itch",
 			" *Legacy *Oculus *Paradox *Plarium *Riot *Rockstar *Steam *Ubisoft *Wargaming",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
@@ -107,7 +107,8 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformEpic());
             platforms.AddSupportedPlatform(new PlatformGameJolt());
             platforms.AddSupportedPlatform(new PlatformGOG());
-			platforms.AddSupportedPlatform(new PlatformIGClient());
+            platforms.AddSupportedPlatform(new PlatformHumble());
+            platforms.AddSupportedPlatform(new PlatformIGClient());
 			platforms.AddSupportedPlatform(new PlatformItch());
 			platforms.AddSupportedPlatform(new PlatformLegacy());
             platforms.AddSupportedPlatform(new PlatformOculus());
@@ -946,6 +947,9 @@ namespace GameLauncher_Console
                                 case GamePlatform.GameJolt:
                                     DownloadCustomImage(selectedGame.Title, PlatformGameJolt.GetIconUrl(selectedGame), true);
                                     break;
+                                case GamePlatform.Humble:
+                                    DownloadCustomImage(selectedGame.Title, PlatformHumble.GetIconUrl(selectedGame), true);
+                                    break;
                                 default:
 									break;
 							}
@@ -1036,6 +1040,9 @@ namespace GameLauncher_Console
                                 case GamePlatform.GameJolt:
                                     PlatformGameJolt.Launch();
                                     break;
+                                case GamePlatform.Humble:
+                                    PlatformHumble.Launch();
+                                    break;
                                 default:
 									break;
 							}
@@ -1121,7 +1128,7 @@ namespace GameLauncher_Console
 							cfgv.imageBorder = true;
 							CConfig.SetConfigValue(CConfig.CFG_IMGRTIO, false);
 						}
-						if (cfgv.imageSize > 0)
+						if (OperatingSystem.IsWindows() && cfgv.imageSize > 0)
 						{
 							CConsoleImage.GetImageProperties(cfgv.imageSize, (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGPOS), out sizeImage, out locImage);
 							if (cfgv.imageBorder)
@@ -1408,6 +1415,10 @@ namespace GameLauncher_Console
 						//if (InputInstall(game.Title, cols))
 							return (PlatformGameJolt.InstallGame(game) != 0);	// [Doesn't currently show not-installed games]
 						//return false;
+					case GamePlatform.Humble:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformHumble.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
+						//return false;
 					default:
 						//SetFgColour(cols.errorCC, cols.errorLtCC);
 						CLogger.LogWarn("Install not supported for this platform.");
@@ -1559,6 +1570,9 @@ namespace GameLauncher_Console
 						break;
                     case GamePlatform.GameJolt:
                         PlatformGameJolt.StartGame(game);
+                        break;
+                    case GamePlatform.Humble:
+                        PlatformHumble.StartGame(game);
                         break;
                     default:
 						CLogger.LogInfo($"Launch: {game.Launch}");

@@ -377,14 +377,14 @@ namespace GameLauncher_Console
 							RegistryView.Registry32).OpenSubKey(UNINSTALL_REG, RegistryKeyPermissionCheck.ReadSubTree)) // HKLM32
 						{
 							if (key != null)
-							{
-								strID = key.Name;
+							{	
 								keyList = FindGameKeys(key, install, GAME_INSTALL_LOCATION, new string[] { EA_REG });
-								foreach (var data in keyList)
+								foreach (var subKey in keyList)
 								{
-									strTitle = GetRegStrVal(data, GAME_DISPLAY_NAME);
-									strLaunch = GetRegStrVal(data, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
-									strUninstall = GetRegStrVal(data, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
+									strID = subKey.Name;
+									strTitle = GetRegStrVal(subKey, GAME_DISPLAY_NAME);
+									strLaunch = GetRegStrVal(subKey, GAME_DISPLAY_ICON).Trim(new char[] { ' ', '"' });
+									strUninstall = GetRegStrVal(subKey, GAME_UNINSTALL_STRING); //.Trim(new char[] { ' ', '"' });
 								}
 							}
 						}

@@ -92,8 +92,10 @@ namespace GameLauncher_Console
 			Riot = 20,
 			[Description("Game Jolt Client")]
 			Misc = 21,
+			[Description("Humble App")]
+			Misc = 22,
 			[Description("Miscellaneous")]
-			Misc = 22
+			Misc = 23
 		}
 		*/
 
