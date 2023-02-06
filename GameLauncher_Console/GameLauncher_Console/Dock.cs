@@ -920,7 +920,7 @@ namespace GameLauncher_Console
 								case GamePlatform.Paradox:
 									//DownloadCustomImage(selectedGame.Title, PlatformParadox.GetIconUrl(selectedGame), true);
 									break;
-								case GamePlatform.Plarium:
+                                case GamePlatform.Plarium:			// Webp won't be supported until we finish switch to a cross-platform graphics library
 									//DownloadCustomImage(selectedGame.Title, PlatformPlarium.GetIconUrl(selectedGame), true);
 									break;
 								case GamePlatform.Twitch:           // deprecated, never implemented
@@ -947,8 +947,8 @@ namespace GameLauncher_Console
                                 case GamePlatform.GameJolt:
                                     DownloadCustomImage(selectedGame.Title, PlatformGameJolt.GetIconUrl(selectedGame), true);
                                     break;
-                                case GamePlatform.Humble:
-                                    DownloadCustomImage(selectedGame.Title, PlatformHumble.GetIconUrl(selectedGame), true);
+                                case GamePlatform.Humble:			// avif (AV1) won't be supported until we finish switch to a cross-platform graphics library
+                                    //DownloadCustomImage(selectedGame.Title, PlatformHumble.GetIconUrl(selectedGame), true);
                                     break;
                                 default:
 									break;
