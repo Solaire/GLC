@@ -31,13 +31,26 @@ namespace GameLauncher_Console
 
 		string IPlatform.Description => GetPlatformString(ENUM);
 
-		public static void Launch()
+        // Can't call PROTOCOL directly as Humble App is launched in command line mode, and StartInfo.Redirect* don't work when ShellExecute=True
+        public static void Launch()
 		{
-			if (OperatingSystem.IsWindows())
-				_ = CDock.StartShellExecute(PROTOCOL);
-			else
-				_ = Process.Start(PROTOCOL);
-		}
+            if (OperatingSystem.IsWindows())
+            {
+                using RegistryKey key = Registry.ClassesRoot.OpenSubKey(HUMBLE_RUN, RegistryKeyPermissionCheck.ReadSubTree);
+                string value = GetRegStrVal(key, null);
+                string[] subs = value.Split();
+                string command = "";
+                string args = "";
+                for (int i = 0; i < subs.Length; i++)
+                {
+                    if (i > 0)
+                        args += subs[i];
+                    else
+                        command = subs[0];
+				}
+                CDock.StartAndRedirect(command, args.Replace("%1", PROTOCOL));
+            }
+        }
 
 		// return value
 		// -1 = not implemented
@@ -121,7 +134,7 @@ namespace GameLauncher_Console
                         //   [NOTE: Mac and Linux trove games were discontinued 2022-02-01]
                         //strID = GetStringProperty(game, "downloadMachineName");
                         if (string.IsNullOrEmpty(strID))
-							strID = GetStringProperty(game, "gameKey");
+							strID = GetStringProperty(game, "gamekey");
 						strID = "humble_" + strID;
 						if (bInstalled)
 						{
@@ -138,6 +151,7 @@ namespace GameLauncher_Console
 
                             // Use website to download missing icons
                             // avif (AV1) won't be supported until we finish switch to a cross-platform graphics library
+                            // [403 error on attempt to download .png files directly]
 							/*
                             if (!(string.IsNullOrEmpty(imgUrl) || (bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN))))
 								CDock.DownloadCustomImage(strTitle, imgUrl);
@@ -182,6 +196,7 @@ namespace GameLauncher_Console
 		public static string GetIconUrl(string id, string title)
 		{
             // avif (AV1) won't be supported until we finish switch to a cross-platform graphics library
+            // [403 error on attempt to download .png files directly]
             string configPath = Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), HUMBLE_CONFIG); // AppData\Roaming
             if (File.Exists(configPath))
             {
