@@ -19,6 +19,8 @@ namespace GameLauncher_Console
 	{
 		public const GamePlatform ENUM			= GamePlatform.Humble;
 		public const string PROTOCOL			= "humble://";
+		public const string LAUNCH				= PROTOCOL + "launch/";
+		public const string UNINST_GAME			= PROTOCOL + "uninstall/";
 		private const string HUMBLE_RUN			= @"humble\shell\open\command"; // HKEY_CLASSES_ROOT
 		private const string HUMBLE_CONFIG		= @"Humble App\config.json"; // AppData\Roaming
 		private const string HUMBLE_PREFIX		= "Humble App "; // HKCU64 Uninstall
@@ -48,7 +50,7 @@ namespace GameLauncher_Console
                     else
                         command = subs[0];
 				}
-                CDock.StartAndRedirect(command, args.Replace("%1", PROTOCOL));
+                CDock.StartAndRedirect(command, args.Replace(" %1", ""));
             }
         }
 
@@ -58,10 +60,32 @@ namespace GameLauncher_Console
 		// 1 = success
 		public static int InstallGame(CGame game)
 		{
-			//CDock.DeleteCustomImage(game.Title, false);
-			Launch();
-			return -1;
-		}
+			CDock.DeleteCustomImage(game.Title, false);
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    using RegistryKey key = Registry.ClassesRoot.OpenSubKey(HUMBLE_RUN, RegistryKeyPermissionCheck.ReadSubTree);
+                    string[] subs = GetRegStrVal(key, null).Split(' ');
+                    string command = "";
+                    string args = "";
+                    for (int i = 0; i > subs.Length; i++)
+                    {
+                        if (i > 0)
+                            args += subs[i];
+                        else
+                            command = subs[0];
+                    }
+                    CDock.StartAndRedirect(command, args.Replace("%1", LAUNCH + GetGameID(game.ID)));
+                }
+                catch (Exception e)
+                {
+                    CLogger.LogError(e);
+                    return 0;
+                }
+            }
+            return 1;
+        }
 
 		public static void StartGame(CGame game)
 		{
@@ -88,17 +112,18 @@ namespace GameLauncher_Console
 					string loc = GetStringProperty(settings, "downloadLocation");
 					*/
 					document.RootElement.TryGetProperty("user", out JsonElement user);
-					bool getChoice = GetBoolProperty(user, "owns_active_content");
+					bool bHasHgc = GetBoolProperty(user, "owns_active_content");
+                    //bool paused = GetBoolProperty(user, "is_paused"); // TODO: find out whether we need to check this too
 
-					document.RootElement.TryGetProperty("game-collection-4", out JsonElement games);
+                    document.RootElement.TryGetProperty("game-collection-4", out JsonElement games);
 					foreach (JsonElement game in games.EnumerateArray())
 					{
 						bool avail = false;
 						bool bInstalled = false;
 
-						string exe = "";
-						string status = "";
-						string regName = "";
+						string instPath = "";
+						string exeFile = "";
+						bool bIsHgc = false;
 
 						string strID = "";
 						string strTitle = "";
@@ -117,11 +142,17 @@ namespace GameLauncher_Console
                         //   suffix "_trove" means no DRM, downloadable while subscribed
                         //   suffix "_collection" runs only while subscribed
                         //   "" [blank] for non-Steam bundle purchases
-                        strID = GetStringProperty(game, "machineName");
-                        status = GetStringProperty(game, "status"); // "available" or "downloaded"
-						strTitle = GetStringProperty(game, "gameName");
-                        if (status.Equals("downloaded"))
+						if (GetStringProperty(game, "machineName").EndsWith("_collection"))
+							bIsHgc = true;
+						if (GetStringProperty(game, "status").Equals("downloaded")) // "available" or "downloaded"
+						{
 							bInstalled = true;
+                            // If Humble Choice subscription is inactive, count game as not-installed
+                            if (bIsHgc && !bHasHgc)
+                                bInstalled = false;
+                        }
+                        strTitle = GetStringProperty(game, "gameName");
+							
                         //TODO: metadata description
                         //strDescription = GetStringProperty(game, "descriptionText");
                         imgUrl = GetStringProperty(game, "iconPath");
@@ -132,18 +163,28 @@ namespace GameLauncher_Console
                         //   suffix "_win" or "_windows" or "_windows_?????" where ? is mixed-case alphanumeric
                         //   suffix "_source"
                         //   [NOTE: Mac and Linux trove games were discontinued 2022-02-01]
-                        //strID = GetStringProperty(game, "downloadMachineName");
-                        if (string.IsNullOrEmpty(strID))
+                        strID = GetStringProperty(game, "downloadMachineName");
+						if (string.IsNullOrEmpty(strID))
+						{
 							strID = GetStringProperty(game, "gamekey");
-						strID = "humble_" + strID;
+							strID = "humble_" + strID;
+						}
+						else if ((bool)CConfig.GetConfigBool(CConfig.CFG_USEHUM))
+                            strLaunch = LAUNCH + strID;
+
 						if (bInstalled)
 						{
-							regName = GetStringProperty(game, "downloadMachineName");
-							strLaunch = GetStringProperty(game, "filePath");
-							exe = GetStringProperty(game, "executablePath");
+                            exeFile = GetStringProperty(game, "executablePath");
+                            strAlias = GetAlias(Path.GetFileNameWithoutExtension(exeFile));
+							if (string.IsNullOrEmpty(strLaunch))
+							{
+								instPath = GetStringProperty(game, "filePath");
+								if (!string.IsNullOrEmpty(instPath) && !string.IsNullOrEmpty(exeFile))
+									strLaunch = Path.Combine(instPath, exeFile);
+							}
 						}
 
-						if (string.IsNullOrEmpty(strLaunch) || string.IsNullOrEmpty(exe)) // not installed
+                        if (!bInstalled || string.IsNullOrEmpty(strLaunch)) // not installed
 						{
                             CLogger.LogDebug($"- *{strTitle}");
                             gameDataList.Add(
@@ -160,15 +201,13 @@ namespace GameLauncher_Console
 						else // installed
 						{
                             CLogger.LogDebug($"- {strTitle}");
-                            strLaunch = Path.Combine(strLaunch, exe);
-							strAlias = GetAlias(Path.GetFileNameWithoutExtension(strLaunch));
-							if (strAlias.Length > strTitle.Length)
+							if (string.IsNullOrEmpty(strAlias) || strAlias.Length > strTitle.Length)
 								strAlias = GetAlias(strTitle);
 							if (strAlias.Equals(strTitle, CDock.IGNORE_CASE))
 								strAlias = "";
 
 							using RegistryKey key = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser,
-								RegistryView.Registry64).OpenSubKey(Path.Combine(UNINSTALL_REG, HUMBLE_PREFIX + regName),
+								RegistryView.Registry64).OpenSubKey(Path.Combine(UNINSTALL_REG, HUMBLE_PREFIX + strID),
 								RegistryKeyPermissionCheck.ReadSubTree); // HKCU64
 							if (key != null)
 							{
@@ -179,6 +218,8 @@ namespace GameLauncher_Console
 							else
 								strIconPath = strLaunch;
 
+							if (string.IsNullOrEmpty(strUninstall))
+								strUninstall = UNINST_GAME + strID;
 							gameDataList.Add(
 								new ImportGameData(strID, strTitle, strLaunch, strIconPath, strUninstall, strAlias, true, strPlatform));
 						}
