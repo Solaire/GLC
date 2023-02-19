@@ -13,7 +13,7 @@ namespace PureOrigin.API.Classes.User
         [JsonProperty]
         public string Email { get; internal set; }
         [JsonProperty]
-        public DateTime DOB { get; internal set; }
+        public string DOB { get; internal set; }
         [JsonProperty]
         public string Country { get; internal set; }
         [JsonProperty]
