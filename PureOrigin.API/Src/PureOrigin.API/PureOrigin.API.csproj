@@ -5,6 +5,7 @@
     <PackageId>PureOrigin.API</PackageId>
     <Version>1.1.0</Version>
     <Authors>Kanga#8041</Authors>
+    <OutputType>Library</OutputType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
