@@ -58,7 +58,7 @@ namespace core_2.Platform
         /// </summary>
         // public bool IsSpecialPlatform { get { return m_id < 0; } }
 
-        private InternalPlatform() { }
+        protected InternalPlatform() { }
 
         public static InternalPlatform CreateNew(int id, string name, string description, string path, bool isEnabled)
         {

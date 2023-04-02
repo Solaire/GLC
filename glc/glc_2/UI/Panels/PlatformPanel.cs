@@ -31,7 +31,7 @@ namespace glc_2.UI.Panels
             m_searchRoot = new PlatformRootNode()
             {
                 Name = "Search",
-                ID = 0,
+                ID = -1, // TODO: Replace -1 with search constant ID
                 Tags = new List<PlatformTagNode>()
 
             };
@@ -86,7 +86,7 @@ namespace glc_2.UI.Panels
         /// <param name="searchTerm"></param>
         public void SetSearchResults(string searchTerm)
         {
-            PlatformTagNode searchNode = new PlatformTagNode(m_searchRoot, searchTerm, 0);
+            PlatformTagNode searchNode = new PlatformTagNode(m_searchRoot, searchTerm, -1); // TODO: Replace -1 with search constant
 
             // First search tag. Need to remove all nodes, so that the search root
             // is a the top of the tree

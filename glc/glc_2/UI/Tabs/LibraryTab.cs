@@ -110,7 +110,8 @@ namespace glc_2.UI.Tabs
                     Key.CtrlMask | Key.S,
                     new StatusItem(Key.CtrlMask | Key.S, "~S~ Search", () =>
                     {
-                        GameScanner();//GameSearch();
+                        GameSearch();
+                        //GameScanner();
                     })
                 },
             };
@@ -345,8 +346,9 @@ namespace glc_2.UI.Tabs
                     CanFocus = true,
                 };
 
-                DataManager.LoadPlatformGames(0);
-                view.Source = new CGameDataMultilistSource(DataManager.GetPlatformGames(0));
+                // TODO: Replace -1 with search constant
+                DataManager.LoadPlatformGames(-1);
+                view.Source = new CGameDataMultilistSource(DataManager.GetPlatformGames(-1));
                 view.SingleListMode(searchTerm);
                 dlg.Add(view);
                 Application.Run(dlg);

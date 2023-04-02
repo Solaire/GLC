@@ -4,15 +4,23 @@ using Logger;
 using core_2.DataAccess;
 using core_2.Platform;
 using core_2.Game;
+using core_2.Platform.SpecialPlatform;
 
 namespace core_2
 {
     public static class DataManager
     {
-        private static Dictionary<int, Platform.BasePlatform> m_platforms = new Dictionary<int, Platform.BasePlatform>();
-        private static Dictionary<string, List<Game.Game>> m_searchResults = new Dictionary<string, List<Game.Game>>();
+        private static Dictionary<int, BasePlatform> m_platformExtensions = new Dictionary<int, BasePlatform>();
+        private static Dictionary<SpecialPlatformType, InternalPlatform> m_specialPlatforms = new Dictionary<SpecialPlatformType, InternalPlatform>()
+        {
+            {
+                SpecialPlatformType.Search, new SearchPlatform()
+            }
+        };
 
-        public static List<Platform.BasePlatform> Platforms => m_platforms.Values.ToList();
+        //private static Dictionary<string, List<Game.Game>> m_searchResults = new Dictionary<string, List<Game.Game>>();
+
+        public static List<BasePlatform> Platforms => m_platformExtensions.Values.ToList();
 
         public static bool Initialise()
         {
@@ -30,8 +38,8 @@ namespace core_2
             if(testData)
             {
                 var testPlatformFactory = new CTestPlatformFactory();
-                m_platforms[1] = testPlatformFactory.CreateFromDatabase(1, "Test ID 1", "ID1", "", true);
-                m_platforms[2] = testPlatformFactory.CreateFromDatabase(2, "Test ID 2", "ID2", "", true);
+                m_platformExtensions[1] = testPlatformFactory.CreateFromDatabase(1, "Test ID 1", "ID1", "", true);
+                m_platformExtensions[2] = testPlatformFactory.CreateFromDatabase(2, "Test ID 2", "ID2", "", true);
                 return true;
             }
 
@@ -49,7 +57,7 @@ namespace core_2
                     PlatformSQL.InsertPlatform(platform);
                     CLogger.LogInfo($"Added new platform: {platform.Name}");
                 }
-                m_platforms[platform.ID] = platform;
+                m_platformExtensions[platform.ID] = platform;
             }
 
             // We've loaded all data, no longer need to keep the DLLs loaded.
@@ -73,12 +81,12 @@ namespace core_2
 
         public static void LoadPlatformGames(int platformID, bool reload = false)
         {
-            if(!m_platforms.ContainsKey(platformID) || platformID <= 0)
+            if(!m_platformExtensions.ContainsKey(platformID) || platformID <= 0)
             {
                 return;
             }
 
-            BasePlatform platform = m_platforms[platformID];
+            BasePlatform platform = m_platformExtensions[platformID];
 
             if(platform.IsLoaded && !reload)
             {
@@ -170,15 +178,23 @@ namespace core_2
 
         public static Dictionary<string, List<Game.Game>> GetPlatformGames(int platformID)
         {
+            if(platformID == (int)SpecialPlatformType.Search)
+            {
+                var searchPlatform = (SearchPlatform)m_specialPlatforms[SpecialPlatformType.Search]; // TODO: Remove ugly cast
+                return searchPlatform.GameMap;
+            }
+            /*
             if(platformID <= 0)
             {
                 return m_searchResults;
             }
-            return (m_platforms.ContainsKey(platformID)) ? m_platforms[platformID].m_games : new Dictionary<string, List<Game.Game>>();
+            */
+            return (m_platformExtensions.ContainsKey(platformID)) ? m_platformExtensions[platformID].m_games : new Dictionary<string, List<Game.Game>>();
         }
 
         public static void GameSearch(string searchTerm)
         {
+            /*
             if(m_searchResults.ContainsKey(searchTerm))
             {
                 return;
@@ -187,21 +203,35 @@ namespace core_2
             m_searchResults[searchTerm] = new List<Game.Game>();
 
             // TEMP
-            foreach(Platform.BasePlatform platform in m_platforms.Values)
+            foreach(BasePlatform platform in m_platformExtensions.Values)
             {
                 m_searchResults[searchTerm].AddRange(platform.AllGames.Where(g => g.Name.Contains(searchTerm)));
             }
+            */
+
+            var searchPlatform = (SearchPlatform)m_specialPlatforms[SpecialPlatformType.Search]; // TODO: Remove ugly cast
+            if(searchPlatform[searchTerm] != null)
+            {
+                return;
+            }
+            var searchResults = new List<Game.Game>();
+            foreach(BasePlatform platform in m_platformExtensions.Values)
+            {
+                searchResults.AddRange(platform.AllGames.Where(g => g.Name.ToLower().Contains(searchTerm.ToLower())));
+            }
+
+            searchPlatform.AddSearchTerm(searchTerm, searchResults);
         }
 
         public static bool LaunchGame(Game.Game game)
         {
-            Platform.BasePlatform platform = Platforms.Single(p => p.ID == game.PlatformFK);
+            BasePlatform platform = Platforms.Single(p => p.ID == game.PlatformFK);
             return platform.GameLaunch(game);
         }
 
         public static void GameScanner()
         {
-            foreach(BasePlatform platform in m_platforms.Values)
+            foreach(BasePlatform platform in m_platformExtensions.Values)
             {
                 LoadPlatformGames(platform.ID, true);
                 HashSet<Game.Game> newGames = platform.GetInstalledGames();
@@ -330,7 +360,7 @@ namespace core_2
 
     #endregion PluginLoader
 
-    public class CTestPlatform : Platform.BasePlatform
+    public class CTestPlatform : BasePlatform
     {
         public CTestPlatform(int id, string name, string description, string path, bool isEnabled)
             : base(id, name, description, path, isEnabled)
@@ -359,14 +389,14 @@ namespace core_2
         }
     }
 
-    public class CTestPlatformFactory : CPlatformFactory<Platform.BasePlatform>
+    public class CTestPlatformFactory : CPlatformFactory<BasePlatform>
     {
-        public override Platform.BasePlatform CreateDefault()
+        public override BasePlatform CreateDefault()
         {
             return new CTestPlatform(-1, GetPlatformName(), "", "", true);
         }
 
-        public override Platform.BasePlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
+        public override BasePlatform CreateFromDatabase(int id, string name, string description, string path, bool isActive)
         {
             return new CTestPlatform(id, name, description, path, isActive);
         }
