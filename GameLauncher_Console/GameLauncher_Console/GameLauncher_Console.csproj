@@ -129,6 +129,9 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\PureOrigin.API\Src\PureOrigin.API\PureOrigin.API.csproj" />	
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="protobuf-net" Version="3.1.33" />
     <PackageReference Include="protobuf-net.Core" Version="3.1.33" />
     <PackageReference Include="PureOrigin.API" Version="1.0.3" />

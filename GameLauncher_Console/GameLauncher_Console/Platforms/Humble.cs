@@ -113,7 +113,7 @@ namespace GameLauncher_Console
 					*/
 					document.RootElement.TryGetProperty("user", out JsonElement user);
 					bool bHasHgc = GetBoolProperty(user, "owns_active_content");
-                    bool bIsPaused = GetBoolProperty(user, "is_paused");
+          bool bIsPaused = GetBoolProperty(user, "is_paused");
 					//bool bPerks = GetBoolProperty(user, "has_perks");  // TODO: find out whether we need to check this too
 
                     document.RootElement.TryGetProperty("game-collection-4", out JsonElement games);
