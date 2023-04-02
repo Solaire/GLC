@@ -76,8 +76,8 @@ namespace GameLauncher_Console
 		//  0|-------|---------|---------|---------|---------|---------|---------|---------|80
 			" This program will scan your system for installed video games and display",
 			" them as a list. The following platforms are supported:",
-			" *Amazon *Battle.net *Big Fish *EA *Epic *GOG *Indiegala *itch *Legacy",
-			" *Oculus *Paradox *Plarium *Riot *Rockstar *Steam *Ubisoft *Wargaming",
+			" *Amazon *BattleNet *BigFish *EA *Epic *GameJolt *GOG *Humble *Indiegala *itch",
+			" *Legacy *Oculus *Paradox *Plarium *Riot *Rockstar *Steam *Ubisoft *Wargaming",
 			"",
 			" The games list and configuration are stored in .json files in the same folder",
 			" as this program. You can manually add games by placing a shortcut (.lnk) in",
@@ -105,11 +105,13 @@ namespace GameLauncher_Console
 			//platforms.AddSupportedPlatform(new PlatformCustom());		// See CPlatform.ScanGames()
 			platforms.AddSupportedPlatform(new PlatformEA());
 			platforms.AddSupportedPlatform(new PlatformEpic());
-			platforms.AddSupportedPlatform(new PlatformGOG());
-			platforms.AddSupportedPlatform(new PlatformIGClient());
+            platforms.AddSupportedPlatform(new PlatformGameJolt());
+            platforms.AddSupportedPlatform(new PlatformGOG());
+            platforms.AddSupportedPlatform(new PlatformHumble());
+            platforms.AddSupportedPlatform(new PlatformIGClient());
 			platforms.AddSupportedPlatform(new PlatformItch());
 			platforms.AddSupportedPlatform(new PlatformLegacy());
-			platforms.AddSupportedPlatform(new PlatformOculus());
+            platforms.AddSupportedPlatform(new PlatformOculus());
 			platforms.AddSupportedPlatform(new PlatformParadox());
 			platforms.AddSupportedPlatform(new PlatformPlarium());
 			platforms.AddSupportedPlatform(new PlatformRiot());
@@ -119,6 +121,7 @@ namespace GameLauncher_Console
 			platforms.AddSupportedPlatform(new PlatformWargaming());
 #if DEBUG
 			platforms.AddSupportedPlatform(new PlatformMicrosoft());	// an experiment for now
+			//platforms.AddSupportedPlatform(new PlatformMisc());			// another experiment
 #endif
 			bool import, parseError = false;
 			import = CJsonWrapper.ImportFromINI(out CConfig.ConfigVolatile cfgv, out CConfig.Hotkeys keys, out CConfig.Colours cols);
@@ -917,7 +920,7 @@ namespace GameLauncher_Console
 								case GamePlatform.Paradox:
 									//DownloadCustomImage(selectedGame.Title, PlatformParadox.GetIconUrl(selectedGame), true);
 									break;
-								case GamePlatform.Plarium:
+                                case GamePlatform.Plarium:			// Webp won't be supported until we finish switch to a cross-platform graphics library
 									//DownloadCustomImage(selectedGame.Title, PlatformPlarium.GetIconUrl(selectedGame), true);
 									break;
 								case GamePlatform.Twitch:           // deprecated, never implemented
@@ -941,7 +944,13 @@ namespace GameLauncher_Console
 								case GamePlatform.Riot:
 									//DownloadCustomImage(selectedGame.Title, PlatformRiot.GetIconUrl(selectedGame), true);
 									break;
-								default:
+                                case GamePlatform.GameJolt:
+                                    DownloadCustomImage(selectedGame.Title, PlatformGameJolt.GetIconUrl(selectedGame), true);
+                                    break;
+                                case GamePlatform.Humble:			// avif (AV1) won't be supported until we finish switch to a cross-platform graphics library
+                                    //DownloadCustomImage(selectedGame.Title, PlatformHumble.GetIconUrl(selectedGame), true);
+                                    break;
+                                default:
 									break;
 							}
 							continue;
@@ -1028,7 +1037,13 @@ namespace GameLauncher_Console
 								case GamePlatform.Riot:
 									PlatformRiot.Launch();
 									break;
-								default:
+                                case GamePlatform.GameJolt:
+                                    PlatformGameJolt.Launch();
+                                    break;
+                                case GamePlatform.Humble:
+                                    PlatformHumble.Launch();
+                                    break;
+                                default:
 									break;
 							}
 						}
@@ -1113,7 +1128,7 @@ namespace GameLauncher_Console
 							cfgv.imageBorder = true;
 							CConfig.SetConfigValue(CConfig.CFG_IMGRTIO, false);
 						}
-						if (cfgv.imageSize > 0)
+						if (OperatingSystem.IsWindows() && cfgv.imageSize > 0)
 						{
 							CConsoleImage.GetImageProperties(cfgv.imageSize, (ushort)CConfig.GetConfigNum(CConfig.CFG_IMGPOS), out sizeImage, out locImage);
 							if (cfgv.imageBorder)
@@ -1396,6 +1411,14 @@ namespace GameLauncher_Console
 						//if (InputInstall(game.Title, cols))
 							return (PlatformRiot.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
 						//return false;
+					case GamePlatform.GameJolt:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformGameJolt.InstallGame(game) != 0);	// [Doesn't currently show not-installed games]
+						//return false;
+					case GamePlatform.Humble:
+						//if (InputInstall(game.Title, cols))
+							return (PlatformHumble.InstallGame(game) != 0);		// [Doesn't currently show not-installed games]
+						//return false;
 					default:
 						//SetFgColour(cols.errorCC, cols.errorLtCC);
 						CLogger.LogWarn("Install not supported for this platform.");
@@ -1545,7 +1568,13 @@ namespace GameLauncher_Console
 					case GamePlatform.Riot:
 						PlatformRiot.StartGame(game);
 						break;
-					default:
+                    case GamePlatform.GameJolt:
+                        PlatformGameJolt.StartGame(game);
+                        break;
+                    case GamePlatform.Humble:
+                        PlatformHumble.StartGame(game);
+                        break;
+                    default:
 						CLogger.LogInfo($"Launch: {game.Launch}");
 						if (OperatingSystem.IsWindows())
 							_ = StartShellExecute(game.Launch);

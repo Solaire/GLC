@@ -174,9 +174,10 @@ namespace GameLauncher_Console
 									if (!string.IsNullOrEmpty(strLaunch))
 									{
                                         gameDataList.Add(new ImportGameData(strID, strTitle, strLaunch, strLaunch, "", strAlias, true, strPlatform));
-                                        
-										// Use website to download missing icons
-										/*
+
+                                        // Use website to download missing icons
+                                        // Webp won't be supported until we finish switch to a cross-platform graphics library
+                                        /*
                                         if (expensiveIcons && !(bool)(CConfig.GetConfigBool(CConfig.CFG_IMGDOWN)))
 											CDock.DownloadCustomImage(strTitle, GetIconUrl(strTitle));
 										*/

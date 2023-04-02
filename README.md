@@ -6,7 +6,9 @@ This is a simple Windows console program that will scan the system for video gam
 - Big Fish Games;
 - EA [formerly Origin];
 - Epic Games Launcher;
+- Game Jolt Client;
 - GOG Galaxy;
+- Humble App;
 - Indiegala Client;
 - itch;
 - Legacy Games;
