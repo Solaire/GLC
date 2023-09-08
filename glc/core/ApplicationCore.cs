@@ -23,7 +23,7 @@ namespace core
         private const string DATA_SCHEMA_PATH = "CreateDB.sql";
 
         protected List<CBasicPlatform> m_platforms;
-
+        
         /// <summary>
         /// Constructor.
         /// </summary>

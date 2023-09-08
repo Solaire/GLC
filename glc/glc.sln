@@ -23,7 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "core_2", "core_2\core_2.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "glc_2", "glc_2\glc_2.csproj", "{DAA0A160-1327-4021-BDCA-DDF9D1B2AA78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameFinder", "GameFinder\GameFinder.csproj", "{53005419-0551-423B-BECF-33E26D83FCAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameFinder", "GameFinder\GameFinder.csproj", "{53005419-0551-423B-BECF-33E26D83FCAA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibGLC", "LibGLC\LibGLC.csproj", "{8E63E443-3545-4443-A181-1204E7A1F2B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,10 @@ Global
 		{53005419-0551-423B-BECF-33E26D83FCAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53005419-0551-423B-BECF-33E26D83FCAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53005419-0551-423B-BECF-33E26D83FCAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E63E443-3545-4443-A181-1204E7A1F2B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E63E443-3545-4443-A181-1204E7A1F2B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E63E443-3545-4443-A181-1204E7A1F2B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E63E443-3545-4443-A181-1204E7A1F2B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
